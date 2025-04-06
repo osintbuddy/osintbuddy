@@ -1,0 +1,73 @@
+services:
+  ui:
+    container_name: "ui"
+    tty: true
+    command: sh -c "cd /app/ && yarn && yarn dev"
+    env_file:
+      - .env
+    image: node:18.18.2-alpine3.18
+    volumes:
+      - ./frontend/:/app/
+    ports:
+      - "${FRONTEND_PORT-3000}:3000"
+
+  plugins:
+    container_name: "plugins"
+    tty: true
+    command: "ob start"
+    build:
+      context: ./
+      dockerfile: pl.Dockerfile 
+    volumes:
+      - "./plugins:/plugins"
+      - "./osintbuddy-plugins:/app"
+    ports:
+      - "42562:42562"
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+
+  backend:
+    container_name: "backend"
+    tty: true
+    command: ["/bin/sh", "-c", "./start-reload.sh"]
+    env_file:
+      - .env
+    build:
+      context: ./
+      dockerfile: be.Dockerfile
+    volumes:
+      - ./backend:/app/
+    depends_on:
+      - db
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "${BACKEND_PORT-48997}:80"
+      - "3001:3001"
+
+  casdoor:
+    container_name: "casdoor"
+    image: casbin/casdoor:latest
+    restart: on-failure
+    depends_on:
+      - backend
+    links:
+      - backend
+    ports:
+      - 45910:45910
+    volumes:
+      - ./backend/conf:/conf
+      - ./backend/init_data.json:/init_data.json
+
+  db:
+    container_name: "db"
+    image: apache/age
+    volumes:
+      - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
+    env_file:
+      - .env
+    ports:
+      - "55432:5432"
+
+volumes:
+  ob-db-data:

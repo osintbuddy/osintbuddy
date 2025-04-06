@@ -1,0 +1,100 @@
+{
+  "name": "osintbuddy-ui",
+  "version": "0.3.0",
+  "private": true,
+  "dependencies": {
+    "@codemirror/lang-python": "^6.1.3",
+    "@headlessui/react": "^1.7.7",
+    "@heroicons/react": "^2.0.13",
+    "@hookform/resolvers": "^3.3.2",
+    "@reactour/tour": "^3.6.1",
+    "@reduxjs/toolkit": "^1.9.1",
+    "@tabler/icons-react": "^2.42.0",
+    "@tarii/3d-earth": "^1.0.3",
+    "@uiw/codemirror-theme-aura": "^4.21.20",
+    "@uiw/react-codemirror": "^4.21.20",
+    "casdoor-js-sdk": "^0.11.0",
+    "chartist": "^1.3.0",
+    "classnames": "^2.3.2",
+    "color": "^4.2.3",
+    "d3-force": "^3.0.0",
+    "d3-hierarchy": "^3.1.2",
+    "dagre": "^0.8.5",
+    "elkjs": "^0.8.2",
+    "entitree-flex": "^0.4.1",
+    "graphology": "^0.25.4",
+    "i18next": "^23.6.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-grid-layout": "^1.4.3",
+    "react-hook-form": "^7.47.0",
+    "react-hotkeys": "^2.0.0",
+    "react-redux": "^8.0.5",
+    "react-router-dom": "^6.4.5",
+    "react-scripts": "5.0.1",
+    "react-table": "^7.8.0",
+    "react-toastify": "^9.1.1",
+    "react-use-websocket": "^4.3.1",
+    "react-virtualized": "^9.22.5",
+    "reactflow": "^11.5.3",
+    "sigma": "^3.0.0-alpha3",
+    "webcola": "^3.4.0",
+    "yjs": "^13.6.8",
+    "yup": "^1.3.2"
+  },
+  "scripts": {
+    "dev": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "gen": "npx @rtk-query/codegen-openapi openapi-config.ts"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@craco/craco": "^7.1.0",
+    "@rtk-query/codegen-openapi": "^1.1.3",
+    "@swc/helpers": "^0.5.1",
+    "@tailwindcss/typography": "^0.5.9",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/dagre": "^0.7.48",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^17.0.45",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/react-grid-layout": "^1.3.2",
+    "@types/react-table": "^7.7.12",
+    "autoprefixer": "^10.4.13",
+    "buffer": "^6.0.3",
+    "craco-swc": "^0.5.1",
+    "husky": "^8.0.3",
+    "openapi-typescript-codegen": "^0.25.0",
+    "postcss": "^8.4.20",
+    "tailwindcss": "^3.2.4",
+    "typescript": "^4.9.4",
+    "util": "^0.12.5",
+    "web-vitals": "^2.1.4"
+  },
+  "browser": {
+    "crypto": false,
+    "stream": false
+  }
+}

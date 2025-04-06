@@ -1,0 +1,6 @@
+venv
+backend/venv
+plugins/
+**/__pycache__/
+osintbuddy-plugins/
+.vscode/

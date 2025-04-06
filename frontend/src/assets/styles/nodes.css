@@ -1,0 +1,131 @@
+/* Start node */
+.node.container {
+  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-mirage-400/90 backdrop-blur-xl focus:ring-mirage-300/70 focus-within:ring-mirage-300/70 hover:ring-mirage-300/70 bg-mirage-500/20 hover:bg-slate-900/60 focus:bg-slate-900/60 focus-within:bg-slate-900/60 hover:shadow-md shadow-slate-900/30 shadow cursor-grab active:cursor-grabbing;
+}
+
+.node .side-header {
+  @apply px-0 py-2 flex-shrink-0 flex flex-col items-center justify-center w-10 text-slate-50 text-sm font-medium rounded-l-sm;
+}
+
+.node .side-header svg {
+  @apply w-5 h-5;
+}
+
+.node .node-display {
+  @apply w-full flex flex-col ;
+}
+
+.node .node-display h1 {
+  @apply leading-3 text-slate-300;
+}
+
+.node .node-display h2 {
+  @apply leading-4;
+}
+
+.node .node-display h1,
+.node .node-display h2,
+.node .node-display p {
+  @apply font-semibold text-slate-400 font-sans break-words text-sm hover:cursor-pointer;
+}
+.node .node-display p {
+  @apply text-xs font-normal pt-1.5;
+}
+.node .node-display h2 {
+  @apply text-xs;
+}
+
+.node .header {
+  @apply flex h-full w-full items-center justify-between rounded-t-md text-slate-50/70 py-2 px-1 cursor-grab active:cursor-grabbing;
+}
+
+.node .header svg {
+  @apply h-6 w-6;
+}
+
+.text-container {
+  @apply flex w-full flex-col px-2 font-medium;
+}
+
+.text-container p:first-child,
+.text-container p:first-child > span {
+  @apply text-[0.4rem] text-slate-100/90 font-display;
+}
+
+.text-container p:last-child {
+  @apply text-xs text-slate-200 max-w-xl font-display font-medium;
+}
+
+.node-field {
+  @apply block mt-0.5 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l pl-0.5;
+}
+
+.node-field svg {
+  @apply h-4 w-4 mt-0.5 absolute top-0.5 text-slate-700 z-50 pointer-events-none;
+}
+
+.node-field input {
+  @apply placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none pl-[1.15rem] w-full;
+}
+
+.node-field.dropdown input {
+  @apply pl-1.5;
+}
+
+/* @todo :has is not supported by firefox yet :( */
+.node-field:has(input:focus) {
+  @apply ring-info-400/70;
+}
+
+.node-field:has(input:focus) svg {
+  @apply text-slate-500;
+}
+
+p.node-label {
+  @apply text-[0.5rem] font-medium text-slate-400 font-display mt-1;
+}
+/* End node */
+
+/* Start node context menu */
+.node-context {
+  @apply py-1 hover:text-slate-300 text-slate-400;
+}
+
+.node-context button {
+  @apply hover:bg-mirage-800 hover:text-slate-300 text-slate-400 flex items-center px-3 py-2 text-sm w-full;
+}
+
+.node-context svg {
+  @apply mr-3 h-5 w-5 hover:text-slate-300 text-slate-400;
+}
+/* End node context menu */
+
+.elements {
+  @apply p-2 grid rounded-b-md  gap-x-1;
+}
+
+.elements > div:nth-child(even) {
+  @apply mr-0;
+}
+
+.elements:nth-child(even) {
+}
+
+
+.node-details-popup .arrow {
+  color: #797979;
+}
+
+
+.triangle-left{
+  width: 0;
+  height: 0;
+  margin: 30px auto;
+  border-top:
+    12px solid transparent;
+  border-bottom:
+    12px solid transparent;
+    border-right:
+    20px solid  rgb(23 35 65);
+  
+}
