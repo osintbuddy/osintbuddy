@@ -40,7 +40,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage, closeRef }: JSONO
 
   const dispatch = useAppDispatch();
 
-  const getNodeElement = (element: NodeInput, key: string | null = getNodeKey(), width: number = 1) => {
+  const getNodeElement = (element: NodeInput, key: string | null = getNodeKey()) => {
     switch (element.type) {
       case 'dropdown':
         return (
@@ -153,32 +153,31 @@ export default function EditEntityNode({ ctx, sendJsonMessage, closeRef }: JSONO
               <span className='mr-1 text-[0.5rem] text-mirage-900 font-extralight max-w-xl whitespace-wrap '> ID: </span>
               {ctx.id}
             </p>
-            <p className='text-xs text-slate-200 max-w-xl whitespace-wrap font-display font-bold'>{ctx.label}</p>
+            <p className='text-xs text-slate-200 max-w-xl whitespace-wrap font-display font-bold'>{ctx.data.label}</p>
           </div>
           <Icon icon={ctx.icon} className='h-5 w-5 mr-2 cursor-grab focus:cursor-grabbing' />
         </div>
         <form
           id={`${ctx.id}-form`}
-          style={ctx.style}
           onSubmit={(event) => event.preventDefault()}
           className='elements'
           style={{
             gridTemplateColumns: '100%'
           }}
         >
-          {ctx.elements.map((element: NodeInput, i: number) => {
+          {ctx.data.elements.map((element: NodeInput, i: number) => {
             if (Array.isArray(element)) {
               return (
                 <div style={{ display: 'grid', columnGap: '0.5rem', gridTemplateColumns: `repeat(${element.length}, minmax(0, 1fr))` }} key={i.toString()}>
                   {element.map((elm, i: number) => (
                     <Fragment key={i.toString()}>
-                      {getNodeElement(elm, `${elm.label}-${elm.id}-${ctx.id}`, 1)}
+                      {getNodeElement(elm, `${elm.label}-${elm.id}-${ctx.id}`)}
                     </Fragment>
                   ))}
                 </div>
               );
             }
-            return getNodeElement(element, `${element.label}-${element.id}-${ctx.id}`, 2);
+            return getNodeElement(element, `${element.label}-${element.id}-${ctx.id}`);
           })}
         </form>
       </div >

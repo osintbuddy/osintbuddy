@@ -64,7 +64,7 @@ export const useResize = ({ minWidth }: UseResizeProps): UseResizeReturn => {
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
     <>
-      <li key={entity.id} className='flex items-center w-full justify-between pb-2.5'>
+      <li key={entity.label} className='flex items-center w-full justify-between pb-2.5'>
         <div
           draggable
           onDragStart={(event) => onDragStart(event, entity.label)}
@@ -160,9 +160,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
     isBounded: true
   })
 
-
   const dispatch = useAppDispatch();
-
   const [isForceActive, setIsForceActive] = useState(false);
 
   return (
@@ -191,7 +189,6 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
           isDraggable: isEntitiesDraggable,
           isBounded: true
         })
-
       }}
     >
       <div
@@ -237,7 +234,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             </div>
             <ul className='overflow-y-scroll ml-4 pr-4 h-full relative'>
               {entities.map((entity) => (
-                <EntityOption onDragStart={onDragStart} key={entity.id} entity={entity} />
+                <EntityOption onDragStart={onDragStart} key={entity.label} entity={entity} />
               ))}
             </ul>
           </>

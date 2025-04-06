@@ -91,7 +91,7 @@ $$) as (v agtype);
     }
 
 
-def set_entity_data(target_element, source_vertex) -> None:
+def set_entity_from_vertex(target_element, source_vertex) -> None:
     entity_keys = source_vertex.keys()
     obmap = {}
     if len(entity_keys) > 1:
@@ -142,9 +142,9 @@ async def read_graph(viewport_event, send_json, project_uuid, is_initial_read: b
         if len(vertex_properties):
             for element in entity['data']['elements']:
                 if isinstance(element, list):
-                    [set_entity_data(elm, vertex_properties) for elm in element]
+                    [set_entity_from_vertex(elm, vertex_properties) for elm in element]
                 else:
-                    set_entity_data(element, vertex_properties)
+                    set_entity_from_vertex(element, vertex_properties)
         entity['position'] = position
         entity['id'] = str(vertex.pop('id'))
         entity['type'] = 'view'
@@ -262,14 +262,14 @@ async def save_entity_transform(
     # print("SAVINGIN ENTITY TRANSFORM: ", transform_result, entity_context)
 
 
-    for element in transform_result['elements']:
+    for element in transform_result['data']['elements']:
         if isinstance(element, list):
             [await add_node_element(elm, vertex_properties) for elm in element]
         else:
             await add_node_element(element, vertex_properties)
 
     q = f"""* FROM cypher('g_{graphid}', $$
-CREATE (v:{to_snake_case(transform_result.get('label'))} {dict_to_opencypher(vertex_properties)})
+CREATE (v:{to_snake_case(transform_result['data'].get('label'))} {dict_to_opencypher(vertex_properties)})
 RETURN v
 $$) as (v agtype);
     """
@@ -285,19 +285,12 @@ $$) as (v agtype);
     #         'id': entity_source['id'],
     #         'label': edge_label
     #     } if edge_label else {}
-    return {
-        "id": f"{new_entity.get('id')}",
-        "type": "edit",
-        "action": "createEntity",
-        "position": entity_context["position"],
-        "parentId": entity_context["id"],
-        "data": {
-            "color": transform_result.pop("color"),
-            "icon": transform_result.pop("icon"),
-            "label": transform_result.pop("label"),
-            "elements": transform_result.pop("elements"),
-        }
-    }
+    transform_result['id'] = str(new_entity.get('id'))
+    transform_result['type'] = 'edit'
+    transform_result['action'] = 'createEntity'
+    transform_result['position'] = entity_context.get('position')
+    transform_result['parentId'] = entity_context.get('id')
+    return transform_result
 
 
 # TODO: Finish implementing 'multiplayer' logic
