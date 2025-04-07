@@ -1,7 +1,6 @@
 from typing import List, Annotated, Dict
 import copy, re, datetime, ujson
 from uuid import UUID
-
 from fastapi import APIRouter, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, Depends
 from websockets.exceptions import ConnectionClosedError
 from osintbuddy.utils import to_snake_case, MAP_KEY
@@ -22,14 +21,13 @@ async def get_blueprint(label: str):
 
 
 async def get_blueprints() -> dict[str, dict]:
-    blueprints = {}
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://plugins:42562/refresh?labels=1", timeout=None)
-        entity_labels = response.json()
-        for label in entity_labels:
-            blueprint = await get_blueprint(label)
-            blueprints[label] = blueprint
-    return blueprints
+        response = await client.get("http://plugins:42562/refresh?blueprints=1", timeout=None)
+        data = response.json()
+        return {
+            to_snake_case(blueprint.get('data').get('label')): blueprint
+            for blueprint in data
+        }
 
 
 @router.get("/refresh")
@@ -103,8 +101,7 @@ def set_entity_from_vertex(target_element, source_vertex) -> None:
 
 
 async def load_nodes_from_db(uuid: UUID, viewport=None) -> tuple[list, list]:
-    q = f"""
-* FROM cypher('g_{uuid.hex}', $$
+    q = f"""* FROM cypher('g_{uuid.hex}', $$
 MATCH (v)
 RETURN v
 $$) as (v agtype)"""
@@ -120,27 +117,25 @@ $$) as (v agtype)"""
         # TODO: unload nodes UI side when off screen offset by max drag distance
         return vertices, edges
 
+def vertex_to_entity(vertex, entity):
+    vertex_properties = vertex.get('properties')
+    position = {'x': vertex_properties.pop('x', 0), 'y': vertex_properties.pop('y', 0)}
+    if len(vertex_properties):
+        for element in entity['data']['elements']:
+            if isinstance(element, list):
+                [set_entity_from_vertex(elm, vertex_properties) for elm in element]
+            else:
+                set_entity_from_vertex(element, vertex_properties)
+    entity['position'] = position
+    entity['id'] = str(vertex.pop('id'))
+    entity['type'] = 'view'
+    return entity
 
 async def read_graph(viewport_event, send_json, project_uuid, is_initial_read: bool = False):
     print(f'reading graph: g_{project_uuid.hex}')
     blueprints = await get_blueprints()
     verticies, edges = await load_nodes_from_db(project_uuid, viewport_event)
     entities = list(map(lambda v: copy.deepcopy(blueprints.get(v.get('label'))), verticies))
-
-    def vertex_to_entity(vertex, entity):
-        vertex_properties = vertex.get('properties')
-        position = {'x': vertex_properties.pop('x'), 'y': vertex_properties.pop('y')}
-        if len(vertex_properties):
-            for element in entity['data']['elements']:
-                if isinstance(element, list):
-                    [set_entity_from_vertex(elm, vertex_properties) for elm in element]
-                else:
-                    set_entity_from_vertex(element, vertex_properties)
-        entity['position'] = position
-        entity['id'] = str(vertex.pop('id'))
-        entity['type'] = 'view'
-        return entity
-
     await send_json({
         'action': 'isInitialRead' if is_initial_read else 'read',
         'nodes': list(map(vertex_to_entity, verticies, entities)),
@@ -155,7 +150,7 @@ async def update_node(node, send_json, uuid: UUID):
                 q = f"""* 
 FROM cypher('g_{uuid.hex}', $$
 MATCH (v) WHERE id(v)={vertex_target_id}
-SET v.{to_snake_case(k)} = {f'\'{v}\'' if type(v) == str else v} 
+SET v.{to_snake_case(k)} = {f'\'{v}\'' if isinstance(v, str) else v} 
 $$) as (v agtype)"""
                 print("update query ->")
                 print(q)
@@ -233,8 +228,7 @@ def dict_to_opencypher(x):
             properties += f"'{v}', "
         else:
             properties += f'{v}, '
-    properties += "}"
-    return re.sub(r",\s+}", "}", properties)
+    return properties[:-2] + "}"
 
 
 async def save_entity_transform(
@@ -258,7 +252,7 @@ async def save_entity_transform(
 
     q = f"""* FROM cypher('g_{graphid}', $$
 MATCH (s) WHERE id(s)={entity_context.get('id')}
-CREATE (s)-[e:transformed {dict_to_opencypher({'ctime': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z')})}]->(v:{to_snake_case(transform_result['data'].get('label'))} {dict_to_opencypher(vertex_properties)})
+CREATE (s)-[e:transformed {dict_to_opencypher(dict(ctime=datetime.datetime.now().timestamp()))}]->(v:{to_snake_case(transform_result['data'].get('label'))} {dict_to_opencypher(vertex_properties)})
 RETURN e, v
 $$) as (e agtype, v agtype);
     """
@@ -266,10 +260,10 @@ $$) as (e agtype, v agtype);
     async with deps.get_age() as conn:
         result = await conn.execute(select(text(q)))
         result = result.all()[0]
-        age_edge = result[0]
+        # age_edge = result[0]
         age_vert = result[1]
         new_entity = ujson.loads(age_vert.replace("::vertex", ""))
-        new_edge = ujson.loads(age_edge.replace("::edge", ""))
+        # new_edge = ujson.loads(age_edge.replace("::edge", ""))
 
     transform_result['id'] = str(new_entity.get('id'))
     transform_result['type'] = 'edit'

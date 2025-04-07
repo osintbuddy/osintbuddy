@@ -155,7 +155,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage, closeRef }: JSONO
             </p>
             <p className='text-xs text-slate-200 max-w-xl whitespace-wrap font-display font-bold'>{ctx.data.label}</p>
           </div>
-          <Icon icon={ctx.icon} className='h-5 w-5 mr-2 cursor-grab focus:cursor-grabbing' />
+          <Icon icon={ctx.data.icon} className='h-5 w-5 mr-2 cursor-grab focus:cursor-grabbing' />
         </div>
         <form
           id={`${ctx.id}-form`}
