@@ -1,4 +1,5 @@
 import copy
+import datetime
 from uuid import UUID
 import ujson
 from typing import List, Annotated, Dict
@@ -68,8 +69,7 @@ async def save_node_on_drop(
 ):
     q = f"""* 
 FROM cypher('g_{uuid.hex}', $$
-CREATE (v:{to_snake_case(node_label)}
-{{x: '{blueprint['position'].get('x', 0.0)}', y: '{blueprint['position'].get('y', 0.0)}'}})
+CREATE (v:{to_snake_case(node_label)} {dict_to_opencypher(blueprint.get('position'))})
 RETURN v
 $$) as (v agtype);
     """
@@ -269,22 +269,20 @@ async def save_entity_transform(
             await add_node_element(element, vertex_properties)
 
     q = f"""* FROM cypher('g_{graphid}', $$
-CREATE (v:{to_snake_case(transform_result['data'].get('label'))} {dict_to_opencypher(vertex_properties)})
-RETURN v
-$$) as (v agtype);
+MATCH (s) WHERE id(s)={entity_context.get('id')}
+CREATE (s)-[e:transformed {dict_to_opencypher({'ctime': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z')})}]->(v:{to_snake_case(transform_result['data'].get('label'))} {dict_to_opencypher(vertex_properties)})
+RETURN e, v
+$$) as (e agtype, v agtype);
     """
     print('RUNNING', q)
     async with deps.get_age() as conn:
         result = await conn.execute(select(text(q)))
-        age_vert = result.scalars().one()
-        print('age_vert !! ', age_vert)
+        result = result.all()[0]
+        age_edge = result[0]
+        age_vert = result[1]
         new_entity = ujson.loads(age_vert.replace("::vertex", ""))
+        new_edge = ujson.loads(age_edge.replace("::edge", ""))
 
-    # # TODO: support adding optional kwargs to edge properties
-    # add_edge = {
-    #         'id': entity_source['id'],
-    #         'label': edge_label
-    #     } if edge_label else {}
     transform_result['id'] = str(new_entity.get('id'))
     transform_result['type'] = 'edit'
     transform_result['action'] = 'createEntity'
