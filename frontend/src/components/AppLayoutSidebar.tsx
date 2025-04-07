@@ -1,25 +1,25 @@
 import classNames from "classnames";
-import { ReactComponent as OSINTBuddyLogomark } from "@images/logo-ext.svg"; // OSINTBuddy-text.svg
+import { ReactComponent as OSINTBuddyLogomark } from "@images/logo-ext.svg";
 import { Link, NavLink } from "react-router-dom";
 import HamburgerMenu from "./HamburgerMenu";
-import { toast } from "react-toastify";
-import { CogIcon, DocumentMagnifyingGlassIcon, FolderOpenIcon, PlusIcon, HomeIcon } from "@heroicons/react/24/outline";
+import { CogIcon, DocumentMagnifyingGlassIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";
 import { Icon } from "./Icons";
 
 
 const navigation = [
   { name: <><span>Dashboard</span></>, to: "/dashboard", icon: HomeIcon },
-  { name: <><span>Workspaces</span> <span className="half-grayscale ml-auto mr-2.5 opacity-30 right-0">🚧</span></>, to: "/workspaces", icon: FolderOpenIcon },
+  { name: <><span>Workspace</span> <span className="half-grayscale ml-auto mr-2.5 opacity-30 right-0">🚧</span></>, to: "/workspaces", icon: VariableIcon },
   { name: <><span>Scans</span> <span className="half-grayscale ml-auto mr-2.5 opacity-30 right-0">🚧</span></>, to: "/scans", icon: DocumentMagnifyingGlassIcon },
 ];
+
 
 interface AppLayoutSidebarProps {
   showSidebar: boolean
   toggleSidebar: () => void
-  setShowIncidentsModal: (value: boolean) => void
 }
 
-export default function AppLayoutSidebar({ showSidebar, toggleSidebar, setShowIncidentsModal }: AppLayoutSidebarProps) {
+
+export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayoutSidebarProps) {
   return (
     <div
       className={classNames(

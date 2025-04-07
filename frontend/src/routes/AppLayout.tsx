@@ -15,8 +15,6 @@ import AppLayoutSidebar from "@src/components/AppLayoutSidebar";
 export default function AppLayout() {
   const dispatch = useAppDispatch();
   const showSidebar: boolean = useAppSelector((state) => selectIsSidebarOpen(state));
-  const [showIncidentsModal, setShowIncidentsModal] = useState(false);
-  const cancelIncidentsModalRef = useRef(null);
   const isAuthenticated = useAppSelector(state => selectIsAuthenticated(state));
 
   const toggleSidebar = () => {
@@ -28,7 +26,7 @@ export default function AppLayout() {
   return (
     <>
       <div className="flex flex-col max-w-screen">
-        <AppLayoutSidebar setShowIncidentsModal={setShowIncidentsModal} toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
+        <AppLayoutSidebar toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
         <div
           style={{ width: `calc(100% - ${showSidebar ? 16 : 3}rem)` }}
           className={classNames(
@@ -41,13 +39,6 @@ export default function AppLayout() {
           </main>
         </div>
       </div>
-      <OverlayModal
-        cancelCreateRef={cancelIncidentsModalRef}
-        isOpen={showIncidentsModal}
-        closeModal={() => setShowIncidentsModal(false)}
-      >
-        <IncidentCard closeModal={() => setShowIncidentsModal(false)} />
-      </OverlayModal>
       <ToastContainer
         position="bottom-right"
         autoClose={3000}

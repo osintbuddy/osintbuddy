@@ -161,8 +161,8 @@ async def get_graph_stats(
     db: Annotated[Session, Depends(deps.get_db)],
 ):
     try:
-        print(db, dir(db))
-        selected_graph = await crud.graphs.get(db, id=hid)
+        pass
+        # selected_graph = await crud.graphs.get(db, id=hid)
         # async with ProjectGraphConnection(selected_graph.uuid) as g:
         #     unique_entities = await g.V().label().dedup().toList()
         #     total_entities = await g.V().count().toList()

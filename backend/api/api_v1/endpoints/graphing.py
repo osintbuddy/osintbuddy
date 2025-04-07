@@ -15,7 +15,7 @@ router = APIRouter(prefix="/node")
 
 async def get_blueprint(label: str):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://plugins:42562/blueprint?label={label}")
+        response = await client.get(f"http://plugins:42562/blueprint?label={label}", timeout=None)
         blueprint = response.json()
         return blueprint
 
