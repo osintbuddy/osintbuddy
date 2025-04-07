@@ -1,15 +1,13 @@
-import copy
-import datetime
-from uuid import UUID
-import ujson
 from typing import List, Annotated, Dict
-from itertools import starmap
-import httpx
+import copy, re, datetime, ujson
+from uuid import UUID
+
 from fastapi import APIRouter, WebSocket, WebSocketException, WebSocketDisconnect, HTTPException, Depends
 from websockets.exceptions import ConnectionClosedError
 from osintbuddy.utils import to_snake_case, MAP_KEY
 from sqlalchemy.orm import Session
 from sqlalchemy import text, select
+import httpx
 
 import schemas, crud
 from api import deps
@@ -79,16 +77,9 @@ $$) as (v agtype);
         print('age_vert !! ', age_vert)
         vertex_properties = ujson.loads(age_vert.replace("::vertex", ""))
         print('vertex_properties', vertex_properties)
-    return {
-        "id": f"{vertex_properties["id"]}",
-        "type": "edit",
-        "data": {
-            'color': blueprint.pop('color', '#145070'),
-            'icon': blueprint.pop('icon', 'atom-2'),
-            'label': blueprint.pop('label'),
-            'elements': blueprint.pop('elements'),
-        }
-    }
+    blueprint['id'] = str(vertex_properties.get('id'))
+    blueprint['type'] = 'edit'
+    return blueprint
 
 
 def set_entity_from_vertex(target_element, source_vertex) -> None:
@@ -184,10 +175,17 @@ WHERE id(v)={node['id']}
 DELETE v
 $$) as (v agtype);
 """
-    print('(v) REMOVAL id: ', node['id'])
+    get_vertex_edges = f"""* FROM cypher('g_{uuid.hex}', $$
+MATCH (s)-[e]->() WHERE id(s)={node.get('id')}
+RETURN e
+$$) as (e agtype);"""
     async with deps.get_age() as conn:
-        await conn.execute(select(text(delete_single_vertex)))
-        await conn.execute(select(text(delete_connected_vertex)))
+        results = await conn.execute(select(text(get_vertex_edges)))
+        edges = results.scalars().all()
+        if len(edges):
+            await conn.execute(select(text(delete_connected_vertex)))
+        else:
+            conn.execute(select(text(delete_single_vertex)))
     await send_json({"action": "removeEntity", "node": node})
 
 
@@ -204,8 +202,6 @@ async def get_transform_notification(transform_output, transform_type):
     return notification_msg
 
 
-
-
 async def add_node_element(element: dict or List[dict], properties):
     # Remove stylistic values unrelated to element data
     # Some osintbuddy.elements of type displays dont have an icon or options 
@@ -213,11 +209,9 @@ async def add_node_element(element: dict or List[dict], properties):
     options = element.pop('options', None)
     element_label = element.pop('label')
     elm_type = element.pop('type')
-    print("ADD_NODE_ELEMENT: ", element, element_label)
     if elm_type == 'empty':
         return
     if element_value := element.get('value'):
-        print("value", element_value)
         properties[to_snake_case(element_label)] = element_value
     else:
         for k, v in element.items():
@@ -232,7 +226,6 @@ async def add_node_element(element: dict or List[dict], properties):
 
 
 def dict_to_opencypher(x):
-    import re
     properties = "{"
     for k, v in x.items():
         properties += f"{k}: "
@@ -253,14 +246,9 @@ async def save_entity_transform(
     Map entity elements returned from transform
     """
     vertex_properties = {}
-    edge_label = None
-    if transform_result:
-        edge_label = transform_result.pop('edge_label', None)
     from_position = entity_context.get('position')
     vertex_properties['x'] = from_position.get('x', 0) + 50
     vertex_properties['y'] = from_position.get('y', 0) + 50
-    # print("SAVINGIN ENTITY TRANSFORM: ", transform_result, entity_context)
-
 
     for element in transform_result['data']['elements']:
         if isinstance(element, list):
@@ -305,7 +293,7 @@ async def active_graph_inquiry(
     active_inquiry = await crud.graphs.get(db, id=hid)
     await websocket.accept()
     if active_inquiry is not None:
-        await graph_users[user.cid.hex].send_json({"action": "isLoading", "detail": True })
+        await graph_users[user.cid.hex].send_json(dict(action='isLoading', detail=True))
     else:
         websocket.send({"action": "error"})
 
@@ -361,23 +349,17 @@ async def run_entity_transform(
     hid: Annotated[int, Depends(deps.get_graph_id)],
     db: Session = Depends(deps.get_db),
 ):
-    print(source_entity)
     active_inquiry = await crud.graphs.get(db, id=hid)
-    print("transforming from: ", source_entity)
     transform_result = None
 
     async with httpx.AsyncClient() as client:
-        print('transforming!')
         response = await client.post("http://plugins:42562/transforms", json=source_entity, timeout=None)
         transform_result = response.json()
-        print('transform_result:')
-        print(transform_result)
 
     if transform_result:
         if isinstance(transform_result, list):
             out_result = [await save_entity_transform(tresult, source_entity, active_inquiry.uuid.hex) for tresult in transform_result]
         else:
             out_result = list(await save_entity_transform(transform_result, source_entity, active_inquiry.uuid.hex))
-        print('out_result', out_result)
         return out_result
     raise HTTPException(status_code=422, detail="No results.")
