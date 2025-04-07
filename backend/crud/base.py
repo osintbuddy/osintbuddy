@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
@@ -60,9 +60,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
-        print(db, obj_in_data, '+++++++++++++++++++++++')
         db_obj = self.model(**obj_in_data)
-        await db.add(db_obj)
+        db.add(db_obj)
+        db.refresh(db_obj)
         await db.commit()
         return db_obj
 
@@ -86,7 +86,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def remove(self, db: Session, *, id: int) -> ModelType:  # noqa
-        q = select(self.model).get(id)
+        q = delete(self.model).where(self.model.id == id)
         result = await db.execute(q)
-        await db.delete(result)
+        await db.flush()
+        await db.commit()
         return result

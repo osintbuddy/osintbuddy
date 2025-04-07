@@ -25,4 +25,4 @@ async_engine = create_async_engine(
     max_overflow=0,
     pool_pre_ping=True
 )
-async_session = sessionmaker(autocommit=False, autoflush=False, bind=async_engine, class_=AsyncSession)
+async_session = sessionmaker(autocommit=False, autoflush=False, bind=async_engine, class_=AsyncSession, expire_on_commit=False)

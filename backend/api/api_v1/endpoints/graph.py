@@ -109,10 +109,11 @@ async def get_graphs_by_favorite(
 async def create_graph(
     _: Annotated[schemas.MemberInDBBase, Depends(deps.get_user_from_session)],
     obj_in: schemas.GraphCreate,
-    db: Annotated[Session, Depends(deps.getdb)],
+    db: Annotated[Session, Depends(deps.get_db)],
 ):
-    obj_out = crud.graphs.create(db=db, obj_in=obj_in)
-    await db.execute(select(text(f"create_graph('g_{obj_out.uuid.hex}')")))
+    obj_out = await crud.graphs.create(db=db, obj_in=obj_in)
+    async with deps.get_age() as age:
+        await age.execute(select(text(f"create_graph('g_{obj_out.uuid.hex}')")))
     print("CREATE age graph: ", f"g_{obj_out.uuid.hex}")
     return obj_out
 
@@ -123,16 +124,8 @@ async def delete_graph(
     hid: Annotated[str, Depends(deps.get_graph_id)],
     db: Annotated[Session, Depends(deps.get_db)],
 ):
-    try:
         await crud.graphs.remove(db=db, id=hid)
         return
-    except Exception as e:
-        log.error('Error inside graph.delete_graph:')
-        log.error(e)
-        raise HTTPException(status_code=
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="There was an error deleting your graph. Please try again"
-        )
 
 
 @router.patch('/{hid}/favorite/')

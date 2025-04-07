@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useStore, getBezierPath, BaseEdge, EdgeLabelRenderer } from 'reactflow';
+import { useStore, getBezierPath, BaseEdge, EdgeLabelRenderer, MarkerType } from 'reactflow';
 
 import { getEdgeParams } from './utils';
 import classNames from 'classnames';
@@ -40,13 +40,12 @@ function SimpleFloatingEdge({ id, source, target, markerEnd, style, label }: JSO
     targetX: tx,
     targetY: ty,
   });
-  console.log(style)
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        // strokeWidth={4}
         markerEnd={markerEnd}
         style={{ ...style, cursor: 'grab' }} />
 

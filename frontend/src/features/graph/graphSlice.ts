@@ -121,7 +121,7 @@ export const graph = createSlice({
             type: MarkerType.ArrowClosed,
             width: 19,
             height: 20,
-            color: '#334155',
+            color: '#49505a',
           },
         }
       })
@@ -164,7 +164,7 @@ export const graph = createSlice({
           type: MarkerType.ArrowClosed,
           width: 19,
           height: 20,
-          color: '#334155',
+          color: '#49505a',
         },
       });
     },

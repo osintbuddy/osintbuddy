@@ -205,15 +205,12 @@ input[type='number'] {
 /* start react flow style overrides */
 
 .react-flow__attribution {
-  @apply !bg-mirage-600;
-}
-.react-flow__attribution a {
-  @apply !text-slate-500;
-  
+  @apply invisible;
 }
 
+
 .react-flow__edge-path {
-  stroke: #334155 !important;
+  stroke: #49505a !important;
 }
 
 /* .react-flow__edge {

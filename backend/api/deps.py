@@ -29,8 +29,6 @@ if "dev" in settings.ENVIRONMENT:
 def getdb() -> Generator[Any, AsyncSession, Any]:
     try:
         db = SessionLocal()
-        db.execute(text("LOAD 'age';"))
-        db.execute(text('SET search_path = ag_catalog, "$user", public;'))
         yield db
     finally:
         db.close()
@@ -39,8 +37,6 @@ def getdb() -> Generator[Any, AsyncSession, Any]:
 async def get_db() -> Generator[Any, AsyncSession, Any]:
     try:
         db = async_session()
-        await db.execute(text("LOAD 'age';"))
-        await db.execute(text('SET search_path = ag_catalog, "$user", public;'))
         yield db
     finally:
         await db.close()
