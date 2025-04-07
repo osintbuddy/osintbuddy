@@ -101,18 +101,25 @@ def set_entity_from_vertex(target_element, source_vertex) -> None:
 
 
 async def load_nodes_from_db(uuid: UUID, viewport=None) -> tuple[list, list]:
-    q = f"""* FROM cypher('g_{uuid.hex}', $$
+    verticies_query = f"""* FROM cypher('g_{uuid.hex}', $$
 MATCH (v)
 RETURN v
 $$) as (v agtype)"""
+    edges_query = f"""* FROM cypher('g_{uuid.hex}', $$
+MATCH ()-[e]->()
+RETURN e
+$$) as (v agtype)"""
+    print(verticies_query)
     zoom_scale = viewport.get('zoom')
     x = viewport.get('x')
     y = viewport.get('y')
 
     async with deps.get_age() as conn:
-        rows = await conn.execute(select(text(q)))
-        vertices = [ujson.loads(r[0].replace("::vertex", "")) for r in rows]
-        edges: list = []
+        vertex_rows = await conn.execute(select(text(verticies_query)))
+        vertices = [ujson.loads(v[0].replace("::vertex", "")) for v in vertex_rows]
+        
+        edge_rows = await conn.execute(select(text(edges_query)))
+        edges: list = [ujson.loads(e[0].replace('::edge', '')) for e in edge_rows]
         # TODO: Load/update UI nodes on far drag
         # TODO: unload nodes UI side when off screen offset by max drag distance
         return vertices, edges
@@ -139,7 +146,15 @@ async def read_graph(viewport_event, send_json, project_uuid, is_initial_read: b
     await send_json({
         'action': 'isInitialRead' if is_initial_read else 'read',
         'nodes': list(map(vertex_to_entity, verticies, entities)),
-        'edges': []
+        'edges': [{
+            'id': str(e.pop('id')),
+            'source': str(e.pop('start_id')),
+            'target': str(e.pop('end_id')),
+            'sourceHandle': 'r1',
+            'targetHandle': 'l2',
+            'type': 'float',
+        } for e in edges
+        ]
     })
 
 
@@ -311,6 +326,8 @@ async def active_graph_inquiry(
                         print("DELETING", event["node"])
                         await remove_nodes(event["node"], ws.send_json, active_inquiry.uuid)
                     if IS_TRANSFORM:
+                        # todo load transform entity results for graph users
+                        # who didnt initiate the transform
                         await ws.send_json({"action": "isLoading", "detail": True })
                         # await nodes_transform(event["node"], ws.send_json, active_inquiry.uuid)
                 if ACTION_TARGET == 'graph':

@@ -352,8 +352,6 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
     [toggleForceLayout]
   ));
 
-
-
   return (
     <>
       {isError && (
