@@ -50,7 +50,7 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
       // we only navigate to the graph when the guide is enabled
       refreshGraphs()
       if (showGraphGuide) {
-        navigate(`/graph/inquiry/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
+        navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
       } else {
         navigate(`/dashboard/graph/${newGraph.id}`, replace)
       }

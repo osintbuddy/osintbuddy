@@ -48,7 +48,7 @@ export default function GraphHeader({ graph, stats, refetchGraphs }: GraphHeader
                 <TrashIcon className="text-inherit h-5 w-5 ml-2" />
               </button>
               <Link
-                to={`/graph/inquiry/${graph?.id}`}
+                to={`/graph/${graph?.id}`}
                 className='btn-primary mb-3.5 stroke-primary-300/90 hover:!stroke-primary-400/80'
               >
                 Open graph

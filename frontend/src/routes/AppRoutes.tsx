@@ -8,6 +8,7 @@ import { TourProvider } from "@reactour/tour";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { selectActiveTour } from "@src/features/account/accountSlice";
 import { useAppSelector } from "@src/app/hooks";
+import GraphLayout from "./GraphLayout";
 
 // Public routes
 const LandingPage = lazy(() => import("@routes/public/LandingPage"));
@@ -18,7 +19,7 @@ const Market = lazy(() => import("@routes/dashboard/_components/Market"))
 
 const GraphOverview = lazy(() => import("@routes/dashboard/_components/graph/GraphOverview"))
 const GraphDetails = lazy(() => import("@routes/dashboard/_components/graph/GraphDetails"))
-const GraphInquiry = lazy(() => import("@routes/graph-inquiry/index"));
+const GraphInquiry = lazy(() => import("@src/routes/graph/index"));
 
 const EntitiesOverview = lazy(() => import("@routes/dashboard/_components/entity/EntitiesOverview"))
 const EntityDetails = lazy(() => import("@routes/dashboard/_components/entity/EntityDetails"))
@@ -84,10 +85,7 @@ const router = createBrowserRouter([
           }
         ]
       },
-      {
-        path: 'graph/inquiry/:hid',
-        element: <Suspense><GraphInquiry /></Suspense>
-      },
+     
       {
         path: 'settings',
         element: <Suspense><Settings /></Suspense>
@@ -105,6 +103,16 @@ const router = createBrowserRouter([
             element: <Suspense><ScansCreate /></Suspense>
           }
         ]
+      }
+    ]
+  },
+  {
+    path: 'graph/',
+    element: <Suspense><GraphLayout /></Suspense>,
+    children: [
+      {
+        path: ':hid',
+        element: <Suspense><GraphInquiry /></Suspense>
       }
     ]
   },
