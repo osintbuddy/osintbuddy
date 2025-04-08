@@ -17,7 +17,7 @@ services:
     command: "ob start"
     build:
       context: ./
-      dockerfile: pl.Dockerfile 
+      dockerfile: plugins.Dockerfile 
     volumes:
       - "./plugins:/plugins"
       - "./osintbuddy-plugins:/app"
@@ -34,7 +34,7 @@ services:
       - .env
     build:
       context: ./
-      dockerfile: be.Dockerfile
+      dockerfile: backend.Dockerfile
     volumes:
       - ./backend:/app/
     depends_on:

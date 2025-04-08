@@ -18,7 +18,7 @@
 
 
 -------
-| &nbsp;&nbsp; [plugins-system](https://github.com/osintbuddy/plugins) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy.com](https://osintbuddy.com) &nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; [osintbuddy discord](https://discord.gg/b8vW4J4skv) &nbsp;&nbsp; | &nbsp;&nbsp; [entities](https://github.com/osintbuddy/entities) &nbsp;&nbsp; | &nbsp;&nbsp; [pypi package](https://pypi.org/project/osintbuddy/) &nbsp;&nbsp; |
+| &nbsp;&nbsp; [plugins-system](https://github.com/osintbuddy/plugins) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy.com](https://osintbuddy.com) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy discord](https://discord.gg/b8vW4J4skv) &nbsp;&nbsp; | &nbsp;&nbsp; [entities](https://github.com/osintbuddy/entities) &nbsp;&nbsp; | &nbsp;&nbsp; [pypi package](https://pypi.org/project/osintbuddy/) &nbsp;&nbsp; |
 <span style="display: inline-block; width:830px"> </span>
 
 

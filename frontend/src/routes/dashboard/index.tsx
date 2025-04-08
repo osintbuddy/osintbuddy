@@ -7,7 +7,7 @@ import EntitiesPanel from "./_components/tabs/EntitiesPanel";
 import MarketPanel from './_components/tabs/MarketPanel';
 import CreateGraphModal from "./_components/modals/CreateGraphModal";
 import styles from "./index.module.css"
-import { AllGraphsList, useGetEntitiesQuery, useGetGraphStatsQuery, useGetGraphsQuery } from "@src/app/api";
+import { AllGraphsList, GetEntitiesApiResponse, useGetEntitiesQuery, useGetGraphStatsQuery, useGetGraphsQuery } from "@src/app/api";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 import { GetGraphStatsApiResponse } from '../../app/api';
@@ -24,6 +24,7 @@ export interface ScrollGraphs {
 }
 
 export type DashboardContextType = {
+  entitiesData: GetEntitiesApiResponse
   graphStats: GetGraphStatsApiResponse
   refreshGraphStats: () => void;
   refetchGraphs: () => void;
@@ -190,6 +191,7 @@ export default function DashboardPage() {
         <Outlet context={{
           refetchGraphs,
           graphsData: allGraphsData,
+          entitiesData: entitiesData?.entities ?? [],
           isLoadingGraphs,
           isGraphsError,
           graphStats,
