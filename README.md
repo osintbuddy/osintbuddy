@@ -18,8 +18,8 @@
 
 
 -------
-| &nbsp;&nbsp; [plugins-system](https://github.com/osintbuddy/plugins) &nbsp;&nbsp; | &nbsp;&nbsp; ~~[osintbuddy.com](https://osintbuddy.com)~~ &nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; [osintbuddy discord](https://discord.gg/b8vW4J4skv) &nbsp;&nbsp; | &nbsp;&nbsp; [entities](https://github.com/osintbuddy/entities) &nbsp;&nbsp; |
-<span style="display: inline-block; width:830px"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   </span>
+| &nbsp;&nbsp; [plugins-system](https://github.com/osintbuddy/plugins) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy.com](https://osintbuddy.com) &nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; [osintbuddy discord](https://discord.gg/b8vW4J4skv) &nbsp;&nbsp; | &nbsp;&nbsp; [entities](https://github.com/osintbuddy/entities) &nbsp;&nbsp; | &nbsp;&nbsp; [pypi package](https://pypi.org/project/osintbuddy/) &nbsp;&nbsp; |
+<span style="display: inline-block; width:830px"> </span>
 
 
   ## Introducing OSINTBuddy
@@ -53,7 +53,6 @@
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#sponsor-osintbuddy">Sponsor OSINTBuddy</a></li>
   </ol>
@@ -95,9 +94,6 @@ We've decided to do something about it. The rapid developments in technologies s
 
 To start using OSINTBuddy, follow these simple installation steps:
 
-*Note that if you're running on an **Apple** device you will need to open your Docker app, select the **features in development** tab on the left hand side of the docker app, and enable/checkmark the `Use Rosetta for x86/64 emulation on Apple Silicon` option if you want this application to work*
-
-
 ### Installation
 1. Clone the repo and submodules
    ```sh
@@ -107,12 +103,9 @@ To start using OSINTBuddy, follow these simple installation steps:
    # git clone --recurse-submodules git@github.com:jerlendds/osintbuddy.git 
    ```
 
-2. Install Docker & Compose
-    - [Install Guide for Mac](https://docs.docker.com/desktop/install/mac-install/)
-    - [Install Guide for Windows](https://docs.docker.com/desktop/install/windows-install/)
-    - [Install Guide for Linux](https://docs.docker.com/desktop/install/linux-install/)
+2. [Install Docker & Compose](https://docs.docker.com/get-started/get-docker/)
 
-3. Initialize core plugins for OSINTBuddy:
+3. [Initialize core plugins](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSINTBuddy and start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml):
    ```sh
    python3 -m venv venv
    . ./venv/bin/activate
@@ -122,8 +115,8 @@ To start using OSINTBuddy, follow these simple installation steps:
    ```
 
   - **Login into OSINTBuddy with**:
-    - *username:* osintbuddy
-    - *password:* osintbuddy
+    - *username:* `osintbuddy`
+    - *password:* `osintbuddy`
 
 - URLs
   - Frontend: *http://localhost:3000*
