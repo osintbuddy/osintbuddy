@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from 'reactflow';
 import { HotKeys } from 'react-hotkeys';
-import { useParams, useLocation, useBlocker } from 'react-router-dom';
+import { useParams, useLocation, useBlocker, Link, useNavigate } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
@@ -32,6 +32,10 @@ import CommandPallet from './_components/CommandPallet';
 import { useGetGraphQuery } from '@src/app/api';
 import RoundLoader from '@src/components/Loaders';
 import { useTour } from '@reactour/tour';
+import { BackspaceIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@src/components/Icons';
+import classNames from 'classnames';
+import { HandRaisedIcon, PauseIcon, PlayIcon } from '@heroicons/react/20/solid';
 
 const keyMap = {
   TOGGLE_PALETTE: ['shift+p'],
@@ -85,7 +89,6 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
 
   const [messageHistory, setMessageHistory] = useState<JSONObject[]>([]);
   const [socketUrl, setSocketUrl] = useState(`${WS_GRAPH_INQUIRE}`);
-  const displayMode = useAppSelector((state) => selectViewMode(state));
   const [shouldConnect, setShouldConnect] = useState(false)
 
   const { lastJsonMessage, readyState, sendJsonMessage }: UseWebsocket = useWebSocket(socketUrl, {
@@ -360,6 +363,7 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
       {isLoading && (
         <RoundLoader />
       )}
+      
       {isSuccess && (
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <div className='h-screen flex flex-col w-full'>

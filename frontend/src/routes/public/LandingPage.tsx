@@ -1,11 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import Earth from '@tarii/3d-earth'
 
-import { ReactComponent as GraphLogomark } from "@images/logo-mark-primary.svg";
-import { HeroBackground } from '@src/components/Icons';
 import { useEffectOnce } from '@src/app/hooks';
-import classNames from 'classnames';
-import { FingerPrintIcon } from '@heroicons/react/24/outline';
+import { FingerPrintIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
 const QUOTES = [
   "Vision is the art of seeing insight in the invisible",
@@ -62,7 +59,7 @@ export default function LandingPage(): React.ReactElement {
                   Elevate your Research with<br /> Strategic Insights from Public Data
                 </p>
                 <p className='pt-1 text-lg tracking-tight  text-slate-400'>
-                  Reveal the connections that shape our world and stay informed with targeted insights from public data. From defending against cyber threats and corruption to finding reproducible research and beyond, visualize the invisible with OSINTBuddy.
+                  Reveal the connections that shape our world and stay informed with targeted insights from public data. From defending against cyber threats and fraud to beyond, visualize the invisible with OSINTBuddy.
                 </p>
                 <div className='mt-5 lg:mt-4 flex gap-4 md:justify-center lg:justify-start'>
                   <button
@@ -81,7 +78,7 @@ export default function LandingPage(): React.ReactElement {
                     className='btn-primary   '
                   >
                     Create account
-                    <GraphLogomark className='!h-6 ' />
+                    <UserPlusIcon />
                   </button>
                 </div>
               </div>

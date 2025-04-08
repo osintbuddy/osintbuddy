@@ -1,10 +1,12 @@
 import {
+  BackspaceIcon,
+  HomeIcon,
   LockClosedIcon,
   LockOpenIcon,
   TableCellsIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback, useMemo, useLayoutEffect } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import 'react-grid-layout/css/styles.css';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { useGetEntitiesQuery, useRefreshEntityPluginsQuery } from '@src/app/api';
@@ -73,15 +75,6 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
           <div className='flex flex-col w-full select-none'>
             <div className='flex items-start justify-between gap-x-3 w-full relative'>
               <p className='text-sm font-semibold leading-6 text-slate-300/80 whitespace-nowrap'>{entity.label}</p>
-              {/* TODO: Find something useful to put here... */}
-              {/* <p
-                className={classNames(
-                  statuses[entity.status],
-                  'rounded-[0.25rem] right-0 relative whitespace-nowrap text-slate-300 px-1.5 py-0.5 text-xs font-medium ring-1 ring-info-300 ring-inset'
-                )}
-              >
-                {entity.status}Installed
-              </p> */}
             </div>
             <div className='flex flex-wrap items-center gap-x-2 text-xs leading-5 text-slate-500'>
               <p className='truncate whitespace-normal leading-5 line-clamp-2 text-slate-500'>
@@ -135,12 +128,12 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
   const [entitiesLayout, setEntitiesLayout] = useState<Layout>({
     i: "entities",
     w: 7,
-    h: 17.25,
+    h: 57,
     x: 0,
-    y: 0,
-    minW: 1,
+    y: 4,
+    minW: 2,
     maxW: 44,
-    minH: 1,
+    minH: 2.4,
     maxH: 50,
     isDraggable: false,
     isBounded: true
@@ -148,26 +141,30 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
 
   const [positionsLayout, setPositionsLayout] = useState<Layout>({
     i: "positions",
-    w: 5,
-    h: 2,
-    x: 35,
+    w: 44,
+    h: 1.4,
+    x: 0,
     y: 0,
-    minW: 1,
+    minW: 10,
     maxW: 44,
-    minH: 1,
-    maxH: 50,
+    minH: 1.4,
+    maxH: 1.4,
     isDraggable: false,
     isBounded: true
   })
 
   const dispatch = useAppDispatch();
   const [isForceActive, setIsForceActive] = useState(false);
+  const navigate = useNavigate()
 
   return (
     <ResponsiveGridLayout
+      allowOverlap={false}
+      preventCollision={true}
       compactType={null}
       className='z-[99] absolute'
-      rowHeight={38}
+      rowHeight={4}
+      resizeHandles={['ne']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
       cols={{ lg: 40, md: 40, sm: 28, xs: 22, xxs: 18 }}
       isDraggable={true}
@@ -191,6 +188,108 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
         })
       }}
     >
+      <div key='positions' className="flex flex-col w-full">
+        <section className="flex md:items-center relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
+          <div className='flex items-center'>
+            <button className='justify-center flex-grow rounded-sm from-mirage-300/30 to-mirage-300/40 bg-gradient-to-br hover:from-mirage-400/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
+              <HomeIcon className='h-6' />
+            </button>
+            <h5
+              title={activeGraph?.description ?? ''}
+              className='pl-3 whitespace-nowrap truncate justify-between text-slate-600 text-inherit font-sans font-bold'>
+              <span className="text-slate-400">
+                {activeGraph?.label}
+              </span>
+            </h5>
+          </div>
+          <ul className='isolate inline-flex shadow-sm '>
+            <button
+              onClick={() => {
+                setIsForceActive(false)
+                toggleForceLayout && toggleForceLayout(false)
+                dispatch(setPositionMode('manual'))
+                dispatch(setEditState({ editId: "", editLabel: "layoutChangeM" }))
+
+              }}
+              type='button'
+              className={classNames(
+                'justify-center flex-grow rounded-sm border  from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/60 relative 2 inline-flex items-center transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                positionMode === 'manual' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+              )}
+            >
+              <HandRaisedIcon
+                className={classNames('h-6 w-6 ', positionMode === 'manual' && 'text-primary-300')}
+                aria-hidden='true'
+              />
+            </button>
+            <button
+              onClick={() => {
+                dispatch(setPositionMode('force'))
+                toggleForceLayout && toggleForceLayout(!isForceActive)
+                setIsForceActive(!isForceActive)
+              }}
+              type='button'
+              className={classNames(
+                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                positionMode === 'force' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+              )}
+            >
+              <Icon
+                icon={isForceActive !== undefined && isForceActive ? "3d-cube-sphere" : "3d-cube-sphere-off"}
+                className={classNames('h-6 w-6 text-inherit', positionMode === 'force' && 'text-primary-300')}
+              />
+            </button>
+            <button
+              onClick={() => {
+                toggleForceLayout && toggleForceLayout(false)
+                // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
+                // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
+                // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
+                setIsForceActive(false)
+                dispatch(setPositionMode('right tree'))
+                setElkLayout({
+                  'elk.algorithm': 'layered',
+                  'elk.direction': 'RIGHT'
+                })
+                dispatch(setEditState({ editId: "", editLabel: "layoutChangeRT" }))
+              }}
+              type='button'
+              className={classNames(
+                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                positionMode === 'right tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+              )}
+            >
+              <Icon
+                icon="binary-tree-2"
+                className={classNames('h-6 w-6 -rotate-90 origin-center text-inherit', positionMode === 'right tree' && 'text-primary-300')}
+              />
+            </button>
+            <button
+              onClick={() => {
+                setIsForceActive(false)
+                toggleForceLayout && toggleForceLayout(false)
+                dispatch(setPositionMode('tree'))
+                setElkLayout({
+                  'elk.algorithm': 'layered',
+                  'elk.direction': 'DOWN'
+                })
+                dispatch(setEditState({ editId: "", editLabel: "layoutChangeDT" }))
+              }}
+              type='button'
+              className={classNames(
+                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                positionMode === 'tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+              )}
+            >
+              <Icon
+                icon="binary-tree"
+                className={classNames('h-6 w-6 text-inherit', positionMode === 'tree' && 'text-primary-300')}
+              />
+            </button>
+          </ul>
+        </section>
+      </div>
+
       <div
         className=' overflow-hidden rounded-md z-10 border border-mirage-400/60  from-mirage-500/30 to-mirage-500/60 bg-gradient-to-br flex flex-col h-min'
         key='entities'
@@ -199,15 +298,10 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
         <ol className='text-sm flex select-none relative px-4 pt-2'>
           <li className='flex mr-auto'>
             <h5
-              title={activeGraph.label}
-              className='flex whitespace-nowrap truncate justify-between items-center w-full text-slate-600 text-inherit font-display '>
-              <Link title='View all graphs' className='text-slate-600' to='/dashboard/graph' replace>
-                Entities&nbsp;
-              </Link>{" /"}&nbsp;
-              <span className="text-slate-400/60">
-                {activeGraph.label.length > MAX_GRAPH_LABEL_LENGTH ? `${activeGraph.label.slice(0, MAX_GRAPH_LABEL_LENGTH)}...` : activeGraph.label}
-              </span>
-              &nbsp;/
+              className='flex whitespace-nowrap truncate justify-between items-center w-full  text-inherit font-display '>
+              <Link title='View all graphs' className='text-slate-500' to='/dashboard/entity' replace>
+                Entities
+              </Link>
             </h5>
           </li>
           <li className='flex'>
@@ -228,7 +322,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             <div className='mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/70 from-mirage-300/60 bg-gradient-to-br rounded border mb-2 mx-4 focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l'>
               <input
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className='block w-full placeholder:text-slate-700 bg-transparent outline-none  sm:text-sm'
+                className='block backdrop-blur-md w-full placeholder:text-slate-700 bg-transparent outline-none  sm:text-sm'
                 placeholder='Search entities...'
               />
             </div>
@@ -239,126 +333,6 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             </ul>
           </>
         )}
-      </div>
-      <div
-        key='positions'
-        className=' overflow-hidden rounded-md z-10 border   border-mirage-400/60  from-mirage-500/30 to-mirage-500/60 bg-gradient-to-br flex flex-col h-min'>
-        <ol className='text-sm flex select-none relative px-4 pt-1'>
-          <li className='flex mr-auto'>
-            <h5
-              className='flex whitespace-nowrap truncate justify-between items-center w-full text-slate-600 text-inherit font-display '>
-              <p className='text-slate-600' >
-                Layouts&nbsp;
-              </p>{" /"}&nbsp;
-              <span className="text-slate-400/60 capitalize flex items-center">
-                {positionMode}{positionMode === "force" && isForceActive 
-                ? <PauseIcon className='h-3 pl-1 mt-0.5' />
-                : positionMode !== "force" ? "" : <PlayIcon className='h-3 pl-1 mt-0.5' />}
-              </span>
-              &nbsp;/
-            </h5>
-          </li>
-          <li className='flex'>
-            <div className='flex justify-between items-center w-full '>
-              <button
-                onClick={() => setIsPositionDraggable(!isPositionsDraggable)}
-                className='text-slate-600 hover:text-alert-700 text-inherit whitespace-nowrap font-display'
-                title={activeGraph.name}
-                aria-current={activeGraph.description}
-              >
-                {isPositionsDraggable ? <LockOpenIcon className='w-5 h-5 text-inherit' /> : <LockClosedIcon className='w-5 h-5 text-inherit' />}
-              </button>
-            </div>
-          </li>
-        </ol>
-        <ul className='isolate inline-flex shadow-sm pt-2.5 w-full'>
-          <button
-            onClick={() => {
-              setIsForceActive(false)
-              toggleForceLayout && toggleForceLayout(false)
-              dispatch(setPositionMode('manual'))
-              dispatch(setEditState({ editId: "", editLabel: "layoutChangeM" }))
-
-            }}
-            type='button'
-            className={classNames(
-              'justify-center flex-grow rounded-l-md from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-3 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-3 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
-              positionMode === 'manual' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
-            )}
-          >
-            <HandRaisedIcon
-              className={classNames('h-5 w-5 ', positionMode === 'manual' && 'text-primary-300')}
-              aria-hidden='true'
-            />
-          </button>
-          <button
-            onClick={() => {
-              dispatch(setPositionMode('force'))
-              toggleForceLayout && toggleForceLayout(!isForceActive)
-              setIsForceActive(!isForceActive)
-            }}
-            type='button'
-            className={classNames(
-              'justify-center flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-3 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-3 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
-              positionMode === 'force' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
-            )}
-          >
-            <Icon
-              icon={isForceActive !== undefined && isForceActive ? "3d-cube-sphere" : "3d-cube-sphere-off"}
-              className={classNames('h-5 w-5 text-inherit', positionMode === 'force' && 'text-primary-300')}
-            />
-          </button>
-          <button
-            onClick={() => {
-              toggleForceLayout && toggleForceLayout(false)
-              // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
-              // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
-              // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
-              setIsForceActive(false)
-              dispatch(setPositionMode('right tree'))
-              setElkLayout({
-                'elk.algorithm': 'layered',
-                'elk.direction': 'RIGHT'
-              })
-              dispatch(setEditState({ editId: "", editLabel: "layoutChangeRT" }))
-            }}
-            type='button'
-            className={classNames(
-              'justify-center flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-3 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-3 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
-              positionMode === 'right tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
-            )}
-          >
-            <Icon
-              icon="binary-tree-2"
-              className={classNames('h-5 w-5 -rotate-90 origin-center text-inherit', positionMode === 'right tree' && 'text-primary-300')}
-            />
-          </button>
-          <button
-            onClick={() => {
-              setIsForceActive(false)
-              toggleForceLayout && toggleForceLayout(false)
-              dispatch(setPositionMode('tree'))
-              setElkLayout({
-                'elk.algorithm': 'layered',
-                'elk.direction': 'DOWN'
-              })
-              dispatch(setEditState({ editId: "", editLabel: "layoutChangeDT" }))
-            }}
-            type='button'
-            className={classNames(
-              'justify-center rounded-r-md flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-3 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-3 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
-              positionMode === 'tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
-            )}
-          >
-            <Icon
-              icon="binary-tree"
-              className={classNames('h-5 w-5 text-inherit', positionMode === 'tree' && 'text-primary-300')}
-            />
-          </button>
-        </ul>
-        <section>
-          <p className='py-4 px-2 text-slate-500 text-xs'>More layouts, options, and controls for managing entity layouts will be here one day. Get the latest updates on the <a className='text-primary-300' href="https://forum.osintbuddy.com/">forum</a> or <a className='text-primary-300' href="https://discord.gg/gsbbYHA3K3">discord</a></p>
-        </section>
       </div>
     </ResponsiveGridLayout>
   );

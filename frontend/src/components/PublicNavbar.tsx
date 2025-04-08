@@ -1,12 +1,9 @@
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Fragment, useEffect, useState } from 'react';
-import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import classNames from 'classnames';
-import OSINTBuddyLogo from '@assets/images/logo.svg';
 import { Listbox } from '@headlessui/react'
 import { Icon } from './Icons';
-import Logo from '@images/logo-ext.svg';
+import Logo from '@images/logo.svg';
 
 const themes = [
   { name: 'Light', value: 'light', icon: LightIcon },

@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ReactComponent as OSINTBuddyLogomark } from "@images/logo-ext.svg";
+import { ReactComponent as OSINTBuddyLogomark } from "@images/logo.svg";
 import { Link, NavLink } from "react-router-dom";
 import HamburgerMenu from "./HamburgerMenu";
 import { CogIcon, DocumentMagnifyingGlassIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";

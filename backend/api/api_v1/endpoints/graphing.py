@@ -13,7 +13,11 @@ from api import deps
 
 router = APIRouter(prefix="/node")
 
+
 async def get_blueprint(label: str):
+    """
+    Fetch a single entity plugin blueprint from the plugins service
+    """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://plugins:42562/blueprint?label={label}", timeout=None)
         blueprint = response.json()
@@ -21,8 +25,11 @@ async def get_blueprint(label: str):
 
 
 async def get_blueprints() -> dict[str, dict]:
+    """
+    Fetches all available plugin blueprints from the plugins service
+    """
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://plugins:42562/refresh?blueprints=1", timeout=None)
+        response = await client.get("http://plugins:42562/blueprint?label=_osib_all", timeout=None)
         data = response.json()
         return {
             to_snake_case(blueprint.get('data').get('label')): blueprint
@@ -72,9 +79,7 @@ $$) as (v agtype);
     async with deps.get_age() as conn:
         result = await conn.execute(select(text(q)))
         age_vert = result.scalars().one()
-        print('age_vert !! ', age_vert)
         vertex_properties = ujson.loads(age_vert.replace("::vertex", ""))
-        print('vertex_properties', vertex_properties)
     blueprint['id'] = str(vertex_properties.get('id'))
     blueprint['type'] = 'edit'
     return blueprint
