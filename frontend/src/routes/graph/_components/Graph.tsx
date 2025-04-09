@@ -161,8 +161,8 @@ export default function Graph({
     <ReactFlow
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
-      minZoom={0.22}
-      maxZoom={2.0}
+      minZoom={0.18}
+      maxZoom={4.0}
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}

@@ -79,7 +79,7 @@ $$) as (v agtype);
     async with deps.get_age() as conn:
         result = await conn.execute(select(text(q)))
         age_vert = result.scalars().one()
-        vertex_properties = ujson.loads(age_vert.replace("::vertex", ""))
+        vertex_properties = ujson.loads(age_vert.replace('::vertex', ''))
     blueprint['id'] = str(vertex_properties.get('id'))
     blueprint['type'] = 'edit'
     return blueprint
@@ -121,7 +121,7 @@ $$) as (v agtype)"""
 
     async with deps.get_age() as conn:
         vertex_rows = await conn.execute(select(text(verticies_query)))
-        vertices = [ujson.loads(v[0].replace("::vertex", "")) for v in vertex_rows]
+        vertices = [ujson.loads(v[0].replace('::vertex', '')) for v in vertex_rows]
         
         edge_rows = await conn.execute(select(text(edges_query)))
         edges: list = [ujson.loads(e[0].replace('::edge', '')) for e in edge_rows]

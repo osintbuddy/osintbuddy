@@ -372,6 +372,7 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
               toggleForceLayout={toggleForceLayout}
               activeGraph={activeGraph}
               setElkLayout={setElkLayout}
+              fitView={fitView}
             />
             <div className='h-full w-full justify-between  bg-mirage-400/20'>
               <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>

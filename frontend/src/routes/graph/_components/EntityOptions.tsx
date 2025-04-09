@@ -13,7 +13,7 @@ import { useGetEntitiesQuery, useRefreshEntityPluginsQuery } from '@src/app/api'
 import { selectPositionMode, selectViewMode, setAllEdges, setAllNodes, setEditState, setNodeType, setPositionMode, setViewMode } from '@src/features/graph/graphSlice';
 import classNames from 'classnames';
 import { useAppDispatch, } from '@src/app/hooks';
-import { HandRaisedIcon, PauseCircleIcon, PauseIcon, PlayIcon, PlayPauseIcon } from '@heroicons/react/20/solid';
+import { HandRaisedIcon, EyeDropperIcon, PauseCircleIcon, PauseIcon, PlayIcon, PlayPauseIcon, ViewfinderCircleIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@src/components/Icons';
 
 type UseResizeProps = {
@@ -134,7 +134,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
     minW: 2,
     maxW: 44,
     minH: 2.4,
-    maxH: 50,
+    maxH: 60,
     isDraggable: false,
     isBounded: true
   })
@@ -157,12 +157,14 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
   const [isForceActive, setIsForceActive] = useState(false);
   const navigate = useNavigate()
 
+  const [isGrayscale, setisGrayscale] = useState(false);
+
   return (
     <ResponsiveGridLayout
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='z-[99] absolute'
+      className='z-50 absolute'
       rowHeight={4}
       resizeHandles={['ne']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -189,19 +191,28 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
       }}
     >
       <div key='positions' className="flex flex-col w-full">
-        <section className="flex md:items-center relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
+        <section className="flex relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
           <div className='flex items-center'>
             <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
               <HomeIcon className='h-6' />
             </button>
             <h5
               title={activeGraph?.description ?? ''}
-              className='pl-3 whitespace-nowrap truncate justify-between text-slate-600 text-inherit font-sans font-bold'>
+              className='w-72 pl-3 whitespace-nowrap truncate justify-between text-slate-600 text-inherit font-sans font-bold'>
               <span className="text-slate-400">
                 {activeGraph?.label}
               </span>
             </h5>
+            <ul className='isolate inline-flex shadow-sm'>
+          <div className='flex items-center'>
+            <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
+              <ViewfinderCircleIcon className='h-6' />
+            </button>
+           
           </div>
+          </ul>
+          </div>
+
           <ul className='isolate inline-flex shadow-sm '>
             <button
               onClick={() => {
