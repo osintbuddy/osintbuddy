@@ -198,9 +198,15 @@ $$) as (e agtype);"""
         results = await conn.execute(select(text(get_vertex_edges)))
         edges = results.scalars().all()
         if len(edges):
-            await conn.execute(select(text(delete_connected_vertex)))
+            try:
+                await conn.execute(select(text(delete_connected_vertex)))
+            except Exception as e:
+                # ????
+                print(e)
+                await conn.execute(select(text(delete_single_vertex)))
         else:
-            conn.execute(select(text(delete_single_vertex)))
+            await conn.execute(select(text(delete_single_vertex)))
+
     await send_json({"action": "removeEntity", "node": node})
 
 
@@ -217,35 +223,32 @@ async def get_transform_notification(transform_output, transform_type):
     return notification_msg
 
 
-async def add_node_element(element: dict or List[dict], properties):
+async def update_entity_element(element: dict or List[dict], properties):
     # Remove stylistic values unrelated to element data
     # Some osintbuddy.elements of type displays dont have an icon or options 
-    icon = element.pop('icon', None)
-    options = element.pop('options', None)
-    element_label = element.pop('label')
-    elm_type = element.pop('type')
-    if elm_type == 'empty':
+    print('updating ', element, ' ->with-> ', properties)
+    element_value = element.get('value')
+    options = element.get('options')
+    if options and len(options) > 0 and len(element_value) == 0:
+        element['value'] = element['options'][0]['value']
+    if element.get('type') == 'empty':
         return
-    if element_value := element.get('value'):
-        properties[to_snake_case(element_label)] = element_value
+    if element_value:
+        properties[to_snake_case(element.get('label'))] = element_value
     else:
         for k, v in element.items():
-            properties[f'{to_snake_case(element_label)}_{to_snake_case(k)}'] = v
-    # Save the data labels so we can assign these as meta properties later
-    element['type'] = elm_type
-    element['icon'] = icon
-    element['label'] = element_label
-    if options:
-        element['options'] = options
-        return element
+            properties[f'{to_snake_case(element.get('label'))}_{to_snake_case(k)}'] = v
 
 
-def dict_to_opencypher(x):
+def dict_to_opencypher(value: dict):
     properties = "{"
-    for k, v in x.items():
+    for k, v in value.items():
         properties += f"{k}: "
-        if type(v) == str:
+        if isinstance(v, str):
             properties += f"'{v}', "
+        elif isinstance(v, dict):
+            dropdown_value = v.get('value')
+            properties += f"'{dropdown_value}'"
         else:
             properties += f'{v}, '
     return properties[:-2] + "}"
@@ -266,9 +269,9 @@ async def save_entity_transform(
 
     for element in transform_result['data']['elements']:
         if isinstance(element, list):
-            [await add_node_element(elm, vertex_properties) for elm in element]
+            [await update_entity_element(elm, vertex_properties) for elm in element]
         else:
-            await add_node_element(element, vertex_properties)
+            await update_entity_element(element, vertex_properties)
 
     q = f"""* FROM cypher('g_{graphid}', $$
 MATCH (s) WHERE id(s)={entity_context.get('id')}

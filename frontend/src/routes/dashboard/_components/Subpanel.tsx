@@ -52,7 +52,6 @@ export default function Subpanel({
   errorMessage
 }: EntitiesSubpanelProps) {
   const { hid } = useParams();
-  console.log(hid)
   return (
     <section className={styles["subpanel"]}>
       <header className={styles["subpanel-header"]} onClick={setShowEntities}>
@@ -77,7 +76,6 @@ export default function Subpanel({
 
       <section className={` transition-transform duration-150 ease-out ${showEntities ? 'translate-y-0' : '-translate-y-[45%] -scale-y-0 !h-0'}`}>
         {items && items.map((item) => {
-          console.log(item)
           const isActive = hid === `${item.id}`
           const descriptionClassName = styles["subpanel-desc"] + " " + styles[`subpanel-desc-${isActive}`]
           return (

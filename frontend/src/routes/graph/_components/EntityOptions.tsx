@@ -246,7 +246,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               )}
             >
               <Icon
-                icon={isForceActive !== undefined && isForceActive ? "3d-cube-sphere" : "3d-cube-sphere-off"}
+                icon={isForceActive !== undefined && isForceActive ? "cube-3d-sphere" : "cube-3d-sphere-off"}
                 className={classNames('h-6 w-6 text-inherit', positionMode === 'force' && 'text-primary-300')}
               />
             </button>

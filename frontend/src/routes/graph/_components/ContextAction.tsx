@@ -40,8 +40,7 @@ export default function ContextAction({
     <>
       {transforms && ctx && <>
         <div className='node-context max-h-32 overflow-y-scroll'>
-          {transforms.map((transform: any) => {
-            return (
+          {transforms.map((transform: any) => (
               <div key={transform.label}>
                 <button
                   onClick={(e) => {
@@ -105,8 +104,8 @@ export default function ContextAction({
                   {transform.label}
                 </button>
               </div>
-            );
-          })}
+            )
+          )}
         </div>
       </>}
     </>

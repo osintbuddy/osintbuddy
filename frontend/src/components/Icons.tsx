@@ -17,8 +17,6 @@ export interface IconProps {
   className?: string;
 }
 
-
-
 export function GithubIcon({ className }: IconProps) {
   return (
     <svg
