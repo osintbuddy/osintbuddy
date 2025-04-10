@@ -100,7 +100,6 @@ export default function Graph({
       edit: (data: JSONObject) => (
         <EditEntityNode
           ctx={data}
-          dispatch={dispatch}
           sendJsonMessage={sendJsonMessage}
         />
       ),

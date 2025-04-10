@@ -6,7 +6,7 @@
 [![Issues][issues-shield]][issues-url]
 [![Total Downloads](https://static.pepy.tech/badge/osintbuddy)](https://pepy.tech/project/osintbuddy)
 [![Downloads](https://static.pepy.tech/badge/osintbuddy/week)](https://pepy.tech/project/osintbuddy)
-[![OpenCollective Backers](https://badgen.net/opencollective/backers/osintbuddy)](https://opencollective.com/openinfolabs/projects/osintbuddy#category-CONTRIBUTE)
+
 
 <p>
   <a href="https://github.com/osintbuddy/osintbuddy">
@@ -101,10 +101,10 @@ To start using OSINTBuddy, follow these simple installation steps:
 ### Installation
 1. Clone the repo and submodules
    ```sh
-   git clone --recurse-submodules https://github.com/jerlendds/osintbuddy.git
+   git clone --recurse-submodules https://github.com/osintbuddy/osintbuddy.git
    cd osintbuddy
    # using ssh?
-   # git clone --recurse-submodules git@github.com:jerlendds/osintbuddy.git 
+   # git clone --recurse-submodules git@github.com:osintbuddy/osintbuddy.git 
    ```
 
 2. [Install Docker & Compose](https://docs.docker.com/get-started/get-docker/)

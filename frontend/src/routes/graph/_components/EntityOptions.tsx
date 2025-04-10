@@ -191,7 +191,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
       }}
     >
       <div key='positions' className="flex flex-col w-full">
-        <section className="flex relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
+        <section className="flex shadow-md relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
           <div className='flex items-center'>
             <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
               <HomeIcon className='h-6' />
@@ -204,13 +204,13 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               </span>
             </h5>
             <ul className='isolate inline-flex shadow-sm'>
-          <div className='flex items-center'>
-            <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
-              <ViewfinderCircleIcon className='h-6' />
-            </button>
-           
-          </div>
-          </ul>
+              <div className='flex items-center'>
+                <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
+                  <ViewfinderCircleIcon className='h-6' />
+                </button>
+
+              </div>
+            </ul>
           </div>
 
           <ul className='isolate inline-flex shadow-sm '>

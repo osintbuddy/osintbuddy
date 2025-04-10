@@ -32,10 +32,6 @@ import CommandPallet from './_components/CommandPallet';
 import { useGetGraphQuery } from '@src/app/api';
 import RoundLoader from '@src/components/Loaders';
 import { useTour } from '@reactour/tour';
-import { BackspaceIcon } from '@heroicons/react/24/outline';
-import { Icon } from '@src/components/Icons';
-import classNames from 'classnames';
-import { HandRaisedIcon, PauseIcon, PlayIcon } from '@heroicons/react/20/solid';
 
 const keyMap = {
   TOGGLE_PALETTE: ['shift+p'],

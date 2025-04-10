@@ -8,7 +8,7 @@ import { Icon } from "./Icons";
 
 const navigation = [
   { name: <><span>Dashboard</span></>, to: "/dashboard", icon: HomeIcon },
-  { name: <><span>Workspace</span> <span className="half-grayscale ml-auto mr-2.5 opacity-30 right-0">🚧</span></>, to: "/workspaces", icon: VariableIcon },
+  { name: <><span>Workspace</span></>, to: "/workspaces", icon: VariableIcon },
   { name: <><span>Scans</span> <span className="half-grayscale ml-auto mr-2.5 opacity-30 right-0">🚧</span></>, to: "/scans", icon: DocumentMagnifyingGlassIcon },
 ];
 

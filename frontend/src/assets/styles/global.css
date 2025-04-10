@@ -302,3 +302,12 @@ input[type='file'] {
 
 
 /* end react-grid-layout and codemirror */
+
+
+.cm-lineNumbers.cm-gutter, .cm-foldGutter .cm-gutterElement {
+  color: #445068
+}
+
+.cm-foldGutter .cm-gutterElement > span:hover {
+  color: #667694;
+}

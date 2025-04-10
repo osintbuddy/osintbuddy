@@ -14,6 +14,7 @@ import requests
 
 from api import deps
 import crud, schemas
+from api.utils import get_blueprint
 from core.logger import get_logger
 
 log = get_logger("api_v1.endpoints.entities")
@@ -42,6 +43,13 @@ async def get_entity(
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://plugins:42562/entities/{hid}")
         entity = response.json()
+        print(entity)
+        label = entity.get('label')
+        entity['blueprint'] = await get_blueprint(label)
+        print(entity)
+        response = await client.get(f"http://plugins:42562/transforms?label={to_snake_case(label)}")
+        transforms = response.json()
+        entity['transforms'] = transforms
         return entity
 
 

@@ -10,18 +10,11 @@ import httpx
 
 import schemas, crud
 from api import deps
-
+from api.utils import get_blueprint
 router = APIRouter(prefix="/node")
 
 
-async def get_blueprint(label: str):
-    """
-    Fetch a single entity plugin blueprint from the plugins service
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"http://plugins:42562/blueprint?label={label}", timeout=None)
-        blueprint = response.json()
-        return blueprint
+
 
 
 async def get_blueprints() -> dict[str, dict]:

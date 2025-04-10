@@ -1,6 +1,7 @@
 import re
 from typing import TYPE_CHECKING, Callable, Union, List
 
+import httpx
 from sqids import Sqids
 from fastapi import Request
 from core.config import settings
@@ -57,3 +58,11 @@ def dkeys_to_snake_case(data: dict) -> Union[dict, List[dict]]:
         return [dkeys_to_snake_case(i) if isinstance(i, (dict, list)) else i for i in data]
     return {to_snake(a):dkeys_to_snake_case(b) if isinstance(b, (dict, list)) else b for a, b in data.items()}
 
+async def get_blueprint(label: str):
+    """
+    Fetch a single entity plugin blueprint from the plugins service
+    """
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://plugins:42562/blueprint?label={label}", timeout=None)
+        blueprint = response.json()
+        return blueprint
