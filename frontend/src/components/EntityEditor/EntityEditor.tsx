@@ -65,8 +65,6 @@ export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar 
     if (activeEntity?.source) setCode(activeEntity.source)
   }, [activeEntity?.source])
   const [updateEntityById] = useUpdateEntityByIdMutation()
-
-
   return (
     <>
       <ResponsiveGridLayout
