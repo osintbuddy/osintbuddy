@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import './assets/styles/index.css';
 
 const container = document.getElementById('root') as HTMLDivElement;
@@ -16,5 +15,3 @@ root.render(
     </Provider>
   </React.StrictMode>
 );
-
-reportWebVitals();

@@ -4,7 +4,7 @@ import type { RootState, AppDispatch } from './store';
 
 
 export const useEffectOnce = (effect: () => void | (() => void)) => {
-  const destroyFunc = useRef<void | (() => void)>();
+  const destroyFunc = useRef<void | (() => void)>(null);
   const effectCalled = useRef(false);
   const renderAfterCalled = useRef(false);
   const [val, setVal] = useState<number>(0);

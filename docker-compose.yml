@@ -5,7 +5,7 @@ services:
     command: sh -c "cd /app/ && yarn && yarn dev"
     env_file:
       - .env
-    image: node:18.18.2-alpine3.18
+    image: node:20-alpine3.18
     volumes:
       - ./frontend/:/app/
     ports:

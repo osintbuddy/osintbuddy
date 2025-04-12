@@ -9,9 +9,9 @@ import { toast } from 'react-toastify'
  * (which auto redirects to /)
 */
 export const rtkQueryAuthHandler: Middleware =
-  (api: MiddlewareAPI) => (next) => (action) => {
+  (api: MiddlewareAPI) => (next) => (action: any) => {
     if (isRejectedWithValue(action)) {
-      if (action.payload.status === 401) {
+      if (action?.payload?.status === 401) {
         toast.warn('Unauthorized!')
         next(signOut())
       } else {

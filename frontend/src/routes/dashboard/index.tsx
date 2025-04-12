@@ -12,7 +12,6 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 import { GetGraphStatsApiResponse } from '../../app/api';
 import CreateEntityModal from "./_components/modals/CreateEntityModal";
-import { UseQueryStateOptions } from "@reduxjs/toolkit/dist/query/react/buildHooks";
 import { useAppDispatch } from "@src/app/hooks";
 import { resetGraph, setPositionMode } from "@src/features/graph/graphSlice";
 
