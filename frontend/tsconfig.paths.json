@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    "jsx": "react",
+    "strict": true,
     "baseUrl": ".",
     "paths": {
+      "react": ["./node_modules/@types/react"],
       "@src/*": ["./src/*"],
       "@app/*": ["./src/app/*"],
       "@assets/*": ["./src/assets/*"],

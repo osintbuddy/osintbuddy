@@ -34,7 +34,7 @@ export default function GraphOverview() {
           {(graphs.length > 0 || favoriteGraphs.length > 0) && (
             <>
               <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold pr-2">
-                {graphs.length + favoriteGraphs.length ?? ''} {favoriteGraphs.length + graphs.length > 1 ? 'graphs' : 'graph'} available</h1>
+                {graphs.length + favoriteGraphs.length} {favoriteGraphs.length + graphs.length > 1 ? 'graphs' : 'graph'} available</h1>
               <p className="md:pt-4 max-w-xl text-slate-300/80">
                 Get started by selecting an existing graph from the sidebar
                 on the left or you can create a new graph with the button located towards the bottom left

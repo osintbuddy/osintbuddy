@@ -2,7 +2,7 @@ import { auraInit } from "@uiw/codemirror-theme-aura";
 import CodeMirror, { Extension } from "@uiw/react-codemirror";
 import { tags as t } from "@lezer/highlight";
 import { python } from "@codemirror/lang-python";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -65,6 +65,8 @@ export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar 
     if (activeEntity?.source) setCode(activeEntity.source)
   }, [activeEntity?.source])
   const [updateEntityById] = useUpdateEntityByIdMutation()
+  const responsiveGridRef = useRef(null);
+
   return (
     <>
       <ResponsiveGridLayout
