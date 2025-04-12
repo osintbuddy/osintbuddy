@@ -3,7 +3,7 @@ import CodeMirror, { Extension } from "@uiw/react-codemirror";
 import { tags as t } from "@lezer/highlight";
 import { python } from "@codemirror/lang-python";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
+import { CommandLineIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import { Icon } from "../Icons";
@@ -11,8 +11,11 @@ import { useUpdateEntityByIdMutation } from '@app/api';
 import { UpdateEntityByIdApiArg } from '../../app/api';
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { PlayIcon } from "@heroicons/react/20/solid";
+import { PlayIcon, ChevronUpDownIcon, PencilSquareIcon, PencilIcon } from "@heroicons/react/20/solid";
 import { EditorView } from "@codemirror/view"
+import { Resizable, ResizableBox } from 'react-resizable';
+import classNames from "classnames";
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 
 export const auraTheme = auraInit({
   settings: {
@@ -36,7 +39,7 @@ export const auraTheme = auraInit({
   ],
 })
 
-export function CodeEditor({ code, setCode, editable=true }: JSONObject) {
+export function CodeEditor({ code, setCode, editable = true }: JSONObject) {
   return (
     <CodeMirror
       editable={editable}
@@ -53,12 +56,13 @@ export function CodeEditor({ code, setCode, editable=true }: JSONObject) {
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface EntityEditorProps {
+  transforms: any
   activeEntity?: any
   refetchEntity: () => void
   showTaskbar?: boolean
 }
 
-export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar = true }: EntityEditorProps) {
+export default function EntityEditor({ transforms, activeEntity, refetchEntity, showTaskbar = true }: EntityEditorProps) {
   const [isEntityDraggable, setEntityDraggable] = useState(false);
   const [code, setCode] = useState(activeEntity?.source)
   useEffect(() => {
@@ -67,11 +71,25 @@ export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar 
   const [updateEntityById] = useUpdateEntityByIdMutation()
   const responsiveGridRef = useRef(null);
 
+
+  const [textWrap, setTextWrap] = useState<string>('whitespace-pre-line')
+
+  const [activeOption, setActiveOption] = useState<any>({ label: 'Select transform...', icon: 'edit' });
+  const dropdownRef: any = useRef(200)
+  const [query, setQuery] = useState('');
+
+
+  useEffect(() => {
+    setActiveOption({ label: 'Select transform...', icon: 'edit' })
+  }, [transforms])
+
+
+  console.log('transforms', transforms)
   return (
     <>
       <ResponsiveGridLayout
         compactType={null}
-        className="w-full flex h-full absolute"
+        className="w-full h-full absolute"
         rowHeight={25}
         maxRows={150}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -86,7 +104,7 @@ export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar 
           data-grid={{
             x: 0,
             y: 0,
-            w: 30,
+            w: 38,
             h: 25,
             maxH: 27,
             minH: 2,
@@ -94,59 +112,130 @@ export default function EntityEditor({ activeEntity, refetchEntity, showTaskbar 
             minW: 10,
           }}
         >
-          
+
           <div className=" from-mirage-400/20 backdrop-blur-sm bg-gradient-to-tr from-40% to-mirage-400/30 border-mirage-400 border overflow-y-scroll h-full ">
             <CodeEditor editable={showTaskbar} code={code} setCode={setCode} />
           </div>
-         {showTaskbar && (
-           <ol className="text-sm flex select-none from-mirage-200/20 bg-gradient-to-tr from-40% to-mirage-300/20 relative px-2 py-2 border-b border-mirage-300/80">
-      
-      
-           <li className="flex mr-auto">
-           <div className="flex justify-between items-center w-full text-slate-400 ">
-               <button
-               title="Run transform"
-                 onClick={() => {
-                   updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
-                     `The ${activeEntity?.label} entity has been saved.`
-                   ))
-                   refetchEntity()
-                 }}
-               >
-                 <PlayIcon className="h-5 text-green-600/80 hover:text-green-600" />
-               </button>
-               </div>
-           </li>
-           <li className="flex">
-             <div className="flex justify-between items-center w-full text-slate-400 ">
-               <button
-                 onClick={() => {
-                   updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
-                     `The ${activeEntity?.label} entity has been saved.`
-                   ))
-                   refetchEntity()
-                 }}
-               >
-                 <Icon
-                   icon="device-floppy"
-                   className="w-5 h-5 text-slate-500 hover:text-slate-400 -mb-0.5 mx-1"
-                 />
-               </button>
-               <button
-                 onClick={() => setEntityDraggable(!isEntityDraggable)}
-                 className="text-slate-500 hover:text-slate-400 text-inherit whitespace-nowrap font-display"
-               >
-                 {isEntityDraggable ? (
-                   <LockOpenIcon className="w-5 h-5" />
-                 ) : (
-                   <LockClosedIcon className="w-5 h-5" />
-                 )}
-               </button>
-             </div>
-           </li>
-         </ol>
-         )}
+          {showTaskbar && (
+            <>
+              <ol className="text-sm flex select-none from-mirage-200/20 bg-gradient-to-tr from-40% to-mirage-300/20 relative pr-2 border-b border-mirage-300/80">
+                <li className="flex mr-auto w-full">
+                  {!activeEntity?.label?.includes("Select entity") && (
+
+                    <Combobox
+                      className='w-full dropdown-input '
+                      as='div'
+                      value={activeOption}
+                      onChange={(option: any) => setActiveOption(option)}
+                    >
+                      <div className='p-2 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-500/90 from-mirage-600/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
+                        <ComboboxInput
+                          ref={dropdownRef}
+                          
+                          onChange={(event) => setQuery(event.target.value)}
+                          displayValue={(option: DropdownOption) => option.label}
+                          className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
+                        />
+                        <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 -right-0.5 focus:outline-none'>
+                          <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
+                        </ComboboxButton>
+                        <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full  border-x border-mirage-600  rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+                          {transforms?.map((transform: any) => (
+                            <ComboboxOption
+                              key={transform.label}
+                              value={transform}
+                              className={({ active }) =>
+                                `flex items-center px-2 hover:bg-mirage-700 flex py-1 border-y border-mirage-600 nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
+                              }
+                            >
+                                <Icon icon={transform.icon} /> {transform.label}
+                            </ComboboxOption>
+                          ))}
+                        </ComboboxOptions>
+                      </div>
+                    </Combobox>
+
+                  )}
+                   {!activeEntity?.label?.includes("Select entity")  && (
+                    <div className="flex justify-between items-center text-slate-500 pl-2 hover:text-green-500 border-b-2 border-transparent">
+                    <div
+                      className="flex items-center"
+                      title="Execute a transform and see the output in the console"
+                    >
+                      <PlayIcon className="h-5 mr-2" />
+                      <span className="text-nowrap mr-4 ">Run transform</span>
+                    </div>
+                  </div>
+                   )}
+                  <div className="flex justify-between items-center w-full text-slate-200 ">
+                    <div
+                      className="flex items-center py-2 border-b border-b-primary-400"
+                      title="Run transform"
+                    >
+                      <CommandLineIcon className="h-5 mr-2" />
+                      <span className="text-nowrap mr-4 ">{!activeEntity?.label?.includes('Select entity') && activeEntity.label} Console</span>
+                    </div>
+                  </div>
+
+                </li>
+                <li className="flex py-2 ">
+                  <div className="flex justify-between items-center w-full text-slate-400 ">
+                    <button
+                      onClick={() => {
+                        updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
+                          `The ${activeEntity?.label} entity has been saved.`
+                        ))
+                        refetchEntity()
+                      }}
+                    >
+                      <Icon
+                        icon="device-floppy"
+                        className="w-5 h-5 text-slate-500 hover:text-slate-400 -mb-0.5 mx-1"
+                      />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (textWrap === 'whitespace-pre-line') setTextWrap('text-nowrap')
+                        else setTextWrap('whitespace-pre-line')
+                      }}
+                    >
+                      <Icon
+                        icon="text-wrap"
+                        className={classNames('w-5 h-5 -mb-0.5 mx-1 ', textWrap === 'text-nowrap' ? 'text-slate-500 hover:text-slate-400' : 'text-slate-300  ')}
+                      />
+                    </button>
+                    <button
+                      onClick={() => setEntityDraggable(!isEntityDraggable)}
+                      className="text-slate-500 hover:text-slate-400"
+                    >
+                      {isEntityDraggable ? (
+                        <LockOpenIcon className="w-5 h-5" />
+                      ) : (
+                        <LockClosedIcon className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                </li>
+              </ol>
+              <ResizableBox axis={'y'} className="rounded-sm min-h- border-mirage-100/0 shadow-lg border backdrop-blur-sm from-mirage-500/40 to-mirage-500/70  bg-gradient-to-br from-50% flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
+                handle={
+                  <div className=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
+                    <span className=" react-resizable-handle react-resizable-handle-ne" />
+                  </div>
+                }
+                resizeHandles={['ne']}>
+                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300 text-sm h-full overflow-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0`} >
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ullam qui repellat officiis, eius deleniti unde quasi rem voluptatem maxime vel corrupti blanditiis veritatis tempora, minus, sint numquam voluptas nulla ut ipsum mollitia sed. Aliquid tempore quibusdam officia fugiat perspiciatis veritatis ullam porro quo eius saepe quidem sequi, vitae voluptates accusamus quasi adipisci, similique consequuntur quas expedita? Mollitia, aperiam expedita ducimus necessitatibus quae alias at voluptates id ex quisquam temporibus deserunt quos totam aut vitae quaerat sint aliquam natus inventore asperiores enim nisi error porro! Repellendus maxime eveniet sunt ea iusto, molestiae ratione! Unde autem enim quibusdam! Esse reprehenderit dolore perferendis mollitia modi. Ea, doloribus id eveniet dolorem minima enim assumenda sequi rerum vero voluptates culpa unde molestiae error voluptatum necessitatibus doloremque amet nobis exercitationem pariatur dolore. Officia tempora maiores commodi, itaque consequuntur nostrum perferendis voluptatum ullam sint dolore facilis delectus? Ea distinctio consequuntur, pariatur libero aut cupiditate reiciendis incidunt sapiente quam, magnam eius ipsam, necessitatibus tempore? Corrupti laudantium adipisci alias ut! Vel amet neque odit, earum quod quo dicta itaque repellat reiciendis voluptate? Odio provident maxime magnam esse voluptatem ullam doloremque harum, delectus, modi cupiditate sunt architecto eos voluptatibus nemo. Doloremque, obcaecati error quaerat quos eaque rerum dolor officiis!
+                </textarea>
+              </ResizableBox>
+
+            </>
+
+          )}
+
         </div>
+        <div className=" from-mirage-400/20 backdrop-blur-sm bg-gradient-to-tr from-40% to-mirage-400/30 border-mirage-400 border overflow-y-scroll h-full ">
+          <h2>Migrations</h2>          </div>
       </ResponsiveGridLayout >
     </>
   );

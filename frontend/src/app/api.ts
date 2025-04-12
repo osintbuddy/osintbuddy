@@ -15,7 +15,9 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/api/v1/node/`,
         method: "POST",
         body: queryArg.createNode,
-        params: { hid: queryArg.hid },
+        params: {
+          hid: queryArg.hid,
+        },
       }),
     }),
     runEntityTransform: build.mutation<
@@ -26,14 +28,18 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/api/v1/node/transform/`,
         method: "POST",
         body: queryArg.sourceEntity,
-        params: { hid: queryArg.hid },
+        params: {
+          hid: queryArg.hid,
+        },
       }),
     }),
     postSignin: build.mutation<PostSigninApiResponse, PostSigninApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/auth/sign-in`,
         method: "POST",
-        params: { code: queryArg.code },
+        params: {
+          code: queryArg.code,
+        },
       }),
     }),
     postSignout: build.mutation<PostSignoutApiResponse, PostSignoutApiArg>({
@@ -67,7 +73,9 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: `/api/v1/graph`,
         method: "DELETE",
-        params: { hid: queryArg.hid },
+        params: {
+          hid: queryArg.hid,
+        },
       }),
     }),
     getGraphsByFavorite: build.query<
@@ -101,7 +109,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: `/api/v1/entity/plugins/transform/`,
-        params: { label: queryArg.label },
+        params: {
+          label: queryArg.label,
+        },
       }),
     }),
     getEntity: build.query<GetEntityApiResponse, GetEntityApiArg>({

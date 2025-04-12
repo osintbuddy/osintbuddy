@@ -1,17 +1,30 @@
 import classNames from 'classnames';
 import { useRef, useState } from 'react';
 import { Combobox } from '@headlessui/react';
-import { HandRaisedIcon } from '@heroicons/react/20/solid';
 import List from 'react-virtualized/dist/es/List'
 import {
   ChevronUpDownIcon,
   CodeBracketIcon,
 } from '@heroicons/react/24/outline';
-import { useGetEntitiesQuery } from '@src/app/api';
+import { useGetEntitiesQuery, useGetEntityTransformsQuery } from '@src/app/api';
 import EntityEditor from '@src/components/EntityEditor/EntityEditor';
 
 
 export default function WorkspacePage() {
+
+  const dropdownRef: any = useRef(200)
+  const [query, setQuery] = useState('');
+  const [activeOption, setActiveOption] = useState<any>({ label: 'Select entity...' });
+
+  const {
+    data: entitiesData = { entities: [], count: 0, favorite_entities: [], favorite_count: 0 },
+    isLoading,
+    isError,
+    isSuccess,
+    refetch: refetchEntities,
+  } = useGetEntitiesQuery()
+
+
   const rowRenderer = ({ index, key, isScrolling, isVisible, style }: any) => {
     return (
       <Combobox.Option
@@ -37,18 +50,8 @@ export default function WorkspacePage() {
 
     )
   }
-  const dropdownRef: any = useRef(200)
-  const [query, setQuery] = useState('');
-  const [activeOption, setActiveOption] = useState<any>({ label: 'Select entity...' });
-
-  const {
-    data: entitiesData = { entities: [], count: 0, favorite_entities: [], favorite_count: 0 },
-    isLoading,
-    isError,
-    isSuccess,
-    refetch: refetchEntities,
-  } = useGetEntitiesQuery()
-
+  console.log(activeOption)
+  const { data: transformsData, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeOption.label })
 
   return (
     <>
@@ -66,7 +69,10 @@ export default function WorkspacePage() {
               className='w-full dropdown-input '
               as='div'
               value={activeOption ?? { label: 'Select entity...' }}
-              onChange={(option: any) => setActiveOption(option)}
+              onChange={(option: any) => {
+                setActiveOption(option)
+                refetchTransforms()
+              }}
             >
               <div className='p-2 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-500/90 from-mirage-600/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
                 <Combobox.Input
@@ -114,7 +120,8 @@ export default function WorkspacePage() {
 
           </ul> */}
         </section>
-        <EntityEditor activeEntity={activeOption} refetchEntity={() => null} />
+        <EntityEditor transforms={transformsData?.transforms ?? []} activeEntity={activeOption} refetchEntity={() => null} />
+           
       </div>
     </>
   );
