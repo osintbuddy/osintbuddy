@@ -123,7 +123,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                   {!activeEntity?.label?.includes("Select entity") && (
 
                     <Combobox
-                      className='w-full dropdown-input '
+                      className='w-80 '
                       as='div'
                       value={activeOption}
                       onChange={(option: any) => setActiveOption(option)}
@@ -131,21 +131,20 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                       <div className='p-2 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-500/90 from-mirage-600/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
                         <ComboboxInput
                           ref={dropdownRef}
-                          
                           onChange={(event) => setQuery(event.target.value)}
-                          displayValue={(option: DropdownOption) => option.label}
+                          displayValue={(option: any) => option.label}
                           className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
                         />
                         <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 -right-0.5 focus:outline-none'>
                           <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
                         </ComboboxButton>
-                        <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full  border-x border-mirage-600  rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+                        <ComboboxOptions className=' left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full rounded-sm border border-mirage-600  rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
                           {transforms?.map((transform: any) => (
                             <ComboboxOption
                               key={transform.label}
                               value={transform}
-                              className={({ active }) =>
-                                `flex items-center px-2 hover:bg-mirage-700 flex py-1 border-y border-mirage-600 nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
+                              className={({ active }: any) =>
+                                `text-nowrap px-2 items-center hover:bg-mirage-700 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
                               }
                             >
                                 <Icon icon={transform.icon} /> {transform.label}
@@ -224,8 +223,8 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                   </div>
                 }
                 resizeHandles={['ne']}>
-                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300 text-sm h-full overflow-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0`} >
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ullam qui repellat officiis, eius deleniti unde quasi rem voluptatem maxime vel corrupti blanditiis veritatis tempora, minus, sint numquam voluptas nulla ut ipsum mollitia sed. Aliquid tempore quibusdam officia fugiat perspiciatis veritatis ullam porro quo eius saepe quidem sequi, vitae voluptates accusamus quasi adipisci, similique consequuntur quas expedita? Mollitia, aperiam expedita ducimus necessitatibus quae alias at voluptates id ex quisquam temporibus deserunt quos totam aut vitae quaerat sint aliquam natus inventore asperiores enim nisi error porro! Repellendus maxime eveniet sunt ea iusto, molestiae ratione! Unde autem enim quibusdam! Esse reprehenderit dolore perferendis mollitia modi. Ea, doloribus id eveniet dolorem minima enim assumenda sequi rerum vero voluptates culpa unde molestiae error voluptatum necessitatibus doloremque amet nobis exercitationem pariatur dolore. Officia tempora maiores commodi, itaque consequuntur nostrum perferendis voluptatum ullam sint dolore facilis delectus? Ea distinctio consequuntur, pariatur libero aut cupiditate reiciendis incidunt sapiente quam, magnam eius ipsam, necessitatibus tempore? Corrupti laudantium adipisci alias ut! Vel amet neque odit, earum quod quo dicta itaque repellat reiciendis voluptate? Odio provident maxime magnam esse voluptatem ullam doloremque harum, delectus, modi cupiditate sunt architecto eos voluptatibus nemo. Doloremque, obcaecati error quaerat quos eaque rerum dolor officiis!
+                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300/80 text-sm h-full overflow-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2`} >
+                  No output, try running a transform
                 </textarea>
               </ResizableBox>
 

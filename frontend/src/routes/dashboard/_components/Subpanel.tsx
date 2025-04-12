@@ -37,6 +37,8 @@ interface EntitiesSubpanelProps {
   items: JSONObject[] | undefined // Entity[] | Graph[]
   to: "/dashboard/entity" | "/dashboard/graph"
   errorMessage?: string | null
+  dateLabel?: string 
+  dateKey?: string
 }
 
 export default function Subpanel({
@@ -49,7 +51,9 @@ export default function Subpanel({
   onClick,
   items,
   to,
-  errorMessage
+  errorMessage,
+  dateLabel =  "Last edit",
+  dateKey = "last_edit"
 }: EntitiesSubpanelProps) {
   const { hid } = useParams();
   return (
@@ -86,7 +90,7 @@ export default function Subpanel({
               <div>
                 <p className={styles["subpanel-label"] + " " + styles[`subpanel-label-${isActive}`]}>{item.label}</p>
                 <p className={descriptionClassName}>{item.description}</p>
-                <p className={descriptionClassName}><span className="font-sans">Last edit </span> {formatPGDate(item?.last_edit)}</p>
+                <p className={descriptionClassName}><span className="font-sans">{dateLabel} </span> {formatPGDate(item[dateKey])}</p>
               </div>
               <StarIcon
                 onClick={async () => await onClick(item.id)}

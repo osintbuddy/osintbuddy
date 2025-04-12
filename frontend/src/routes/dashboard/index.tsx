@@ -60,7 +60,7 @@ export default function DashboardPage() {
   } = useGetGraphsQuery({ ...graphsQuery, ...favoriteGraphsQuery })
 
   const {
-    data: entitiesData = { entities: [], count: 0, favorite_entities: [], favorite_count: 0 },
+    data: entities = [],
     isLoading,
     isError,
     isSuccess,
@@ -154,7 +154,7 @@ export default function DashboardPage() {
               </Tab.Panel>
               <Tab.Panel className={styles["tab-panel"]}>
                 <EntitiesPanel
-                  entitiesData={entitiesData}
+                  entitiesData={entities}
                   isLoading={isLoading}
                   isError={isError}
                   isSuccess={isSuccess}
@@ -190,7 +190,7 @@ export default function DashboardPage() {
         <Outlet context={{
           refetchGraphs,
           graphsData: allGraphsData,
-          entitiesData: entitiesData?.entities ?? [],
+          entitiesData: entities?.entities ?? [],
           isLoadingGraphs,
           isGraphsError,
           graphStats,

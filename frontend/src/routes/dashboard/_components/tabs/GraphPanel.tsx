@@ -75,6 +75,8 @@ export default function GraphPanel({
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to="/dashboard/graph"
+        dateLabel="Created"
+        dateKey="created"
       />
       <Subpanel
         label="All graphs"
@@ -86,6 +88,8 @@ export default function GraphPanel({
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to="/dashboard/graph"
+        dateLabel="Created"
+        dateKey="created"
       />
     </section>
   )

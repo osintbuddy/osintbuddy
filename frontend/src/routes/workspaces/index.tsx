@@ -10,27 +10,30 @@ import { useGetEntitiesQuery, useGetEntityTransformsQuery } from '@src/app/api';
 import EntityEditor from '@src/components/EntityEditor/EntityEditor';
 
 
+
+
 export default function WorkspacePage() {
 
   const dropdownRef: any = useRef(200)
   const [query, setQuery] = useState('');
-  const [activeOption, setActiveOption] = useState<any>({ label: 'Select entity...' });
+  const [activeEntity, setActiveEntity] = useState<any>({ label: 'Select entity...' });
 
   const {
-    data: entitiesData = { entities: [], count: 0, favorite_entities: [], favorite_count: 0 },
+    data: entities =  [],
     isLoading,
     isError,
     isSuccess,
     refetch: refetchEntities,
   } = useGetEntitiesQuery()
 
+  console.log('entites', entities)
 
   const rowRenderer = ({ index, key, isScrolling, isVisible, style }: any) => {
     return (
       <Combobox.Option
         key={key}
         style={style}
-        value={entitiesData.entities[index]}
+        value={entities[index]}
         className={({ active }) =>
           `overflow-y-none px-2 flex  flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-800 text-slate-400' : 'text-slate-400/80'}`
         }
@@ -38,20 +41,20 @@ export default function WorkspacePage() {
         <span
           className="block truncate text-md"
         >
-          {entitiesData.entities[index].label}
+          {entities[index].label}
         </span>
 
         <span
           className="flex truncate leading-3 text-[0.6rem]"
         >
-          {entitiesData.entities[index].author}
+          {entities[index].author}
         </span>
       </Combobox.Option>
 
     )
   }
-  console.log(activeOption)
-  const { data: transformsData, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeOption.label })
+  console.log(activeEntity)
+  const { data: transformsData, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity.label })
 
   return (
     <>
@@ -68,9 +71,9 @@ export default function WorkspacePage() {
             <Combobox
               className='w-full dropdown-input '
               as='div'
-              value={activeOption ?? { label: 'Select entity...' }}
+              value={activeEntity ?? { label: 'Select entity...' }}
               onChange={(option: any) => {
-                setActiveOption(option)
+                setActiveEntity(option)
                 refetchTransforms()
               }}
             >
@@ -78,8 +81,8 @@ export default function WorkspacePage() {
                 <Combobox.Input
                   ref={dropdownRef}
                   onClick={() => {
-                    if (activeOption.label.includes("Select entity")) {
-                      setActiveOption('')
+                    if (activeEntity.label.includes("Select entity")) {
+                      setActiveEntity('')
                     }
                   }}
                   onChange={(event) => setQuery(event.target.value)}
@@ -94,8 +97,7 @@ export default function WorkspacePage() {
                     height={200}
                     rowHeight={40}
                     width={230}
-
-                    rowCount={entitiesData.entities.length}
+                    rowCount={entities.length}
                     rowRenderer={rowRenderer}
                   />
                 </Combobox.Options>
@@ -120,7 +122,7 @@ export default function WorkspacePage() {
 
           </ul> */}
         </section>
-        <EntityEditor transforms={transformsData?.transforms ?? []} activeEntity={activeOption} refetchEntity={() => null} />
+        <EntityEditor transforms={transformsData?.transforms ?? []} activeEntity={activeEntity} refetchEntity={() => null} />
            
       </div>
     </>

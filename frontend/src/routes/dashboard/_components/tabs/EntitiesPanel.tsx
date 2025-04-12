@@ -5,24 +5,28 @@ import Subpanel from "../Subpanel";
 
 
 export default function EntitiesPanel({
-  entitiesData,
+  entitiesData: entities,
   isLoading,
   isError,
   isSuccess,
   refetchEntities,
 }: JSONObject) {
+  const [updateEntityIsFavorite] = useUpdateEntityFavoriteIdMutation()
   const [showFavoriteEntities, setShowFavoriteEntities] = useState<boolean>(true);
   const [showEntities, setShowEntities] = useState(true);
 
-  console.log('entitiesData', entitiesData)
-
-  const entities = useMemo(() => {
-    const sortedEntities = entitiesData.entities.slice()
-    sortedEntities.sort((a: any, b: any) => b.label.localeCompare(a.label))
+  const sortedEntities = useMemo(() => {
+    const sortedEntities = entities.slice()
+    console.log('sorted', sortedEntities)
+    sortedEntities.sort((a: any, b: any) => {
+      let c = new Date(b.last_edit)
+      let d = new Date(a.last_edit)
+      // @ts-ignore
+      return c-d
+    })
     return sortedEntities
-  }, [entitiesData])
+  }, [entities])
 
-  const [updateEntityIsFavorite] = useUpdateEntityFavoriteIdMutation()
 
   const updateEntityOnFavorite = (hid: string) => {
     updateEntityIsFavorite({ hid })
@@ -50,7 +54,7 @@ export default function EntitiesPanel({
         setShowEntities={() => setShowEntities(!showEntities)}
         isLoading={isLoading}
         isSuccess={isSuccess}
-        items={entities}
+        items={sortedEntities}
         onClick={(hid) => updateEntityOnFavorite(hid)}
         to="/dashboard/entity"
       />
