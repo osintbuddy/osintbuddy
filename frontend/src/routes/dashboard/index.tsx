@@ -190,7 +190,7 @@ export default function DashboardPage() {
         <Outlet context={{
           refetchGraphs,
           graphsData: allGraphsData,
-          entitiesData: entities?.entities ?? [],
+          entitiesData: entities,
           isLoadingGraphs,
           isGraphsError,
           graphStats,

@@ -22,13 +22,13 @@ export default function ContextMenu({
     left: position.x,
   };
 
-  const { data: transformsData = { transforms: [], type: null }, isLoading: isLoadingTransforms, isError: isTransformsError, isSuccess: isTransformsSuccess } = useGetEntityTransformsQuery({ label: activeTransformLabel as string }, { skip: activeTransformLabel === null })
+  const { data: transforms = [], isLoading: isLoadingTransforms, isError: isTransformsError, isSuccess: isTransformsSuccess } = useGetEntityTransformsQuery({ label: activeTransformLabel as string }, { skip: activeTransformLabel === null })
 
 
   const [query, setQuery] = useState('');
   const filteredTransforms = query
-    ? transformsData?.transforms.filter((transform: any) => transform.label.toLowerCase().includes(query.toLowerCase()))
-    : transformsData?.transforms ?? [];
+    ? transforms.filter((transform: any) => transform.label.toLowerCase().includes(query.toLowerCase()))
+    : transforms ?? [];
   return (
     <>
       <div id='context-menu' className='z-[999] absolute' style={ctxPosition}>
@@ -46,7 +46,7 @@ export default function ContextMenu({
                   </div>
                 </div>
               </div>
-              {transformsData && transformsData?.transforms && (
+              {transforms &&  (
                 <>
                   {ctxSelection && (
                     <div className=' '>
