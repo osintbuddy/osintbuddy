@@ -1,60 +1,53 @@
-import classNames from 'classnames';
-import { useRef, useState } from 'react';
-import { Combobox } from '@headlessui/react';
+import { useMemo, useRef, useState } from 'react';
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import List from 'react-virtualized/dist/es/List'
-import {
-  ChevronUpDownIcon,
-  CodeBracketIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronUpDownIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
 import { useGetEntitiesQuery, useGetEntityTransformsQuery } from '@src/app/api';
 import EntityEditor from '@src/components/EntityEditor/EntityEditor';
 
 
-
-
 export default function WorkspacePage() {
-
   const dropdownRef: any = useRef(200)
   const [query, setQuery] = useState('');
   const [activeEntity, setActiveEntity] = useState<any>({ label: 'Select entity...' });
 
   const {
-    data: entities =  [],
+    data: entities = [],
     isLoading,
     isError,
     isSuccess,
     refetch: refetchEntities,
   } = useGetEntitiesQuery()
 
-  console.log('entites', entities)
+  const sortedEntities = useMemo(() => {
+    const sortedEntities = entities.slice()
+    // @ts-ignore
+    sortedEntities.sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit))
+    return sortedEntities
+  }, [entities])
+
 
   const rowRenderer = ({ index, key, isScrolling, isVisible, style }: any) => {
     return (
-      <Combobox.Option
+      <ComboboxOption
         key={key}
         style={style}
-        value={entities[index]}
+        value={sortedEntities[index]}
         className={({ active }) =>
           `overflow-y-none px-2 flex  flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-800 text-slate-400' : 'text-slate-400/80'}`
         }
       >
-        <span
-          className="block truncate text-md"
-        >
-          {entities[index].label}
+        <span className="block truncate text-md">
+          {sortedEntities[index].label}
         </span>
-
-        <span
-          className="flex truncate leading-3 text-[0.6rem]"
-        >
-          {entities[index].author}
+        <span className="flex truncate leading-3 text-[0.6rem]">
+          {sortedEntities[index].author}
         </span>
-      </Combobox.Option>
+      </ComboboxOption>
 
     )
   }
-  console.log(activeEntity)
-  const { data: transformsData, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity.label })
+  const { data: transforms, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity.label })
 
   return (
     <>
@@ -78,7 +71,7 @@ export default function WorkspacePage() {
               }}
             >
               <div className='p-2 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-500/90 from-mirage-600/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
-                <Combobox.Input
+                <ComboboxInput
                   ref={dropdownRef}
                   onClick={() => {
                     if (activeEntity.label.includes("Select entity")) {
@@ -89,41 +82,23 @@ export default function WorkspacePage() {
                   displayValue={(option: DropdownOption) => option.label}
                   className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
                 />
-                <Combobox.Button className='absolute z-[99] mt-0.5  inset-y-0 h-9 right-0 focus:outline-none'>
+                <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 right-0 focus:outline-none'>
                   <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
-                </Combobox.Button>
-                <Combobox.Options className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+                </ComboboxButton>
+                <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
                   <List
                     height={200}
                     rowHeight={40}
                     width={230}
-                    rowCount={entities.length}
+                    rowCount={sortedEntities.length}
                     rowRenderer={rowRenderer}
                   />
-                </Combobox.Options>
+                </ComboboxOptions>
               </div>
             </Combobox>
           </div>
-          {/* <ul className='isolate inline-flex shadow-sm '>
-            <button
-              onClick={() => {
-              }}
-              type='button'
-              className={classNames(
-                'justify-center flex-grow rounded-sm border  from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/60 relative 2 inline-flex items-center transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
-                true && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
-              )}
-            >
-              <HandRaisedIcon
-                className={classNames('h-6 w-6 ', true && 'text-primary-300')}
-                aria-hidden='true'
-              />
-            </button>
-
-          </ul> */}
         </section>
-        <EntityEditor transforms={transformsData?.transforms ?? []} activeEntity={activeEntity} refetchEntity={() => null} />
-           
+        <EntityEditor transforms={transforms} activeEntity={activeEntity} refetchEntity={() => null} />
       </div>
     </>
   );

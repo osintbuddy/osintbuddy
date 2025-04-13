@@ -29,10 +29,7 @@ async def get_entity_transforms(
     async with httpx.AsyncClient() as client:
         response = await client.get(f"http://plugins:42562/transforms?label={to_snake_case(label)}")
         transforms = response.json()
-        return {
-            "type": label,
-            "transforms": transforms,
-        }
+        return transforms
 
 
 @router.get("/details/{hid}")

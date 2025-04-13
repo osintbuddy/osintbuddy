@@ -121,7 +121,6 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
               <ol className="text-sm flex select-none from-mirage-200/20 bg-gradient-to-tr from-40% to-mirage-300/20 relative pr-2 border-b border-mirage-300/80">
                 <li className="flex mr-auto w-full">
                   {!activeEntity?.label?.includes("Select entity") && (
-
                     <Combobox
                       className='w-80 '
                       as='div'
@@ -147,7 +146,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                                 `text-nowrap px-2 items-center hover:bg-mirage-700 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
                               }
                             >
-                                <Icon icon={transform.icon} /> {transform.label}
+                              <Icon icon={transform.icon} className="mr-2" /> {transform.label}
                             </ComboboxOption>
                           ))}
                         </ComboboxOptions>
