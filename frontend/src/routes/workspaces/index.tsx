@@ -59,7 +59,7 @@ export default function WorkspacePage() {
                 <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 right-0 focus:outline-none'>
                   <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
                 </ComboboxButton>
-                <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+                <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
                   {sortedEntities.map((entity: any) => (
                     <ComboboxOption
                       key={entity.label}
