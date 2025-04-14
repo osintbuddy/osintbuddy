@@ -19,7 +19,6 @@ export default function ContextAction({
 }) {
   const dispatch = useAppDispatch();
   const { hid } = useParams()
-  console.log(hid)
   const [runTransform, { isLoading }] = useRunEntityTransformMutation()
   
     const createEntityAction = ({ data, id, position, parentId }: JSONObject) => {
@@ -57,9 +56,7 @@ export default function ContextAction({
                           transform: transform?.label,
                         },
                       }).then((resp: any) => {
-                        console.log(resp.data)
                         const entities = resp.data.map((node: JSONObject, idx: number) => {
-                          console.log('node', node)
                           let entity = {...node}
                           // TODO: Move position layout logic to backend...
                           const isOdd = idx % 2 === 0;
@@ -70,7 +67,6 @@ export default function ContextAction({
                             x,
                             y,
                           };
-                          console.log(entity.position)
                           return entity
                           // sendJsonMessage({ action: 'update:node', node: { id: node.id, x, y } });
                         })
@@ -78,7 +74,6 @@ export default function ContextAction({
                         entities.forEach((entity: any) => {
                           createEntityAction(entity);
                           dispatch(setEditState({ editId: entity.id, editLabel: 'addNode' }))
-                          console.log('SENDING UPDATE', { id: entity.id, x: entity.x, y: entity.y })
                           sendJsonMessage({ action: 'update:node', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
                         })
 

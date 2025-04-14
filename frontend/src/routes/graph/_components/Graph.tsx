@@ -147,15 +147,17 @@ export default function Graph({
   }
 
   useEffect(() => {
-    // TODO: implement loading/unloading nodes after drag
-    // !isDragging && handleGraphRead()
-  }, [isDragging])
-
-  useEffect(() => {
     graphInstance?.setViewport({ x: 0, y: 0, zoom: 0.22 })
     handleGraphRead('initial_read');
   }, [graphInstance?.getViewport])
 
+  const onConnect = useCallback((connection: any) => dispatch(createEdge(connection)), [])
+  const onEdgeChange = useCallback((changes: any) => dispatch(onEdgesChange(changes)), [])
+  const onNodesChange = useCallback((changes: any) => dispatch(updateNodeFlow(changes)), [])
+
+  const onMoveStart = useCallback(() => !isDragging && setIsDragging(true), [])
+  const onMoveEnd = useCallback(() => setIsDragging(false), [])
+  const onDragStart = useCallback(() => setIsDragging(true), [])
   return (
     <ReactFlow
       onlyRenderVisibleElements={true}
@@ -165,14 +167,14 @@ export default function Graph({
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
-      onConnect={(connection) => dispatch(createEdge(connection))}
-      onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
+      onConnect={onConnect}
+      onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
       onEdgeUpdate={onEdgeUpdate}
       onInit={setGraphInstance}
-      onNodesChange={(changes) => dispatch(updateNodeFlow(changes))}
-      onNodeClick={(_, node) => {
+      onNodesChange={onNodesChange}
+      onNodeClick={(_: any, node: any) => {
         const newDelta = new Date().getTime()
         const isDouble = newDelta - clickDelta < doubleClickThreshold
         if (isDouble) {
@@ -182,12 +184,12 @@ export default function Graph({
         setClickDelta(newDelta)
         setIsDoubleClick(isDouble)
       }}
-      onMoveStart={() => !isDragging && setIsDragging(true)}
-      onMoveEnd={() => setIsDragging(false)}
+      onMoveStart={onMoveStart}
+      onMoveEnd={onMoveEnd}
       fitViewOptions={viewOptions}
       nodeTypes={nodeTypes}
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={() => setIsDragging(false)}
+      onDragStart={onDragStart}
+      onDragEnd={onMoveEnd}
       panActivationKeyCode='Space'
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}

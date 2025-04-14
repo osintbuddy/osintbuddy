@@ -134,7 +134,6 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
     'isInitialRead': () => {
       dispatch(setAllNodes(lastJsonMessage.nodes))
       dispatch(setAllEdges(lastJsonMessage.edges))
-      console.log(lastJsonMessage)
     },
     'read': () => {
       dispatch(setAllNodes(lastJsonMessage.nodes))
@@ -160,13 +159,18 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
 
   const initialNodes = useAppSelector((state) => graphNodes(state));
   const initialEdges = useAppSelector((state) => graphEdges(state));
+  const changeState = useAppSelector(state => selectEditState(state))
+  const positionMode = useAppSelector((state) => selectPositionMode(state))
+  
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(initialNodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(initialEdges)
   const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 });
   const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [activeTransformLabel, setActiveTransformLabel] = useState<string | null>(null)
-  // @todo implement support for multi-select transforms -
+  
+
+// @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
   const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
@@ -199,16 +203,10 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
     setCtxSelection(null);
   };
 
-  const positionMode = useAppSelector((state) => selectPositionMode(state))
-
-
   let fitView: FitView | any;
   if (graphInstance) {
     fitView = graphInstance.fitView
   }
-
-  const changeState = useAppSelector(state => selectEditState(state))
-
 
   useEffect(() => {
     if (positionMode === 'manual') {

@@ -4,7 +4,6 @@ import { DashboardContextType } from "../..";
 
 export default function EntitiesOverview() {
   const { entitiesData } = useOutletContext<DashboardContextType>()
-  console.log('entityiesData', entitiesData)
   return <>
     <div className="w-full items-center justify-center my-auto relative -top-16">
       <div className="flex flex-col items-center justify-center text-slate-400">

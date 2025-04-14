@@ -83,8 +83,6 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
     setActiveOption({ label: 'Select transform...', icon: 'edit' })
   }, [transforms])
 
-
-  console.log('transforms', transforms)
   return (
     <>
       <ResponsiveGridLayout

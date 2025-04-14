@@ -17,7 +17,6 @@ export default function EntitiesPanel({
 
   const sortedEntities = useMemo(() => {
     const sortedEntities = entities.slice()
-    console.log('sorted', sortedEntities)
     sortedEntities.sort((a: any, b: any) => {
       let c = new Date(b.last_edit)
       let d = new Date(a.last_edit)

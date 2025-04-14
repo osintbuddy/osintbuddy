@@ -11,7 +11,6 @@ export default function EntityDetailsPage() {
   const { hid = "" } = useParams()
   const { isLoading, data: activeEntity = { blueprint: { data: {} } }, refetch: refetchEntity } = useGetEntityQuery({ hid })
   const entity = { ...activeEntity.blueprint.data }
-  console.log('entity', activeEntity)
   return (
     <>
       <div className="flex flex-col h-screen w-full">
