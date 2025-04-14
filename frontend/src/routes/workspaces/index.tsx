@@ -4,6 +4,7 @@ import List from 'react-virtualized/dist/es/List'
 import { ChevronUpDownIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
 import { useGetEntitiesQuery, useGetEntityTransformsQuery } from '@src/app/api';
 import EntityEditor from '@src/components/EntityEditor/EntityEditor';
+import { Icon } from '@src/components/Icons';
 
 
 export default function WorkspacePage() {
@@ -19,36 +20,10 @@ export default function WorkspacePage() {
     refetch: refetchEntities,
   } = useGetEntitiesQuery()
 
-  const sortedEntities = useMemo(() => {
-    const sortedEntities = entities.slice()
-    // @ts-ignore
-    sortedEntities.sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit))
-    return sortedEntities
-  }, [entities])
+  // @ts-ignore
+  const sortedEntities = query === '' || query?.includes('Select') || query === null ? entities : entities.slice().sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit)).filter((e: any) => e?.label?.toLowerCase().includes(query.toLowerCase()))
 
-
-  const rowRenderer = ({ index, key, isScrolling, isVisible, style }: any) => {
-    return (
-      <ComboboxOption
-        key={key}
-        style={style}
-        value={sortedEntities[index]}
-        className={({ active }) =>
-          `overflow-y-none px-2 flex  flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-800 text-slate-400' : 'text-slate-400/80'}`
-        }
-      >
-        <span className="block truncate text-md">
-          {sortedEntities[index].label}
-        </span>
-        <span className="flex truncate leading-3 text-[0.6rem]">
-          {sortedEntities[index].author}
-        </span>
-      </ComboboxOption>
-
-    )
-  }
-  const { data: transforms, refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity.label })
-
+  const { data: transforms = [], refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity?.label }, { skip: activeEntity === null })
   return (
     <>
       <div className="flex flex-col w-full pt-2.5 px-3">
@@ -67,14 +42,13 @@ export default function WorkspacePage() {
               value={activeEntity ?? { label: 'Select entity...' }}
               onChange={(option: any) => {
                 setActiveEntity(option)
-                refetchTransforms()
               }}
             >
               <div className='p-2 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-500/90 from-mirage-600/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
                 <ComboboxInput
                   ref={dropdownRef}
                   onClick={() => {
-                    if (activeEntity.label.includes("Select entity")) {
+                    if (activeEntity?.label?.includes("Select entity")) {
                       setActiveEntity('')
                     }
                   }}
@@ -86,19 +60,32 @@ export default function WorkspacePage() {
                   <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
                 </ComboboxButton>
                 <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
-                  <List
-                    height={200}
-                    rowHeight={40}
-                    width={230}
-                    rowCount={sortedEntities.length}
-                    rowRenderer={rowRenderer}
-                  />
+                  {sortedEntities.map((entity: any) => (
+                    <ComboboxOption
+                      key={entity.label}
+                      value={entity}
+                      className={({ active }: any) =>
+                        `text-nowrap px-2  flex-col hover:bg-mirage-700 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
+                      }
+                    >
+                      <span className="block truncate text-md">
+                        {entity.label}
+                      </span>
+                      <span className="flex truncate leading-3 text-[0.6rem]">
+                        {entity.author}
+                      </span>
+                    </ComboboxOption>
+                  ))}
                 </ComboboxOptions>
               </div>
             </Combobox>
           </div>
         </section>
-        <EntityEditor transforms={transforms} activeEntity={activeEntity} refetchEntity={() => null} />
+        <EntityEditor
+          transforms={transforms}
+          activeEntity={activeEntity}
+          refetchEntity={() => refetchEntities} 
+        />
       </div>
     </>
   );
