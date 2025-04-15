@@ -113,8 +113,8 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
           </div>
         </div> */}
         <div
-          className="overflow-hidden  rounded-sm border-mirage-100/0 shadow-lg border z-10 backdrop-blur-sm from-mirage-800/40 to-mirage-800/70  bg-gradient-to-br from-50% flex flex-col h-full"
-          key="b"
+          className="rounded-sm border-mirage-100/0 shadow-lg border z-10 backdrop-blur-sm from-mirage-800/40 to-mirage-800/70  bg-gradient-to-br from-50% flex flex-col h-full"
+          key="editor"
           data-grid={{
             x: 0,
             y: 0,
@@ -150,13 +150,13 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                         <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 -right-0.5 focus:outline-none'>
                           <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
                         </ComboboxButton>
-                        <ComboboxOptions className='overflow-y-scroll left-px top-11 absolute nodrag nowheel z-10 w-full rounded-sm border border-mirage-600  rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm max-h-28'>
+                        <ComboboxOptions className='overflow-y-scroll left-px top-11 absolute nodrag nowheel z-10 w-full rounded-sm border-2 border-mirage-800  rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm max-h-28'>
                           {filteredTransforms.map((transform: any) => (
                             <ComboboxOption
                               key={transform.label}
                               value={transform}
                               className={({ active }: any) =>
-                                `text-nowrap px-2 items-center hover:bg-mirage-700 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
+                                `text-nowrap px-4 hover:bg-mirage-800 border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none ${active ? ' text-slate-400' : 'text-slate-400/80'}`
                               }
                             >
                               <Icon icon={transform.icon} className="mr-2" /> {transform.label}
@@ -233,7 +233,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                   </div>
                 }
                 resizeHandles={['ne']}>
-                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300/80 text-sm h-full overflow-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2`} value={`No output, try running a transform`}>
+                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2`} value={`No output, try running a transform`}>
                   
                 </textarea>
               </ResizableBox>

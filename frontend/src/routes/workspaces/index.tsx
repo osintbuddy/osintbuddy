@@ -21,7 +21,7 @@ export default function WorkspacePage() {
   } = useGetEntitiesQuery()
 
   // @ts-ignore
-  const sortedEntities = query === '' || query?.includes('Select') || query === null ? entities : entities.slice().sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit)).filter((e: any) => e?.label?.toLowerCase().includes(query.toLowerCase()))
+  const sortedEntities = query === '' || query?.includes('Select') || query === null ? entities.slice().sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit)) : entities.filter((e: any) => e?.label?.toLowerCase().includes(query.toLowerCase()))
 
   const { data: transforms = [], refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity?.label }, { skip: activeEntity === null })
   return (
@@ -59,13 +59,13 @@ export default function WorkspacePage() {
                 <ComboboxButton className='absolute z-[99] mt-0.5  inset-y-0 h-9 right-0 focus:outline-none'>
                   <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
                 </ComboboxButton>
-                <ComboboxOptions className='p-2 left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+                <ComboboxOptions className='left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30% border-2 border-mirage-800 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
                   {sortedEntities.map((entity: any) => (
                     <ComboboxOption
                       key={entity.label}
                       value={entity}
                       className={({ active }: any) =>
-                        `text-nowrap px-2  flex-col hover:bg-mirage-700 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-400' : 'text-slate-400/80'}`
+                        `text-nowrap px-4 flex-col hover:bg-mirage-800 border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-300/90' : 'text-slate-400'}`
                       }
                     >
                       <span className="block truncate text-md">
