@@ -96,6 +96,10 @@ We've decided to do something about it. The rapid developments in technologies s
 
 ## Getting Started
 
+
+> [!CAUTION] 
+> Not ready for use! If you're interested in development you'll need the `plugins` docker service cloned: `git clone https://github.com/osintbuddy/plugins osintbuddy-plugins` and the plugins initialized through `ob init`
+
 To start using OSINTBuddy, follow these simple installation steps:
 
 ### Installation
