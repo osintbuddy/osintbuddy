@@ -16,121 +16,37 @@ export default function GraphDetails() {
   const { hid } = useParams()
   const { data: activeGraph } = useGetGraphQuery({ hid: hid as string })
 
-  const uniqueChartRef = useRef(null);
-  const uniqueOutEdgesChartRef = useRef(null);
   const { graphStats, refetchGraphs } = useOutletContext<DashboardContextType>();
-
-  const [isEdgesLocked, setIsEdgesLocked] = useState(false);
-  const [isEntityLocked, setIsEntityLocked] = useState(false);
 
   const isSidebarOpen = useAppSelector((state) => selectIsSidebarOpen(state))
 
-  useEffect(() => {
-    if (uniqueChartRef?.current) {
-      let data = graphStats?.unique_entity_counts ? graphStats?.unique_entity_counts : {
-        labels: [],
-        series: []
-      };
-      new BarChart(
-        uniqueChartRef.current,
-        data,
-        {
-          distributeSeries: true,
-          reverseData: true,
-          horizontalBars: true,
-          axisY: {
-            offset: 150,
-            position: "end",
-          },
-        }
-      );
-    }
-    if (uniqueOutEdgesChartRef?.current) {
-      let data = graphStats?.entity_out_edges_count ? graphStats.entity_out_edges_count : {
-        labels: [],
-        series: []
-      };
-      new BarChart(
-        uniqueOutEdgesChartRef.current,
-        data,
-        {
-          distributeSeries: true,
-          reverseData: true,
-          horizontalBars: true,
-          axisY: {
-            offset: 150,
-            position: "end",
-          },
-        }
-      );
-    }
-  }, [graphStats?.unique_entity_counts, isEdgesLocked, isSidebarOpen])
-
-
-  // const layouts = {
-  //   'lg': [
-  //     {
-  //       i: 'u-entity-count',
-  //       x: 0,
-  //       y: 0,
-  //       w: 20,
-  //       h: 20,
-  //       minH: 20,
-  //       isDraggable: isEntityLocked
-  //     },
-  //     {
-  //       i: 'u-edges-count',
-  //       x: 0,
-  //       y: 0,
-  //       w: 20,
-  //       h: 20,
-  //       minH: 20,
-  //       isDraggable: isEdgesLocked
-  //     }
-  //   ]
-  // }
   return (
     <>
-      <section className="flex flex-col h-screen w-full">
+      <div className="flex flex-col h-screen w-full ">
         <header className="flex w-full">
           <GraphHeader refetchGraphs={async () => await refetchGraphs()} stats={graphStats} graph={activeGraph as Graph} />
         </header>
-        <ResponsiveGridLayout
-          className="relative flex-grow h-full z-10 w-full"
-          rowHeight={1}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 50, md: 50, sm: 50, xs: 50, xxs: 50 }}
-          isResizable={true}
-          allowOverlap={true}
+        <section
+          className="relative flex z-10 w-full p-4"
         >
-          <div data-grid={{
-            x: 0,
-            y: 0,
-            w: 15,
-            h: 20,
-            static: !isEntityLocked,
-            isBounded: true
-          }} key="u-entity-count" className={isEntityLocked ? 'z-50' : '-z-10'}>
-            <GridPanel setIsLocked={setIsEntityLocked} isLocked={isEntityLocked} icon='graph' label="Unique Entity Counts" >
-              <div className="w-full mb-0 bar-hz" ref={uniqueChartRef} />
-            </GridPanel>
+          <div className="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mr-4 py-3">
+            <h2 className="text-slate-300/80 flex items-end">
+              Total Entities <span className="text-6xl ml-auto font-sans font-semibold">{graphStats?.entities_count ?? 0}</span>
+            </h2>
           </div>
-          <div data-grid={{
-            x: 0,
-            y: 20,
-            w: 15,
-            h: 20,
-            cols: 1,
-            static: !isEdgesLocked,
-            isBounded: true
-          }} key="u-edges-count" className={isEdgesLocked ? 'z-50' : '-z-10'}>
+          <div className="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mx-2 py-3">
+            <h2 className="text-slate-300/80 flex items-end">
+              Total Relationships <span className="text-6xl ml-auto font-sans font-semibold">{graphStats?.edges_count ?? 0}</span></h2>
+          </div>
+          <div className="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 ml-4 py-3">
+            <h2 className="text-slate-300/80 flex items-end">2nd Degree Entities <span className="text-6xl ml-auto font-sans font-semibold">{graphStats?.second_degree_count ?? 0}</span></h2>
+          </div>
 
-            <GridPanel setIsLocked={setIsEdgesLocked} isLocked={isEdgesLocked} icon='graph' label="Outgoing Edges Count by Entity">
-              <div className="w-full mb-0 bar-hz" ref={uniqueOutEdgesChartRef} />
-            </GridPanel>
-          </div>
-        </ResponsiveGridLayout>
-      </section >
+        </section>
+        <h2 className="text-slate-600 px-4">
+          TODO: Add notes here <a className="text-radiance-900" href="https://medevel.com/notion-style-editors-21991/">(editors)</a>
+        </h2>
+      </div>
 
     </>
   )

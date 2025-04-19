@@ -27,7 +27,7 @@ export default function WorkspacePage() {
   return (
     <>
       <div className="flex flex-col w-full pt-2.5 px-3">
-        <section className="flex shadow-md relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-500/20 to-mirage-500/50 bg-gradient-to-r h-min rounded-b-sm justify-between z-[99]">
+        <section className="flex shadow-md relative rounded-lg border-b  backdrop-blur-md border-mirage-400 from-mirage-800/30 to-mirage-800/50 bg-gradient-to-r h-min rounded-b-sm justify-between z-[99]">
           <div className='flex items-center'>
             <ul className='isolate inline-flex shadow-sm'>
               <div className='flex items-center'>

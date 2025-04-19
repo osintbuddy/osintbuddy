@@ -23,7 +23,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
   return (
     <div
       className={classNames(
-        "fixed inset-y-0 flex border-r from-mirage-600/40 to-mirage-600/50 bg-gradient-to-br shadow-xl border-mirage-600/70 w-64 flex-col transition-transform duration-100",
+        "fixed inset-y-0 flex border-r from-mirage-900/50 to-mirage-900/60 bg-gradient-to-br shadow-xl border-cod-500/40 w-64 flex-col transition-transform duration-100",
         showSidebar ? "translate-x-0" : "-translate-x-52 border-r-2"
       )}
     >

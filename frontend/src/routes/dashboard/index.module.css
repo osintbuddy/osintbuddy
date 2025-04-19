@@ -1,13 +1,13 @@
 /* wraps the sidebar with search and the main view */
 .sidebar-wrapper {
-  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-mirage-600/40 to-mirage-600/50 bg-gradient-to-br border-mirage-600/40 justify-between shadow-xl flex relative w-full 
+  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-mirage-900/50 to-mirage-900/60 bg-gradient-to-br border-cod-500/25 justify-between shadow-xl flex relative w-full 
 }
 
 .search-container {
   @apply flex mx-1.5  items-center relative border text-slate-600 hover:text-slate-300/40 focus:text-slate-300/40  transition-all duration-200 ease-out from-mirage-400/60 to-mirage-300/20 bg-gradient-to-tl rounded border-mirage-300/50 hover:border-mirage-300 mb-1.5 
 }
 .search-container:active, .search-container:focus-within {
-  @apply border-primary/50 to-mirage-400/10 from-mirage-400/20 bg-gradient-to-l
+  @apply border-primary-300/70 to-mirage-400/10 from-mirage-400/20 bg-gradient-to-l
 }
 
 .search-container input {

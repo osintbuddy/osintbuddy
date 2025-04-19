@@ -13,7 +13,7 @@ import { SerializedError } from "@reduxjs/toolkit";
 import { GetGraphStatsApiResponse } from '../../app/api';
 import CreateEntityModal from "./_components/modals/CreateEntityModal";
 import { useAppDispatch } from "@src/app/hooks";
-import { resetGraph, setPositionMode } from "@src/features/graph/graphSlice";
+import { graph, resetGraph, setPositionMode } from "@src/features/graph/graphSlice";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         refetchOnMountOrArgChange: !location.pathname.includes("/dashboard/entity/")
       }
     )
-
+    console.log(graphStats)
   useEffect(() => {
     dispatch(resetGraph())
   }, [])

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, select
 from sqlalchemy.pool import PoolProxiedConnection
 
+import ujson
 from starlette import status
 from api import deps
 import crud, schemas
@@ -160,37 +161,32 @@ async def get_graph_stats(
     hid: Annotated[str, Depends(deps.get_graph_id)],
     db: Annotated[Session, Depends(deps.get_db)],
 ):
-    try:
-        pass
-        # selected_graph = await crud.graphs.get(db, id=hid)
-        # async with ProjectGraphConnection(selected_graph.uuid) as g:
-        #     unique_entities = await g.V().label().dedup().toList()
-        #     total_entities = await g.V().count().toList()
-        #     total_relations = await g.E().count().toList()
-            
-        #     unique_entity_counts = {"series": [], "labels": []}
-        #     unique_out_edge_counts = {"series": [], "labels": []}
-            
-        #     for entity in unique_entities:
-        #         entity_count = await g.V().hasLabel(entity).count().toList()
-        #         unique_entity_counts["series"].append(entity_count[0])
-        #         unique_entity_counts["labels"].append(entity)
+    selected_graph = await crud.graphs.get(db, id=hid)
+    verticies_query = f"""* FROM cypher('g_{selected_graph.uuid.hex}', $$
+MATCH (v)
+RETURN v
+$$) as (v agtype)"""
+    edges_query = f"""* FROM cypher('g_{selected_graph.uuid.hex}', $$
+MATCH ()-[e]->()
+RETURN e
+$$) as (e agtype)"""
+    degree_query = f"""* FROM cypher('g_{selected_graph.uuid.hex}', $$
+MATCH ()-[]->(t)-[]->(s)
+RETURN s
+$$) as (s agtype)"""
 
-        #         out_edge_count = await g.V().hasLabel(entity).outE().count().toList()
-        #         unique_out_edge_counts["series"].append(out_edge_count[0])
-        #         unique_out_edge_counts["labels"].append(entity)
+    async with deps.get_age() as conn:
+        vertex_rows = await conn.execute(select(text(verticies_query)))
+        vertices = [ujson.loads(v[0].replace('::vertex', '')) for v in vertex_rows]
+        
+        edge_rows = await conn.execute(select(text(edges_query)))
+        edges: list = [ujson.loads(e[0].replace('::edge', '')) for e in edge_rows]
 
-        #     return {
-        #         "entities": unique_entities,
-        #         "total_entities": total_entities[0],
-        #         "total_relations": total_relations[0],
-        #         "unique_entity_counts": unique_entity_counts,
-        #         "entity_out_edges_count": unique_out_edge_counts
-        #     }
-    except Exception as e:
-        log.error("Error inside graph.get_graph_stats:")
-        log.error(e)
-        raise HTTPException(status_code=
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="There was an error fetching graphs. Please try reloading the page"
-        )
+        degree_rows = await conn.execute(select(text(degree_query)))
+        second_degree_entities = [ujson.loads(v[0].replace('::vertex', '')) for v in degree_rows]
+
+    return {
+        "entities_count": len(vertices),
+        "edges_count": len(edges),
+        "second_degree_count": len(second_degree_entities)
+    }
