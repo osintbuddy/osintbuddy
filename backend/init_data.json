@@ -255,9 +255,9 @@
       "clientId": "1d69456af504f585b7bf",
       "clientSecret": "1a867fb714bbdf675529b6e9f0b4e74c13b0814a",
       "redirectUris": [
-        "http://localhost:3000/callback",
-        "http://0.0.0.0:3000/callback",
-        "http://127.0.0.1:3000/callback"
+        "http://localhost:5173/callback",
+        "http://0.0.0.0:5173/callback",
+        "http://127.0.0.1:5173/callback"
       ],
       "tokenFormat": "JWT",
       "expireInHours": 168,

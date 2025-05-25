@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo } from "preact/hooks";
 import { useOutletContext } from "react-router-dom";
 import { DashboardContextType } from "../..";
 
@@ -6,14 +6,14 @@ export default function GraphOverview() {
   const { graphsData } = useOutletContext<DashboardContextType>()
 
   const graphs = useMemo(() => {
-    const sortedGraphs = graphsData.graphs.slice()
-    sortedGraphs.sort((a, b) => b.created.localeCompare(a.created))
+    const sortedGraphs = graphsData?.graphs.slice() ?? []
+    sortedGraphs.sort((a: any, b: any) => b.created.localeCompare(a.created))
     return sortedGraphs ?? []
   }, [graphsData])
 
   const favoriteGraphs = useMemo(() => {
-    const sortedGraphs = graphsData.favorite_graphs.slice()
-    sortedGraphs.sort((a, b) => b.created.localeCompare(a.created))
+    const sortedGraphs = graphsData?.favorite_graphs.slice() ?? []
+    sortedGraphs.sort((a: any, b: any) => b.created.localeCompare(a.created))
     return sortedGraphs ?? []
   }, [graphsData])
 

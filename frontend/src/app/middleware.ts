@@ -1,4 +1,3 @@
-import { signOut } from "@src/features/account/accountSlice"
 import { RootState } from "./store"
 import { isRejectedWithValue } from '@reduxjs/toolkit'
 import type { MiddlewareAPI, Middleware } from '@reduxjs/toolkit'

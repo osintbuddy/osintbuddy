@@ -347,7 +347,7 @@ async def active_graph_inquiry(
         except WebSocketDisconnect as e:
             print((
                 f"disconnect user -> {user_cid} from all"
-                f"http://localhost:3000/graph/{hid} users: {graph_users}"
+                f"http://localhost:5173/graph/{hid} users: {graph_users}"
             ))
             del graph_users[user_cid]
         except KeyError:

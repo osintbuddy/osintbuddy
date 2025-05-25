@@ -36,6 +36,6 @@
       # kill the stack:          ./launcher kill
       # generate UI api client:   npm run client:gen (only works if the backend is running)
       ```
-      - Frontend: [http://localhost:3000](http://localhost:3000)
+      - Frontend: [http://localhost:5173](http://localhost:5173)
       - Backend: [http://localhost:48997/](http://localhost:48997/)
       - Casdoor: [http://localhost:45910/](http://localhost:45910/)

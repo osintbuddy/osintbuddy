@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from 'reactflow';
+import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from '@xyflow/react';
 import { HotKeys } from 'react-hotkeys';
 import { useParams, useLocation, useBlocker, Link, useNavigate } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';

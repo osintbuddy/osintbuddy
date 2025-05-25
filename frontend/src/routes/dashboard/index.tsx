@@ -1,19 +1,13 @@
-import { Fragment, useEffect, useRef, useState } from "react";
-import { Link, Outlet, useLocation, useParams } from "react-router-dom";
+import { useRef, useState } from "preact/hooks";
+import { Fragment } from "preact/jsx-runtime";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { MagnifyingGlassIcon, PlusIcon, CloudIcon } from "@heroicons/react/24/outline";
-import { Tab } from "@headlessui/react";
+import { Tab, TabGroup, TabList, TabPanel } from "@headlessui/react";
 import GraphPanel from "./_components/tabs/GraphPanel";
 import EntitiesPanel from "./_components/tabs/EntitiesPanel";
 import MarketPanel from './_components/tabs/MarketPanel';
 import CreateGraphModal from "./_components/modals/CreateGraphModal";
-import styles from "./index.module.css"
-import { AllGraphsList, GetEntitiesApiResponse, useGetEntitiesQuery, useGetGraphStatsQuery, useGetGraphsQuery } from "@src/app/api";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { SerializedError } from "@reduxjs/toolkit";
-import { GetGraphStatsApiResponse } from '../../app/api';
 import CreateEntityModal from "./_components/modals/CreateEntityModal";
-import { useAppDispatch } from "@src/app/hooks";
-import { graph, resetGraph, setPositionMode } from "@src/features/graph/graphSlice";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -23,18 +17,13 @@ export interface ScrollGraphs {
 }
 
 export type DashboardContextType = {
-  entitiesData: GetEntitiesApiResponse
-  graphStats: GetGraphStatsApiResponse
-  refreshGraphStats: () => void;
-  refetchGraphs: () => void;
-  graphsData: AllGraphsList
+  entitiesData: any[]
+  graphsData: any
   isLoadingGraphs: boolean
-  isGraphsError: FetchBaseQueryError | SerializedError | undefined
+  isGraphsError: boolean
 };
 
 export default function DashboardPage() {
-  const { hid } = useParams();
-  const dispatch = useAppDispatch()
   const location = useLocation()
   const initialTab = location.pathname.includes("entity") ?
     0 : location.pathname.includes("market")
@@ -48,68 +37,30 @@ export default function DashboardPage() {
   const [showCreateGraphModal, setShowCreateGraphModal] = useState<boolean>(false);
   const cancelCreateGraphRef = useRef<HTMLElement>(null);
 
-  const [graphsQuery, setGraphsQuery] = useState({ skip: 0, limit: 50 })
-  const [favoriteGraphsQuery, setFavoriteGraphsQuery] = useState({ favoriteSkip: 0, favoriteLimit: 50 })
-
-  const {
-    data: allGraphsData = { graphs: [], count: 0, favorite_graphs: [], favorite_count: 0 },
-    isLoading: isLoadingGraphs,
-    error: isGraphsError,
-    refetch: refetchGraphs,
-    isSuccess: isGraphsSuccess
-  } = useGetGraphsQuery({ ...graphsQuery, ...favoriteGraphsQuery })
-
-  const {
-    data: entities = [],
-    isLoading,
-    isError,
-    isSuccess,
-    refetch: refetchEntities,
-  } = useGetEntitiesQuery()
-
-  const scrollGraphs = ({ skip, limit, favoriteSkip, favoriteLimit }: ScrollGraphs) => {
-    if (skip !== undefined && limit !== undefined) setGraphsQuery({ skip, limit })
-    if (favoriteSkip !== undefined && favoriteLimit !== undefined) setFavoriteGraphsQuery({ favoriteSkip, favoriteLimit })
-  }
-
-  const {
-    data: graphStats,
-    refetch: refreshGraphStats } = useGetGraphStatsQuery(
-      { hid: hid as string },
-      {
-        skip: hid === undefined || !location.pathname.includes("/dashboard/graph/"),
-        refetchOnMountOrArgChange: !location.pathname.includes("/dashboard/entity/")
-      }
-    )
-    console.log(graphStats)
-  useEffect(() => {
-    dispatch(resetGraph())
-  }, [])
-
   return (
     <>
-      <div className="flex ">
-        <aside className={styles["sidebar-wrapper"]}>
-          <div className={styles["search-container"]}>
+      <div class="flex ">
+        <aside class="sidebar-wrapper">
+          <div class="search-container">
             <MagnifyingGlassIcon />
             <input
               type="text"
               placeholder={`Search ${tabIndex === 0 ? 'graphs' : tabIndex === 1 ? 'entities' : 'marketplace'}...`}
             />
           </div>
-          <Tab.Group
+          <TabGroup
             vertical={false}
             as='section'
             selectedIndex={tabIndex}
             onChange={setTabIndex}
-            className={styles["dashboard-tabs"]}
+            class={'dashboard-tabs'}
           >
-            <Tab.List className={`${styles["tabs-list"]}`}>
+            <TabList class='tabs-list'>
               <Tab as={Fragment}>
                 {({ selected }) => (
                   <Link
                     to='graph'
-                    className={`${styles["tab"]} ${styles["graph-tab"]} ${styles[`tab-${selected}`]}`}
+                    class={`tab graph-tab tab-${selected}`}
                     aria-selected={selected}
                   >
                     Graphs
@@ -120,7 +71,7 @@ export default function DashboardPage() {
                 {({ selected }) => (
                   <Link
                     to='entity'
-                    className={`${styles["tab"]} ${styles["entities-tab"]} ${styles[`tab-${selected}`]}`}
+                    class={`tab entities-tab tab-${selected}`}
                     aria-selected={selected}
                   >
                     <span>
@@ -133,54 +84,54 @@ export default function DashboardPage() {
                 {({ selected }) => (
                   <Link
                     to='market'
-                    className={`${styles["tab"]} ${styles["market-tab"]} ${styles[`tab-${selected}`]}`}
+                    class={`tab market-tab tab-${selected}`}
                     aria-selected={selected}
                   >
                     Market
                   </Link>
                 )}
               </Tab>
-              <div className={styles["tab-slider"]} />
-            </Tab.List>
-            <div className="h-full overflow-y-scroll ">
-              <Tab.Panel className={styles["tab-panel"]}>
+              <div class="tab-slider" />
+            </TabList>
+            <div class="h-full overflow-y-scroll ">
+              <TabPanel class="tab-panel">
                 <GraphPanel
-                  refetchGraphs={async () => await refetchGraphs()}
-                  graphsData={allGraphsData}
-                  isLoadingGraphs={isLoadingGraphs}
-                  isGraphsError={isGraphsError}
-                  isGraphsSuccess={isGraphsSuccess}
+                  refetchGraphs={() => null}
+                  graphsData={{ favorite_graphs: [], graphs: [] }}
+                  isLoadingGraphs={false}
+                  isGraphsError={false}
+                  isGraphsSuccess={false}
                 />
-              </Tab.Panel>
-              <Tab.Panel className={styles["tab-panel"]}>
+              </TabPanel>
+              <TabPanel class="tab-panel">
                 <EntitiesPanel
-                  entitiesData={entities}
-                  isLoading={isLoading}
-                  isError={isError}
-                  isSuccess={isSuccess}
-                  refetchEntities={refetchEntities}
+                  entitiesData={[]}
+                  isLoading={false}
+                  isError={false}
+                  isSuccess={false}
+                  refetchEntities={() => null}
 
                 />
-              </Tab.Panel>
-              <Tab.Panel className={styles["tab-panel"]}>
+              </TabPanel>
+              <TabPanel class="tab-panel">
                 <MarketPanel />
-              </Tab.Panel>
+              </TabPanel>
             </div>
-          </Tab.Group>
+          </TabGroup>
           {tabIndex !== 2 ? (
             <button
               onClick={() => {
                 if (tabIndex === 0) setShowCreateGraphModal(true)
                 if (tabIndex === 1) setShowCreateEntityModal(true) // TODO
               }}
-              className='btn-primary mt-auto mb-4 mx-4 mr-6'
+              class='btn-primary mt-auto mb-4 mx-4 mr-6'
             >
               Create {tabIndex === 0 ? 'graph' : 'entity'}
-              <PlusIcon className="!ml-7" />
+              <PlusIcon class="!ml-7" />
             </button>
           ) : (
             <button
-              className='btn-primary mx-4 mr-6 mt-auto mb-4'
+              class='btn-primary mx-4 mr-6 mt-auto mb-4'
             >
               Connect server plugins
               <CloudIcon />
@@ -188,23 +139,20 @@ export default function DashboardPage() {
           )}
         </aside>
         <Outlet context={{
-          refetchGraphs,
-          graphsData: allGraphsData,
-          entitiesData: entities,
-          isLoadingGraphs,
-          isGraphsError,
-          graphStats,
-          refreshGraphStats,
+          graphsData: { favorite_graphs: [], graphs: []},
+          entitiesData: [],
+          isLoadingGraphs: false,
+          isGraphsError: false,
         } satisfies DashboardContextType} />
       </div>
       <CreateGraphModal
         cancelCreateRef={cancelCreateGraphRef}
         isOpen={showCreateGraphModal}
         closeModal={() => setShowCreateGraphModal(false)}
-        refreshAllGraphs={async () => await refetchGraphs()}
+        refreshAllGraphs={() => null}
       />
       <CreateEntityModal
-        refreshAllEntities={async () => await refetchEntities()}
+        refreshAllEntities={() => null}
         cancelCreateRef={cancelCreateEntityRef}
         isOpen={showCreateEntityModal}
         closeModal={() => setShowCreateEntityModal(false)}

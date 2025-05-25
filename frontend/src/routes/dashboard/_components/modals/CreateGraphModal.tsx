@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'preact/hooks';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useTour } from '@reactour/tour'
 import { useForm } from "react-hook-form";
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from "yup";
-import { Graph, useCreateGraphMutation } from '@src/app/api';
-import OverlayModal, { OverlayModalProps } from '@src/components/modals/OverlayModal';
-import InputField from '@src/components/inputs/InputField';
-import InputTextarea from '@src/components/inputs/InputTextArea';
-import InputToggleSwitch from '@src/components/inputs/InputToggleSwitch';
+import OverlayModal from '@/components/modals/OverlayModal';
+import InputField from '@/components/inputs/InputField';
+import InputTextarea from '@/components/inputs/InputTextArea';
+import InputToggleSwitch from '@/components/inputs/InputToggleSwitch';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import styles from "./form.module.css"
-import { useAppDispatch } from '@src/app/hooks';
-import { setGraphTour } from '@src/features/account/accountSlice';
 
 type GraphFormData = {
   label: string
@@ -30,9 +24,7 @@ const graphSchema: Yup.ObjectSchema<GraphFormData> = Yup.object().shape({
 
 export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
   const [showGraphGuide, setShowGraphGuide] = useState(false);
-  const [createGraph, { data: newGraph, isError: createGraphError }] = useCreateGraphMutation()
 
   const {
     reset,
@@ -40,11 +32,11 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
     register,
     handleSubmit,
     formState: { errors, isSubmitSuccessful, isSubmitting }
-  } = useForm<GraphFormData>({ resolver: yupResolver(graphSchema) });
+  } = useForm<GraphFormData>({ });
 
   useEffect(() => {
     if (!isSubmitSuccessful) return
-    if (newGraph && newGraph?.id) {
+    if (false) {
       closeModal()
       const replace = { replace: true }
       // we only navigate to the graph when the guide is enabled
@@ -55,19 +47,19 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
         navigate(`/dashboard/graph/${newGraph.id}`, replace)
       }
     } else {
-      console.error(createGraphError)
+      console.error("error")
       toast.error("We ran into an error creating your graph. Please try again")
     }
     reset({ label: "", description: "", enableGraphGuide: false })
   }, [isSubmitSuccessful, showGraphGuide])
 
-  const onSubmitHandler = async (graphCreate: GraphFormData) => {
+  const onSubmitHandler = (graphCreate: GraphFormData) => {
     if (graphCreate?.enableGraphGuide) {
-      dispatch(setGraphTour())
+      // dispatch(setGraphTour())
       setShowGraphGuide(true)
     }
     delete graphCreate.enableGraphGuide
-    await createGraph({ graphCreate })
+    // createGraph({ graphCreate })
   };
 
   return (
@@ -106,8 +98,11 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
   );
 }
 
-interface CreateGraphModalProps extends OverlayModalProps {
-  refreshAllGraphs: () => void
+interface CreateGraphModalProps {
+  refreshAllGraphs: Function
+  closeModal: Function
+  isOpen: boolean
+  cancelCreateRef: any
 }
 
 export default function CreateGraphModal({
@@ -119,7 +114,7 @@ export default function CreateGraphModal({
   return (
     <OverlayModal isOpen={isOpen} closeModal={closeModal} cancelCreateRef={cancelCreateRef}>
       <CreateGraphForm
-        refreshGraphs={async (graph: Graph) => await refreshAllGraphs()}
+        refreshGraphs={() => refreshAllGraphs()}
         closeModal={() => closeModal()}
       />
     </OverlayModal>

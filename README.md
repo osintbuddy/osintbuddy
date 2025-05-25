@@ -127,7 +127,7 @@ To start using OSINTBuddy, follow these simple installation steps:
     - *password:* `osintbuddy`
 
 - URLs
-  - Frontend: *http://localhost:3000*
+  - Frontend: *http://localhost:5173*
   - Casdoor: *http://localhost:45910*
   - Backend: *http://localhost:48997/api*
   - Documentation: *http://localhost:48997/docs*

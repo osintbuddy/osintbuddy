@@ -1,9 +1,9 @@
-import { Icon } from '@components/Icons';
+import { Icon } from '../../../components/Icons';
 import { toast } from 'react-toastify';
-import { RunEntityTransformApiArg, useRunEntityTransformMutation } from '@src/app/api';
+import { useRunEntityTransformMutation } from '../../../app/api';
 import { useParams } from 'react-router-dom';
-import { useAppDispatch } from '@src/app/hooks';
-import { createEdge, createNode, setEditState } from '@src/features/graph/graphSlice';
+import { useAppDispatch } from '../../../app/hooks';
+import { createEdge, createNode, setEditState } from '../../../features/graph/graphSlice';
 import { getEdgeId } from '..';
 
 export default function ContextAction({

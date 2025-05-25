@@ -3,13 +3,14 @@ services:
     container_name: "ui"
     tty: true
     command: sh -c "cd /app/ && yarn && yarn dev"
+    # npm i --global serve && yarn build && serve -s build
     env_file:
       - .env
     image: node:20-alpine3.18
     volumes:
       - ./frontend/:/app/
     ports:
-      - "${FRONTEND_PORT-3000}:3000"
+      - "${FRONTEND_PORT-5173}:5173"
 
   plugins:
     container_name: "plugins"

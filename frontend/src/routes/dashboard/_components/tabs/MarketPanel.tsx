@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState } from 'preact/hooks'
 import Subpanel from '../Subpanel'
-import styles from '../subpanel.module.css'
 
 export default function MarketPanel() {
   const [showProviders, setShowProviders] = useState(false)
@@ -8,7 +7,7 @@ export default function MarketPanel() {
 
   return (
     <>
-      <section className={styles["subpanel-wrapper"]}>
+      <section class="subpanel-wrapper">
         <Subpanel
           label="Community"
           showError={true}

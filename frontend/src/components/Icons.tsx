@@ -1,8 +1,15 @@
-import classNames from 'classnames';
-import Sprite from '@assets/images/tabler-sprite.svg';
+import Sprite from '../assets/images/tabler-sprite.svg';
 
-export const Icon = ({ icon, className }: { icon: string, className?: string }) => {
-  // TODO: Optimize this?
+interface TablerIconProps {
+  icon: string
+  className?: string
+}
+
+interface IconProps {
+  className?: string;
+}
+
+export const Icon = ({ icon, className }: TablerIconProps) => {
   return (
     <>
       <svg className={`h-5 w-5 ${className}`} fill="none" stroke="currentColor">
@@ -11,11 +18,6 @@ export const Icon = ({ icon, className }: { icon: string, className?: string }) 
     </>
   );
 };
-
-
-export interface IconProps {
-  className?: string;
-}
 
 export function GithubIcon({ className }: IconProps) {
   return (
