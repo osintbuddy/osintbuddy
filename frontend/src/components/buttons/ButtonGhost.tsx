@@ -2,7 +2,7 @@ import type { JSX } from "preact";
 import { ButtonProps } from "./Button";
 
 const styles = {
-  primary: "ring-primary-400/95 focus:ring-primary-300/90 hover:ring-primary-300/80 border-primary-400/95 focus:border-primary-300/90 hover:border-primary-300/80",
+  primary: "ring-primary-400/90 focus:ring-primary-400/85 hover:ring-primary-400 border-primary-400/90 focus:border-primary-400/85 hover:border-primary-400",
   danger: ""
 }
 

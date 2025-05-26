@@ -1,20 +1,16 @@
 import { auraInit } from "@uiw/codemirror-theme-aura";
-import CodeMirror, { Extension } from "@uiw/react-codemirror";
+import CodeMirror from "@uiw/react-codemirror";
 import { tags as t } from "@lezer/highlight";
 import { python } from "@codemirror/lang-python";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { CommandLineIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/outline";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import { Icon } from "../Icons";
-import { useUpdateEntityByIdMutation } from '@app/api';
-import { UpdateEntityByIdApiArg } from '../../app/api';
-import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { PlayIcon, ChevronUpDownIcon, PencilSquareIcon, PencilIcon } from "@heroicons/react/20/solid";
+import { PlayIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { EditorView } from "@codemirror/view"
-import { Resizable, ResizableBox } from 'react-resizable';
-import classNames from "classnames";
+import { ResizableBox } from 'react-resizable';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 
 export const auraTheme = auraInit({
@@ -67,7 +63,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
   useEffect(() => {
     if (activeEntity?.source) setCode(activeEntity.source)
   }, [activeEntity?.source])
-  const [updateEntityById] = useUpdateEntityByIdMutation()
+  // const [updateEntityById] = useUpdateEntityByIdMutation()
 
   const [isEntityDraggable, setEntityDraggable] = useState<boolean>(false);
   const [textWrap, setTextWrap] = useState<string>('whitespace-pre-line')
@@ -143,7 +139,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                       <div className='p-2 w-full shadow-md rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-700/90 from-mirage-800/50 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100  border-mirage-400/20  focus-within:from-mirage-500/60 focus-within:to-mirage-600 focus-within:bg-gradient-to-l dropdown '>
                         <ComboboxInput
                           ref={dropdownRef}
-                          onChange={(event) => setQuery(event.target.value)}
+                          onChange={(event) => setQuery(event.currentTarget.value)}
                           displayValue={(option: any) => option?.label ?? ''}
                           className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
                         />
@@ -167,33 +163,33 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                     </Combobox>
                   )}
                   {!activeEntity?.label?.includes("Select entity") && (
-                    <div className="flex justify-between items-center text-slate-500 pl-2 hover:text-green-500 border-b-2 border-transparent">
+                    <div class="flex justify-between items-center text-slate-500 pl-2 hover:text-green-500 border-b-2 border-transparent">
                       <div
-                        className="flex items-center"
+                        class="flex items-center"
                         title="Execute a transform and see the output in the console"
                       >
-                        <PlayIcon className="h-5 mr-2" />
-                        <span className="text-nowrap mr-4 ">Run transform</span>
+                        <PlayIcon class="h-5 mr-2" />
+                        <span class="text-nowrap mr-4 ">Run transform</span>
                       </div>
                     </div>
                   )}
-                  <div className="flex justify-between items-center w-full text-slate-200 ">
+                  <div class="flex justify-between items-center w-full text-slate-200 ">
                     <div
-                      className="flex items-center py-2 border-b border-b-primary-400"
+                      class="flex items-center py-2 border-b border-b-primary-400"
                       title="Run transform"
                     >
-                      <CommandLineIcon className="h-5 mr-2" />
-                      <span className="text-nowrap mr-4 ">{!activeEntity?.label?.includes('Select entity') && (activeEntity?.label ?? '')} Console</span>
+                      <CommandLineIcon class="h-5 mr-2" />
+                      <span class="text-nowrap mr-4 ">{!activeEntity?.label?.includes('Select entity') && (activeEntity?.label ?? '')} Console</span>
                     </div>
                   </div>
                 </li>
-                <li className="flex py-2 ">
-                  <div className="flex justify-between items-center w-full text-slate-400 ">
+                <li class="flex py-2 ">
+                  <div class="flex justify-between items-center w-full text-slate-400 ">
                     <button
                       onClick={() => {
-                        updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
-                          `The ${activeEntity?.label} entity has been saved.`
-                        ))
+                        // updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
+                        //   `The ${activeEntity?.label} entity has been saved.`
+                        // ))
                         refetchEntity()
                       }}
                     >
@@ -210,17 +206,17 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                     >
                       <Icon
                         icon="text-wrap"
-                        className={classNames('w-5 h-5 -mb-0.5 mx-1 ', textWrap === 'text-nowrap' ? 'text-slate-500 hover:text-slate-400' : 'text-slate-300  ')}
+                        className={`w-5 h-5 -mb-0.5 mx-1 ${textWrap === 'text-nowrap' ? 'text-slate-500 hover:text-slate-400' : 'text-slate-300'}`}
                       />
                     </button>
                     <button
                       onClick={() => setEntityDraggable(!isEntityDraggable)}
-                      className="text-slate-500 hover:text-slate-400"
+                      class="text-slate-500 hover:text-slate-400"
                     >
                       {isEntityDraggable ? (
-                        <LockOpenIcon className="w-5 h-5" />
+                        <LockOpenIcon class="w-5 h-5" />
                       ) : (
-                        <LockClosedIcon className="w-5 h-5" />
+                        <LockClosedIcon class="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -228,12 +224,12 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
               </ol>
               <ResizableBox axis={'y'} className="rounded-sm min-h- border-mirage-100/0 shadow-lg border backdrop-blur-sm from-mirage-500/30 to-mirage-500/40  bg-gradient-to-br from-50% flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
                 handle={
-                  <div className=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
-                    <span className=" react-resizable-handle react-resizable-handle-ne" />
+                  <div class=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
+                    <span class=" react-resizable-handle react-resizable-handle-ne" />
                   </div>
                 }
                 resizeHandles={['ne']}>
-                <textarea disabled={true} readOnly={true} className={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2`} value={`No output, try running a transform`}>
+                <textarea disabled={true} readOnly={true} class={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-mirage-500/10 bg-transparent to-mirage-500/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2`} value={`No output, try running a transform`}>
                   
                 </textarea>
               </ResizableBox>

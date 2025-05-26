@@ -5,11 +5,11 @@ import ButtonGhost from '@/components/buttons/ButtonGhost';
 
 const QUOTES = [
   "Find the connections that matter to you",
-  "Unlock the potential of public data",
+  ...Array(2).fill("Unlock the potential of public data"),
   "Vision is the art of seeing insight in the invisible",
   "Transform data into connected knowledge",
   "Unraveling mysteries for insights",
-  "All truths are easy to understand once they are discovered"
+  ...Array(2).fill("All truths are easy to understand once they are discovered")
 ]
 
 export default function LandingPage(): JSX.Element {
@@ -29,18 +29,14 @@ export default function LandingPage(): JSX.Element {
             <div class='mt-4 flex gap-4 justify-center'>
               <Button
                 variant='primary'
-                onClick={() => {
-                  window.location.href = window.sdk.getSigninUrl();
-                }}
+                onClick={() => window.location.href = window.sdk.getSigninUrl()}
               >
                 Sign in
                 <FingerPrintIcon class="btn-icon" />
               </Button>
               <ButtonGhost
                 variant='primary'
-                onClick={() => {
-                  window.location.href = window.sdk.getSignupUrl();
-                }}
+                onClick={() => window.location.href = window.sdk.getSignupUrl()}
               >
                 Create account
                 <UserPlusIcon class="btn-icon" />
@@ -57,7 +53,7 @@ export default function LandingPage(): JSX.Element {
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='text-primary-200 hover:text-primary-200/80 transition-colors duration-100 font-sans ease-in-out'
+            class='text-primary-100 hover:text-primary-50 transition-colors duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>

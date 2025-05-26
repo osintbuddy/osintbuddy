@@ -9,7 +9,7 @@ interface IconProps {
   className?: string;
 }
 
-export const Icon = ({ icon, className }: TablerIconProps) => {
+export function Icon({ icon, className }: TablerIconProps) {
   return (
     <>
       <svg className={`h-5 w-5 ${className}`} fill="none" stroke="currentColor">

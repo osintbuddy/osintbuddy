@@ -11,11 +11,13 @@ export const accountAtom = atomWithStorage<Account>("ob-user", {
 });
 
 export interface Settings {
-  showSidebar: boolean
+  showSidebar: boolean,
+  settingsPage: "account" | "plugins",
 }
 
 export const settingsAtom = atomWithStorage<Settings>('ob-settings', {
   showSidebar: true,
+  settingsPage: "account",
 });
 
 export type TourAtom = StepType[]

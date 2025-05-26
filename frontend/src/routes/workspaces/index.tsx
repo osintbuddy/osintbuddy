@@ -1,10 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import List from 'react-virtualized/dist/es/List'
 import { ChevronUpDownIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
-import { useGetEntitiesQuery, useGetEntityTransformsQuery } from '@src/app/api';
-import EntityEditor from '@src/components/EntityEditor/EntityEditor';
-import { Icon } from '@src/components/Icons';
+import EntityEditor from '@/components/EntityEditor/EntityEditor';
+import { Icon } from '@/components/Icons';
 
 
 export default function WorkspacePage() {
@@ -12,18 +11,18 @@ export default function WorkspacePage() {
   const [query, setQuery] = useState('');
   const [activeEntity, setActiveEntity] = useState<any>({ label: 'Select entity...' });
 
-  const {
-    data: entities = [],
-    isLoading,
-    isError,
-    isSuccess,
-    refetch: refetchEntities,
-  } = useGetEntitiesQuery()
-
+  // const {
+  //   data: entities = [],
+  //   isLoading,
+  //   isError,
+  //   isSuccess,
+  //   refetch: refetchEntities,
+  // } = useGetEntitiesQuery()
+  const entities: any = []
   // @ts-ignore
   const sortedEntities = query === '' || query?.includes('Select') || query === null ? entities.slice().sort((a: any, b: any) => new Date(b.last_edit) - new Date(a.last_edit)) : entities.filter((e: any) => e?.label?.toLowerCase().includes(query.toLowerCase()))
 
-  const { data: transforms = [], refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity?.label }, { skip: activeEntity === null })
+  // const { data: transforms = [], refetch: refetchTransforms } = useGetEntityTransformsQuery({ label: activeEntity?.label }, { skip: activeEntity === null })
   return (
     <>
       <div className="flex flex-col w-full pt-2.5 px-3">
@@ -52,7 +51,7 @@ export default function WorkspacePage() {
                       setActiveEntity('')
                     }
                   }}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => setQuery(event.currentTarget.value)}
                   displayValue={(option: DropdownOption) => option.label}
                   className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
                 />
@@ -82,9 +81,9 @@ export default function WorkspacePage() {
           </div>
         </section>
         <EntityEditor
-          transforms={transforms}
+          transforms={[]}
           activeEntity={activeEntity}
-          refetchEntity={() => refetchEntities} 
+          refetchEntity={() => null} 
         />
       </div>
     </>

@@ -13,8 +13,7 @@ export default function EntitiesOverview() {
               <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold pr-2">Oh no!</h1>
               <p className="md:pt-4 max-w-xl text-slate-300/80">
                 We're usually a treasure chest of knowledge,
-                but we couldn't find any entities. Get started
-                by initializing the OSINTBuddy entities with "ob init"
+                but we couldn't find any entities. Read the OSINTBuddy docs to get setup 
               </p>
             </>
           )}

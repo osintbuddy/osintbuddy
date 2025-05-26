@@ -8,7 +8,7 @@ export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const styles = {
-  primary: "ring-primary-400/95 hover:ring-primary-300/80 bg-primary-400/95 hover:bg-primary-300/80 focus:bg-primary-300/90 hover:stroke-primary-300/80 stroke-primary-400/95",
+  primary: "ring-primary-400/90 hover:ring-primary-400 bg-primary-400/90 hover:bg-primary-400 focus:bg-primary-300/90 hover:stroke-primary-400 stroke-primary-400/90",
   danger: ""
 }
 
