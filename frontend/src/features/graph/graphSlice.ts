@@ -1,18 +1,18 @@
 /* eslint-disable */
 import { AnyAction, createAsyncThunk, createSelector, createSlice, current, PayloadAction } from '@reduxjs/toolkit';
-import { type RootState } from '@src/app/store';
+import { type RootState } from '../../app/store';
 import {
   XYPosition,
   type Edge,
   type Node,
   applyNodeChanges,
   NodeChange,
-  updateEdge,
+  OnEdgesChange,
   Connection,
   applyEdgeChanges,
   addEdge,
   MarkerType,
-} from 'reactflow';
+} from '@xyflow/react';
 
 export type ProjectViewModes = 'edit' | 'view'
 
@@ -49,7 +49,7 @@ const initialState: Graph = {
 
 export const saveNode = createAsyncThunk(
   'graph/saveNode',
-  async ({ id, data, position }: { id: string; position: XYPosition; data: JSONObject }) => {
+  async ({ id, data, position }: { id: string; position: XYPosition; data: any }) => {
     return { id, data, position, type: 'edit' };
   }
 );

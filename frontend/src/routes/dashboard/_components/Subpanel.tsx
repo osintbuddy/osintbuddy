@@ -1,11 +1,7 @@
 import { Link, useParams } from "react-router-dom"
-import styles from "./subpanel.module.css"
 import { ChevronDownIcon } from "@heroicons/react/20/solid"
 import { StarIcon } from "@heroicons/react/24/outline";
-import { formatPGDate } from "@src/app/utilities"
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query"
-import { SerializedError } from "@reduxjs/toolkit"
-
+import { formatPGDate } from "@/app/utilities"
 
 const MAX_DESCRIPTION_LENGTH = 79
 const MAX_LABEL_LENGTH = 32
@@ -14,7 +10,7 @@ export function GraphLoaderCard() {
   return (
     <>
       <div className="mb-2">
-        <div className="w-full py-6 space-y-1 rounded-md rounded-r-none border border-mirage-400/60  from-mirage-400/50 to-mirage-400/30 shadow bg-gradient-to-tl from-10%  before:absolute  px-4  via-mirage-400/10 relative before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-mirage-300/5 before:to-transparent isolate overflow-hidden shadow-black/5 border-l border-y border-mirage-500">
+        <div className="w-full py-6 space-y-1 rounded-md rounded-r-none border border-mirage-400/60  from-mirage-400/50 to-mirage-400/30 shadow bg-gradient-to-tl from-10%  before:absolute  px-4  via-mirage-400/10 relative before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-mirage-300/5 before:to-transparent isolate overflow-hidden shadow-black/5 border-l border-y">
           <div className="space-y-3">
             <div className="h-2 w-3/5 rounded-lg bg-slate-600/20 animate-pulse"></div>
             <div className="h-2 w-4/5 rounded-lg bg-slate-600/20 animate-pulse"></div>
@@ -27,7 +23,7 @@ export function GraphLoaderCard() {
 }
 
 interface EntitiesSubpanelProps {
-  showError: boolean | FetchBaseQueryError | SerializedError | undefined
+  showError: any
   showEntities: boolean
   isLoading: boolean | undefined
   setShowEntities: () => void
@@ -57,10 +53,10 @@ export default function Subpanel({
 }: EntitiesSubpanelProps) {
   const { hid } = useParams();
   return (
-    <section className={styles["subpanel"]}>
-      <header className={styles["subpanel-header"]} onClick={setShowEntities}>
-        <h2 className={`${styles["cyberpunk"]} ${styles["glitched"]}`}>{label ?? ""}</h2>
-        <ChevronDownIcon className={styles[`show-header-icon-${showEntities}`] + " transition-transform duration-100"} />
+    <section className="subpanel">
+      <header className="subpanel-header" onClick={setShowEntities}>
+        <h2 className="cyberpunk glitched">{label ?? ""}</h2>
+        <ChevronDownIcon className={`show-header-icon-${showEntities}` + " transition-transform duration-100"} />
       </header>
       {showError && showEntities && !isLoading && (
         <>
@@ -77,28 +73,23 @@ export default function Subpanel({
           <GraphLoaderCard />
         </>
       )}
-
       <section className={` transition-transform duration-150 ease-out ${showEntities ? 'translate-y-0' : '-translate-y-[45%] -scale-y-0 !h-0'}`}>
         {items && items.map((item) => {
           const isActive = hid === `${item.id}`
-          const descriptionClassName = styles["subpanel-desc"] + " " + styles[`subpanel-desc-${isActive}`]
+          const descriptionClassName = `subpanel-desc subpanel-desc-${isActive}`
           return (
             <Link
               key={item.id}
               to={`${to}/${item.id}`}
-              className={`${styles["subpanel-link"]} ${styles[`subpanel-link-${isActive}`]} ${isSuccess && showEntities ? 'translate-y-0 scale-y-100' : '-translate-y-full  scale-y-0 '}`}>
+              className={`subpanel-link subpanel-link-${isActive} ${isSuccess && showEntities ? 'translate-y-0 scale-y-100' : '-translate-y-full  scale-y-0 '}`}>
               <div>
-                <p className={styles["subpanel-label"] + " " + styles[`subpanel-label-${isActive}`]}>{item.label}</p>
+                <p className={`subpanel-label-${isActive} subpanel-label`}>{item.label}</p>
                 <p className={descriptionClassName}>{item.description}</p>
                 <p className={descriptionClassName}><span className="font-sans">{dateLabel} </span> {formatPGDate(item[dateKey])}</p>
               </div>
               <StarIcon
                 onClick={async () => await onClick(item.id)}
-                className={
-                  styles["link-icon"] + " " +
-                  styles[`link-icon-${item.is_favorite}`] + " " +
-                  styles[`link-active-${hid !== `${item.id}`}`]
-                }
+                className={`link-icon link-icon-${item.is_favorite} link-active-${hid !== item.id}`}
               />
             </Link>
           )

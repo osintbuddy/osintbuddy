@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import type { RootState, AppDispatch } from './store';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
+export const useMountEffect = (fun: any) => useEffect(fun, [])
 
 export const useEffectOnce = (effect: () => void | (() => void)) => {
   const destroyFunc = useRef<void | (() => void)>(null);
@@ -37,8 +36,25 @@ export const useEffectOnce = (effect: () => void | (() => void)) => {
 };
 
 
+function getStorageValue(key: string, defaultValue: any) {
+  // getting stored value
+  const saved = localStorage.getItem(key);
+  const initial = JSON.parse(saved as string);
+  return initial || defaultValue;
+}
 
+export const useLocalStorage = (key: string, defaultValue: any) => {
+  const [value, setValue] = useState(() => {
+    return getStorageValue(key, defaultValue);
+  });
 
+  useEffect(() => {
+    // storing input name
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+};
 
 export function useComponentVisible(initialIsVisible: boolean) {
   const [isOpen, setIsOpen] = useState(initialIsVisible);
@@ -61,9 +77,3 @@ export function useComponentVisible(initialIsVisible: boolean) {
 
   return { ref, isOpen, setIsOpen };
 }
-
-
-
-// Use throughout your app instead of plain `useDispatch` and `useSelector`
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

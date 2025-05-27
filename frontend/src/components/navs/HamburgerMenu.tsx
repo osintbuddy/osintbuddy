@@ -1,15 +1,16 @@
-import React from 'react';
-import classNames from 'classnames';
+import { MouseEventHandler } from 'preact/compat'
 
 interface HamburgerProps {
   isOpen: boolean;
-  onClick: Function;
+  onClick: MouseEventHandler<HTMLButtonElement>;
   className?: string;
 }
 
 function HamburgerMenu({ isOpen, onClick, className }: HamburgerProps) {
   return (
-    <button onClick={() => onClick()} className={classNames('hamburger', className, { 'is-active': isOpen })}>
+    <button
+      onClick={onClick}
+      class={`hamburger ${className ?? ''} ${isOpen && 'is-active'}`}>
       <span className='line' />
       <span className='line' />
       <span className='line' />

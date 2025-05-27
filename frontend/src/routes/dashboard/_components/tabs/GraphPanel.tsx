@@ -1,8 +1,4 @@
-import { AllGraphsList, useUpdateGraphFavoriteIdMutation } from '@src/app/api';
-import { useMemo, useState } from "react";
-import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
-import { SerializedError } from '@reduxjs/toolkit';
-import styles from "../subpanel.module.css"
+import { useMemo, useState } from "preact/hooks";
 import Subpanel from '../Subpanel';
 
 
@@ -24,9 +20,9 @@ export function GraphLoaderCard() {
 
 
 interface GraphPanel {
-  graphsData: AllGraphsList
+  graphsData: any
   isLoadingGraphs: boolean | undefined
-  isGraphsError: FetchBaseQueryError | SerializedError | undefined
+  isGraphsError: any
   refetchGraphs: () => void
   isGraphsSuccess: boolean | undefined
 }
@@ -56,15 +52,14 @@ export default function GraphPanel({
   }, [graphsData.graphs])
 
   const MAX_DESCRIPTION_LENGTH = 63
-  const [updateFavoriteEntity] = useUpdateGraphFavoriteIdMutation()
 
   const updateFavorites = async (hid: string) => {
-    await updateFavoriteEntity({ hid })
+    // await updateFavoriteEntity({ hid })
     await refetchGraphs()
   }
 
   return (
-    <section className={styles["subpanel-wrapper"]}>
+    <section class="subpanel-wrapper">
       <Subpanel
         label="Favorites"
         showError={isGraphsError}

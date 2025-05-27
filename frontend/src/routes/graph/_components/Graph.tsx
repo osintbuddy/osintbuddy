@@ -1,4 +1,5 @@
-import { useCallback, useState, useMemo, DragEventHandler, useEffect, MouseEvent } from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'preact/hooks';
+import {  DragEventHandler } from 'preact/compat'
 import ReactFlow, {
   Edge,
   Background,
@@ -6,24 +7,17 @@ import ReactFlow, {
   FitViewOptions,
   NodeDragHandler,
   Connection,
-  Node,
-  getViewportForBounds,
-  MiniMap,
   ReactFlowInstance,
-  getNodesBounds,
-  getBoundsOfRects,
-  getTransformForBounds,
-} from 'reactflow';
+} from '@xyflow/react';
 import EditEntityNode from './EntityEditNode';
-import { addNodeUpdate, createEdge, disableEntityEdit, enableEntityEdit, graph, onEdgesChange, selectEditState, setEditLabel, setEditState, updateEdgeEvent, updateNodeFlow } from '@src/features/graph/graphSlice';
-import { useAppDispatch, useAppSelector, useEffectOnce } from '@src/app/hooks';
+import { addNodeUpdate, createEdge, disableEntityEdit, enableEntityEdit,onEdgesChange, setEditState, updateEdgeEvent, updateNodeFlow } from '@/features/graph/graphSlice';
+import { useAppDispatch } from '@/app/hooks';
 import { toast } from 'react-toastify';
 import ViewEntityNode from './EntityViewNode';
-import { CreateEntityOnDropApiResponse, useCreateEntityOnDropMutation, useRefreshEntityPluginsQuery } from '@src/app/api';
+import { CreateEntityOnDropApiResponse, useCreateEntityOnDropMutation, useRefreshEntityPluginsQuery } from '@/app/api';
 import { useParams } from 'react-router-dom';
 import NewConnectionLine from './ConnectionLine';
 import SimpleFloatingEdge from './SimpleFloatingEdge';
-import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
 
 const viewOptions: FitViewOptions = {
   padding: 50,
