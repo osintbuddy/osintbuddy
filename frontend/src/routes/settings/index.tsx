@@ -10,7 +10,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <header class="border-b border-mirage-600/90 from-mirage-600/20 to-mirage-600/20 bg-gradient-to-l from-10%  ">
+      <header class="border-b from-cod-800/50 to-cod-800/40 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10">
         <nav class="flex overflow-x-auto py-4">
           <ul class="flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-gray-400 sm:px-6 lg:px-8">
             {secondaryNavigation.map((item) => (

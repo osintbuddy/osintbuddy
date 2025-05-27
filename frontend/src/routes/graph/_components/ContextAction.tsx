@@ -1,10 +1,6 @@
 import { Icon } from '../../../components/Icons';
 import { toast } from 'react-toastify';
-import { useRunEntityTransformMutation } from '../../../app/api';
 import { useParams } from 'react-router-dom';
-import { useAppDispatch } from '../../../app/hooks';
-import { createEdge, createNode, setEditState } from '../../../features/graph/graphSlice';
-import { getEdgeId } from '..';
 
 export default function ContextAction({
   nodeCtx: ctx,
@@ -17,22 +13,21 @@ export default function ContextAction({
   sendJsonMessage: Function
   closeMenu: Function,
 }) {
-  const dispatch = useAppDispatch();
   const { hid } = useParams()
-  const [runTransform, { isLoading }] = useRunEntityTransformMutation()
+  // const [runTransform, { isLoading }] = useRunEntityTransformMutation()
   
     const createEntityAction = ({ data, id, position, parentId }: JSONObject) => {
-      dispatch(createNode({ id, data, position, type: 'edit' }));
-      dispatch(
-        createEdge({
-          source: parentId,
-          target: id,
-          sourceHandle: 'r1',
-          targetHandle: 'l2',
-          type: 'float',
-          id: getEdgeId()
-        })
-      );
+      // dispatch(createNode({ id, data, position, type: 'edit' }));
+      // dispatch(
+      //   createEdge({
+      //     source: parentId,
+      //     target: id,
+      //     sourceHandle: 'r1',
+      //     targetHandle: 'l2',
+      //     type: 'float',
+      //     id: getEdgeId()
+      //   })
+      // );
     };
   
   return (
@@ -46,39 +41,39 @@ export default function ContextAction({
                     e.preventDefault()
                     closeMenu()
                     if (ctx) {
-                      runTransform({
-                        hid: hid ?? '',
-                        sourceEntity: {
-                          id: ctx?.id,
-                          type: ctx?.label,
-                          data: ctx?.data,
-                          position: ctx?.position,
-                          transform: transform?.label,
-                        },
-                      }).then((resp: any) => {
-                        const entities = resp.data.map((node: JSONObject, idx: number) => {
-                          let entity = {...node}
-                          // TODO: Move position layout logic to backend...
-                          const isOdd = idx % 2 === 0;
-                          const pos = node.position;
-                          const x = isOdd ? pos.x + 560 : pos.x + 970;
-                          const y = isOdd ? pos.y - (idx - 4) * 120 : pos.y - (idx - 3.5) * 120;
-                          entity.position = {
-                            x,
-                            y,
-                          };
-                          return entity
-                          // sendJsonMessage({ action: 'update:node', node: { id: node.id, x, y } });
-                        })
+                      // runTransform({
+                      //   hid: hid ?? '',
+                      //   sourceEntity: {
+                      //     id: ctx?.id,
+                      //     type: ctx?.label,
+                      //     data: ctx?.data,
+                      //     position: ctx?.position,
+                      //     transform: transform?.label,
+                      //   },
+                      // }).then((resp: any) => {
+                      //   const entities = resp.data.map((node: JSONObject, idx: number) => {
+                      //     let entity = {...node}
+                      //     // TODO: Move position layout logic to backend...
+                      //     const isOdd = idx % 2 === 0;
+                      //     const pos = node.position;
+                      //     const x = isOdd ? pos.x + 560 : pos.x + 970;
+                      //     const y = isOdd ? pos.y - (idx - 4) * 120 : pos.y - (idx - 3.5) * 120;
+                      //     entity.position = {
+                      //       x,
+                      //       y,
+                      //     };
+                      //     return entity
+                      //     // sendJsonMessage({ action: 'update:node', node: { id: node.id, x, y } });
+                      //   })
 
-                        entities.forEach((entity: any) => {
-                          createEntityAction(entity);
-                          dispatch(setEditState({ editId: entity.id, editLabel: 'addNode' }))
-                          sendJsonMessage({ action: 'update:node', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
-                        })
+                      //   entities.forEach((entity: any) => {
+                      //     createEntityAction(entity);
+                      //     dispatch(setEditState({ editId: entity.id, editLabel: 'addNode' }))
+                      //     sendJsonMessage({ action: 'update:node', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
+                      //   })
 
   
-                      }).catch(err => console.log(err))
+                      // }).catch(err => console.log(err))
                      
                       // sendJsonMessage({
                       //   action: 'transform:node',

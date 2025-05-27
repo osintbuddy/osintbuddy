@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from '@xyflow/react';
-import { HotKeys } from 'react-hotkeys';
 import { useParams, useLocation, useBlocker, Link, useNavigate } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
@@ -11,7 +10,6 @@ import ContextMenu from './_components/ContextMenu';
 import { toast } from 'react-toastify';
 import Graph from './_components/Graph';
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { useAppDispatch, useAppSelector, useEffectOnce } from '@src/app/hooks';
 import {
   ProjectViewModes,
   createEdge,
@@ -26,11 +24,11 @@ import {
   setAllNodes,
   setEditState,
   setPositionMode,
-} from '@src/features/graph/graphSlice';
-import { WS_URL } from '@src/app/baseApi';
+} from '@/features/graph/graphSlice';
+import { WS_URL } from '@/app/baseApi';
 import CommandPallet from './_components/CommandPallet';
 import { useGetGraphQuery } from '@src/app/api';
-import RoundLoader from '@src/components/Loaders';
+import RoundLoader from '@/components/Loaders';
 import { useTour } from '@reactour/tour';
 
 const keyMap = {

@@ -1,5 +1,5 @@
-import { useEffect, type MouseEventHandler } from "preact/compat";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { type MouseEventHandler } from "preact/compat";
+import { Link, NavLink } from "react-router-dom";
 import { CogIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";
 import HamburgerMenu from "./HamburgerMenu";
 import Logo from "@/assets/images/logo.svg";
@@ -9,6 +9,7 @@ interface AppLayoutSidebarProps {
   showSidebar: boolean
   toggleSidebar: MouseEventHandler<HTMLButtonElement>
 }
+
 const navigation = [
   {
     name: <><span>Dashboard</span></>,
@@ -54,7 +55,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               <NavLink
                 to="/settings"
                 replace
-                className={`sidebar-link transition-all mt-auto text-slate-400/30 ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5'} ${location.pathname.includes("settings") && "active mx-2"}`}
+                className={`sidebar-link transition-all mt-auto text-slate-400/30 ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'} ${location.pathname.includes("settings") && "active mx-2"}`}
               >
                 <CogIcon
                   class={`mr-2 flex-shrink-0 h-6 w-6 duration-100 transition-all ${location.pathname.includes("settings") && '!mr-2 hover:-ml-0.5'} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
@@ -63,7 +64,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               </NavLink>
               <a
                 href="https://github.com/osintbuddy"
-                class={`sidebar-link ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5'}`}
+                class={`sidebar-link ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'}`}
               >
                 <Icon
                   icon="brand-github"
@@ -71,6 +72,16 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
                 />
                 Github
               </a>
+              <button
+                class={`sidebar-link w-full ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'}`}
+                onClick={() => console.log("TODO")}
+              >
+                <Icon
+                  icon="lock"
+                  className={`transition-all mr-2 flex-shrink-0 h-6 w-6 duration-100 ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
+                />
+                Logout
+              </button>
             </div>
           </nav>
         </div>
