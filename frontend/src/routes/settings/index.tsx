@@ -6,8 +6,6 @@ const secondaryNavigation = [
 ];
 
 export default function SettingsPage() {
-
-
   return (
     <>
       <header class="border-b from-cod-800/50 to-cod-800/40 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10">

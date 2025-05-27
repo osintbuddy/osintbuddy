@@ -44,7 +44,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               <NavLink
                 key={to}
                 to={to}
-                className={`sidebar-link ${showSidebar ? 'mr-2.5 ml-2.5' : 'mx-0 ml-0 mr-px'}`}
+                className={`sidebar-link ${showSidebar ? 'mx-2.5' : 'ml-0.5 mr-px'}`}
               >
                 <Icon className={
                   `transition-all mr-2 flex-shrink-0 h-6 w-6 duration-100 ${location.pathname.includes(to) && 'text-slate-400/30'} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`} />
@@ -55,7 +55,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               <NavLink
                 to="/settings"
                 replace
-                className={`sidebar-link transition-all mt-auto text-slate-400/30 ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'} ${location.pathname.includes("settings") && "active mx-2"}`}
+                className={`sidebar-link ${showSidebar ? "mx-2.5" : 'ml-0.5 mr-px'} ${location.pathname.includes("settings") && "active mx-2"}`}
               >
                 <CogIcon
                   class={`mr-2 flex-shrink-0 h-6 w-6 duration-100 transition-all ${location.pathname.includes("settings") && '!mr-2 hover:-ml-0.5'} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
@@ -64,7 +64,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               </NavLink>
               <a
                 href="https://github.com/osintbuddy"
-                class={`sidebar-link ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'}`}
+                class={`sidebar-link ${showSidebar ? 'mx-2.5' : 'ml-0.5 mr-px'}`}
               >
                 <Icon
                   icon="brand-github"
@@ -72,16 +72,17 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
                 />
                 Github
               </a>
-              <button
-                class={`sidebar-link w-full ${!showSidebar ? "mx-0 ml-0 mr-px" : 'mr-2.5 ml-2.5'}`}
-                onClick={() => console.log("TODO")}
+              <a
+                class={`sidebar-link !mb-2 ${showSidebar ? "mx-2.5" : 'ml-0.5 mr-px'}`}
+                onClick={() => console.log("TODO logout")}
+                href="javascript:void(0);"
               >
                 <Icon
                   icon="lock"
                   className={`transition-all mr-2 flex-shrink-0 h-6 w-6 duration-100 ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
                 />
                 Logout
-              </button>
+              </a>
             </div>
           </nav>
         </div>
