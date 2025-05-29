@@ -7,12 +7,17 @@ mod graphs;
 mod user;
 
 #[get("/status")]
-async fn status_handler() -> impl Responder {
+pub async fn healthcheck_handler() -> impl Responder {
     HttpResponse::Ok().json(json!({"status": "success","message": "pong"}))
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/api").service(status_handler);
+    let scope = web::scope("/api")
+        .service(healthcheck_handler)
+        .service(user::register_user_handler)
+        .service(user::login_user_handler)
+        .service(user::logout_handler)
+        .service(user::get_me_handler);
 
     conf.service(scope);
 }
