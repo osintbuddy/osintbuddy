@@ -1374,7 +1374,7 @@ dependencies = [
  "actix-web",
  "confik",
  "dotenvy",
- "serde",
+ "serde_json",
  "sqids",
  "sqlx",
 ]

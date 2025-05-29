@@ -9,6 +9,8 @@ use sqlx::{Postgres, pool::Pool, postgres::PgPoolOptions};
 use crate::config::OSINTBuddyConfig;
 
 mod config;
+mod handlers;
+mod schemas;
 
 pub struct AppState {
     db: Pool<Postgres>,
@@ -51,7 +53,7 @@ async fn main() -> std::io::Result<()> {
     };
 
     println!(
-        "backend: http://{}:{}\nfrontend: {}",
+        "backend: http://{}:{}/api\nfrontend: {}",
         cfg.backend_addr, cfg.backend_port, cfg.backend_cors
     );
     HttpServer::new(move || {
@@ -72,6 +74,7 @@ async fn main() -> std::io::Result<()> {
                     .build()
                     .unwrap(),
             }))
+            .configure(handlers::config)
             .wrap(cors)
             .wrap(Logger::default())
     })
