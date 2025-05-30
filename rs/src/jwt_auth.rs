@@ -11,9 +11,9 @@ use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-struct ErrorResponse {
-    message: String,
-    kind: String,
+pub struct ErrorResponse {
+    pub message: String,
+    pub kind: String,
 }
 
 impl fmt::Display for ErrorResponse {
