@@ -30,16 +30,11 @@
       },
       {
         "ordinal": 5,
-        "name": "role",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "ctime",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "mtime",
         "type_info": "Timestamptz"
       }
@@ -52,7 +47,6 @@
       ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,

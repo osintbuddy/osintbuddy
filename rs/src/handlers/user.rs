@@ -1,7 +1,7 @@
 use actix_web::{
-    HttpMessage, HttpRequest, HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
     cookie::{Cookie, time::Duration as ActixWebDuration},
-    get, post, web,
+    get, http, post, web,
 };
 use argon2::{
     Argon2,
@@ -15,29 +15,16 @@ use sqlx::Row;
 use crate::{
     AppState, jwt_auth,
     models::user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
-    schemas::user::FilteredUser,
 };
-
-fn filter_user_record(user: &User) -> FilteredUser {
-    FilteredUser {
-        id: user.id.to_string(),
-        email: user.email.to_owned(),
-        name: user.name.to_owned(),
-        role: user.role.to_owned(),
-        verified: user.verified,
-        ctime: user.ctime.unwrap(),
-        mtime: user.mtime.unwrap(),
-    }
-}
 
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
-    data: web::Data<AppState>,
+    app: web::Data<AppState>,
 ) -> impl Responder {
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
-        .fetch_one(&data.db)
+        .fetch_one(&app.db)
         .await
         .unwrap()
         .get(0);
@@ -60,13 +47,13 @@ async fn register_user_handler(
         body.email.to_string().to_lowercase(),
         hashed_password
     )
-    .fetch_one(&data.db)
+    .fetch_one(&app.db)
     .await;
 
     match query_result {
         Ok(user) => {
             let user_response = serde_json::json!({"status": "success","data": serde_json::json!({
-                "user": filter_user_record(&user)
+                "user": User::filter_record(&user)
             })});
 
             return HttpResponse::Ok().json(user_response);
@@ -81,11 +68,11 @@ async fn register_user_handler(
 #[post("/auth/login")]
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
-    data: web::Data<AppState>,
+    app: web::Data<AppState>,
 ) -> impl Responder {
     let query_result =
         sqlx::query_as!(User, "SELECT * FROM \"users\" WHERE email = $1", body.email)
-            .fetch_optional(&data.db)
+            .fetch_optional(&app.db)
             .await
             .unwrap();
 
@@ -115,54 +102,33 @@ async fn login_user_handler(
     let token = encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(data.cfg.jwt_secret.as_ref()),
+        &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
     )
     .unwrap();
 
-    let cookie = Cookie::build("token", token.to_owned())
-        .path("/")
-        .max_age(ActixWebDuration::new(60 * 60, 0))
-        .http_only(true)
-        .finish();
-
-    HttpResponse::Ok()
-        .cookie(cookie)
-        .json(json!({"status": "success", "token": token}))
+    HttpResponse::Ok().json(json!({"token": token}))
 }
 
 #[get("/auth/logout")]
-async fn logout_handler(_: jwt_auth::JwtMiddleware) -> impl Responder {
-    let cookie = Cookie::build("token", "")
-        .path("/")
-        .max_age(ActixWebDuration::new(-1, 0))
-        .http_only(true)
-        .finish();
+async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Responder {
+    let key = req
+        .headers()
+        .get(http::header::AUTHORIZATION)
+        .map(|h| h.to_str().unwrap().split_at(7).1.to_string())
+        .unwrap_or("".to_string());
 
-    HttpResponse::Ok()
-        .cookie(cookie)
-        .json(json!({"status": "success"}))
+    app.blacklist.insert(key, true);
+    HttpResponse::Ok().json(json!({"message": "You have successfully signed out."}))
 }
 
 #[get("/users/me")]
-async fn get_me_handler(
-    req: HttpRequest,
-    data: web::Data<AppState>,
-    _: jwt_auth::JwtMiddleware,
-) -> impl Responder {
-    let ext = req.extensions();
-    let user_id = ext.get::<i64>().unwrap();
-
-    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
-        .fetch_one(&data.db)
+async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>) -> impl Responder {
+    let user = sqlx::query_as!(User, "SELECT * FROM \"users\" WHERE id = $1", auth.user_id)
+        .fetch_one(&app.db)
         .await
         .unwrap();
 
-    let json_response = serde_json::json!({
-        "status":  "success",
-        "data": serde_json::json!({
-            "user": filter_user_record(&user)
-        })
-    });
-
-    HttpResponse::Ok().json(json_response)
+    HttpResponse::Ok().json(serde_json::json!({
+        "user": User::filter_record(&user)
+    }))
 }

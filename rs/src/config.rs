@@ -5,19 +5,15 @@ pub struct OSINTBuddyConfig {
     pub debug: bool,
     pub backend_addr: String,
     pub backend_port: u16,
-    pub postgres_addr: String,
-    pub postgres_user: String,
-    pub postgres_db: String,
-    pub postgres_port: u16,
     pub backend_cors: String,
     pub jwt_expired_in: String,
     pub jwt_maxage: u16,
-
+    pub max_retries: u8,
     #[confik(secret)]
     pub jwt_secret: String,
 
     #[confik(secret)]
-    pub postgres_password: String,
+    pub database_url: String,
 
     #[confik(secret)]
     pub sqids_alphabet: String,
@@ -26,11 +22,7 @@ pub struct OSINTBuddyConfig {
 impl Default for OSINTBuddyConfig {
     fn default() -> OSINTBuddyConfig {
         OSINTBuddyConfig {
-            postgres_user: String::from("postgres"),
-            postgres_db: String::from("app"),
-            postgres_addr: String::from("127.0.0.1"),
-            postgres_password: String::from("password"),
-            postgres_port: 55432,
+            database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
             backend_port: 48997,
             backend_addr: String::from("127.0.0.1"),
             backend_cors: String::from("http://localhost:5173"),
@@ -41,12 +33,12 @@ impl Default for OSINTBuddyConfig {
                 "03d2394fc289b30660772ea8d444540ff64c066631063d823b41444e1bdef086",
             ),
             debug: true,
+            max_retries: 32,
         }
     }
 }
 
 /// The possible runtime environments for OSINTBuddy.
-
 pub fn get_config() -> OSINTBuddyConfig {
     dotenvy::dotenv().ok();
 

@@ -1,42 +1,32 @@
+use std::time::Duration;
+
 use actix_cors::Cors;
+use actix_session::SessionMiddleware;
+use actix_session::storage::CookieSessionStore;
+use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
 use backend::AppState;
-use backend::{config::get_config, handlers};
+use backend::{config::get_config, db::establish_pool_connection, handlers};
+use moka::sync::Cache;
 use sqids::Sqids;
-use sqlx::postgres::PgPoolOptions;
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
     let cfg = get_config();
 
-    let postgresql_dsn = format!(
-        "postgresql://{}:{}@{}:{}/{}",
-        cfg.postgres_user,
-        cfg.postgres_password,
-        cfg.postgres_addr,
-        cfg.postgres_port,
-        cfg.postgres_db
-    );
-    let pool = match PgPoolOptions::new()
-        .max_connections(64)
-        .connect(&postgresql_dsn)
-        .await
-    {
-        Ok(pool) => {
-            println!("Database connection success!");
-            pool
-        }
+    let pool = match establish_pool_connection(&cfg).await {
+        Ok(pool) => match sqlx::migrate!().run(&pool).await {
+            Ok(_) => pool,
+            Err(err) => {
+                eprintln!("Error running migrate: {}", err);
+                pool
+            }
+        },
         Err(err) => {
-            println!("{} connection failed: {:?}", postgresql_dsn, err);
-            std::process::exit(1);
+            eprintln!("Error establishing db pool connection: {}", err);
+            std::process::exit(1)
         }
-    };
-
-    match sqlx::migrate!().run(&pool).await {
-        Ok(_) => println!("Database migration success!"),
-        Err(error) => println!("migration failed: {}", error),
     };
 
     println!(
@@ -45,7 +35,10 @@ async fn main() -> std::io::Result<()> {
     );
     let web_addr = cfg.backend_addr.clone();
     let web_port = cfg.backend_port.clone();
-
+    let token_blacklist: Cache<String, bool> = Cache::builder()
+        .max_capacity(64_000)
+        .time_to_live(Duration::from_secs(60 * 60))
+        .build();
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin(&cfg.backend_cors)
@@ -56,14 +49,26 @@ async fn main() -> std::io::Result<()> {
                 header::ACCEPT,
             ])
             .supports_credentials();
+
         App::new()
+            .wrap(SessionMiddleware::new(
+                CookieSessionStore::default(),
+                Key::generate(),
+            ))
             .app_data(web::Data::new(AppState {
+                blacklist: token_blacklist.clone(),
                 cfg: cfg.clone(),
                 db: pool.clone(),
-                id: Sqids::builder()
+                id: match Sqids::builder()
                     .alphabet(cfg.sqids_alphabet.chars().collect())
                     .build()
-                    .unwrap(),
+                {
+                    Ok(id) => id,
+                    Err(err) => {
+                        eprintln!("Sqids setup failed: {}", err);
+                        std::process::exit(1)
+                    }
+                },
             }))
             .configure(handlers::config)
             .wrap(cors)
