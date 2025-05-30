@@ -13,11 +13,16 @@ use serde::Serialize;
 #[derive(Debug, Serialize)]
 struct ErrorResponse {
     message: String,
+    kind: String,
 }
 
 impl fmt::Display for ErrorResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string(&self).unwrap())
+        write!(
+            f,
+            "{}",
+            serde_json::to_string(&self).unwrap_or("unknown error!".to_string())
+        )
     }
 }
 
@@ -41,7 +46,8 @@ impl FromRequest for JwtMiddleware {
             Some(token) => {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "Error authenticating...".to_string(),
+                        message: "There was an error authenticating your account. Please login and try again.".to_string(),
+                        kind: "missing".to_string(),
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
@@ -50,6 +56,7 @@ impl FromRequest for JwtMiddleware {
                         return ready(Err(ErrorInternalServerError(ErrorResponse {
                             message: "An exception has occurred, please try again later."
                                 .to_string(),
+                            kind: "fatal".to_string(),
                         })));
                     }
                 };
@@ -57,7 +64,8 @@ impl FromRequest for JwtMiddleware {
                 let is_blacklisted = app.blacklist.get(&token).unwrap_or(false);
                 if is_blacklisted {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "Invalid token".to_string(),
+                        message: "Invalid token.".to_string(),
+                        kind: "invalid".to_string(),
                     })));
                 }
 
@@ -69,19 +77,23 @@ impl FromRequest for JwtMiddleware {
                     Ok(token_data) => token_data.claims,
                     Err(_) => {
                         return ready(Err(ErrorUnauthorized(ErrorResponse {
-                            message: "Invalid token".to_string(),
+                            message: "Invalid token.".to_string(),
+                            kind: "invalid".to_string(),
                         })));
                     }
                 };
                 match claims.sub.parse::<i64>() {
                     Ok(user_id) => ready(Ok(JwtMiddleware { user_id, token })),
                     Err(_) => ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "Invalid token".to_string(),
+                        message: "Invalid token.".to_string(),
+                        kind: "invalid".to_string(),
                     }))),
                 }
             }
-            None => ready(Err(ErrorInternalServerError(ErrorResponse {
-                message: "You are not signed in. Please login and try again.".to_string(),
+            None => ready(Err(ErrorUnauthorized(ErrorResponse {
+                message: "There was an error authenticating your account. Please sign in again."
+                    .to_string(),
+                kind: "fatal".to_string(),
             }))),
         }
     }
