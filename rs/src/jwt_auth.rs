@@ -30,15 +30,18 @@ impl FromRequest for JwtMiddleware {
     type Error = ActixWebError;
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        match req
-            .headers()
-            .get(http::header::AUTHORIZATION)
-            .map(|h| h.to_str().unwrap().split_at(7).1.to_string())
-        {
+        match req.headers().get(http::header::AUTHORIZATION).map(|h| {
+            h.to_str()
+                .unwrap_or("")
+                .split_at_checked(7)
+                .unwrap_or(("", ""))
+                .1
+                .to_string()
+        }) {
             Some(token) => {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "You are not logged in, please provide a token".to_string(),
+                        message: "Error authenticating...".to_string(),
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
@@ -50,7 +53,6 @@ impl FromRequest for JwtMiddleware {
                         })));
                     }
                 };
-
                 // if a user signed out with their JWT (aka blacklisted that token)
                 let is_blacklisted = app.blacklist.get(&token).unwrap_or(false);
                 if is_blacklisted {

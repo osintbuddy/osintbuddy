@@ -84,8 +84,7 @@ async fn login_user_handler(
     });
 
     if !is_valid {
-        return HttpResponse::BadRequest()
-            .json(json!({"status": "fail", "message": "Invalid email or password"}));
+        return HttpResponse::BadRequest().json(json!({"message": "Invalid email or password"}));
     }
 
     let user = query_result.unwrap();
