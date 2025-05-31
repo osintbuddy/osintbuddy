@@ -75,7 +75,8 @@ impl FromRequest for JwtMiddleware {
                     &Validation::default(),
                 ) {
                     Ok(token_data) => token_data.claims,
-                    Err(_) => {
+                    Err(err) => {
+                        eprintln!("Decoding JWT error: {err}");
                         return ready(Err(ErrorUnauthorized(ErrorResponse {
                             message: "Invalid token.".to_string(),
                             kind: "invalid".to_string(),
@@ -84,10 +85,13 @@ impl FromRequest for JwtMiddleware {
                 };
                 match claims.sub.parse::<i64>() {
                     Ok(user_id) => ready(Ok(JwtMiddleware { user_id, token })),
-                    Err(_) => ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "Invalid token.".to_string(),
-                        kind: "invalid".to_string(),
-                    }))),
+                    Err(err) => {
+                        eprintln!("Casting claims user_id<i64> error: {err}");
+                        ready(Err(ErrorUnauthorized(ErrorResponse {
+                            message: "Invalid token.".to_string(),
+                            kind: "invalid".to_string(),
+                        })))
+                    }
                 }
             }
             None => ready(Err(ErrorUnauthorized(ErrorResponse {

@@ -35,10 +35,10 @@ async fn register_user_handler(
     };
 
     if exists {
-        return HttpResponse::Conflict().json(json!(ErrorResponse {
+        return HttpResponse::Conflict().json(ErrorResponse {
             message: "User already exists.".to_string(),
             kind: "exists".to_string(),
-        }));
+        });
     }
 
     let salt = SaltString::generate(&mut OsRng);
@@ -60,7 +60,8 @@ async fn register_user_handler(
                 Ok(user) => HttpResponse::Ok().json(json!({
                     "user": User::filter_record(&user)
                 })),
-                Err(e) => {
+                Err(err) => {
+                    eprintln!("Error creating user: {err}");
                     return HttpResponse::InternalServerError().json(ErrorResponse {
                         kind: "data".to_string(),
                         message: "We ran into an error creating this account. Please try again."
@@ -92,7 +93,7 @@ async fn login_user_handler(
     let query_result = match query_result {
         Ok(query_result) => query_result,
         Err(err) => {
-            eprintln!("Error fetching user by email: {}", err);
+            eprintln!("Error fetching user by email: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error. Please try again.".to_string(),
                 kind: "data".to_string(),
@@ -107,7 +108,7 @@ async fn login_user_handler(
                 .verify_password(body.password.as_bytes(), &hash)
                 .map_or(false, |_| true),
             Err(err) => {
-                eprintln!("Error verifying password: {}", err);
+                eprintln!("Error verifying password: {err}");
                 false
             }
         }
@@ -149,7 +150,7 @@ async fn login_user_handler(
     match token {
         Ok(token) => HttpResponse::Ok().json(json!({"token": token})),
         Err(err) => {
-            eprintln!("Error encoding token: {}", err);
+            eprintln!("Error encoding token: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "Invalid email or password".to_string(),
                 kind: "invalid".to_string(),
@@ -185,7 +186,7 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
     let user = match user {
         Ok(user) => user,
         Err(err) => {
-            eprintln!("Error fetching account information: {}", err);
+            eprintln!("Error fetching account information: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: format!(
                     "We ran into an error fetching your account information! Please try again."
