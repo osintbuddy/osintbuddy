@@ -25,3 +25,4 @@ tokio = { version = "1", features = ["full"] }
 actix-session = { version = "0.10.1", features = ["cookie-session"] }
 moka = { version = "0.12.10", features = ["sync"] }
 actix-ws = "0.3.0"
+actix-files = "0.6.6"

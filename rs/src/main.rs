@@ -1,6 +1,8 @@
+use std::env;
 use std::time::Duration;
 
 use actix_cors::Cors;
+use actix_files::Files;
 use actix_session::SessionMiddleware;
 use actix_session::storage::CookieSessionStore;
 use actix_web::cookie::Key;
@@ -30,27 +32,19 @@ async fn main() -> std::io::Result<()> {
     };
 
     println!(
-        "Backend listening on: http://{}:{}/api\nFrontend listening on: {}",
-        cfg.backend_addr, cfg.backend_port, cfg.backend_cors
+        "Listening on: http://{}:{}/",
+        cfg.backend_addr, cfg.backend_port
     );
+    let frontend_build_dir = "../frontend/build";
     let web_addr = cfg.backend_addr.clone();
     let web_port = cfg.backend_port.clone();
     let token_blacklist: Cache<String, bool> = Cache::builder()
         .max_capacity(64_000)
         .time_to_live(Duration::from_secs(60 * 60))
         .build();
-    HttpServer::new(move || {
-        let cors = Cors::default()
-            .allowed_origin(&cfg.backend_cors)
-            .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
-            .allowed_headers(vec![
-                header::CONTENT_TYPE,
-                header::AUTHORIZATION,
-                header::ACCEPT,
-            ])
-            .supports_credentials();
 
-        App::new()
+    HttpServer::new(move || {
+        let app = App::new()
             .wrap(SessionMiddleware::new(
                 CookieSessionStore::default(),
                 Key::generate(),
@@ -71,8 +65,40 @@ async fn main() -> std::io::Result<()> {
                 },
             }))
             .configure(handlers::config)
-            .wrap(cors)
-            .wrap(Logger::default())
+            .wrap(
+                Cors::default()
+                    .allowed_origin(&cfg.backend_cors)
+                    .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
+                    .allowed_headers(vec![
+                        header::CONTENT_TYPE,
+                        header::AUTHORIZATION,
+                        header::ACCEPT,
+                    ])
+                    .supports_credentials(),
+            )
+            .wrap(Logger::default());
+        match env::var("ENVIRONMENT") {
+            Ok(environment) => {
+                if environment != "development" {
+                    return app.service(
+                        Files::new("/", frontend_build_dir)
+                            .index_file("index.html")
+                            .default_handler(
+                                actix_files::NamedFile::open(format!(
+                                    "{}/index.html",
+                                    frontend_build_dir
+                                ))
+                                .unwrap(),
+                            ),
+                    );
+                }
+                return app;
+            }
+            Err(_) => {
+                println!("You may run the frontend by running yarn dev from the frontend directory.\nWhen deploying to production run yarn build.");
+                return app;
+            }
+        }
     })
     .bind((web_addr, web_port))?
     .run()
