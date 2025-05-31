@@ -28,7 +28,7 @@ async fn register_user_handler(
         Err(err) => {
             eprintln!("Error checking user exists: {}", err);
             return HttpResponse::Conflict().json(ErrorResponse {
-                message: "User already exists.".to_string(),
+                message: "User already exists, please sign in.".to_string(),
                 kind: "exists".to_string(),
             });
         }
@@ -63,7 +63,8 @@ async fn register_user_handler(
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(ErrorResponse {
                         kind: "data".to_string(),
-                        message: format!("{:?}", e),
+                        message: "We ran into an error creating this account. Please try again."
+                            .to_string(),
                     });
                 }
             }
