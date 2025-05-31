@@ -109,7 +109,7 @@ async fn login_user_handler(
         }
     };
 
-    let is_valid = query_result.to_owned().map_or(false, |user| {
+    let is_valid = query_result.as_ref().map_or(false, |user| {
         let parsed_hash = PasswordHash::new(&user.password);
         match parsed_hash {
             Ok(hash) => Argon2::default()
@@ -130,7 +130,7 @@ async fn login_user_handler(
     }
 
     let user = match query_result {
-        Some(user) => user,
+        Some(value) => value,
         None => {
             eprintln!("Error fetching user!");
             return HttpResponse::BadRequest().json(ErrorResponse {

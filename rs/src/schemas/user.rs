@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{ErrorKind, ErrorResponse};
 
-#[allow(non_snake_case)]
-#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct User {
     #[serde(skip_serializing)]
     pub id: i64,
