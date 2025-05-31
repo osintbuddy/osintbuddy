@@ -167,7 +167,7 @@ async fn login_user_handler(
         Err(err) => {
             eprintln!("Error encoding token: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
-                message: "Invalid email or password",
+                message: "Invalid email or password.",
                 kind: ErrorKind::InvalidInput,
             });
         }
