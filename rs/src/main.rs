@@ -16,7 +16,13 @@ async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
     let cfg = get_config();
 
-    let pool = match establish_pool_connection(&cfg).await {
+    println!(
+        "Listening on: http://{}:{}/",
+        cfg.backend_addr, cfg.backend_port
+    );
+    let web_addr = cfg.backend_addr.clone();
+    let web_port = cfg.backend_port.clone();
+    let db = match establish_pool_connection(&cfg).await {
         Ok(pool) => match sqlx::migrate!().run(&pool).await {
             Ok(_) => pool,
             Err(err) => {
@@ -29,34 +35,28 @@ async fn main() -> std::io::Result<()> {
             std::process::exit(1)
         }
     };
-
-    println!(
-        "Listening on: http://{}:{}/",
-        cfg.backend_addr, cfg.backend_port
-    );
-    let web_addr = cfg.backend_addr.clone();
-    let web_port = cfg.backend_port.clone();
-    let token_blacklist: Cache<String, bool> = Cache::builder()
-        .max_capacity(64_000)
-        .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
-        .build();
-
     HttpServer::new(move || {
+        let blacklist: Cache<String, bool> = Cache::builder()
+            .max_capacity(64_000)
+            .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
+            .build();
+
+        let id = match Sqids::builder()
+            .alphabet(cfg.sqids_alphabet.chars().collect())
+            .build()
+        {
+            Ok(id) => id,
+            Err(err) => {
+                eprintln!("Sqids setup failed: {}", err);
+                std::process::exit(1)
+            }
+        };
         let app = App::new()
             .app_data(web::Data::new(AppState {
-                blacklist: token_blacklist.clone(),
                 cfg: cfg.clone(),
-                db: pool.clone(),
-                id: match Sqids::builder()
-                    .alphabet(cfg.sqids_alphabet.chars().collect())
-                    .build()
-                {
-                    Ok(id) => id,
-                    Err(err) => {
-                        eprintln!("Sqids setup failed: {}", err);
-                        std::process::exit(1)
-                    }
-                },
+                db: db.clone(),
+                blacklist,
+                id,
             }))
             .configure(handlers::config)
             .wrap(
