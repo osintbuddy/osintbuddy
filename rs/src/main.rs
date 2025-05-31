@@ -3,15 +3,13 @@ use std::time::Duration;
 
 use actix_cors::Cors;
 use actix_files::Files;
-use actix_session::SessionMiddleware;
-use actix_session::storage::CookieSessionStore;
-use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
 use backend::AppState;
 use backend::{config::get_config, db::establish_pool_connection, handlers};
 use moka::sync::Cache;
 use sqids::Sqids;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
@@ -40,15 +38,11 @@ async fn main() -> std::io::Result<()> {
     let web_port = cfg.backend_port.clone();
     let token_blacklist: Cache<String, bool> = Cache::builder()
         .max_capacity(64_000)
-        .time_to_live(Duration::from_secs(60 * 60))
+        .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
         .build();
 
     HttpServer::new(move || {
         let app = App::new()
-            .wrap(SessionMiddleware::new(
-                CookieSessionStore::default(),
-                Key::generate(),
-            ))
             .app_data(web::Data::new(AppState {
                 blacklist: token_blacklist.clone(),
                 cfg: cfg.clone(),
@@ -95,7 +89,6 @@ async fn main() -> std::io::Result<()> {
                 return app;
             }
             Err(_) => {
-                println!("You may run the frontend by running yarn dev from the frontend directory.\nWhen deploying to production run yarn build.");
                 return app;
             }
         }

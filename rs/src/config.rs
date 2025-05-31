@@ -6,9 +6,7 @@ pub struct OSINTBuddyConfig {
     pub backend_addr: String,
     pub backend_port: u16,
     pub backend_cors: String,
-    pub jwt_expired_in: String,
-    pub jwt_maxage: u16,
-    pub max_retries: u8,
+    pub jwt_maxage: u64,
     #[confik(secret)]
     pub jwt_secret: String,
 
@@ -19,26 +17,6 @@ pub struct OSINTBuddyConfig {
     pub sqids_alphabet: String,
 }
 
-impl Default for OSINTBuddyConfig {
-    fn default() -> OSINTBuddyConfig {
-        OSINTBuddyConfig {
-            database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
-            backend_port: 48997,
-            backend_addr: String::from("127.0.0.1"),
-            backend_cors: String::from("http://localhost:5173"),
-            sqids_alphabet: String::from("RQWMLGFATEYHDSIUKXNCOVZJPB"),
-            jwt_expired_in: String::from("60m"),
-            jwt_maxage: 60,
-            jwt_secret: String::from(
-                "03d2394fc289b30660772ea8d444540ff64c066631063d823b41444e1bdef086",
-            ),
-            debug: true,
-            max_retries: 32,
-        }
-    }
-}
-
-/// The possible runtime environments for OSINTBuddy.
 pub fn get_config() -> OSINTBuddyConfig {
     dotenvy::dotenv().ok();
 
@@ -47,6 +25,17 @@ pub fn get_config() -> OSINTBuddyConfig {
         .try_build()
         .unwrap_or_else(|err| {
             println!("Using default config! Error loading env: {}", err);
-            OSINTBuddyConfig::default()
+            OSINTBuddyConfig {
+                database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
+                backend_port: 48997,
+                backend_addr: String::from("127.0.0.1"),
+                backend_cors: String::from("http://localhost:5173"),
+                sqids_alphabet: String::from("RQWMLGFATEYHDSIUKXNCOVZJPB"),
+                jwt_maxage: 60,
+                jwt_secret: String::from(
+                    "03d2394fc289b30660772ea8d444540ff64z066631063d823b41444e1bdef086",
+                ),
+                debug: true,
+            }
         })
 }

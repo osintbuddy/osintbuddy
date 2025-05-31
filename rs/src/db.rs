@@ -12,7 +12,7 @@ pub async fn establish_pool_connection(cfg: &OSINTBuddyConfig) -> Result<PgPool,
                 .await
         }
         .await,
-        cfg.max_retries,
+        4,
         5000
     )
 }

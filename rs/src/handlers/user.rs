@@ -1,9 +1,11 @@
+use std::time::Duration;
+
 use actix_web::{HttpRequest, HttpResponse, Responder, get, http, post, web};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use chrono::{Duration, prelude::*};
+use chrono::prelude::*;
 use jsonwebtoken::{EncodingKey, Header, encode};
 use serde_json::json;
 use sqlx::Row;
@@ -140,7 +142,7 @@ async fn login_user_handler(
 
     let now = Utc::now();
     let iat = now.timestamp() as usize;
-    let exp = (now + Duration::minutes(60)).timestamp() as usize;
+    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage)).timestamp() as usize;
     let claims: TokenClaims = TokenClaims {
         sub: user.id.to_string(),
         exp,
