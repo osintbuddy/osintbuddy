@@ -12,8 +12,8 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
-    pub message: String,
-    pub kind: String,
+    pub message: &'static str,
+    pub kind: &'static str,
 }
 
 impl fmt::Display for ErrorResponse {
@@ -46,17 +46,16 @@ impl FromRequest for JwtMiddleware {
             Some(token) => {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "There was an error authenticating your account. Please login and try again.".to_string(),
-                        kind: "missing".to_string(),
+                        message: "There was an error authenticating your account. Please login and try again.",
+                        kind: "missing",
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
                     Some(app) => app,
                     None => {
                         return ready(Err(ErrorInternalServerError(ErrorResponse {
-                            message: "An exception has occurred, please try again later."
-                                .to_string(),
-                            kind: "fatal".to_string(),
+                            message: "An exception has occurred, please try again later.",
+                            kind: "fatal",
                         })));
                     }
                 };
@@ -64,8 +63,8 @@ impl FromRequest for JwtMiddleware {
                 let is_blacklisted = app.blacklist.get(&token).unwrap_or(false);
                 if is_blacklisted {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
-                        message: "Invalid token.".to_string(),
-                        kind: "invalid".to_string(),
+                        message: "Invalid token.",
+                        kind: "invalid",
                     })));
                 }
 
@@ -78,8 +77,8 @@ impl FromRequest for JwtMiddleware {
                     Err(err) => {
                         eprintln!("Decoding JWT error: {err}");
                         return ready(Err(ErrorUnauthorized(ErrorResponse {
-                            message: "Invalid token.".to_string(),
-                            kind: "invalid".to_string(),
+                            message: "Invalid token.",
+                            kind: "invalid",
                         })));
                     }
                 };
@@ -88,16 +87,15 @@ impl FromRequest for JwtMiddleware {
                     Err(err) => {
                         eprintln!("Casting claims user_id<i64> error: {err}");
                         ready(Err(ErrorUnauthorized(ErrorResponse {
-                            message: "Invalid token.".to_string(),
-                            kind: "invalid".to_string(),
+                            message: "Invalid token.",
+                            kind: "invalid",
                         })))
                     }
                 }
             }
             None => ready(Err(ErrorUnauthorized(ErrorResponse {
-                message: "There was an error authenticating your account. Please sign in again."
-                    .to_string(),
-                kind: "fatal".to_string(),
+                message: "There was an error authenticating your account. Please sign in again.",
+                kind: "fatal",
             }))),
         }
     }
