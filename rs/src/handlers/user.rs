@@ -74,9 +74,7 @@ async fn register_user_handler(
             .await;
 
             match query_result {
-                Ok(user) => HttpResponse::Ok().json(json!({
-                    "user": User::filter_record(&user)
-                })),
+                Ok(user) => HttpResponse::Ok().json(&user),
                 Err(err) => {
                     eprintln!("Error creating user: {err}");
                     return HttpResponse::InternalServerError().json(ErrorResponse {
@@ -208,7 +206,5 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
             });
         }
     };
-    HttpResponse::Ok().json(json!({
-        "user": User::filter_record(&user)
-    }))
+    HttpResponse::Ok().json(&user)
 }

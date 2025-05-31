@@ -4,9 +4,11 @@ use serde::{Deserialize, Serialize};
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
 pub struct User {
+    #[serde(skip_serializing)]
     pub id: i64,
     pub name: String,
     pub email: String,
+    #[serde(skip_serializing)]
     pub password: String,
     pub verified: bool,
     pub ctime: Option<DateTime<Utc>>,
