@@ -1,30 +1,12 @@
-use core::fmt;
 use std::future::{Ready, ready};
 
 use crate::AppState;
+use crate::error::{ErrorKind, ErrorResponse};
 use crate::models::user::TokenClaims;
 use actix_web::error::{ErrorInternalServerError, ErrorUnauthorized};
 use actix_web::{Error as ActixWebError, dev::Payload};
 use actix_web::{FromRequest, HttpRequest, http, web};
 use jsonwebtoken::{DecodingKey, Validation, decode};
-
-use serde::Serialize;
-
-#[derive(Debug, Serialize)]
-pub struct ErrorResponse {
-    pub message: &'static str,
-    pub kind: &'static str,
-}
-
-impl fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            serde_json::to_string(&self).unwrap_or("unknown error!".to_string())
-        )
-    }
-}
 
 pub struct JwtMiddleware {
     pub user_id: i64,
@@ -47,7 +29,7 @@ impl FromRequest for JwtMiddleware {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
                         message: "There was an error authenticating your account. Please login and try again.",
-                        kind: "missing",
+                        kind: ErrorKind::InvalidInput,
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
@@ -55,7 +37,7 @@ impl FromRequest for JwtMiddleware {
                     None => {
                         return ready(Err(ErrorInternalServerError(ErrorResponse {
                             message: "An exception has occurred, please try again later.",
-                            kind: "fatal",
+                            kind: ErrorKind::Critical,
                         })));
                     }
                 };
@@ -64,7 +46,7 @@ impl FromRequest for JwtMiddleware {
                 if is_blacklisted {
                     return ready(Err(ErrorUnauthorized(ErrorResponse {
                         message: "Invalid token.",
-                        kind: "invalid",
+                        kind: ErrorKind::InvalidInput,
                     })));
                 }
 
@@ -78,7 +60,7 @@ impl FromRequest for JwtMiddleware {
                         eprintln!("Decoding JWT error: {err}");
                         return ready(Err(ErrorUnauthorized(ErrorResponse {
                             message: "Invalid token.",
-                            kind: "invalid",
+                            kind: ErrorKind::InvalidInput,
                         })));
                     }
                 };
@@ -88,14 +70,14 @@ impl FromRequest for JwtMiddleware {
                         eprintln!("Casting claims user_id<i64> error: {err}");
                         ready(Err(ErrorUnauthorized(ErrorResponse {
                             message: "Invalid token.",
-                            kind: "invalid",
+                            kind: ErrorKind::InvalidInput,
                         })))
                     }
                 }
             }
             None => ready(Err(ErrorUnauthorized(ErrorResponse {
                 message: "There was an error authenticating your account. Please sign in again.",
-                kind: "fatal",
+                kind: ErrorKind::Critical,
             }))),
         }
     }

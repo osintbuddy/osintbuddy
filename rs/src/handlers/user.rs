@@ -10,7 +10,8 @@ use sqlx::Row;
 
 use crate::{
     AppState,
-    jwt_auth::{self, ErrorResponse},
+    error::{ErrorKind, ErrorResponse},
+    jwt_auth,
     models::user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
 };
 
@@ -28,8 +29,8 @@ async fn register_user_handler(
         Err(err) => {
             eprintln!("Error checking user exists: {}", err);
             return HttpResponse::Conflict().json(ErrorResponse {
-                message: "User already exists, please sign in.",
-                kind: "exists",
+                message: "We ran into an error registering your account. Please try again.",
+                kind: ErrorKind::Database,
             });
         }
     };
@@ -37,7 +38,23 @@ async fn register_user_handler(
     if exists {
         return HttpResponse::Conflict().json(ErrorResponse {
             message: "User already exists.",
-            kind: "exists",
+            kind: ErrorKind::Exists,
+        });
+    }
+
+    if body.name.to_string().trim().is_empty()
+        || body.password.to_string().trim().is_empty() | body.email.to_string().trim().is_empty()
+    {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            message: "Missing username, password, and or email.",
+            kind: ErrorKind::InvalidInput,
+        });
+    }
+
+    if body.password.to_string().chars().count() < 8 {
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            message: "The minimum password length is 8 characters. Please try again.",
+            kind: ErrorKind::InvalidInput,
         });
     }
 
@@ -48,7 +65,7 @@ async fn register_user_handler(
         Ok(hashed_password) => {
             let query_result = sqlx::query_as!(
                 User,
-                "INSERT INTO \"users\" (name,email,password) VALUES ($1, $2, $3) RETURNING *",
+                "INSERT INTO users (name,email,password) VALUES ($1, $2, $3) RETURNING *",
                 body.name.to_string(),
                 body.email.to_string().to_lowercase(),
                 hashed_password.to_string()
@@ -63,7 +80,7 @@ async fn register_user_handler(
                 Err(err) => {
                     eprintln!("Error creating user: {err}");
                     return HttpResponse::InternalServerError().json(ErrorResponse {
-                        kind: "data",
+                        kind: ErrorKind::Database,
                         message: "We ran into an error creating this account. Please try again.",
                     });
                 }
@@ -73,7 +90,7 @@ async fn register_user_handler(
             eprintln!("Error hashing password: {}", err);
             return HttpResponse::Conflict().json(ErrorResponse {
                 message: "Invalid password.",
-                kind: "invalid",
+                kind: ErrorKind::InvalidInput,
             });
         }
     }
@@ -84,10 +101,9 @@ async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
     app: web::Data<AppState>,
 ) -> impl Responder {
-    let query_result =
-        sqlx::query_as!(User, "SELECT * FROM \"users\" WHERE email = $1", body.email)
-            .fetch_optional(&app.db)
-            .await;
+    let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
+        .fetch_optional(&app.db)
+        .await;
 
     let query_result = match query_result {
         Ok(query_result) => query_result,
@@ -95,7 +111,7 @@ async fn login_user_handler(
             eprintln!("Error fetching user by email: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error. Please try again.",
-                kind: "data",
+                kind: ErrorKind::Database,
             });
         }
     };
@@ -116,7 +132,7 @@ async fn login_user_handler(
     if !is_valid {
         return HttpResponse::BadRequest().json(ErrorResponse {
             message: "Invalid email or password",
-            kind: "invalid",
+            kind: ErrorKind::InvalidInput,
         });
     }
 
@@ -126,7 +142,7 @@ async fn login_user_handler(
             eprintln!("Error fetching user!");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error. Please try again.",
-                kind: "data",
+                kind: ErrorKind::Database,
             });
         }
     };
@@ -152,7 +168,7 @@ async fn login_user_handler(
             eprintln!("Error encoding token: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "Invalid email or password",
-                kind: "invalid",
+                kind: ErrorKind::InvalidInput,
             });
         }
     }
@@ -179,7 +195,7 @@ async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Resp
 
 #[get("/users/me")]
 async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>) -> impl Responder {
-    let user = sqlx::query_as!(User, "SELECT * FROM \"users\" WHERE id = $1", auth.user_id)
+    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.user_id)
         .fetch_one(&app.db)
         .await;
     let user = match user {
@@ -188,7 +204,7 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
             eprintln!("Error fetching account information: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error fetching your account information! Please try again.",
-                kind: "data",
+                kind: ErrorKind::Database,
             });
         }
     };
