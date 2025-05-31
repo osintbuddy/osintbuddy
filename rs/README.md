@@ -9,8 +9,11 @@
    cargo install cargo-watch
    ```
 
-2. Build and start web server with watch
+2. Migrate db and build and start web server with watch
    ```bash
+   docker compose up db
+   sqlx migrate run
+   # run and watch server
    cargo watch -q -c -w src/ -x run
    ```
 

@@ -1,0 +1,13 @@
+services:
+  db:
+    container_name: "db"
+    image: apache/age
+    volumes:
+      - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
+    env_file:
+      - .env
+    ports:
+      - "55432:5432"
+
+volumes:
+  ob-db-data:
