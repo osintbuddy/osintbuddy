@@ -33,7 +33,6 @@ async fn main() -> std::io::Result<()> {
         "Listening on: http://{}:{}/",
         cfg.backend_addr, cfg.backend_port
     );
-    let frontend_build_dir = "../frontend/build";
     let web_addr = cfg.backend_addr.clone();
     let web_port = cfg.backend_port.clone();
     let token_blacklist: Cache<String, bool> = Cache::builder()
@@ -71,27 +70,30 @@ async fn main() -> std::io::Result<()> {
                     .supports_credentials(),
             )
             .wrap(Logger::default());
-        match env::var("ENVIRONMENT") {
+
+        let frontend_build_dir = "../frontend/build";
+        let is_prod = match env::var("ENVIRONMENT") {
             Ok(environment) => {
-                if environment != "development" {
-                    return app.service(
-                        Files::new("/", frontend_build_dir)
-                            .index_file("index.html")
-                            .default_handler(
-                                actix_files::NamedFile::open(format!(
-                                    "{}/index.html",
-                                    frontend_build_dir
-                                ))
-                                .unwrap(),
-                            ),
-                    );
+                if environment != "development".to_string() {
+                    true
+                } else {
+                    false
                 }
-                return app;
             }
-            Err(_) => {
-                return app;
-            }
+            Err(_) => false,
+        };
+
+        if is_prod {
+            return app.service(
+                Files::new("/", frontend_build_dir)
+                    .index_file("index.html")
+                    .default_handler(
+                        actix_files::NamedFile::open(format!("{}/index.html", frontend_build_dir))
+                            .unwrap(),
+                    ),
+            );
         }
+        app
     })
     .bind((web_addr, web_port))?
     .run()
