@@ -1,12 +1,9 @@
-pub mod config;
-pub mod db;
-pub mod error;
+pub mod core;
 pub mod handlers;
-pub mod jwt_auth;
+pub mod middleware;
 pub mod schemas;
-pub mod utils;
 
-use config::OSINTBuddyConfig;
+use core::config::OSINTBuddyConfig;
 use moka::sync::Cache;
 use sqids::Sqids;
 use sqlx::PgPool;

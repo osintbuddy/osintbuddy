@@ -1,6 +1,6 @@
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-use crate::{config::OSINTBuddyConfig, utils};
+use crate::{OSINTBuddyConfig, core::utils};
 
 pub async fn establish_pool_connection(cfg: &OSINTBuddyConfig) -> Result<PgPool, sqlx::Error> {
     utils::retry!(

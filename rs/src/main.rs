@@ -6,7 +6,8 @@ use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
 use backend::AppState;
-use backend::{config::get_config, db::establish_pool_connection, handlers};
+use backend::core::{config::get_config, db::establish_pool_connection};
+use backend::handlers;
 use moka::sync::Cache;
 use sqids::Sqids;
 

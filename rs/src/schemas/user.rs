@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{ErrorKind, ErrorResponse};
+use super::error::{ErrorKind, ErrorResponse};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
@@ -43,7 +43,7 @@ impl RegisterUserSchema {
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(ErrorResponse {
-                message: "The minimum password length is 8 characters. Please try again.",
+                message: "The minimum password length is 8 characters.",
                 kind: ErrorKind::InvalidInput,
             });
         }
@@ -63,11 +63,11 @@ impl LoginUserSchema {
             return Err(ErrorResponse {
                 message: "Missing username or password.",
                 kind: ErrorKind::InvalidInput,
-            }); // Adjust error type as needed
+            });
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(ErrorResponse {
-                message: "The minimum password length is 8 characters. Please try again.",
+                message: "The minimum password length is 8 characters.",
                 kind: ErrorKind::InvalidInput,
             });
         }

@@ -1,7 +1,7 @@
 use std::future::{Ready, ready};
 
 use crate::AppState;
-use crate::error::{ErrorKind, ErrorResponse};
+use crate::schemas::error::{ErrorKind, ErrorResponse};
 use crate::schemas::user::TokenClaims;
 use actix_web::error::{ErrorInternalServerError, ErrorUnauthorized};
 use actix_web::{Error as ActixWebError, dev::Payload};

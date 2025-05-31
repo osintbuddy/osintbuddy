@@ -12,9 +12,11 @@ use sqlx::Row;
 
 use crate::{
     AppState,
-    error::{ErrorKind, ErrorResponse},
-    jwt_auth,
-    schemas::user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
+    middleware::jwt_auth,
+    schemas::{
+        error::{ErrorKind, ErrorResponse},
+        user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
+    },
 };
 
 #[post("/auth/register")]
@@ -35,7 +37,7 @@ async fn register_user_handler(
         Err(err) => {
             eprintln!("Error checking user exists: {}", err);
             return HttpResponse::Conflict().json(ErrorResponse {
-                message: "We ran into an error registering your account. Please try again.",
+                message: "We ran into an error registering your account.",
                 kind: ErrorKind::Database,
             });
         }
@@ -69,7 +71,7 @@ async fn register_user_handler(
                     eprintln!("Error creating user: {err}");
                     return HttpResponse::InternalServerError().json(ErrorResponse {
                         kind: ErrorKind::Database,
-                        message: "We ran into an error creating this account. Please try again.",
+                        message: "We ran into an error creating this account.",
                     });
                 }
             }
@@ -103,7 +105,7 @@ async fn login_user_handler(
         Err(err) => {
             eprintln!("Error fetching user by email: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
-                message: "We ran into an error. Please try again.",
+                message: "We ran into an error.",
                 kind: ErrorKind::Database,
             });
         }
@@ -134,7 +136,7 @@ async fn login_user_handler(
         None => {
             eprintln!("Error fetching user!");
             return HttpResponse::BadRequest().json(ErrorResponse {
-                message: "We ran into an error. Please try again.",
+                message: "We ran into an error.",
                 kind: ErrorKind::Database,
             });
         }
@@ -196,7 +198,7 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
         Err(err) => {
             eprintln!("Error fetching account information: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
-                message: "We ran into an error fetching your account information! Please try again.",
+                message: "We ran into an error fetching your account information!",
                 kind: ErrorKind::Database,
             });
         }
