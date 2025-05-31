@@ -3,7 +3,7 @@ use serde::Serialize;
 use serde_json::json;
 
 #[derive(Debug, Serialize)]
-#[serde(deny_unknown_fields, rename_all_fields = "lowercase")]
+#[serde(deny_unknown_fields, rename_all = "snake_case")]
 pub enum ErrorKind {
     #[serde(rename = "invalid")]
     InvalidInput,

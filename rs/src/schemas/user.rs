@@ -1,6 +1,8 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::error::{ErrorKind, ErrorResponse};
+
 #[allow(non_snake_case)]
 #[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
 pub struct User {
@@ -13,37 +15,6 @@ pub struct User {
     pub verified: bool,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
-}
-
-impl User {
-    pub fn filter_record(user: &User) -> FilteredUser {
-        FilteredUser {
-            email: user.email.to_owned(),
-            name: user.name.to_owned(),
-            ctime: user.ctime.unwrap(),
-            mtime: user.mtime.unwrap(),
-        }
-    }
-}
-
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize)]
-pub struct FilteredUser {
-    pub name: String,
-    pub email: String,
-    pub ctime: DateTime<Utc>,
-    pub mtime: DateTime<Utc>,
-}
-
-#[derive(Serialize, Debug)]
-pub struct UserData {
-    pub user: FilteredUser,
-}
-
-#[derive(Serialize, Debug)]
-pub struct UserResponse {
-    pub status: String,
-    pub data: UserData,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -60,8 +31,47 @@ pub struct RegisterUserSchema {
     pub password: String,
 }
 
+impl RegisterUserSchema {
+    pub fn validate(self) -> Result<RegisterUserSchema, ErrorResponse> {
+        if self.name.trim().is_empty()
+            || self.email.trim().is_empty()
+            || self.password.trim().is_empty()
+        {
+            return Err(ErrorResponse {
+                message: "Missing username, password, and or email.",
+                kind: ErrorKind::InvalidInput,
+            }); // Adjust error type as needed
+        }
+        if self.password.to_string().chars().count() < 8 {
+            return Err(ErrorResponse {
+                message: "The minimum password length is 8 characters. Please try again.",
+                kind: ErrorKind::InvalidInput,
+            });
+        }
+        Ok(self)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LoginUserSchema {
     pub email: String,
     pub password: String,
+}
+
+impl LoginUserSchema {
+    pub fn validate(self) -> Result<LoginUserSchema, ErrorResponse> {
+        if self.email.trim().is_empty() || self.password.trim().is_empty() {
+            return Err(ErrorResponse {
+                message: "Missing username or password.",
+                kind: ErrorKind::InvalidInput,
+            }); // Adjust error type as needed
+        }
+        if self.password.to_string().chars().count() < 8 {
+            return Err(ErrorResponse {
+                message: "The minimum password length is 8 characters. Please try again.",
+                kind: ErrorKind::InvalidInput,
+            });
+        }
+        Ok(self)
+    }
 }

@@ -20,6 +20,10 @@ async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     app: web::Data<AppState>,
 ) -> impl Responder {
+    let body = match body.into_inner().validate() {
+        Ok(body) => body,
+        Err(err) => return HttpResponse::BadRequest().json(err),
+    };
     let exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(&app.db)
@@ -39,22 +43,6 @@ async fn register_user_handler(
         return HttpResponse::Conflict().json(ErrorResponse {
             message: "User already exists.",
             kind: ErrorKind::Exists,
-        });
-    }
-
-    if body.name.to_string().trim().is_empty()
-        || body.password.to_string().trim().is_empty() | body.email.to_string().trim().is_empty()
-    {
-        return HttpResponse::BadRequest().json(ErrorResponse {
-            message: "Missing username, password, and or email.",
-            kind: ErrorKind::InvalidInput,
-        });
-    }
-
-    if body.password.to_string().chars().count() < 8 {
-        return HttpResponse::BadRequest().json(ErrorResponse {
-            message: "The minimum password length is 8 characters. Please try again.",
-            kind: ErrorKind::InvalidInput,
         });
     }
 
@@ -99,6 +87,11 @@ async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
     app: web::Data<AppState>,
 ) -> impl Responder {
+    let body = match body.into_inner().validate() {
+        Ok(body) => body,
+        Err(err) => return HttpResponse::BadRequest().json(err),
+    };
+
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(&app.db)
         .await;
@@ -193,11 +186,11 @@ async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Resp
 
 #[get("/users/me")]
 async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>) -> impl Responder {
-    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.user_id)
+    let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.user_id)
         .fetch_one(&app.db)
         .await;
-    let user = match user {
-        Ok(user) => user,
+    match query_result {
+        Ok(user) => return HttpResponse::Ok().json(&user),
         Err(err) => {
             eprintln!("Error fetching account information: {err}");
             return HttpResponse::BadRequest().json(ErrorResponse {
@@ -206,5 +199,4 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
             });
         }
     };
-    HttpResponse::Ok().json(&user)
 }
