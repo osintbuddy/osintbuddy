@@ -27,10 +27,10 @@ async fn register_user_handler(
         Ok(row) => row.get(0),
         Err(err) => {
             eprintln!("Error checking user exists: {}", err);
-            return HttpResponse::Conflict().json(json!(ErrorResponse {
+            return HttpResponse::Conflict().json(ErrorResponse {
                 message: "User already exists.".to_string(),
                 kind: "exists".to_string(),
-            }));
+            });
         }
     };
 
@@ -61,19 +61,19 @@ async fn register_user_handler(
                     "user": User::filter_record(&user)
                 })),
                 Err(e) => {
-                    return HttpResponse::InternalServerError().json(json!(ErrorResponse {
+                    return HttpResponse::InternalServerError().json(ErrorResponse {
                         kind: "data".to_string(),
-                        message: format!("{:?}", e)
-                    }));
+                        message: format!("{:?}", e),
+                    });
                 }
             }
         }
         Err(err) => {
             eprintln!("Error hashing password: {}", err);
-            return HttpResponse::Conflict().json(json!(ErrorResponse {
+            return HttpResponse::Conflict().json(ErrorResponse {
                 message: "Invalid password.".to_string(),
                 kind: "invalid".to_string(),
-            }));
+            });
         }
     }
 }
@@ -92,10 +92,10 @@ async fn login_user_handler(
         Ok(query_result) => query_result,
         Err(err) => {
             eprintln!("Error fetching user by email: {}", err);
-            return HttpResponse::BadRequest().json(json!(ErrorResponse {
+            return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error. Please try again.".to_string(),
                 kind: "data".to_string(),
-            }));
+            });
         }
     };
 
@@ -113,20 +113,20 @@ async fn login_user_handler(
     });
 
     if !is_valid {
-        return HttpResponse::BadRequest().json(json!(ErrorResponse {
+        return HttpResponse::BadRequest().json(ErrorResponse {
             message: "Invalid email or password".to_string(),
             kind: "invalid".to_string(),
-        }));
+        });
     }
 
     let user = match query_result {
         Some(user) => user,
         None => {
             eprintln!("Error fetching user!");
-            return HttpResponse::BadRequest().json(json!(ErrorResponse {
+            return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "We ran into an error. Please try again.".to_string(),
                 kind: "data".to_string(),
-            }));
+            });
         }
     };
 
@@ -149,10 +149,10 @@ async fn login_user_handler(
         Ok(token) => HttpResponse::Ok().json(json!({"token": token})),
         Err(err) => {
             eprintln!("Error encoding token: {}", err);
-            return HttpResponse::BadRequest().json(json!(ErrorResponse {
+            return HttpResponse::BadRequest().json(ErrorResponse {
                 message: "Invalid email or password".to_string(),
                 kind: "invalid".to_string(),
-            }));
+            });
         }
     }
 }
@@ -185,12 +185,12 @@ async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>)
         Ok(user) => user,
         Err(err) => {
             eprintln!("Error fetching account information: {}", err);
-            return HttpResponse::BadRequest().json(json!(ErrorResponse {
+            return HttpResponse::BadRequest().json(ErrorResponse {
                 message: format!(
                     "We ran into an error fetching your account information! Please try again."
                 ),
                 kind: "data".to_string(),
-            }));
+            });
         }
     };
     HttpResponse::Ok().json(json!({
