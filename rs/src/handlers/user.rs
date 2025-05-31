@@ -12,7 +12,7 @@ use crate::{
     AppState,
     error::{ErrorKind, ErrorResponse},
     jwt_auth,
-    models::user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
+    schemas::user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
 };
 
 #[post("/auth/register")]
