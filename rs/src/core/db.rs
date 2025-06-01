@@ -7,7 +7,7 @@ pub async fn establish_pool_connection(database_url: &str) -> Result<PgPool, sql
         async {
             println!("Attempting to establish db pool connection...");
             PgPoolOptions::new()
-                .max_connections(64)
+                .max_connections(128)
                 .connect(database_url)
                 .await
         }

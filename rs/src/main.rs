@@ -8,6 +8,7 @@ use actix_web::{App, HttpServer, http::header, web};
 use backend::AppState;
 use backend::core::{config::get_config, db::establish_pool_connection};
 use backend::handlers;
+use env_logger::Env;
 use moka::sync::Cache;
 use sqids::Sqids;
 
@@ -15,9 +16,6 @@ use sqids::Sqids;
 async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
     let cfg = get_config();
-
-    let web_addr = cfg.backend_addr.clone();
-    let web_port = cfg.backend_port.clone();
     let db = match establish_pool_connection(&cfg.database_url).await {
         Ok(pool) => match sqlx::migrate!().run(&pool).await {
             Ok(_) => pool,
@@ -31,34 +29,36 @@ async fn main() -> std::io::Result<()> {
             std::process::exit(1)
         }
     };
-    println!(
-        "Listening on: http://{}:{}/",
-        cfg.backend_addr, cfg.backend_port
-    );
-    HttpServer::new(move || {
-        let blacklist: Cache<String, bool> = Cache::builder()
-            .max_capacity(64_000)
-            .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
-            .build();
+    let blacklist: Cache<String, bool> = Cache::builder()
+        .max_capacity(64_000)
+        .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
+        .build();
 
-        let id = match Sqids::builder()
-            .alphabet(cfg.sqids_alphabet.chars().collect())
-            .build()
-        {
-            Ok(id) => id,
-            Err(err) => {
-                eprintln!("Sqids setup failed: {}", err);
-                std::process::exit(1)
-            }
-        };
+    let id = match Sqids::builder()
+        .alphabet(cfg.sqids_alphabet.chars().collect())
+        .build()
+    {
+        Ok(id) => id,
+        Err(err) => {
+            eprintln!("Sqids setup failed: {}", err);
+            std::process::exit(1)
+        }
+    };
+
+    let web_addr = cfg.backend_addr.clone();
+    let web_port = cfg.backend_port.clone();
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
+
+    HttpServer::new(move || {
+        let logger = Logger::default();
         let app = App::new()
+            .wrap(logger)
             .app_data(web::Data::new(AppState {
                 cfg: cfg.clone(),
                 db: db.clone(),
-                blacklist,
-                id,
+                blacklist: blacklist.clone(),
+                id: id.clone(),
             }))
-            .configure(handlers::config)
             .wrap(
                 Cors::default()
                     .allowed_origin(&cfg.backend_cors)
@@ -70,9 +70,7 @@ async fn main() -> std::io::Result<()> {
                     ])
                     .supports_credentials(),
             )
-            .wrap(Logger::default());
-
-        let frontend_build_dir = "../frontend/build";
+            .configure(handlers::config);
         let is_prod = match env::var("ENVIRONMENT") {
             Ok(environment) => {
                 if environment != "development".to_string() {
@@ -83,8 +81,8 @@ async fn main() -> std::io::Result<()> {
             }
             Err(_) => false,
         };
-
         if is_prod {
+            let frontend_build_dir = "../frontend/build";
             return app.service(
                 Files::new("/", frontend_build_dir)
                     .index_file("index.html")
