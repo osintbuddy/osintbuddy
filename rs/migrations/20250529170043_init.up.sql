@@ -16,8 +16,6 @@ CREATE TABLE graphs (
     uuid UUID DEFAULT uuid_generate_v4(),
     label TEXT NOT NULL,
     description TEXT NOT NULL,
-    verified BOOLEAN NOT NULL DEFAULT FALSE,
-    password VARCHAR(100) NOT NULL,
     ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     owner_id BIGSERIAL NOT NULL,
