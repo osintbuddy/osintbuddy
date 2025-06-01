@@ -1,9 +1,11 @@
-pub mod core;
+pub mod config;
+pub mod db;
 pub mod handlers;
 pub mod middleware;
 pub mod schemas;
+pub mod utils;
 
-use core::config::OSINTBuddyConfig;
+use config::OSINTBuddyConfig;
 use moka::sync::Cache;
 use sqids::Sqids;
 use sqlx::PgPool;

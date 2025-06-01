@@ -1,6 +1,6 @@
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
-use crate::core::utils;
+use crate::utils;
 
 pub async fn establish_pool_connection(database_url: &str) -> Result<PgPool, sqlx::Error> {
     utils::retry!(

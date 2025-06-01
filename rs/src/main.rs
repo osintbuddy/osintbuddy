@@ -5,11 +5,11 @@ use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
-use backend::AppState;
-use backend::core::{config::get_config, db::establish_pool_connection};
-use backend::handlers;
 use env_logger::Env;
 use moka::sync::Cache;
+use osib::AppState;
+use osib::handlers;
+use osib::{config::get_config, db::establish_pool_connection};
 use sqids::Sqids;
 
 #[actix_web::main]
@@ -71,30 +71,31 @@ async fn main() -> std::io::Result<()> {
                     .supports_credentials(),
             )
             .configure(handlers::config);
-        let is_prod = match env::var("ENVIRONMENT") {
+
+        match env::var("ENVIRONMENT") {
             Ok(environment) => {
-                if environment != "development".to_string() {
-                    true
+                if environment == "production".to_string() {
+                    let ui_build_dir = "../frontend/build/index.html";
+                    let named_file_result = actix_files::NamedFile::open(ui_build_dir);
+
+                    match named_file_result {
+                        Ok(named_file) => {
+                            return app.service(
+                                Files::new("/", ui_build_dir)
+                                    .index_file("index.html")
+                                    .default_handler(named_file),
+                            );
+                        }
+                        Err(_) => return app,
+                    };
                 } else {
-                    false
+                    app
                 }
             }
-            Err(_) => false,
-        };
-        if is_prod {
-            let frontend_build_dir = "../frontend/build";
-            return app.service(
-                Files::new("/", frontend_build_dir)
-                    .index_file("index.html")
-                    .default_handler(
-                        actix_files::NamedFile::open(format!("{}/index.html", frontend_build_dir))
-                            .unwrap(),
-                    ),
-            );
+            Err(_) => app,
         }
-        app
     })
-    .bind((web_addr, web_port))?
+    .bind(format!("{}:{}", web_addr, web_port))?
     .run()
     .await
 }

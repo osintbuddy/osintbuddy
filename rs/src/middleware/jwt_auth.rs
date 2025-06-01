@@ -28,7 +28,7 @@ impl FromRequest for JwtMiddleware {
             Some(token) => {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(AppError {
-                        message: "There was an error authenticating your account. Please login and try again.",
+                        message: "There was an error authenticating your account.",
                         kind: ErrorKind::BadClientData,
                     })));
                 }
@@ -76,7 +76,7 @@ impl FromRequest for JwtMiddleware {
                 }
             }
             None => ready(Err(ErrorUnauthorized(AppError {
-                message: "There was an error authenticating your account. Please sign in again.",
+                message: "There was an error authenticating your account.",
                 kind: ErrorKind::Critical,
             }))),
         }

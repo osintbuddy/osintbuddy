@@ -1,5 +1,5 @@
 [package]
-name = "backend"
+name = "osib"
 version = "0.1.0"
 authors = ["jerlendds oss@osintbuddy.com"]
 edition = "2024"

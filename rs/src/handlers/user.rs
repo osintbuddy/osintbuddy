@@ -36,7 +36,7 @@ async fn register_user_handler(
         Ok(row) => {
             if row.get(0) {
                 return Err(AppError {
-                    message: "User already exists.",
+                    message: "You've already created an account.",
                     kind: ErrorKind::Exists,
                 });
             }
@@ -51,9 +51,9 @@ async fn register_user_handler(
     };
 
     let salt = SaltString::generate(&mut OsRng);
-    let hashed_password = Argon2::default().hash_password(body.password.as_bytes(), &salt);
+    let hashed_result = Argon2::default().hash_password(body.password.as_bytes(), &salt);
 
-    match hashed_password {
+    match hashed_result {
         Ok(hashed_password) => {
             let query_result = sqlx::query_as!(
                 User,
@@ -110,6 +110,7 @@ async fn login_user_handler(
             });
         }
     };
+
     user_option.as_ref().map(|user| {
         let parsed_hash = PasswordHash::new(&user.password);
         match parsed_hash {
