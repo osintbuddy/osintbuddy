@@ -8,7 +8,7 @@ use argon2::{
 use chrono::prelude::*;
 use jsonwebtoken::{EncodingKey, Header, encode};
 use serde_json::json;
-use sqlx::Row;
+use sqlx::{PgPool, Row};
 
 use crate::{
     AppState,
@@ -22,7 +22,7 @@ use crate::{
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
-    app: web::Data<AppState>,
+    pool: web::Data<PgPool>,
 ) -> Result<User, AppError> {
     let body = match body.into_inner().validate() {
         Ok(body) => body,
@@ -30,7 +30,7 @@ async fn register_user_handler(
     };
     match sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
-        .fetch_one(&app.db)
+        .fetch_one(pool.as_ref())
         .await
     {
         Ok(row) => {
@@ -62,7 +62,7 @@ async fn register_user_handler(
                 body.email.to_string().to_lowercase(),
                 hashed_password.to_string()
             )
-            .fetch_one(&app.db)
+            .fetch_one(pool.as_ref())
             .await;
 
             match query_result {
@@ -80,7 +80,7 @@ async fn register_user_handler(
             eprintln!("Error hashing password: {}", err);
             return Err(AppError {
                 message: "Invalid password.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             });
         }
     }
@@ -90,16 +90,15 @@ async fn register_user_handler(
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
     app: web::Data<AppState>,
+    pool: web::Data<PgPool>,
 ) -> Result<Token, AppError> {
     let body = match body.into_inner().validate() {
         Ok(body) => body,
         Err(err) => return Err(err),
     };
-
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
-        .fetch_optional(&app.db)
+        .fetch_optional(pool.as_ref())
         .await;
-
     let user_option = match query_result {
         Ok(user_option) => user_option,
         Err(err) => {
@@ -120,7 +119,7 @@ async fn login_user_handler(
                     eprintln!("Error verifying hash: {err}");
                     return Err(AppError {
                         message: "Invalid email or password",
-                        kind: ErrorKind::BadClientData,
+                        kind: ErrorKind::Invalid,
                     });
                 }
             },
@@ -128,7 +127,7 @@ async fn login_user_handler(
                 eprintln!("Error verifying password: {err}");
                 return Err(AppError {
                     message: "Invalid email or password",
-                    kind: ErrorKind::BadClientData,
+                    kind: ErrorKind::Invalid,
                 });
             }
         }
@@ -137,14 +136,13 @@ async fn login_user_handler(
     let user = match user_option {
         Some(value) => value,
         None => {
-            eprintln!("Error fetching user!");
+            eprintln!("No user found!");
             return Err(AppError {
-                message: "We ran into an error.",
-                kind: ErrorKind::Database,
+                message: "We ran into an error fetching your account.",
+                kind: ErrorKind::Invalid,
             });
         }
     };
-
     let now = Utc::now();
     let iat = now.timestamp() as usize;
     let exp = (now + Duration::from_secs(app.cfg.jwt_maxage)).timestamp() as usize;
@@ -166,7 +164,7 @@ async fn login_user_handler(
             eprintln!("Error encoding token: {err}");
             return Err(AppError {
                 message: "Invalid email or password.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             });
         }
     }
@@ -191,11 +189,11 @@ async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Resp
 
 #[get("/users/me")]
 async fn get_me_handler(
-    auth: jwt_auth::JwtMiddleware,
-    app: web::Data<AppState>,
+    auth: jwt_auth::AuthMiddleware,
+    pool: web::Data<PgPool>,
 ) -> Result<User, AppError> {
-    let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.user_id)
-        .fetch_one(&app.db)
+    let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.account_id)
+        .fetch_one(pool.as_ref())
         .await;
     match query_result {
         Ok(user) => return Ok(user),

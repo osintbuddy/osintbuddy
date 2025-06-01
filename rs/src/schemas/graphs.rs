@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::error::{ErrorKind, ErrorResponse};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Serialize)]
 pub struct Graph {
     #[serde(skip_serializing)]
     pub id: i64,

@@ -11,12 +11,13 @@ use osib::AppState;
 use osib::handlers;
 use osib::{config::get_config, db::establish_pool_connection};
 use sqids::Sqids;
+use sqlx::PgPool;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
     let cfg = get_config();
-    let db = match establish_pool_connection(&cfg.database_url).await {
+    let pool: PgPool = match establish_pool_connection(&cfg.database_url).await {
         Ok(pool) => match sqlx::migrate!().run(&pool).await {
             Ok(_) => pool,
             Err(err) => {
@@ -55,10 +56,10 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(web::Data::new(AppState {
                 cfg: cfg.clone(),
-                db: db.clone(),
                 blacklist: blacklist.clone(),
                 id: id.clone(),
             }))
+            .app_data(web::Data::new(pool.clone()))
             .wrap(
                 Cors::default()
                     .allowed_origin(&cfg.backend_cors)

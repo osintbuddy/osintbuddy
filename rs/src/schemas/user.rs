@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::errors::{AppError, ErrorKind};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Serialize)]
 pub struct User {
     #[serde(skip_serializing)]
     pub id: i64,
@@ -30,14 +30,14 @@ impl Responder for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,
     pub iat: usize,
     pub exp: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct Token {
     pub token: String,
 }
@@ -54,7 +54,7 @@ impl Responder for Token {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct RegisterUserSchema {
     pub name: String,
     pub email: String,
@@ -69,20 +69,20 @@ impl RegisterUserSchema {
         {
             return Err(AppError {
                 message: "Missing username, password, and or email.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             }); // Adjust error type as needed
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
                 message: "The minimum password length is 8 characters.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             });
         }
         Ok(self)
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct LoginUserSchema {
     pub email: String,
     pub password: String,
@@ -93,13 +93,13 @@ impl LoginUserSchema {
         if self.email.trim().is_empty() || self.password.trim().is_empty() {
             return Err(AppError {
                 message: "Missing username or password.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             });
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
                 message: "The minimum password length is 8 characters.",
-                kind: ErrorKind::BadClientData,
+                kind: ErrorKind::Invalid,
             });
         }
         Ok(self)

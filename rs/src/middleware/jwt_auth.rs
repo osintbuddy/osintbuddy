@@ -8,12 +8,12 @@ use actix_web::{Error as ActixWebError, dev::Payload};
 use actix_web::{FromRequest, HttpRequest, http, web};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 
-pub struct JwtMiddleware {
-    pub user_id: i64,
+pub struct AuthMiddleware {
+    pub account_id: i64,
     pub token: String,
 }
 
-impl FromRequest for JwtMiddleware {
+impl FromRequest for AuthMiddleware {
     type Error = ActixWebError;
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
@@ -29,7 +29,7 @@ impl FromRequest for JwtMiddleware {
                 if token.trim().is_empty() {
                     return ready(Err(ErrorUnauthorized(AppError {
                         message: "There was an error authenticating your account.",
-                        kind: ErrorKind::BadClientData,
+                        kind: ErrorKind::Invalid,
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
@@ -46,7 +46,7 @@ impl FromRequest for JwtMiddleware {
                 if is_blacklisted {
                     return ready(Err(ErrorUnauthorized(AppError {
                         message: "Invalid token.",
-                        kind: ErrorKind::BadClientData,
+                        kind: ErrorKind::Invalid,
                     })));
                 }
 
@@ -60,17 +60,20 @@ impl FromRequest for JwtMiddleware {
                         eprintln!("Decoding JWT error: {err}");
                         return ready(Err(ErrorUnauthorized(AppError {
                             message: "Invalid token.",
-                            kind: ErrorKind::BadClientData,
+                            kind: ErrorKind::Invalid,
                         })));
                     }
                 };
                 match claims.sub.parse::<i64>() {
-                    Ok(user_id) => ready(Ok(JwtMiddleware { user_id, token })),
+                    Ok(user_id) => ready(Ok(AuthMiddleware {
+                        account_id: user_id,
+                        token,
+                    })),
                     Err(err) => {
                         eprintln!("Casting claims user_id<i64> error: {err}");
                         ready(Err(ErrorUnauthorized(AppError {
                             message: "Invalid token.",
-                            kind: ErrorKind::BadClientData,
+                            kind: ErrorKind::Invalid,
                         })))
                     }
                 }

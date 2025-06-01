@@ -11,7 +11,7 @@ use serde_json::json;
 pub enum ErrorKind {
     Exists,
     #[serde(rename = "invalid")]
-    BadClientData,
+    Invalid,
     Critical,
     #[serde(rename = "data")]
     Database,
@@ -33,7 +33,7 @@ impl error::ResponseError for AppError {
 
     fn status_code(&self) -> StatusCode {
         match self.kind {
-            ErrorKind::BadClientData => StatusCode::UNPROCESSABLE_ENTITY,
+            ErrorKind::Invalid => StatusCode::UNPROCESSABLE_ENTITY,
             ErrorKind::Exists => StatusCode::CONFLICT,
             ErrorKind::Critical => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorKind::Database => StatusCode::SERVICE_UNAVAILABLE,
