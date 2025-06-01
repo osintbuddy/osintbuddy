@@ -75,15 +75,12 @@ async fn main() -> std::io::Result<()> {
         match env::var("ENVIRONMENT") {
             Ok(environment) => {
                 if environment == "production".to_string() {
-                    let ui_build_dir = "../frontend/build/index.html";
-                    let named_file_result = actix_files::NamedFile::open(ui_build_dir);
-
-                    match named_file_result {
-                        Ok(named_file) => {
+                    match actix_files::NamedFile::open("../frontend/build/index.html") {
+                        Ok(file) => {
                             return app.service(
-                                Files::new("/", ui_build_dir)
+                                Files::new("/", "../frontend/build/index.html")
                                     .index_file("index.html")
-                                    .default_handler(named_file),
+                                    .default_handler(file),
                             );
                         }
                         Err(_) => return app,
