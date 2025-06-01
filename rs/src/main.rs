@@ -16,13 +16,9 @@ async fn main() -> std::io::Result<()> {
     println!("Starting OSINTBuddy...");
     let cfg = get_config();
 
-    println!(
-        "Listening on: http://{}:{}/",
-        cfg.backend_addr, cfg.backend_port
-    );
     let web_addr = cfg.backend_addr.clone();
     let web_port = cfg.backend_port.clone();
-    let db = match establish_pool_connection(&cfg).await {
+    let db = match establish_pool_connection(&cfg.database_url).await {
         Ok(pool) => match sqlx::migrate!().run(&pool).await {
             Ok(_) => pool,
             Err(err) => {
@@ -35,6 +31,10 @@ async fn main() -> std::io::Result<()> {
             std::process::exit(1)
         }
     };
+    println!(
+        "Listening on: http://{}:{}/",
+        cfg.backend_addr, cfg.backend_port
+    );
     HttpServer::new(move || {
         let blacklist: Cache<String, bool> = Cache::builder()
             .max_capacity(64_000)
