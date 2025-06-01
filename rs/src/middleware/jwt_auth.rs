@@ -1,7 +1,7 @@
 use std::future::{Ready, ready};
 
 use crate::AppState;
-use crate::schemas::error::{ErrorKind, ErrorResponse};
+use crate::schemas::errors::{AppError, ErrorKind};
 use crate::schemas::user::TokenClaims;
 use actix_web::error::{ErrorInternalServerError, ErrorUnauthorized};
 use actix_web::{Error as ActixWebError, dev::Payload};
@@ -27,15 +27,15 @@ impl FromRequest for JwtMiddleware {
         }) {
             Some(token) => {
                 if token.trim().is_empty() {
-                    return ready(Err(ErrorUnauthorized(ErrorResponse {
+                    return ready(Err(ErrorUnauthorized(AppError {
                         message: "There was an error authenticating your account. Please login and try again.",
-                        kind: ErrorKind::InvalidInput,
+                        kind: ErrorKind::BadClientData,
                     })));
                 }
                 let app = match req.app_data::<web::Data<AppState>>() {
                     Some(app) => app,
                     None => {
-                        return ready(Err(ErrorInternalServerError(ErrorResponse {
+                        return ready(Err(ErrorInternalServerError(AppError {
                             message: "An exception has occurred, please try again later.",
                             kind: ErrorKind::Critical,
                         })));
@@ -44,9 +44,9 @@ impl FromRequest for JwtMiddleware {
                 // if a user signed out with their JWT (aka blacklisted that token)
                 let is_blacklisted = app.blacklist.get(&token).unwrap_or(false);
                 if is_blacklisted {
-                    return ready(Err(ErrorUnauthorized(ErrorResponse {
+                    return ready(Err(ErrorUnauthorized(AppError {
                         message: "Invalid token.",
-                        kind: ErrorKind::InvalidInput,
+                        kind: ErrorKind::BadClientData,
                     })));
                 }
 
@@ -58,9 +58,9 @@ impl FromRequest for JwtMiddleware {
                     Ok(token_data) => token_data.claims,
                     Err(err) => {
                         eprintln!("Decoding JWT error: {err}");
-                        return ready(Err(ErrorUnauthorized(ErrorResponse {
+                        return ready(Err(ErrorUnauthorized(AppError {
                             message: "Invalid token.",
-                            kind: ErrorKind::InvalidInput,
+                            kind: ErrorKind::BadClientData,
                         })));
                     }
                 };
@@ -68,14 +68,14 @@ impl FromRequest for JwtMiddleware {
                     Ok(user_id) => ready(Ok(JwtMiddleware { user_id, token })),
                     Err(err) => {
                         eprintln!("Casting claims user_id<i64> error: {err}");
-                        ready(Err(ErrorUnauthorized(ErrorResponse {
+                        ready(Err(ErrorUnauthorized(AppError {
                             message: "Invalid token.",
-                            kind: ErrorKind::InvalidInput,
+                            kind: ErrorKind::BadClientData,
                         })))
                     }
                 }
             }
-            None => ready(Err(ErrorUnauthorized(ErrorResponse {
+            None => ready(Err(ErrorUnauthorized(AppError {
                 message: "There was an error authenticating your account. Please sign in again.",
                 kind: ErrorKind::Critical,
             }))),

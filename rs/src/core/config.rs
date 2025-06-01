@@ -2,7 +2,6 @@ use confik::{Configuration, EnvSource};
 
 #[derive(Debug, Configuration, Clone)]
 pub struct OSINTBuddyConfig {
-    pub debug: bool,
     pub backend_addr: String,
     pub backend_port: u16,
     pub backend_cors: String,
@@ -35,7 +34,6 @@ pub fn get_config() -> OSINTBuddyConfig {
                 jwt_secret: String::from(
                     "03d2394fc289b30660772ea8d444540ff64z066631063d823b41444e1bdef086",
                 ),
-                debug: true,
             }
         })
 }

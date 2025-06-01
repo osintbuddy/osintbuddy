@@ -1,7 +1,8 @@
+use actix_web::{HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::error::{ErrorKind, ErrorResponse};
+use super::errors::{AppError, ErrorKind};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
@@ -16,11 +17,41 @@ pub struct User {
     pub mtime: Option<DateTime<Utc>>,
 }
 
+impl Responder for User {
+    type Body = BoxBody;
+
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create response and set content type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,
     pub iat: usize,
     pub exp: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Token {
+    pub token: String,
+}
+
+impl Responder for Token {
+    type Body = BoxBody;
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create response and set content type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,20 +62,20 @@ pub struct RegisterUserSchema {
 }
 
 impl RegisterUserSchema {
-    pub fn validate(self) -> Result<RegisterUserSchema, ErrorResponse> {
+    pub fn validate(self) -> Result<RegisterUserSchema, AppError> {
         if self.name.trim().is_empty()
             || self.email.trim().is_empty()
             || self.password.trim().is_empty()
         {
-            return Err(ErrorResponse {
+            return Err(AppError {
                 message: "Missing username, password, and or email.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             }); // Adjust error type as needed
         }
         if self.password.to_string().chars().count() < 8 {
-            return Err(ErrorResponse {
+            return Err(AppError {
                 message: "The minimum password length is 8 characters.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             });
         }
         Ok(self)
@@ -58,17 +89,17 @@ pub struct LoginUserSchema {
 }
 
 impl LoginUserSchema {
-    pub fn validate(self) -> Result<LoginUserSchema, ErrorResponse> {
+    pub fn validate(self) -> Result<LoginUserSchema, AppError> {
         if self.email.trim().is_empty() || self.password.trim().is_empty() {
-            return Err(ErrorResponse {
+            return Err(AppError {
                 message: "Missing username or password.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             });
         }
         if self.password.to_string().chars().count() < 8 {
-            return Err(ErrorResponse {
+            return Err(AppError {
                 message: "The minimum password length is 8 characters.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             });
         }
         Ok(self)

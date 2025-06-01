@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
 
     let web_addr = cfg.backend_addr.clone();
     let web_port = cfg.backend_port.clone();
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
 
     HttpServer::new(move || {
         let logger = Logger::default();

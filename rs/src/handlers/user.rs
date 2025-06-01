@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use actix_web::{HttpRequest, HttpResponse, Responder, get, http, post, web};
+use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, http, post, web};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
@@ -14,8 +14,8 @@ use crate::{
     AppState,
     middleware::jwt_auth,
     schemas::{
-        error::{ErrorKind, ErrorResponse},
-        user::{LoginUserSchema, RegisterUserSchema, TokenClaims, User},
+        errors::{AppError, ErrorKind},
+        user::{LoginUserSchema, RegisterUserSchema, Token, TokenClaims, User},
     },
 };
 
@@ -23,32 +23,32 @@ use crate::{
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     app: web::Data<AppState>,
-) -> impl Responder {
+) -> Result<User, AppError> {
     let body = match body.into_inner().validate() {
         Ok(body) => body,
-        Err(err) => return HttpResponse::BadRequest().json(err),
+        Err(err) => return Err(err),
     };
-    let exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
+    match sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(&app.db)
         .await
     {
-        Ok(row) => row.get(0),
+        Ok(row) => {
+            if row.get(0) {
+                return Err(AppError {
+                    message: "User already exists.",
+                    kind: ErrorKind::Exists,
+                });
+            }
+        }
         Err(err) => {
             eprintln!("Error checking user exists: {}", err);
-            return HttpResponse::Conflict().json(ErrorResponse {
+            return Err(AppError {
                 message: "We ran into an error registering your account.",
                 kind: ErrorKind::Database,
             });
         }
     };
-
-    if exists {
-        return HttpResponse::Conflict().json(ErrorResponse {
-            message: "User already exists.",
-            kind: ErrorKind::Exists,
-        });
-    }
 
     let salt = SaltString::generate(&mut OsRng);
     let hashed_password = Argon2::default().hash_password(body.password.as_bytes(), &salt);
@@ -66,10 +66,10 @@ async fn register_user_handler(
             .await;
 
             match query_result {
-                Ok(user) => HttpResponse::Ok().json(&user),
+                Ok(user) => Ok(user),
                 Err(err) => {
                     eprintln!("Error creating user: {err}");
-                    return HttpResponse::InternalServerError().json(ErrorResponse {
+                    return Err(AppError {
                         kind: ErrorKind::Database,
                         message: "We ran into an error creating this account.",
                     });
@@ -78,9 +78,9 @@ async fn register_user_handler(
         }
         Err(err) => {
             eprintln!("Error hashing password: {}", err);
-            return HttpResponse::Conflict().json(ErrorResponse {
+            return Err(AppError {
                 message: "Invalid password.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             });
         }
     }
@@ -90,52 +90,54 @@ async fn register_user_handler(
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
     app: web::Data<AppState>,
-) -> impl Responder {
+) -> Result<Token, AppError> {
     let body = match body.into_inner().validate() {
         Ok(body) => body,
-        Err(err) => return HttpResponse::BadRequest().json(err),
+        Err(err) => return Err(err),
     };
 
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(&app.db)
         .await;
 
-    let query_result = match query_result {
-        Ok(query_result) => query_result,
+    let user_option = match query_result {
+        Ok(user_option) => user_option,
         Err(err) => {
             eprintln!("Error fetching user by email: {err}");
-            return HttpResponse::BadRequest().json(ErrorResponse {
+            return Err(AppError {
                 message: "We ran into an error.",
                 kind: ErrorKind::Database,
             });
         }
     };
-
-    let is_valid = query_result.as_ref().map_or(false, |user| {
+    user_option.as_ref().map(|user| {
         let parsed_hash = PasswordHash::new(&user.password);
         match parsed_hash {
-            Ok(hash) => Argon2::default()
-                .verify_password(body.password.as_bytes(), &hash)
-                .map_or(false, |_| true),
+            Ok(hash) => match Argon2::default().verify_password(body.password.as_bytes(), &hash) {
+                Ok(_) => Ok(()),
+                Err(err) => {
+                    eprintln!("Error verifying hash: {err}");
+                    return Err(AppError {
+                        message: "Invalid email or password",
+                        kind: ErrorKind::BadClientData,
+                    });
+                }
+            },
             Err(err) => {
                 eprintln!("Error verifying password: {err}");
-                false
+                return Err(AppError {
+                    message: "Invalid email or password",
+                    kind: ErrorKind::BadClientData,
+                });
             }
         }
     });
 
-    if !is_valid {
-        return HttpResponse::BadRequest().json(ErrorResponse {
-            message: "Invalid email or password",
-            kind: ErrorKind::InvalidInput,
-        });
-    }
-
-    let user = match query_result {
+    let user = match user_option {
         Some(value) => value,
         None => {
             eprintln!("Error fetching user!");
-            return HttpResponse::BadRequest().json(ErrorResponse {
+            return Err(AppError {
                 message: "We ran into an error.",
                 kind: ErrorKind::Database,
             });
@@ -158,12 +160,12 @@ async fn login_user_handler(
     );
 
     match token {
-        Ok(token) => HttpResponse::Ok().json(json!({"token": token})),
+        Ok(token) => Ok(Token { token }),
         Err(err) => {
             eprintln!("Error encoding token: {err}");
-            return HttpResponse::BadRequest().json(ErrorResponse {
+            return Err(AppError {
                 message: "Invalid email or password.",
-                kind: ErrorKind::InvalidInput,
+                kind: ErrorKind::BadClientData,
             });
         }
     }
@@ -171,8 +173,7 @@ async fn login_user_handler(
 
 #[get("/auth/logout")]
 async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Responder {
-    let key = req
-        .headers()
+    req.headers()
         .get(http::header::AUTHORIZATION)
         .map(|h| {
             h.to_str()
@@ -182,22 +183,24 @@ async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Resp
                 .1
                 .to_string()
         })
-        .unwrap_or("".to_string());
+        .and_then(|key| Some(app.blacklist.insert(key, true)));
 
-    app.blacklist.insert(key, true);
     HttpResponse::Ok().json(json!({"message": "You have successfully signed out."}))
 }
 
 #[get("/users/me")]
-async fn get_me_handler(auth: jwt_auth::JwtMiddleware, app: web::Data<AppState>) -> impl Responder {
+async fn get_me_handler(
+    auth: jwt_auth::JwtMiddleware,
+    app: web::Data<AppState>,
+) -> Result<User, AppError> {
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.user_id)
         .fetch_one(&app.db)
         .await;
     match query_result {
-        Ok(user) => return HttpResponse::Ok().json(&user),
+        Ok(user) => return Ok(user),
         Err(err) => {
             eprintln!("Error fetching account information: {err}");
-            return HttpResponse::BadRequest().json(ErrorResponse {
+            return Err(AppError {
                 message: "We ran into an error fetching your account information!",
                 kind: ErrorKind::Database,
             });
