@@ -12,7 +12,7 @@ use sqlx::{PgPool, Row};
 
 use crate::{
     AppState,
-    middleware::jwt_auth,
+    middleware::auth,
     schemas::{
         errors::{AppError, ErrorKind},
         user::{LoginUserSchema, RegisterUserSchema, Token, TokenClaims, User},
@@ -189,7 +189,7 @@ async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Resp
 
 #[get("/users/me")]
 async fn get_me_handler(
-    auth: jwt_auth::AuthMiddleware,
+    auth: auth::AuthMiddleware,
     pool: web::Data<PgPool>,
 ) -> Result<User, AppError> {
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.account_id)
