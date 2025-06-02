@@ -10,7 +10,6 @@ use serde_json::json;
 #[serde(deny_unknown_fields, rename_all = "snake_case")]
 pub enum ErrorKind {
     Exists,
-    #[serde(rename = "invalid")]
     Invalid,
     Critical,
     #[serde(rename = "data")]
