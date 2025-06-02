@@ -25,16 +25,16 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
         Ok(body) => body,
         Err(err) => return Err(err),
     };
-    if sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
+    let exists = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(pool.as_ref())
         .await
-        .map(|row| {
-            let exists: bool = row.get(0);
-            exists
-        })
-        .unwrap_or(false)
-    {
+        .map(|row| row.get(0))
+        .map_err(|_err| AppError {
+            message: "We ran into an error registering your account.",
+            kind: ErrorKind::Database,
+        })?;
+    if exists {
         return Err(AppError {
             message: "We ran into an error registering your account.",
             kind: ErrorKind::Database,
@@ -42,17 +42,13 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     };
 
     let salt = SaltString::generate(&mut OsRng);
-    let hashed_result = Argon2::default().hash_password(body.password.as_bytes(), &salt);
-
-    let hashed_password = match hashed_result {
-        Ok(hashed_password) => hashed_password.to_string(),
-        Err(_) => {
-            return Err(AppError {
-                message: "Invalid password.",
-                kind: ErrorKind::Invalid,
-            });
-        }
-    };
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &salt)
+        .map(|hash| hash.to_string())
+        .map_err(|_err| AppError {
+            message: "Invalid password.",
+            kind: ErrorKind::Invalid,
+        })?;
 
     sqlx::query_as!(
         User,
