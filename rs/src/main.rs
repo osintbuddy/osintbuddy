@@ -20,10 +20,7 @@ async fn main() -> std::io::Result<()> {
     let pool: PgPool = match establish_pool_connection(&cfg.database_url).await {
         Ok(pool) => match sqlx::migrate!().run(&pool).await {
             Ok(_) => pool,
-            Err(err) => {
-                eprintln!("Error running migrate: {}", err);
-                pool
-            }
+            Err(_) => pool,
         },
         Err(err) => {
             eprintln!("Error establishing db pool connection: {}", err);
@@ -73,25 +70,22 @@ async fn main() -> std::io::Result<()> {
             )
             .configure(handlers::config);
 
-        match env::var("ENVIRONMENT") {
-            Ok(environment) => {
-                if environment == "production".to_string() {
-                    match actix_files::NamedFile::open("../frontend/build/index.html") {
-                        Ok(file) => {
-                            return app.service(
-                                Files::new("/", "../frontend/build/index.html")
-                                    .index_file("index.html")
-                                    .default_handler(file),
-                            );
-                        }
-                        Err(_) => return app,
-                    };
-                } else {
-                    app
-                }
-            }
-            Err(_) => app,
+        let is_prod = match env::var("ENVIRONMENT") {
+            Ok(environment) => environment == "production".to_string(),
+            Err(_) => false,
+        };
+
+        if is_prod {
+            let files_service = actix_files::NamedFile::open("../frontend/build/index.html")
+                .map(move |file| {
+                    Files::new("/", "../frontend/build/index.html")
+                        .index_file("index.html")
+                        .default_handler(file)
+                })
+                .unwrap();
+            return app.service(files_service);
         }
+        app
     })
     .bind(format!("{}:{}", web_addr, web_port))?
     .run()

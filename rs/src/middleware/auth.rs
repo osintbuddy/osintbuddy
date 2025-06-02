@@ -1,5 +1,4 @@
 use std::future::{Ready, ready};
-use std::vec;
 
 use crate::AppState;
 use crate::schemas::errors::{AppError, ErrorKind};

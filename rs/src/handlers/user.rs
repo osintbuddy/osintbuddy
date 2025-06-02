@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, http, post, web};
+use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, post, web};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
@@ -42,7 +42,6 @@ async fn register_user_handler(
             }
         }
         Err(err) => {
-            eprintln!("Error checking user exists: {}", err);
             return Err(AppError {
                 message: "We ran into an error registering your account.",
                 kind: ErrorKind::Database,
@@ -68,7 +67,6 @@ async fn register_user_handler(
             match query_result {
                 Ok(user) => Ok(user),
                 Err(err) => {
-                    eprintln!("Error creating user: {err}");
                     return Err(AppError {
                         kind: ErrorKind::Database,
                         message: "We ran into an error creating this account.",
@@ -77,7 +75,6 @@ async fn register_user_handler(
             }
         }
         Err(err) => {
-            eprintln!("Error hashing password: {}", err);
             return Err(AppError {
                 message: "Invalid password.",
                 kind: ErrorKind::Invalid,
