@@ -1,7 +1,8 @@
 use confik::{Configuration, EnvSource};
+use tokio::sync::OnceCell;
 
 #[derive(Debug, Configuration, Clone)]
-pub struct OSINTBuddyConfig {
+pub struct AppConfig {
     pub backend_addr: String,
     pub backend_port: u16,
     pub backend_cors: String,
@@ -16,15 +17,16 @@ pub struct OSINTBuddyConfig {
     pub sqids_alphabet: String,
 }
 
-pub fn get_config() -> OSINTBuddyConfig {
-    dotenvy::dotenv().ok();
+pub static CONFIG: OnceCell<AppConfig> = OnceCell::const_new();
 
-    OSINTBuddyConfig::builder()
+pub async fn get() -> AppConfig {
+    dotenvy::dotenv().ok();
+    AppConfig::builder()
         .override_with(EnvSource::new().allow_secrets())
         .try_build()
         .unwrap_or_else(|err| {
             println!("Using default config! Error loading env: {}", err);
-            OSINTBuddyConfig {
+            AppConfig {
                 database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
                 backend_port: 48997,
                 backend_addr: String::from("127.0.0.1"),
