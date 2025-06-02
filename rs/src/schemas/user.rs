@@ -1,4 +1,6 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType};
+use actix_web::{
+    HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType, web::Json,
+};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +64,10 @@ pub struct RegisterUserSchema {
     pub password: String,
 }
 
+pub type RegisterUser = Json<RegisterUserSchema>;
+
+pub type RegisterResponse = Result<User, AppError>;
+
 impl RegisterUserSchema {
     pub fn validate(self) -> Result<RegisterUserSchema, AppError> {
         if self.name.trim().is_empty()
@@ -89,6 +95,10 @@ pub struct LoginUserSchema {
     pub password: String,
 }
 
+pub type LoginUser = Json<LoginUserSchema>;
+
+pub type LoginResponse = Result<Token, AppError>;
+
 impl LoginUserSchema {
     pub fn validate(self) -> Result<LoginUserSchema, AppError> {
         if self.email.trim().is_empty() || self.password.trim().is_empty() {
@@ -106,3 +116,5 @@ impl LoginUserSchema {
         Ok(self)
     }
 }
+
+pub type UsersMeResponse = Result<User, AppError>;
