@@ -32,6 +32,7 @@ impl Responder for User {
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenClaims {
+    pub roles: Vec<String>,
     pub sub: String,
     pub iat: usize,
     pub exp: usize,

@@ -12,7 +12,7 @@ use sqlx::{PgPool, Row};
 
 use crate::{
     AppState,
-    middleware::auth,
+    middleware::auth::{self, extract_authorization},
     schemas::{
         errors::{AppError, ErrorKind},
         user::{LoginUserSchema, RegisterUserSchema, Token, TokenClaims, User},
@@ -99,32 +99,20 @@ async fn login_user_handler(
     let query_result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(pool.as_ref())
         .await;
-    let user_option = match query_result {
-        Ok(user_option) => user_option,
-        Err(err) => {
-            eprintln!("Error fetching user by email: {err}");
-            return Err(AppError {
-                message: "We ran into an error.",
-                kind: ErrorKind::Database,
-            });
-        }
-    };
-
+    let user_option = query_result.unwrap_or(None);
     user_option.as_ref().map(|user| {
         let parsed_hash = PasswordHash::new(&user.password);
         match parsed_hash {
             Ok(hash) => match Argon2::default().verify_password(body.password.as_bytes(), &hash) {
                 Ok(_) => Ok(()),
-                Err(err) => {
-                    eprintln!("Error verifying hash: {err}");
+                Err(_) => {
                     return Err(AppError {
                         message: "Invalid email or password",
                         kind: ErrorKind::Invalid,
                     });
                 }
             },
-            Err(err) => {
-                eprintln!("Error verifying password: {err}");
+            Err(_) => {
                 return Err(AppError {
                     message: "Invalid email or password",
                     kind: ErrorKind::Invalid,
@@ -136,7 +124,6 @@ async fn login_user_handler(
     let user = match user_option {
         Some(value) => value,
         None => {
-            eprintln!("No user found!");
             return Err(AppError {
                 message: "We ran into an error fetching your account.",
                 kind: ErrorKind::Invalid,
@@ -150,6 +137,7 @@ async fn login_user_handler(
         sub: user.id.to_string(),
         exp,
         iat,
+        roles: vec![String::from("user")],
     };
 
     let token = encode(
@@ -160,8 +148,7 @@ async fn login_user_handler(
 
     match token {
         Ok(token) => Ok(Token { token }),
-        Err(err) => {
-            eprintln!("Error encoding token: {err}");
+        Err(_) => {
             return Err(AppError {
                 message: "Invalid email or password.",
                 kind: ErrorKind::Invalid,
@@ -172,18 +159,8 @@ async fn login_user_handler(
 
 #[get("/auth/logout")]
 async fn logout_handler(req: HttpRequest, app: web::Data<AppState>) -> impl Responder {
-    req.headers()
-        .get(http::header::AUTHORIZATION)
-        .map(|h| {
-            h.to_str()
-                .unwrap_or("")
-                .split_at_checked(7)
-                .unwrap_or(("", ""))
-                .1
-                .to_string()
-        })
-        .and_then(|key| Some(app.blacklist.insert(key, true)));
-
+    let token = extract_authorization(&req).to_string();
+    app.blacklist.insert(token, true);
     HttpResponse::Ok().json(json!({"message": "You have successfully signed out."}))
 }
 
@@ -197,8 +174,7 @@ async fn get_me_handler(
         .await;
     match query_result {
         Ok(user) => return Ok(user),
-        Err(err) => {
-            eprintln!("Error fetching account information: {err}");
+        Err(_) => {
             return Err(AppError {
                 message: "We ran into an error fetching your account information!",
                 kind: ErrorKind::Database,

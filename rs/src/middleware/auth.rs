@@ -1,4 +1,5 @@
 use std::future::{Ready, ready};
+use std::vec;
 
 use crate::AppState;
 use crate::schemas::errors::{AppError, ErrorKind};
@@ -8,24 +9,27 @@ use actix_web::{Error as ActixWebError, dev::Payload};
 use actix_web::{FromRequest, HttpRequest, http, web};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 
+#[derive(Debug)]
 pub struct AuthMiddleware {
     pub account_id: i64,
-    pub token: String,
+    pub roles: Vec<String>,
+}
+
+pub fn extract_authorization(req: &HttpRequest) -> &str {
+    req.headers()
+        .get(http::header::AUTHORIZATION)
+        .map(|r| r.to_str().unwrap_or(""))
+        .unwrap_or("")
+        .split_at_checked(7)
+        .unwrap_or(("", ""))
+        .1
 }
 
 impl FromRequest for AuthMiddleware {
     type Error = ActixWebError;
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let token = req
-            .headers()
-            .get(http::header::AUTHORIZATION)
-            .map(|r| r.to_str().unwrap_or(""))
-            .unwrap_or("")
-            .split_at_checked(7)
-            .unwrap_or(("", ""))
-            .1;
-
+        let token = extract_authorization(req);
         if token.trim().is_empty() {
             return ready(Err(ErrorUnauthorized(AppError {
                 message: "There was an error authenticating your account.",
@@ -68,7 +72,7 @@ impl FromRequest for AuthMiddleware {
         match claims.sub.parse::<i64>() {
             Ok(user_id) => ready(Ok(AuthMiddleware {
                 account_id: user_id,
-                token: token.to_string(),
+                roles: claims.roles,
             })),
             Err(_) => ready(Err(ErrorUnauthorized(AppError {
                 message: "Invalid token.",
