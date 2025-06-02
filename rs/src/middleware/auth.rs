@@ -47,7 +47,7 @@ impl FromRequest for AuthMiddleware {
         let is_blacklisted = app.blacklist.get(token).unwrap_or(false);
         if is_blacklisted {
             return ready(Err(ErrorUnauthorized(AppError {
-                message: "Invalid token1.",
+                message: "Invalid token.",
                 kind: ErrorKind::Invalid,
             })));
         }
@@ -60,7 +60,7 @@ impl FromRequest for AuthMiddleware {
             Ok(token_data) => token_data.claims,
             Err(_) => {
                 return ready(Err(ErrorUnauthorized(AppError {
-                    message: "Invalid token2.",
+                    message: "Invalid token.",
                     kind: ErrorKind::Invalid,
                 })));
             }
@@ -71,7 +71,7 @@ impl FromRequest for AuthMiddleware {
                 token: token.to_string(),
             })),
             Err(_) => ready(Err(ErrorUnauthorized(AppError {
-                message: "Invalid token .",
+                message: "Invalid token.",
                 kind: ErrorKind::Invalid,
             }))),
         }
