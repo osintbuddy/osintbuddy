@@ -44,8 +44,6 @@ async fn update_entity_handler(
     pool: db::Database,
     auth: AuthMiddleware,
 ) -> Result<Entity, AppError> {
-    println!("{:#?}", body);
-    println!("{:?}", body);
     sqlx::query_as!(
       Entity,
       "UPDATE entities SET label = $1, description = $2, author = $3, source = $4 WHERE  id = $5 AND owner_id = $6 RETURNING *",
@@ -111,13 +109,12 @@ async fn list_entities_handler(
 async fn get_entity_handler(
     pool: db::Database,
     auth: AuthMiddleware,
-    path: Path<i64>,
+    entity_id: Path<i64>,
 ) -> Result<Entity, AppError> {
-    let entity_id = path.into_inner();
     sqlx::query_as!(
         Entity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
-        entity_id,
+        entity_id.into_inner(),
         auth.account_id
     )
     .fetch_one(pool.as_ref())

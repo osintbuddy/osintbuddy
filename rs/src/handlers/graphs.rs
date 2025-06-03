@@ -42,8 +42,6 @@ async fn update_graph_handler(
     pool: db::Database,
     auth: AuthMiddleware,
 ) -> Result<Graph, AppError> {
-    println!("{:#?}", body);
-    println!("{:?}", body);
     sqlx::query_as!(
         Graph,
         "UPDATE graphs SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
@@ -107,13 +105,12 @@ async fn list_graph_handler(
 async fn get_graph_handler(
     pool: db::Database,
     auth: AuthMiddleware,
-    path: Path<i64>,
+    graph_id: Path<i64>,
 ) -> Result<Graph, AppError> {
-    let graph_id = path.into_inner();
     sqlx::query_as!(
         Graph,
         "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
-        graph_id,
+        graph_id.into_inner(),
         auth.account_id
     )
     .fetch_one(pool.as_ref())
