@@ -16,7 +16,11 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(user::login_user_handler)
         .service(user::logout_handler)
         .service(user::get_me_handler)
-        .service(graphs::create_graph_handler);
+        .service(graphs::create_graph_handler)
+        .service(graphs::update_graph_handler)
+        .service(graphs::delete_graph_handler)
+        .service(graphs::list_graph_handler)
+        .service(graphs::get_graph_handler);
 
     conf.service(scope);
 }
