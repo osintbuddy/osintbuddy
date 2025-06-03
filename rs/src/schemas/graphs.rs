@@ -1,4 +1,7 @@
-use crate::schemas::errors::{AppError, ErrorKind};
+use crate::schemas::{
+    IdSchema,
+    errors::{AppError, ErrorKind},
+};
 use actix_web::{
     HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType, web::Json,
 };
@@ -50,12 +53,7 @@ impl CreateGraphSchema {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DeleteGraphSchema {
-    pub id: i64,
-}
-
-pub type DeleteGraph = Json<DeleteGraphSchema>;
+pub type DeleteGraph = Json<IdSchema>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateGraphSchema {
@@ -66,8 +64,3 @@ pub struct UpdateGraphSchema {
 pub type UpdateGraph = Json<UpdateGraphSchema>;
 
 pub type ListGraphs = Json<Vec<Graph>>;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetGraphSchema {
-    pub id: i64,
-}
