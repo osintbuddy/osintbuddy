@@ -20,10 +20,7 @@ use crate::{
 
 #[post("/auth/register")]
 async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result<User, AppError> {
-    let body = match body.into_inner().validate() {
-        Ok(body) => body,
-        Err(err) => return Err(err),
-    };
+    let body = body.into_inner().validate()?;
     let exists = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(pool.as_ref())
@@ -71,10 +68,7 @@ async fn login_user_handler(
     app: AppData,
     pool: db::Database,
 ) -> Result<Token, AppError> {
-    let body = match body.into_inner().validate() {
-        Ok(body) => body,
-        Err(err) => return Err(err),
-    };
+    let body = body.into_inner().validate()?;
     let user = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(pool.as_ref())
         .await
