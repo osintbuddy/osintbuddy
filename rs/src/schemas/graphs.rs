@@ -6,9 +6,8 @@ use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Graph {
-    #[serde(skip_serializing)]
     pub id: i64,
     #[serde(skip_serializing)]
     pub uuid: Option<Uuid>,
@@ -49,4 +48,26 @@ impl CreateGraphSchema {
         }
         Ok(self)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteGraphSchema {
+    pub id: i64,
+}
+
+pub type DeleteGraph = Json<DeleteGraphSchema>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateGraphSchema {
+    pub id: i64,
+    pub label: String,
+    pub description: String,
+}
+pub type UpdateGraph = Json<UpdateGraphSchema>;
+
+pub type ListGraphs = Json<Vec<Graph>>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetGraphSchema {
+    pub id: i64,
 }

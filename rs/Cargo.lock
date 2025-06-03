@@ -1768,6 +1768,7 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "jsonwebtoken",
+ "log",
  "moka",
  "rand_core 0.9.3",
  "serde",
