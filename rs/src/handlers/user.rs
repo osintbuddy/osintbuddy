@@ -13,8 +13,9 @@ use crate::{
     AppData, db,
     middleware::auth::{AuthMiddleware, extract_authorization},
     schemas::{
+        Notification,
         errors::{AppError, ErrorKind},
-        user::{LoginUser, Notification, RegisterUser, Token, TokenClaims, User},
+        user::{LoginUser, RegisterUser, Token, TokenClaims, User},
     },
 };
 

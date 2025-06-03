@@ -10,7 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 actix-web = "4"
 confik = "0.14"
-sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono", "uuid"] }
 dotenvy = "0.15.7"
 sqids = "0.4.2"
 actix-cors = "0.7.1"

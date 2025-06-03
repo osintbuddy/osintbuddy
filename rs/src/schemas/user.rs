@@ -112,9 +112,3 @@ impl LoginUserSchema {
         Ok(self)
     }
 }
-
-#[derive(Deserialize, Serialize)]
-
-pub struct Notification {
-    pub message: &'static str,
-}
