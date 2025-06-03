@@ -34,17 +34,10 @@ async fn main() -> std::io::Result<()> {
         .max_capacity(64_000)
         .time_to_live(Duration::from_secs(config.jwt_maxage * 60))
         .build();
-
-    let id = match Sqids::builder()
+    let id = Sqids::builder()
         .alphabet(config.sqids_alphabet.chars().collect())
         .build()
-    {
-        Ok(id) => id,
-        Err(err) => {
-            eprintln!("Sqids setup failed: {}", err);
-            std::process::exit(1)
-        }
-    };
+        .map_err(|err| std::io::Error::new(ErrorKind::Other, err))?;
 
     let web_addr = config.backend_addr.clone();
     let web_port = config.backend_port.clone();
