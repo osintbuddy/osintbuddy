@@ -1,6 +1,7 @@
 use actix_web::web::Query;
 use serde::{Deserialize, Serialize};
 
+pub mod entities;
 pub mod errors;
 pub mod graphs;
 pub mod user;
@@ -17,3 +18,13 @@ pub struct PaginateSchema {
 }
 
 pub type Paginate = Query<PaginateSchema>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetSchema {
+    pub id: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IdSchema {
+    pub id: i64,
+}
