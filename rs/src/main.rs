@@ -66,10 +66,9 @@ async fn main() -> std::io::Result<()> {
             )
             .configure(handlers::config);
 
-        let is_prod = match env::var("ENVIRONMENT") {
-            Ok(environment) => environment == "production".to_string(),
-            Err(_) => false,
-        };
+        let is_prod = env::var("ENVIRONMENT")
+            .map(|environment| environment == "production".to_string())
+            .unwrap_or(false);
 
         if is_prod {
             let build_dir = "../frontend/build/index.html";
