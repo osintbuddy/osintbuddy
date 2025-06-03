@@ -78,7 +78,7 @@ async fn main() -> std::io::Result<()> {
                         .index_file("index.html")
                         .default_handler(file)
                 })
-                .unwrap();
+                .expect("Frontend MUST be built to deploy in production!");
             return app.service(ui_service);
         }
         app
