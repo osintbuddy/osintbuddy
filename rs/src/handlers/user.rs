@@ -2,12 +2,11 @@ use std::time::Duration;
 
 use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, post};
 use argon2::{
-    Argon2,
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+    Argon2, PasswordHash, PasswordVerifier,
+    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::prelude::*;
 use jsonwebtoken::{EncodingKey, Header, encode};
-use serde_json::json;
 use sqlx::Row;
 
 use crate::{
@@ -15,7 +14,7 @@ use crate::{
     middleware::auth::{AuthMiddleware, extract_authorization},
     schemas::{
         errors::{AppError, ErrorKind},
-        user::{LoginUser, RegisterUser, Token, TokenClaims, User},
+        user::{LoginUser, Notification, RegisterUser, Token, TokenClaims, User},
     },
 };
 
@@ -76,35 +75,31 @@ async fn login_user_handler(
         Ok(body) => body,
         Err(err) => return Err(err),
     };
-    let user_option = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
+    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(pool.as_ref())
         .await
         .map_err(|_err| AppError {
             message: "Invalid email or password",
             kind: ErrorKind::Invalid,
-        })?;
-    user_option.as_ref().map(|user| {
-        let parsed_hash = PasswordHash::new(&user.password).map_err(|_err| AppError {
-            message: "Invalid email or password",
-            kind: ErrorKind::Invalid,
-        })?;
-        Argon2::default()
-            .verify_password(body.password.as_bytes(), &parsed_hash)
-            .map_err(|_err| AppError {
-                message: "Invalid email or password",
-                kind: ErrorKind::Invalid,
-            })
-    });
-
-    let now = Utc::now();
-    let iat = now.timestamp() as usize;
-    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage)).timestamp() as usize;
-    let sub = user_option
-        .map(|user| user.id.to_string())
+        })?
         .ok_or(AppError {
             message: "We ran into an error fetching your account.",
             kind: ErrorKind::Invalid,
         })?;
+    let parsed_hash = PasswordHash::new(&user.password).map_err(|_err| AppError {
+        message: "Invalid email or password",
+        kind: ErrorKind::Invalid,
+    })?;
+    Argon2::default()
+        .verify_password(body.password.as_bytes(), &parsed_hash)
+        .map_err(|_err| AppError {
+            message: "Invalid email or password",
+            kind: ErrorKind::Invalid,
+        })?;
+    let now = Utc::now();
+    let iat = now.timestamp() as usize;
+    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage)).timestamp() as usize;
+    let sub = user.id.to_string();
 
     let claims = TokenClaims {
         sub,
@@ -129,7 +124,9 @@ async fn login_user_handler(
 async fn logout_handler(req: HttpRequest, app: AppData) -> impl Responder {
     let token = extract_authorization(&req).to_string();
     app.blacklist.insert(token, true);
-    HttpResponse::Ok().json(json!({"message": "You have successfully signed out."}))
+    HttpResponse::Ok().json(Notification {
+        message: "You have successfully signed out.",
+    })
 }
 
 #[get("/users/me")]

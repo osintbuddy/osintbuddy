@@ -72,14 +72,15 @@ async fn main() -> std::io::Result<()> {
 
         if is_prod {
             let build_dir = "../frontend/build/index.html";
-            let ui_service = actix_files::NamedFile::open(build_dir)
-                .map(|file| {
-                    Files::new("/", build_dir)
-                        .index_file("index.html")
-                        .default_handler(file)
-                })
-                .expect("Frontend MUST be built to deploy in production!");
-            return app.service(ui_service);
+            return app.service(
+                actix_files::NamedFile::open(build_dir)
+                    .map(|file| {
+                        Files::new("/", build_dir)
+                            .index_file("index.html")
+                            .default_handler(file)
+                    })
+                    .expect("Frontend MUST be built to deploy in production!"),
+            );
         }
         app
     })

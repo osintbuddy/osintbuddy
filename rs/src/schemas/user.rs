@@ -66,8 +66,6 @@ pub struct RegisterUserSchema {
 
 pub type RegisterUser = Json<RegisterUserSchema>;
 
-pub type RegisterResponse = Result<User, AppError>;
-
 impl RegisterUserSchema {
     pub fn validate(self) -> Result<RegisterUserSchema, AppError> {
         if self.name.trim().is_empty()
@@ -97,8 +95,6 @@ pub struct LoginUserSchema {
 
 pub type LoginUser = Json<LoginUserSchema>;
 
-pub type LoginResponse = Result<Token, AppError>;
-
 impl LoginUserSchema {
     pub fn validate(self) -> Result<LoginUserSchema, AppError> {
         if self.email.trim().is_empty() || self.password.trim().is_empty() {
@@ -117,4 +113,8 @@ impl LoginUserSchema {
     }
 }
 
-pub type UsersMeResponse = Result<User, AppError>;
+#[derive(Deserialize, Serialize)]
+
+pub struct Notification {
+    pub message: &'static str,
+}
