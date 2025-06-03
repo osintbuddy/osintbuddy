@@ -55,7 +55,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     )
     .fetch_one(pool.as_ref())
     .await
-    .map(|user| user)
     .map_err(|_err| AppError {
         kind: ErrorKind::Database,
         message: "We ran into an error creating this account.",
