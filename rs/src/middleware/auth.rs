@@ -1,11 +1,11 @@
 use std::future::{Ready, ready};
 
-use crate::AppState;
+use crate::AppData;
 use crate::schemas::errors::{AppError, ErrorKind};
 use crate::schemas::user::TokenClaims;
-use actix_web::error::{ErrorInternalServerError, ErrorUnauthorized};
+use actix_web::error::ErrorUnauthorized;
 use actix_web::{Error as ActixWebError, dev::Payload};
-use actix_web::{FromRequest, HttpRequest, http, web};
+use actix_web::{FromRequest, HttpRequest, http};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 
 #[derive(Debug)]
@@ -36,14 +36,12 @@ impl FromRequest for AuthMiddleware {
             })));
         }
 
-        let app = match req.app_data::<web::Data<AppState>>() {
-            Some(app) => app,
-            None => {
-                return ready(Err(ErrorInternalServerError(AppError {
-                    message: "An exception has occurred, please try again later.",
-                    kind: ErrorKind::Critical,
-                })));
-            }
+        let app = req.app_data::<AppData>();
+        let Some(app) = app else {
+            return ready(Err(ErrorUnauthorized(AppError {
+                message: "An exception has occured, please try again later.",
+                kind: ErrorKind::Critical,
+            })));
         };
 
         // if a user signed out with their JWT (aka blacklisted that token)
@@ -55,19 +53,19 @@ impl FromRequest for AuthMiddleware {
             })));
         }
 
-        let claims = match decode::<TokenClaims>(
+        let claims = decode::<TokenClaims>(
             &token,
             &DecodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
             &Validation::default(),
-        ) {
-            Ok(token_data) => token_data.claims,
-            Err(_) => {
-                return ready(Err(ErrorUnauthorized(AppError {
-                    message: "Invalid token.",
-                    kind: ErrorKind::Invalid,
-                })));
-            }
+        )
+        .map(|token_data| token_data.claims);
+        let Ok(claims) = claims else {
+            return ready(Err(ErrorUnauthorized(AppError {
+                message: "Invalid token.",
+                kind: ErrorKind::Invalid,
+            })));
         };
+
         match claims.sub.parse::<i64>() {
             Ok(user_id) => ready(Ok(AuthMiddleware {
                 account_id: user_id,
