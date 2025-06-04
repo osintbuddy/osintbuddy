@@ -34,6 +34,25 @@ impl Responder for Graph {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GraphStats {
+    pub graph: Graph,
+    pub vertices_count: usize,
+    pub edges_count: usize,
+    pub degrees_count: usize,
+}
+impl Responder for GraphStats {
+    type Body = BoxBody;
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create response and set content type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
 #[derive(Deserialize)]
 pub struct CreateGraphSchema {
     pub label: String,
