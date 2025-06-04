@@ -1,78 +1,87 @@
+use std::io::ErrorKind;
 use std::time::Duration;
 
 use actix_cors::Cors;
-use actix_session::SessionMiddleware;
-use actix_session::storage::CookieSessionStore;
-use actix_web::cookie::Key;
+use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
-use backend::AppState;
-use backend::{config::get_config, db::establish_pool_connection, handlers};
+use env_logger::Env;
+use log::info;
 use moka::sync::Cache;
+use osib::AppState;
+use osib::config::{self, CONFIG};
+use osib::db::{self, DB};
+use osib::handlers;
 use sqids::Sqids;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting OSINTBuddy...");
-    let cfg = get_config();
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
+    info!("Starting OSINTBuddy...");
 
-    let pool = match establish_pool_connection(&cfg).await {
-        Ok(pool) => match sqlx::migrate!().run(&pool).await {
-            Ok(_) => pool,
-            Err(err) => {
-                eprintln!("Error running migrate: {}", err);
-                pool
-            }
-        },
-        Err(err) => {
-            eprintln!("Error establishing db pool connection: {}", err);
-            std::process::exit(1)
-        }
-    };
+    let config = CONFIG.get_or_init(config::get).await;
+    let pool = DB
+        .get_or_init(db::get_pool)
+        .await
+        .as_ref()
+        .map_err(|err| std::io::Error::new(ErrorKind::NotConnected, err))?;
 
-    println!(
-        "Backend listening on: http://{}:{}/api\nFrontend listening on: {}",
-        cfg.backend_addr, cfg.backend_port, cfg.backend_cors
-    );
-    let web_addr = cfg.backend_addr.clone();
-    let web_port = cfg.backend_port.clone();
-    let token_blacklist: Cache<String, bool> = Cache::builder()
+    sqlx::migrate!("./migrations")
+        .run(pool)
+        .await
+        .map_err(|err| std::io::Error::new(ErrorKind::InvalidData, err))?;
+
+    let blacklist: Cache<String, bool> = Cache::builder()
         .max_capacity(64_000)
-        .time_to_live(Duration::from_secs(60 * 60))
+        .time_to_live(Duration::from_secs(config.jwt_maxage * 60))
         .build();
-    HttpServer::new(move || {
-        let cors = Cors::default()
-            .allowed_origin(&cfg.backend_cors)
-            .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
-            .allowed_headers(vec![
-                header::CONTENT_TYPE,
-                header::AUTHORIZATION,
-                header::ACCEPT,
-            ])
-            .supports_credentials();
+    let id = Sqids::builder()
+        .alphabet(config.sqids_alphabet.chars().collect())
+        .build()
+        .map_err(|err| std::io::Error::new(ErrorKind::Other, err))?;
 
-        App::new()
-            .wrap(SessionMiddleware::new(
-                CookieSessionStore::default(),
-                Key::generate(),
-            ))
+    let web_addr = config.backend_addr.clone();
+    let web_port = config.backend_port.clone();
+    info!("Listening on: http://{web_addr}:{web_port}");
+
+    HttpServer::new(move || {
+        let logger = Logger::default();
+        let app = App::new()
+            .wrap(logger)
             .app_data(web::Data::new(AppState {
-                blacklist: token_blacklist.clone(),
-                cfg: cfg.clone(),
-                db: pool.clone(),
-                id: match Sqids::builder()
-                    .alphabet(cfg.sqids_alphabet.chars().collect())
-                    .build()
-                {
-                    Ok(id) => id,
-                    Err(err) => {
-                        eprintln!("Sqids setup failed: {}", err);
-                        std::process::exit(1)
-                    }
-                },
+                cfg: config.clone(),
+                blacklist: blacklist.clone(),
+                id: id.clone(),
             }))
-            .configure(handlers::config)
-            .wrap(cors)
-            .wrap(Logger::default())
+            .app_data(web::Data::new(pool.clone()))
+            .wrap(
+                Cors::default()
+                    .allowed_origin(&config.backend_cors)
+                    .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
+                    .allowed_headers(vec![
+                        header::CONTENT_TYPE,
+                        header::AUTHORIZATION,
+                        header::ACCEPT,
+                    ])
+                    .supports_credentials(),
+            )
+            .configure(handlers::config);
+
+        if config.build_dir.clone().map(|_| true).unwrap_or(false) {
+            let default_build = config
+                .build_dir
+                .clone()
+                .unwrap_or("../frontend/build/".to_string());
+            return app.service(
+                Files::new("/", &default_build)
+                    .index_file("index.html")
+                    .default_handler(
+                        actix_files::NamedFile::open(default_build)
+                            .expect("Frontend build dir should be valid!"),
+                    ),
+            );
+        }
+        app
     })
     .bind((web_addr, web_port))?
     .run()

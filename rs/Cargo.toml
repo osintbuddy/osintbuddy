@@ -1,5 +1,5 @@
 [package]
-name = "backend"
+name = "osib"
 version = "0.1.0"
 authors = ["jerlendds oss@osintbuddy.com"]
 edition = "2024"
@@ -10,7 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 actix-web = "4"
 confik = "0.14"
-sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono", "uuid"] }
 dotenvy = "0.15.7"
 sqids = "0.4.2"
 actix-cors = "0.7.1"
@@ -22,6 +22,8 @@ serde = { version = "1.0.219", features = ["derive"] }
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 rand_core = { version = "0.9.3", features = ["std"] }
 tokio = { version = "1", features = ["full"] }
-actix-session = { version = "0.10.1", features = ["cookie-session"] }
 moka = { version = "0.12.10", features = ["sync"] }
 actix-ws = "0.3.0"
+actix-files = "0.6.6"
+env_logger = "0.11.8"
+log = "0.4.27"

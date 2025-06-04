@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM \"users\" WHERE id = $1",
+  "query": "INSERT INTO users (name,email,password) VALUES ($1, $2, $3) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -41,7 +41,9 @@
     ],
     "parameters": {
       "Left": [
-        "Int8"
+        "Varchar",
+        "Varchar",
+        "Varchar"
       ]
     },
     "nullable": [
@@ -54,5 +56,5 @@
       true
     ]
   },
-  "hash": "f45899c7d80813d74489c7211eff011557214331a7776fe365e8f2f9e0cf4e70"
+  "hash": "82feadd8402203d4a7ee1d87bce18d0ed53cc718211e1ab04fc1a005c3810c8d"
 }

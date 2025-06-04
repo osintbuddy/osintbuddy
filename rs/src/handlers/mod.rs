@@ -2,7 +2,6 @@ use actix_web::{HttpResponse, Responder, get, web};
 use serde_json::json;
 
 mod entities;
-mod graphing;
 mod graphs;
 mod user;
 
@@ -17,7 +16,17 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(user::register_user_handler)
         .service(user::login_user_handler)
         .service(user::logout_handler)
-        .service(user::get_me_handler);
+        .service(user::get_me_handler)
+        .service(graphs::create_graph_handler)
+        .service(graphs::update_graph_handler)
+        .service(graphs::delete_graph_handler)
+        .service(graphs::list_graph_handler)
+        .service(graphs::get_graph_handler)
+        .service(entities::create_entity_handler)
+        .service(entities::update_entity_handler)
+        .service(entities::delete_entity_handler)
+        .service(entities::list_entities_handler)
+        .service(entities::get_entity_handler);
 
     conf.service(scope);
 }
