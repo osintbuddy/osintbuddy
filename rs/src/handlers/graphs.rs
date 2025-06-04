@@ -13,6 +13,7 @@ use actix_web::{
     patch, post,
     web::{Json, Path},
 };
+use log::error;
 
 #[post("/graphs/")]
 async fn create_graph_handler(
@@ -30,9 +31,12 @@ async fn create_graph_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error creating this graph.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error creating this graph.",
+        }
     })
 }
 
@@ -52,10 +56,12 @@ async fn update_graph_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
         kind: ErrorKind::Database,
-        message: "We ran into an error creating this graph.",
-    })
+        message: "We ran into an error updating this graph.",
+    }})
 }
 
 #[delete("/graphs/")]
@@ -70,8 +76,8 @@ async fn delete_graph_handler(
         .execute(pool.as_ref())
         .await
         .map(|_| HttpResponse::build(StatusCode::OK).finish())
-        .map_err(|_err| {
-            println!("{}", _err);
+        .map_err(|err| {
+            error!("{err}");
             AppError {
                 kind: ErrorKind::Database,
                 message: "We ran into an error deleting this graph.",
@@ -95,9 +101,12 @@ async fn list_graph_handler(
     .fetch_all(pool.as_ref())
     .await
     .map(|graphs| Json(graphs))
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error listing your graphs.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error listing your graphs.",
+        }
     })
 }
 
@@ -115,8 +124,11 @@ async fn get_graph_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error creating this graph.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error getting this graph.",
+        }
     })
 }

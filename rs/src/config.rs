@@ -15,6 +15,7 @@ pub struct AppConfig {
 
     #[confik(secret)]
     pub sqids_alphabet: String,
+    pub build_dir: Option<String>,
 }
 
 pub static CONFIG: OnceCell<AppConfig> = OnceCell::const_new();
@@ -27,6 +28,7 @@ pub async fn get() -> AppConfig {
         .unwrap_or_else(|err| {
             println!("Using default config! Error loading env: {}", err);
             AppConfig {
+                build_dir: None,
                 database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
                 backend_port: 48997,
                 backend_addr: String::from("127.0.0.1"),

@@ -7,6 +7,8 @@ use crate::{
         errors::{AppError, ErrorKind},
     },
 };
+use log::error;
+
 use actix_web::{
     HttpResponse, Result, delete, get,
     http::StatusCode,
@@ -32,9 +34,12 @@ async fn create_entity_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error creating this graph.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error creating this entity.",
+        }
     })
 }
 
@@ -56,10 +61,12 @@ async fn update_entity_handler(
   )
   .fetch_one(pool.as_ref())
   .await
-  .map_err(|_err| AppError {
+  .map_err(|err| {
+    error!("{err}");
+    AppError {
       kind: ErrorKind::Database,
-      message: "We ran into an error creating this graph.",
-  })
+      message: "We ran into an error updating this entity.",
+  }})
 }
 
 #[delete("/entities/")]
@@ -74,11 +81,11 @@ async fn delete_entity_handler(
         .execute(pool.as_ref())
         .await
         .map(|_| HttpResponse::build(StatusCode::OK).finish())
-        .map_err(|_err| {
-            println!("{}", _err);
+        .map_err(|err| {
+            error!("{err}");
             AppError {
                 kind: ErrorKind::Database,
-                message: "We ran into an error deleting this graph.",
+                message: "We ran into an error deleting this entity.",
             }
         })
 }
@@ -99,9 +106,12 @@ async fn list_entities_handler(
     .fetch_all(pool.as_ref())
     .await
     .map(|entities| Json(entities))
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error listing your graphs.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error listing your entities.",
+        }
     })
 }
 
@@ -119,8 +129,11 @@ async fn get_entity_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error creating this graph.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error getting this entity.",
+        }
     })
 }

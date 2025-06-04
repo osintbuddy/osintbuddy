@@ -7,6 +7,7 @@ use actix_web::error::ErrorUnauthorized;
 use actix_web::{Error as ActixWebError, dev::Payload};
 use actix_web::{FromRequest, HttpRequest, http};
 use jsonwebtoken::{DecodingKey, Validation, decode};
+use log::error;
 
 #[derive(Debug)]
 pub struct AuthMiddleware {
@@ -58,7 +59,9 @@ impl FromRequest for AuthMiddleware {
             &DecodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
             &Validation::default(),
         )
-        .map(|token_data| token_data.claims);
+        .map(|token_data| token_data.claims)
+        .map_err(|err| error!("{err}"));
+
         let Ok(claims) = claims else {
             return ready(Err(ErrorUnauthorized(AppError {
                 message: "Invalid token.",
@@ -71,10 +74,13 @@ impl FromRequest for AuthMiddleware {
                 account_id: user_id,
                 roles: claims.roles,
             })),
-            Err(_) => ready(Err(ErrorUnauthorized(AppError {
-                message: "Invalid token.",
-                kind: ErrorKind::Invalid,
-            }))),
+            Err(err) => {
+                error!("{err}");
+                ready(Err(ErrorUnauthorized(AppError {
+                    message: "Invalid token.",
+                    kind: ErrorKind::Invalid,
+                })))
+            }
         }
     }
 }

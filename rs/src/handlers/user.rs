@@ -1,14 +1,5 @@
 use std::time::Duration;
 
-use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, post};
-use argon2::{
-    Argon2, PasswordHash, PasswordVerifier,
-    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
-};
-use chrono::prelude::*;
-use jsonwebtoken::{EncodingKey, Header, encode};
-use sqlx::Row;
-
 use crate::{
     AppData, db,
     middleware::auth::{AuthMiddleware, extract_authorization},
@@ -18,6 +9,15 @@ use crate::{
         user::{LoginUser, RegisterUser, Token, TokenClaims, User},
     },
 };
+use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, post};
+use argon2::{
+    Argon2, PasswordHash, PasswordVerifier,
+    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
+};
+use chrono::prelude::*;
+use jsonwebtoken::{EncodingKey, Header, encode};
+use log::error;
+use sqlx::Row;
 
 #[post("/auth/register")]
 async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result<User, AppError> {
@@ -27,9 +27,12 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
         .fetch_one(pool.as_ref())
         .await
         .map(|row| row.get(0))
-        .map_err(|_err| AppError {
-            message: "We ran into an error registering your account.",
-            kind: ErrorKind::Database,
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "We ran into an error registering your account.",
+                kind: ErrorKind::Database,
+            }
         })?;
     if exists {
         return Err(AppError {
@@ -42,9 +45,12 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     let hashed_password = Argon2::default()
         .hash_password(body.password.as_bytes(), &salt)
         .map(|hash| hash.to_string())
-        .map_err(|_err| AppError {
-            message: "Invalid password.",
-            kind: ErrorKind::Invalid,
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "Invalid password.",
+                kind: ErrorKind::Invalid,
+            }
         })?;
 
     sqlx::query_as!(
@@ -56,9 +62,12 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_err| AppError {
-        kind: ErrorKind::Database,
-        message: "We ran into an error creating this account.",
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error creating this account.",
+        }
     })
 }
 
@@ -72,23 +81,32 @@ async fn login_user_handler(
     let user = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(pool.as_ref())
         .await
-        .map_err(|_err| AppError {
-            message: "Invalid email or password",
-            kind: ErrorKind::Invalid,
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "Invalid email or password",
+                kind: ErrorKind::Invalid,
+            }
         })?
         .ok_or(AppError {
             message: "We ran into an error fetching your account.",
             kind: ErrorKind::Invalid,
         })?;
-    let parsed_hash = PasswordHash::new(&user.password).map_err(|_err| AppError {
-        message: "Invalid email or password",
-        kind: ErrorKind::Invalid,
+    let parsed_hash = PasswordHash::new(&user.password).map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Invalid email or password",
+            kind: ErrorKind::Invalid,
+        }
     })?;
     Argon2::default()
         .verify_password(body.password.as_bytes(), &parsed_hash)
-        .map_err(|_err| AppError {
-            message: "Invalid email or password",
-            kind: ErrorKind::Invalid,
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "Invalid email or password",
+                kind: ErrorKind::Invalid,
+            }
         })?;
     let now = Utc::now();
     let iat = now.timestamp() as usize;
@@ -108,9 +126,12 @@ async fn login_user_handler(
         &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
     )
     .map(|token| Token { token })
-    .map_err(|_err| AppError {
-        message: "Invalid email or password.",
-        kind: ErrorKind::Invalid,
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Invalid email or password.",
+            kind: ErrorKind::Invalid,
+        }
     })
 }
 
@@ -128,8 +149,11 @@ async fn get_me_handler(auth: AuthMiddleware, pool: db::Database) -> Result<User
     sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", auth.account_id)
         .fetch_one(pool.as_ref())
         .await
-        .map_err(|_err| AppError {
-            message: "We ran into an error fetching your account information!",
-            kind: ErrorKind::Database,
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "We ran into an error fetching your account information!",
+                kind: ErrorKind::Database,
+            }
         })
 }

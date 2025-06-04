@@ -1,4 +1,3 @@
-use std::env;
 use std::io::ErrorKind;
 use std::time::Duration;
 
@@ -7,17 +6,19 @@ use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, http::header, web};
 use env_logger::Env;
+use log::info;
 use moka::sync::Cache;
 use osib::AppState;
 use osib::config::{self, CONFIG};
-
 use osib::db::{self, DB};
 use osib::handlers;
 use sqids::Sqids;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting OSINTBuddy...");
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
+    info!("Starting OSINTBuddy...");
+
     let config = CONFIG.get_or_init(config::get).await;
     let pool = DB
         .get_or_init(db::get_pool)
@@ -25,7 +26,7 @@ async fn main() -> std::io::Result<()> {
         .as_ref()
         .map_err(|err| std::io::Error::new(ErrorKind::NotConnected, err))?;
 
-    sqlx::migrate!()
+    sqlx::migrate!("./migrations")
         .run(pool)
         .await
         .map_err(|err| std::io::Error::new(ErrorKind::InvalidData, err))?;
@@ -41,7 +42,7 @@ async fn main() -> std::io::Result<()> {
 
     let web_addr = config.backend_addr.clone();
     let web_port = config.backend_port.clone();
-    env_logger::init_from_env(Env::default().default_filter_or("debug"));
+    info!("Listening on: http://{web_addr}:{web_port}");
 
     HttpServer::new(move || {
         let logger = Logger::default();
@@ -66,25 +67,23 @@ async fn main() -> std::io::Result<()> {
             )
             .configure(handlers::config);
 
-        let is_prod = env::var("ENVIRONMENT")
-            .map(|environment| environment == "production".to_string())
-            .unwrap_or(false);
-
-        if is_prod {
-            let build_dir = "../frontend/build/index.html";
+        if config.build_dir.clone().map(|_| true).unwrap_or(false) {
+            let default_build = config
+                .build_dir
+                .clone()
+                .unwrap_or("../frontend/build/".to_string());
             return app.service(
-                actix_files::NamedFile::open(build_dir)
-                    .map(|file| {
-                        Files::new("/", build_dir)
-                            .index_file("index.html")
-                            .default_handler(file)
-                    })
-                    .expect("Frontend MUST be built to deploy in production!"),
+                Files::new("/", &default_build)
+                    .index_file("index.html")
+                    .default_handler(
+                        actix_files::NamedFile::open(default_build)
+                            .expect("Frontend build dir should be valid!"),
+                    ),
             );
         }
         app
     })
-    .bind(format!("{}:{}", web_addr, web_port))?
+    .bind((web_addr, web_port))?
     .run()
     .await
 }
