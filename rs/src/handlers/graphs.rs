@@ -22,7 +22,7 @@ async fn create_graph_handler(
     auth: AuthMiddleware,
 ) -> Result<Graph, AppError> {
     let body = body.into_inner().validate()?;
-    sqlx::query_as!(
+    let graph = sqlx::query_as!(
         Graph,
         "INSERT INTO graphs (label,description,owner_id) VALUES ($1, $2, $3) RETURNING *",
         body.label.to_string(),
@@ -37,7 +37,26 @@ async fn create_graph_handler(
             kind: ErrorKind::Database,
             message: "We ran into an error creating this graph.",
         }
-    })
+    })?;
+    let age_graph_name = graph
+        .uuid
+        .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
+        .ok_or(AppError {
+            message: "We ran into a missing graph id error!",
+            kind: ErrorKind::Critical,
+        })?;
+    sqlx::query("SELECT create_graph($1)")
+        .bind(age_graph_name)
+        .execute(pool.as_ref())
+        .await
+        .map(|_| graph)
+        .map_err(|err| {
+            error!("Error creating age graph: {err}");
+            AppError {
+                kind: ErrorKind::Database,
+                message: "We ran into an error creating your Age graph.",
+            }
+        })
 }
 
 #[patch("/graphs/")]
