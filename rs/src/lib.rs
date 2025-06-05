@@ -20,6 +20,7 @@ use log::info;
 
 use crate::config::CONFIG;
 use crate::db::DB;
+
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
     pub id: Sqids,
@@ -76,7 +77,7 @@ pub async fn run() -> std::io::Result<()> {
             )
             .configure(handlers::config);
 
-        if config.build_dir.clone().map(|_| true).unwrap_or(false) {
+        if config.build_dir.clone().is_some() {
             let default_build = config
                 .build_dir
                 .clone()

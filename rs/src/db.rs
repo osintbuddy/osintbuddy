@@ -6,7 +6,7 @@ use actix_web::web::Data;
 use log::{error, info};
 use sqlx::Postgres;
 use sqlx::Row;
-use sqlx::postgres::{PgPoolOptions, PgRow};
+use sqlx::postgres::{PgColumn, PgPoolOptions, PgRow};
 use sqlx::{PgConnection, PgPool, Transaction};
 use std::string::String;
 use tokio::sync::OnceCell;
@@ -58,22 +58,55 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct AgeObject {
+pub struct AgeVertex {
     pub id: i64,
     pub label: String,
     pub properties: serde_json::Value,
 }
 
-pub async fn age_cypher(
+pub struct AgeEdge {
+    pub id: i64,
+    pub label: String,
+    pub properties: serde_json::Value,
+    pub start_id: i64,
+    pub end_id: i64,
+}
+
+// Expected return must be Age/opencypher map...
+// "... WITH map AS your_return_col RETURN your_return_col"
+// e.g.
+// with_cypher(
+//     &graph_name,
+//     tx.as_mut(),
+//     "MATCH (v)-[e]->() WITH {id: id(e), label: label(e), properties: properties(e), start_id: start_id(e), end_id: end_id(e)} AS e RETURN e",
+//     "e agtype",
+// )
+pub async fn with_cypher(
     graph_name: &str,
     tx: &mut PgConnection,
     query: &str,
-) -> Result<Vec<AgeObject>, AppError> {
-    let objs = sqlx::raw_sql(&format!(
-        "SELECT * FROM cypher('{}', $$ \
-        {query} \
-        $$) as (v agtype);",
-        graph_name
+    query_as: &str,
+) -> Result<Vec<serde_json::Value>, AppError> {
+    let query_params: Vec<&str> = query_as.split(",").collect();
+    let query_cast =
+        query_params
+            .clone()
+            .into_iter()
+            .fold(String::new(), |mut acc, cypher_ret_value| {
+                let b = format!(
+                    "CAST(CAST({} AS VarChar) AS JSON), ",
+                    cypher_ret_value.replace("agtype", "").trim()
+                )
+                .to_string();
+                acc.reserve(&b.len() + 1);
+                acc.push_str(&b);
+                acc
+            });
+    // Remove trailing comma from SQL CASTs seen above
+    let query_cast = query_cast[0..query_cast.len() - 2].to_string();
+
+    let objs: Vec<PgRow> = sqlx::raw_sql(&format!(
+        "SELECT {query_cast} FROM cypher('{graph_name}', $$ {query} $$) as ({query_as})"
     ))
     .fetch_all(tx)
     .await
@@ -84,19 +117,16 @@ pub async fn age_cypher(
             kind: ErrorKind::Critical,
         }
     })?;
-
-    let objects = objs.iter().map(|r: &PgRow| {
-        let vert = r.get::<String, _>("v");
-        let mut age_type = 8;
-        if vert.ends_with("::edge") {
-            age_type = 6
-        }
-        info!("{vert}");
-        serde_json::from_str::<AgeObject>(&vert[0..&vert.len() - age_type].to_string())
-            .expect("Should be able to parse Apache Age object!")
+    let columns = query_params
+        .iter()
+        .map(|a| a.replace("agtype", "").trim().to_owned());
+    let mut age_objects: Vec<serde_json::Value> = Vec::new();
+    columns.into_iter().for_each(|col| {
+        let age_map = objs
+            .iter()
+            .map(|r| r.get::<serde_json::Value, _>(col.as_str()));
+        let objects: Vec<serde_json::Value> = age_map.collect();
+        age_objects.extend(objects);
     });
-    let mut age_objects: Vec<AgeObject> = Vec::new();
-    age_objects.extend(objects);
-    // info!("Collecting stats for {graph_name}");
     Ok(age_objects)
 }

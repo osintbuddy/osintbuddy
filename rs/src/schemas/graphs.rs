@@ -39,7 +39,7 @@ pub struct GraphStats {
     pub graph: Graph,
     pub vertices_count: usize,
     pub edges_count: usize,
-    pub degrees_count: usize,
+    pub degree2_count: usize,
 }
 impl Responder for GraphStats {
     type Body = BoxBody;

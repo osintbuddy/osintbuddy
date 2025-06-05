@@ -1,5 +1,5 @@
 use crate::{
-    db::{self, age_cypher, age_tx},
+    db::{self, age_tx, with_cypher},
     middleware::auth::AuthMiddleware,
     schemas::{
         Paginate,
@@ -160,12 +160,25 @@ async fn get_graph_handler(
             kind: ErrorKind::Critical,
         })?;
     let mut tx = age_tx(pool.as_ref()).await?;
-    let vertices = age_cypher(&graph_name, tx.as_mut(), "MATCH (v) RETURN v").await?;
-    let edges = age_cypher(&graph_name, tx.as_mut(), "MATCH ()-[e]->() RETURN e").await?;
-    let second_degrees = age_cypher(
+    let vertices = with_cypher(
         &graph_name,
         tx.as_mut(),
-        "MATCH ()-[]->(t)-[]->(s) RETURN s",
+        "MATCH (v) WITH {id: id(v)} AS v RETURN v",
+        "v agtype",
+    )
+    .await?;
+    let edges = with_cypher(
+        &graph_name,
+        tx.as_mut(),
+        "MATCH (v)-[e]->() WITH {id: id(e)} AS e RETURN e",
+        "e agtype",
+    )
+    .await?;
+    let second_degrees = with_cypher(
+        &graph_name,
+        tx.as_mut(),
+        "MATCH ()-[]->(a)-[]->(v) WITH {id: id(v)} AS v RETURN v",
+        "v agtype",
     )
     .await?;
     tx.commit().await.map_err(|err| {
@@ -180,6 +193,6 @@ async fn get_graph_handler(
         graph,
         vertices_count: vertices.len(),
         edges_count: edges.len(),
-        degrees_count: second_degrees.len(),
+        degree2_count: second_degrees.len(),
     })
 }
