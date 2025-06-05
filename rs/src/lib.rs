@@ -55,9 +55,8 @@ pub async fn run() -> std::io::Result<()> {
     info!("Listening on: http://{web_addr}:{web_port}");
 
     HttpServer::new(move || {
-        let logger = Logger::default();
         let app = App::new()
-            .wrap(logger)
+            .wrap(Logger::default())
             .app_data(web::Data::new(AppState {
                 cfg: config.clone(),
                 blacklist: blacklist.clone(),
