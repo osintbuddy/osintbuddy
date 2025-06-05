@@ -133,14 +133,14 @@ async fn list_graph_handler(
 #[get("/graphs/{id}")]
 async fn get_graph_handler(
     pool: db::Database,
-    // auth: AuthMiddleware,
+    auth: AuthMiddleware,
     graph_id: Path<i64>,
 ) -> Result<GraphStats, AppError> {
     let graph = sqlx::query_as!(
         Graph,
         "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
         graph_id.into_inner(),
-        1 // auth.account_id
+        auth.account_id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -159,7 +159,6 @@ async fn get_graph_handler(
             message: "We ran into a missing graph id error!",
             kind: ErrorKind::Critical,
         })?;
-    // TODO: Return stats and graph
     let mut tx = age_tx(pool.as_ref()).await?;
     let vertices = age_cypher(&graph_name, tx.as_mut(), "MATCH (v) RETURN v").await?;
     let edges = age_cypher(&graph_name, tx.as_mut(), "MATCH ()-[e]->() RETURN e").await?;
@@ -169,6 +168,13 @@ async fn get_graph_handler(
         "MATCH ()-[]->(t)-[]->(s) RETURN s",
     )
     .await?;
+    tx.commit().await.map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error commiting the age transaction!",
+            kind: ErrorKind::Critical,
+        }
+    })?;
 
     Ok(GraphStats {
         graph,
