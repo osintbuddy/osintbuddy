@@ -37,7 +37,7 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
         .begin()
         .await
         .map(|mut tx| async {
-            let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS age CASCADE")
+            let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS age")
                 .execute(&mut *tx)
                 .await;
             let _ = sqlx::query("LOAD 'age'").execute(&mut *tx).await;
@@ -72,13 +72,24 @@ pub struct AgeEdge {
     pub end_id: i64,
 }
 
-// Expected return must be Age/opencypher map...
-// "... WITH map AS your_return_col RETURN your_return_col"
+// Expected return must be WITH Age/opencypher <map>.
+// External resources:
+//  - https://age.apache.org/age-manual/master/intro/types.html#map
 // e.g.
+// "opencypher_query... WITH <age_map> AS <your_return_col> RETURN <your_return_col>"
+//
+// WITH {id: id(e), start_id: start_id(e), end_id: end_id(e)} AS e, v WITH {id: id(v), label: label(v), properties: properties(v)} AS v, e RETURN e, v $$) as (e agtype,v agtype)
+//
 // with_cypher(
-//     &graph_name,
-//     tx.as_mut(),
-//     "MATCH (v)-[e]->() WITH {id: id(e), label: label(e), properties: properties(e), start_id: start_id(e), end_id: end_id(e)} AS e RETURN e",
+//     graph_name,
+//     tx,
+//     "MATCH (v)-[e]->() WITH {
+//          id: id(e),
+//          label: label(e),
+//          properties: properties(e),
+//          start_id: start_id(e),
+//          end_id: end_id(e)
+//      } AS e RETURN e",
 //     "e agtype",
 // )
 pub async fn with_cypher(
@@ -113,7 +124,7 @@ pub async fn with_cypher(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            message: "Age transaction error!",
+            message: "We ran into an OpenCypher select transaction error!",
             kind: ErrorKind::Critical,
         }
     })?;
@@ -122,11 +133,11 @@ pub async fn with_cypher(
         .map(|a| a.replace("agtype", "").trim().to_owned());
     let mut age_objects: Vec<serde_json::Value> = Vec::new();
     columns.into_iter().for_each(|col| {
-        let age_map = objs
-            .iter()
-            .map(|r| r.get::<serde_json::Value, _>(col.as_str()));
-        let objects: Vec<serde_json::Value> = age_map.collect();
-        age_objects.extend(objects);
+        age_objects.extend(
+            objs.iter()
+                .map(|row| row.get::<serde_json::Value, _>(col.as_str()))
+                .collect::<Vec<serde_json::Value>>(),
+        );
     });
     Ok(age_objects)
 }
