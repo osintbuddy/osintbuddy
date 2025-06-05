@@ -12,11 +12,12 @@ import { useAtom } from 'jotai';
 import { tourAtom } from './app/atoms';
 import Button from './components/buttons/Button';
 import RoundLoader from './components/Loaders';
-
 // Public routes
-const LandingPage = lazy(() => import("@/routes/public/LandingPage"));
+import RegisterPage from './routes/public/RegisterPage';
+import LoginPage from './routes/public/LoginPage';
+import LandingPage from '@/routes/public/LandingPage';
 
-// Private routes
+// Auth routes
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const Market = lazy(() => import("@/routes/dashboard/_components/Market"))
 
@@ -37,11 +38,15 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Suspense fallback={<RoundLoader />}><LandingPage /></Suspense>,
+        element: <LandingPage />,
       },
       {
-        path: "/callback",
-        element: <><CallbackPage /></>
+        path: "/register",
+        element: <RegisterPage />
+      },
+      {
+        path: "/login",
+        element: <LoginPage />
       }
     ],
   },

@@ -19,8 +19,6 @@
     "@uiw/codemirror-theme-aura": "^4.23.10",
     "@uiw/react-codemirror": "^4.23.10",
     "@xyflow/react": "^12.6.0",
-    "casdoor-js-sdk": "^0.16.0",
-    "color": "^5.0.0",
     "d3-force": "^3.0.0",
     "dagre": "^0.8.5",
     "elkjs": "^0.10.0",

@@ -2,6 +2,7 @@ import type { JSX } from 'preact';
 import { FingerPrintIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons/Button';
 import ButtonGhost from '@/components/buttons/ButtonGhost';
+import { useNavigate } from 'react-router-dom';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -14,7 +15,7 @@ const QUOTES = [
 
 export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
-
+  const navigate = useNavigate();
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
       <div class='mx-auto mt-52 items-center'>
@@ -23,20 +24,20 @@ export default function LandingPage(): JSX.Element {
             <h2 class='inline text-center bg-gradient-to-r from-primary-200/90 via-primary-300/90 to-primary-200/95 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
               Elevate your Research with <br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-lg tracking-tight text-slate-400 max-w-2xl'>
+            <p class='pt-1 text-lg tracking-tight text-slate-300/90 max-w-2xl'>
               Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Want to try it?
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
               <Button
                 variant='primary'
-                onClick={() => window.location.href = window.sdk.getSigninUrl()}
+                onClick={() => navigate("/login", {replace: true})}
               >
                 Sign in
                 <FingerPrintIcon class="btn-icon" />
               </Button>
               <ButtonGhost
                 variant='primary'
-                onClick={() => window.location.href = window.sdk.getSignupUrl()}
+                onClick={() => navigate("/register", {replace: true})}
               >
                 Create account
                 <UserPlusIcon class="btn-icon" />
@@ -46,10 +47,10 @@ export default function LandingPage(): JSX.Element {
         </div>
       </div>
       <section class='relative flex flex-col items-center mt-auto bottom-0 mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-300'>
+        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-300/90'>
           {atfQuote}
         </h1>
-        <p class='text-slate-300 py-2'>
+        <p class='text-slate-300/90 py-2'>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
