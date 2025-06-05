@@ -1,5 +1,6 @@
 use actix_web::{HttpResponse, Responder, get, web};
-use serde_json::json;
+
+use crate::schemas::Notification;
 
 mod entities;
 mod graphs;
@@ -7,7 +8,7 @@ mod user;
 
 #[get("/status")]
 pub async fn healthcheck_handler() -> impl Responder {
-    HttpResponse::Ok().json(json!({"status": "success","message": "pong"}))
+    HttpResponse::Ok().json(Notification { message: "pong" })
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {

@@ -1,10 +1,10 @@
 use crate::{
-    db,
+    db::{self, age_tx, with_cypher},
     middleware::auth::AuthMiddleware,
     schemas::{
         Paginate,
         errors::{AppError, ErrorKind},
-        graphs::{CreateGraph, DeleteGraph, Graph, ListGraphs, UpdateGraph},
+        graphs::{CreateGraph, DeleteGraph, Graph, GraphStats, ListGraphs, UpdateGraph},
     },
 };
 use actix_web::{
@@ -14,6 +14,7 @@ use actix_web::{
     web::{Json, Path},
 };
 use log::error;
+use std::string::String;
 
 #[post("/graphs/")]
 async fn create_graph_handler(
@@ -22,7 +23,7 @@ async fn create_graph_handler(
     auth: AuthMiddleware,
 ) -> Result<Graph, AppError> {
     let body = body.into_inner().validate()?;
-    sqlx::query_as!(
+    let graph = sqlx::query_as!(
         Graph,
         "INSERT INTO graphs (label,description,owner_id) VALUES ($1, $2, $3) RETURNING *",
         body.label.to_string(),
@@ -37,7 +38,26 @@ async fn create_graph_handler(
             kind: ErrorKind::Database,
             message: "We ran into an error creating this graph.",
         }
-    })
+    })?;
+    let graph_name = graph
+        .uuid
+        .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
+        .ok_or(AppError {
+            message: "We ran into a missing graph id error!",
+            kind: ErrorKind::Critical,
+        })?;
+    sqlx::query("SELECT create_graph($1)")
+        .bind(graph_name)
+        .execute(pool.as_ref())
+        .await
+        .map(|_| graph)
+        .map_err(|err| {
+            error!("Error creating age graph: {err}");
+            AppError {
+                kind: ErrorKind::Critical,
+                message: "We ran into an error creating your Age graph.",
+            }
+        })
 }
 
 #[patch("/graphs/")]
@@ -115,8 +135,8 @@ async fn get_graph_handler(
     pool: db::Database,
     auth: AuthMiddleware,
     graph_id: Path<i64>,
-) -> Result<Graph, AppError> {
-    sqlx::query_as!(
+) -> Result<GraphStats, AppError> {
+    let graph = sqlx::query_as!(
         Graph,
         "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
         graph_id.into_inner(),
@@ -130,5 +150,49 @@ async fn get_graph_handler(
             kind: ErrorKind::Database,
             message: "We ran into an error getting this graph.",
         }
+    })?;
+
+    let graph_name: String = graph
+        .uuid
+        .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
+        .ok_or(AppError {
+            message: "We ran into a missing graph id error!",
+            kind: ErrorKind::Critical,
+        })?;
+    let mut tx = age_tx(pool.as_ref()).await?;
+    let vertices = with_cypher(
+        &graph_name,
+        tx.as_mut(),
+        "MATCH (v) WITH {id: id(v)} AS v RETURN v",
+        "v agtype",
+    )
+    .await?;
+    let edges = with_cypher(
+        &graph_name,
+        tx.as_mut(),
+        "MATCH (v)-[e]->() WITH {id: id(e)} AS e RETURN e",
+        "e agtype",
+    )
+    .await?;
+    let second_degrees = with_cypher(
+        &graph_name,
+        tx.as_mut(),
+        "MATCH ()-[]->(a)-[]->(v) WITH {id: id(v)} AS v RETURN v",
+        "v agtype",
+    )
+    .await?;
+    tx.commit().await.map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error commiting the age transaction!",
+            kind: ErrorKind::Critical,
+        }
+    })?;
+
+    Ok(GraphStats {
+        graph,
+        vertices_count: vertices.len(),
+        edges_count: edges.len(),
+        degree2_count: second_degrees.len(),
     })
 }
