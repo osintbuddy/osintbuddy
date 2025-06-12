@@ -13,7 +13,7 @@ import { EditorView } from "@codemirror/view"
 import { ResizableBox } from 'react-resizable';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import ButtonGhost from "../buttons/ButtonGhost";
-import Button from "../buttons/Button";
+import Button from "../buttons";
 
 export const auraTheme = auraInit({
   settings: {
@@ -80,7 +80,8 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
   const filteredTransforms = query === '' || query?.includes('Select transform') || query === null
     ? transforms
     : transforms.filter((transform: any) => {
-      return transform.label.toLowerCase().includes(query?.toLowerCase())})
+      return transform.label.toLowerCase().includes(query?.toLowerCase())
+    })
 
   return (
     <>
@@ -131,7 +132,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
             <>
               <ol className="text-sm flex select-none from-cod-800/20 bg-gradient-to-r from-10% to-cod-800/30 relative pr-2  ">
                 <li className="flex  mr-auto w-full">
-               
+
                   <div class="flex justify-between items-center w-full text-slate-400 ">
                     <div
                       class="flex items-center py-2"
@@ -165,7 +166,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                         <LockClosedIcon class="w-5 h-5" />
                       )}
                     </button>
-                    
+
                   </div>
                 </li>
               </ol>
@@ -177,7 +178,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                 }
                 resizeHandles={['ne']}>
                 <textarea disabled={true} readOnly={true} class={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-cod-800/10 bg-transparent to-cod-800/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2 pt-1.5`} value={`No output, try running a transform`}>
-                  
+
                 </textarea>
               </ResizableBox>
             </>

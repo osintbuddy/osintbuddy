@@ -4,7 +4,7 @@ import { ChevronUpDownIcon, CodeBracketIcon, TrashIcon } from '@heroicons/react/
 import EntityEditor from '@/components/EntityEditor/EntityEditor';
 import { Icon } from '@/components/Icons';
 import ButtonGhost from '@/components/buttons/ButtonGhost';
-import Button from '@/components/buttons/Button';
+import Button from '@/components/buttons';
 
 export default function WorkspacePage() {
   const dropdownRef: any = useRef(200)
@@ -77,8 +77,8 @@ export default function WorkspacePage() {
                       No entities found!
                     </span>
                     <span class="w-min my-1">
-                        Read the osintbuddy docs to learn how
-                        <br /> to setup the default entities.
+                      Read the osintbuddy docs to learn how
+                      <br /> to setup the default entities.
                     </span>
                   </div>
                 )}

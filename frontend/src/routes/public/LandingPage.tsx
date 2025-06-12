@@ -1,7 +1,6 @@
 import type { JSX } from 'preact';
 import { FingerPrintIcon, UserPlusIcon } from '@heroicons/react/24/outline';
-import Button from '@/components/buttons/Button';
-import ButtonGhost from '@/components/buttons/ButtonGhost';
+import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
 
 const QUOTES = [
@@ -28,20 +27,20 @@ export default function LandingPage(): JSX.Element {
               Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Want to try it?
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
-              <Button
+              <Button.Solid
                 variant='primary'
-                onClick={() => navigate("/login", {replace: true})}
+                onClick={() => navigate("/login", { replace: true })}
               >
                 Sign in
                 <FingerPrintIcon class="btn-icon" />
-              </Button>
-              <ButtonGhost
+              </Button.Solid>
+              <Button.Ghost
                 variant='primary'
-                onClick={() => navigate("/register", {replace: true})}
+                onClick={() => navigate("/register", { replace: true })}
               >
                 Create account
                 <UserPlusIcon class="btn-icon" />
-              </ButtonGhost>
+              </Button.Ghost>
             </div>
           </section>
         </div>
@@ -54,11 +53,16 @@ export default function LandingPage(): JSX.Element {
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='text-primary-100 hover:text-primary-50 transition-colors duration-100 font-sans ease-in-out'
+            class='text-primary-100 hover:text-blue-400 transition-all duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>
-          to share ideas or security concerns.
+          to share ideas or <a
+            href="#todo-redirect-to-security.mdx-page"
+            class='border-b-2 border-b-transparent hover:border-b-red-600 transition-all duration-100 font-sans ease-in-out mx-px'
+          >
+            security concerns.
+          </a>
         </p>
       </section>
     </div>

@@ -7,7 +7,7 @@ interface FileInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   onBtnClick: Function
 }
 
-export function TransparentFileInput(props: FileInputProps) {
+export function TransparentFile(props: FileInputProps) {
   const { onBtnClick } = props;
 
   return (
@@ -15,7 +15,7 @@ export function TransparentFileInput(props: FileInputProps) {
       <input
         {...props}
         type="text"
-        class="hover:border-primary border border-slate-900 bg-mirage-300/20 w-full transition-colors duration-75 ease-in-out px-2 rounded-l border-r-0  outline-1 outline-slate-900 focus:outline-2 focus:outline-primary py-1 -mr-0.5 focus:bg-mirage-900 text-slate-300/90"
+        class="font-sans hover:border-primary border border-slate-900 bg-mirage-300/20 w-full transition-colors duration-75 ease-in-out px-2 rounded-l border-r-0  outline-1 outline-slate-900 focus:outline-2 focus:outline-primary py-1 -mr-0.5 focus:bg-mirage-900 text-slate-300/90"
       />
       <button
         onClick={() => onBtnClick()}
@@ -32,14 +32,14 @@ interface PasswordInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   label?: string
 }
 
-export function TransparentPasswordInput(props: PasswordInputProps) {
+export function TransparentPassword(props: PasswordInputProps) {
   const [hidePassword, setHidePassword] = useState<"text" | "password">("password")
   const { type: _, className, label } = props;
 
   return (
     <div className="flex relative flex-col">
       {label && (
-        <label for={label} class="text-sm text-slate-300/90 absolute -top-6 -left-0.5">
+        <label for={label} class="text-sm text-slate-300/85 rounded-t absolute -top-6 px-2 -left-1">
           {label}
         </label>
       )}
@@ -48,7 +48,7 @@ export function TransparentPasswordInput(props: PasswordInputProps) {
           {...props}
           name={label}
           type={hidePassword}
-          className={` hover:border-primary border border-slate-900 focus:bg-black/60 from-mirage-700/20 to-mirage-500/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded outline-1 outline-slate-900 focus:outline-2  focus:outline-primary py-1 w-64 text-slate-300/90 ${className ?? ''}`}
+          className={`font-sans hover:border-primary border border-mirage-300/90 focus:bg-black/60 from-mirage-800/30 to-mirage-700/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded-sm outline-1 outline-slate-900  focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 ${className ?? ''}`}
         />
         <button
           type="button"
@@ -70,20 +70,29 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   label?: string
 }
 
-export function TransparentInput(props: InputProps) {
+export function Transparent(props: InputProps) {
   const { className, label } = props;
   return (
     <div className="flex flex-col relative">
       {label && (
-        <label for={label} class="text-sm text-slate-300/90 absolute -top-6 -left-0.5">
+        <label for={label} class="text-sm text-slate-300/85 rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
         </label>
       )}
       <input
         {...props}
         name={label}
-        className={` hover:border-primary border border-slate-900 focus:bg-black/60 from-mirage-700/20 to-mirage-500/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded outline-1 outline-slate-900 focus:outline-2 hover:outline-primary focus:outline-primary py-1 w-64 text-slate-300/90 ${className ?? ''}`}
+        className={`font-sans hover:border-primary border border-mirage-300/90 focus:bg-black/60 from-mirage-800/30 to-mirage-700/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded-sm outline-1 outline-slate-900  focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 ${className ?? ''}`}
       />
     </div>
   )
 }
+
+
+const Input = {
+  TransparentFile,
+  TransparentPassword,
+  Transparent
+}
+
+export default Input;

@@ -10,7 +10,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import GraphLayout from "@/routes/GraphLayout";
 import { useAtom } from 'jotai';
 import { tourAtom } from './app/atoms';
-import Button from './components/buttons/Button';
+import Button from './components/buttons';
 import RoundLoader from './components/Loaders';
 // Public routes
 import RegisterPage from './routes/public/RegisterPage';
@@ -140,11 +140,11 @@ export default function AppRoutes(): JSX.Element {
         steps,
       }: JSONObject) => (
         <Button
-            onClick={() => currentStep === stepsLength - 1 ? setIsOpen(false) : setCurrentStep((s: number) => s === steps?.length - 1 ? 0 : s + 1)}
-            variant='primary'
+          onClick={() => currentStep === stepsLength - 1 ? setIsOpen(false) : setCurrentStep((s: number) => s === steps?.length - 1 ? 0 : s + 1)}
+          variant='primary'
         >
-            {!(currentStep === stepsLength - 1) ? "Next" : "Close guide"}
-            <ChevronRightIcon className="w-5 h-5 !ml-0" />
+          {!(currentStep === stepsLength - 1) ? "Next" : "Close guide"}
+          <ChevronRightIcon className="w-5 h-5 !ml-0" />
         </Button>
       )}
       styles={{

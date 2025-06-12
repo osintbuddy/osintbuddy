@@ -1,26 +1,28 @@
-import Button from "@/components/buttons/Button";
-import { TransparentInput, TransparentPasswordInput } from "@/components/inputs";
+import Button from "@/components/buttons";
+import Input from "@/components/inputs";
+import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { JSX } from "preact/jsx-runtime";
 
 export default function RegisterPage(): JSX.Element {
   return (
-    <div className="flex items-center justify-center w-full -mt-30">
-      <div class="from-gray-950/55 to-gray-950/40 bg-gradient-to-tr backdrop-blur-sm rounded-lg shadow-sm shadow-gray-600/60 p-16 pt-4 font-display">
-        <div className="flex justify-between py-10 ">
-          <h2 className="text-slate-300/90 text-2xl border-b-4 border-b-primary relative">
-            Sign up for OSINTBuddy
-          </h2>
-        </div>
-        <form className="grid gap-y-7">
-          <TransparentInput label="Username" type="text" className="w-full" />
-          <TransparentInput label="Email" type="email" className="w-full" />
-          <TransparentPasswordInput label="Password" className="w-full" />
-          <TransparentInput label="Confirm Password" type="password" className="w-full" />
+    <div className="flex flex-col items-center justify-center">
+      <div class="px-14 -mt-30 py-8 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm  border-l-3 border-primary/80 transition-all duration-100 rounded-r">
+        <h2 className="text-slate-300/85 mb-12 font-medium font-display text-2xl relative">
+          Sign up for OSINTBuddy
+        </h2>
+        <div class=" font-display flex flex-col">
+          <form className="grid gap-y-7">
+            <Input.Transparent label="Username" type="text" className="w-full" />
+            <Input.Transparent label="Email" type="email" className="w-full" />
+            <Input.TransparentPassword label="Password" className="w-full" />
+            <Input.Transparent label="Confirm Password" type="password" className="w-full" />
 
-          <Button variant="primary" className="w-full">
-            Sign up
-          </Button>
-        </form>
+            <Button.Solid type="submit" variant="primary" className="w-full">
+              Sign up
+              <FingerPrintIcon class="btn-icon " />
+            </Button.Solid>
+          </form>
+        </div>
       </div>
     </div>
   )
