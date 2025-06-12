@@ -46,7 +46,6 @@ export function TransparentPassword(props: PasswordInputProps) {
       <div className="flex relative">
         <input
           {...props}
-          name={label}
           type={hidePassword}
           className={`font-sans hover:border-primary border border-mirage-300/90 focus:bg-black/60 from-mirage-800/30 to-mirage-700/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded-sm outline-1 outline-slate-900  focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 ${className ?? ''}`}
         />
@@ -81,7 +80,6 @@ export function Transparent(props: InputProps) {
       )}
       <input
         {...props}
-        name={label}
         className={`font-sans hover:border-primary border border-mirage-300/90 focus:bg-black/60 from-mirage-800/30 to-mirage-700/20 bg-linear-to-br transition-colors duration-75 ease-in-out px-2 rounded-sm outline-1 outline-slate-900  focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 ${className ?? ''}`}
       />
     </div>
