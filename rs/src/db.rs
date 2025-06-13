@@ -3,10 +3,10 @@ use crate::{
     schemas::errors::{AppError, ErrorKind},
 };
 use actix_web::web::Data;
-use log::{error, info};
+use log::error;
 use sqlx::Postgres;
 use sqlx::Row;
-use sqlx::postgres::{PgColumn, PgPoolOptions, PgRow};
+use sqlx::postgres::{PgPoolOptions, PgRow};
 use sqlx::{PgConnection, PgPool, Transaction};
 use std::string::String;
 use tokio::sync::OnceCell;
@@ -23,12 +23,9 @@ pub async fn get_pool() -> PoolResult {
         .max_connections(128)
         .connect(&cfg.database_url)
         .await
-    // let mut tx = pool.begin().await?;
-
-    // tx.commit().await?;
-
-    // Ok(pool)
 }
+// #151345 -> #101c43
+
 pub type PgTx = Transaction<'static, Postgres>;
 pub type AgeTx = Result<PgTx, AppError>;
 

@@ -12,10 +12,33 @@ export default function RegisterPage(): JSX.Element {
         </h2>
         <div class="font-display flex flex-col">
           <form class="grid gap-y-7">
-            <Input.Transparent label="Username" type="text" className="w-full" />
-            <Input.Transparent label="Email" type="email" className="w-full" />
-            <Input.TransparentPassword label="Password" className="w-full" />
-            <Input.Transparent label="Confirm Password" type="password" className="w-full" />
+            <Input.Transparent
+              name="username"
+              label="Username"
+              type="text"
+              className="w-full"
+              placeholder="Your username"
+            />
+            <Input.Transparent
+              name="email"
+              label="Email"
+              type="email"
+              className="w-full"
+              placeholder="you@provider.com"
+            />
+            <Input.TransparentPassword
+              name="password"
+              label="Password"
+              className="w-full"
+              placeholder="Your password"
+            />
+            <Input.Transparent
+              name="confirm"
+              label="Confirm Password"
+              type="password"
+              className="w-full"
+              placeholder="Confirm your password"
+            />
 
             <Button.Solid type="submit" variant="primary" className="w-full">
               Sign up
@@ -25,5 +48,5 @@ export default function RegisterPage(): JSX.Element {
         </div>
       </div>
     </div>
-  )
+  );
 }

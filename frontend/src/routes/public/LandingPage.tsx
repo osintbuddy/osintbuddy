@@ -20,10 +20,10 @@ export default function LandingPage(): JSX.Element {
       <div class='mx-auto mt-52 items-center'>
         <div class='relative text-center'>
           <section class='relative pb-12 flex flex-col items-center'>
-            <h2 class='inline text-center bg-gradient-to-r from-primary-200/90 via-primary-300/90 to-primary-200/95 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
+            <h2 class='inline text-center bg-gradient-to-r from-primary-300/85 via-primary-300/95 to-primary-300/85 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
               Elevate your Research with <br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-lg tracking-tight text-slate-300/90 max-w-2xl'>
+            <p class='pt-1 text-lg tracking-tight text-slate-300/85 max-w-2xl'>
               Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Want to try it?
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
@@ -53,13 +53,13 @@ export default function LandingPage(): JSX.Element {
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='text-primary-100 hover:text-blue-400 transition-all duration-100 font-sans ease-in-out'
+            class='hover:text-primary-200/90 text-primary-200 transition-all duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>
           to share ideas or <a
             href="#todo-redirect-to-security.mdx-page"
-            class='border-b-2 border-b-transparent hover:border-b-red-600 transition-all duration-100 font-sans ease-in-out mx-px'
+            class='border-b-2 border-b-transparent hover:border-b-red-600/40 transition-all duration-100 font-sans ease-in-out mx-px'
           >
             security concerns.
           </a>

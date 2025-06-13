@@ -4,12 +4,33 @@ import AppLayoutSidebar from "@/components/navs/AppLayoutSidebar";
 import { accountAtom, settingsAtom } from "@/app/atoms";
 import { useAtom } from "jotai";
 import "react-toastify/dist/ReactToastify.css";
+import { atomWithMutationState } from "jotai-tanstack-query";
+import { useMutationState } from "@tanstack/react-query";
 
 export default function AppLayout() {
   const [settings, setSettings] = useAtom(settingsAtom)
   const [account, setAccount] = useAtom(accountAtom)
 
   const isAuthenticated = account.isAuthenticated
+
+  const mutationStateAtom = atomWithMutationState((get) => ({
+    filters: {
+      mutationKey: ['auth'],
+    },
+    select: (mutation) => {
+      console.log('seklect', mutation)
+      return mutation.state
+    }
+  }))
+
+  const data = useMutationState({
+    filters: {
+      mutationKey: ['auth'],
+    },
+  })
+
+  console.log("mutaT", mutationStateAtom)
+  console.log("mutaT", mutationStateAtom.toString())
 
   const toggleSidebar = () => {
     setSettings({ ...settings, showSidebar: !settings.showSidebar })

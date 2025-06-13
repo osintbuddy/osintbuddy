@@ -9,12 +9,14 @@ const queryClient = new QueryClient()
 const authAtom = atomWithMutation(() => ({
   mutationKey: ['auth'],
   mutationFn: async (user: any ) => {
-    const res = fetch(`${BASE_URL}/auth/login`, {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(user)
     });
-    return res
+    const data = await res.json()
+    console.log('authAtom withMutation data:', data)
+    return data
   },
 }))
 

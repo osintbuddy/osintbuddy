@@ -154,8 +154,8 @@ html {
   --grid-size: 80px;
   --grid-small-size: 10px;
   --grid-e: 80px;
-  --grid-color: rgba(22, 27, 71, 0.175);
-  --paper-color: #05101b;
+  --grid-color: rgba(28, 32, 75, 0.233);
+  --paper-color: #090a3a;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
     linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
@@ -180,10 +180,10 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(71, 0, 80, 0.093) 0%, #073AFF00 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(7, 70, 132, 0.168) 1%, #04001610 99%),
-    radial-gradient(142% 91% at 83% 7%, hsla(234, 100%, 19%, 0.109) 1%, rgba(153, 0, 255, 0.126) 99%),
-    radial-gradient(142% 91% at -6% 74%, rgba(0, 42, 255, 0.116) 1%, rgba(3, 99, 154, 0.075) 99%),
+    radial-gradient(49% 81% at 45% 47%, rgba(71, 0, 80, 0.093) 0%, lch(38.36% 115.41 302.11 / 0) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(3, 12, 99, 0.168) 1%, #04001610 99%),
+    radial-gradient(142% 91% at 83% 7%, hsla(231, 100%, 19%, 0.109) 1%, rgba(82, 2, 107, 0.178) 99%),
+    radial-gradient(142% 91% at -6% 74%, rgba(2, 19, 104, 0.116) 1%, rgba(3, 99, 154, 0.075) 99%),
     radial-gradient(142% 91% at 111% 84%, #1144ed0f 25%, rgba(69, 34, 150, 0.045) 95%);
   z-index: -99;
 }

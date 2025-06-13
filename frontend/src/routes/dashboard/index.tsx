@@ -8,7 +8,7 @@ import EntitiesPanel from "./_components/tabs/EntitiesPanel";
 import MarketPanel from './_components/tabs/MarketPanel';
 import CreateGraphModal from "./_components/modals/CreateGraphModal";
 import CreateEntityModal from "./_components/modals/CreateEntityModal";
-import ButtonGhost from "@/components/buttons/ButtonGhost";
+import Button from "@/components/buttons";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -120,7 +120,7 @@ export default function DashboardPage() {
             </div>
           </TabGroup>
           {tabIndex !== 2 ? (
-            <ButtonGhost
+            <Button.Ghost
               variant='primary'
               onClick={() => {
                 if (tabIndex === 0) setShowCreateGraphModal(true)
@@ -130,19 +130,19 @@ export default function DashboardPage() {
             >
               Create {tabIndex === 0 ? 'graph' : 'entity'}
               <PlusIcon class='btn-icon !ml-7' />
-            </ButtonGhost>
+            </Button.Ghost>
           ) : (
-            <ButtonGhost
+            <Button.Ghost
               variant='primary'
               className='mx-4 mr-6 mt-auto mb-4'
             >
               Connect server plugins
               <CloudIcon class='btn-icon !ml-7' />
-            </ButtonGhost>
+            </Button.Ghost>
           )}
         </aside>
         <Outlet context={{
-          graphsData: { favorite_graphs: [], graphs: []},
+          graphsData: { favorite_graphs: [], graphs: [] },
           entitiesData: [],
           isLoadingGraphs: false,
           isGraphsError: false,

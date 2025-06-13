@@ -5,27 +5,32 @@ import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { useAtom } from "jotai";
 import { useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
-  const [{ mutate, status, isError, isPending }] = useAtom(authAtom)
+  const navigate = useNavigate();
+  const [{ mutate, status, isError, isPending, data }] = useAtom(authAtom);
 
   const onSubmit = (e: any) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get("email")?.toString()
-    const password = formData.get("password")?.toString()
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
     // check if inputs valid
-    const invalidPassword = password === undefined || password.length < 8
-    const invalidEmail = email === undefined || email.length < 5
-    if (invalidPassword) toast.warn("Passwords must have a minimum of 8 characters.")
-    if (invalidEmail) toast.warn("An email is needed to sign in.")
+    const invalidPassword = password === undefined || password.length < 8;
+    const invalidEmail = email === undefined || email.length < 5;
+    if (invalidPassword)
+      toast.warn("Passwords must have a minimum of 8 characters.");
+    if (invalidEmail) toast.warn("An email is needed to sign in.");
 
     if (!invalidEmail && !invalidPassword) {
-      mutate({ email, password })
-      e.currentTarget.reset() // clear inputs
+      mutate({ email, password });
+      e.currentTarget.reset(); // clear inputs
+      navigate("/dashboard", { replace: true });
     }
-  }
+  };
+  console.log(status, isError, isPending, data);
   return (
     <>
       <div class="flex flex-col items-center justify-center">
@@ -34,20 +39,19 @@ export default function LoginPage(): JSX.Element {
             Sign in to OSINTBuddy
           </h2>
           <div class="font-display flex flex-col items-center">
-            <form
-              onSubmit={onSubmit}
-              class="grid gap-y-7 max-w-xs w-full"
-            >
+            <form onSubmit={onSubmit} class="grid gap-y-7 max-w-xs w-full">
               <Input.Transparent
                 label="Email"
                 type="email"
                 className="w-full "
                 name="email"
+                placeholder="you@provider.com"
               />
               <Input.TransparentPassword
                 label="Password"
                 className="w-full"
                 name="password"
+                placeholder="Your password..."
               />
               <Button.Solid type="submit" variant="primary" className="w-full ">
                 Sign in
@@ -56,8 +60,7 @@ export default function LoginPage(): JSX.Element {
             </form>
           </div>
         </div>
-
       </div>
     </>
-  )
+  );
 }
