@@ -23,7 +23,7 @@ export default function LandingPage(): JSX.Element {
             <h2 class='inline text-center bg-gradient-to-r from-primary-300/85 via-primary-300/95 to-primary-300/85 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
               Elevate your Research with <br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-lg tracking-tight text-slate-300/85 max-w-2xl'>
+            <p class='pt-1 text-lg text-slate-400 max-w-2xl'>
               Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Want to try it?
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
@@ -46,14 +46,14 @@ export default function LandingPage(): JSX.Element {
         </div>
       </div>
       <section class='relative flex flex-col items-center mt-auto bottom-0 mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-300/90'>
+        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-400'>
           {atfQuote}
         </h1>
-        <p class='text-slate-300/90 py-2'>
+        <p class='text-slate-400 py-2'>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='hover:text-primary-200/90 text-primary-200 transition-all duration-100 font-sans ease-in-out'
+            class='hover:text-primary-200 text-info-200 transition-all duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>

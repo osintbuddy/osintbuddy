@@ -21,7 +21,7 @@ export default function GraphOverview() {
     <>
       <div className="w-full items-center justify-center my-auto relative -top-16">
         <div className="flex flex-col items-center justify-center text-slate-400">
-          <div className="max-w-2xl w-full backdrop-blur-xs from-mirage-300/30 bg-gradient-to-tr from-40% to-mirage-500/20 border-mirage-400/80 border rounded-md grid place-items-start  py-16 px-24 ">
+          <div className="max-w-2xl w-full backdrop-blur-sm from-mirage-300/20 bg-gradient-to-tr from-40% to-mirage-500/20 border-mirage-400/80 border rounded-md grid place-items-start  py-16 px-24 ">
             {favoriteGraphs.length === 0 && graphs.length === 0 && (
               <>
                 <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold pr-2 font-display">
@@ -50,7 +50,7 @@ export default function GraphOverview() {
               </>
             )}
           </div>
-          <div className="max-w-2xl w-full backdrop-blur-xs from-mirage-300/30 bg-gradient-to-tr from-40% to-mirage-500/20 border-mirage-400/80 border rounded-md grid place-items-start  my-5 py-10 mt-8 px-24">
+          <div className="max-w-2xl w-full backdrop-blur-sm from-mirage-300/20 bg-gradient-to-tr from-40% to-mirage-500/20 border-mirage-400/80 border rounded-md grid place-items-start  my-5 py-10 mt-8 px-24">
             <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold border-b-3 pr-2 border-b-primary-400 font-display">
               The availability bias{" "}
             </h1>

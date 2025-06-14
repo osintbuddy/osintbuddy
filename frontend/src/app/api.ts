@@ -20,5 +20,4 @@ const authAtom = atomWithMutation(() => ({
   },
 }))
 
-
 export { queryClient, authAtom };

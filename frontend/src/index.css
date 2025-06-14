@@ -155,7 +155,7 @@ html {
   --grid-small-size: 10px;
   --grid-e: 80px;
   --grid-color: rgba(28, 32, 75, 0.233);
-  --paper-color: #090a3a;
+  --paper-color: #010230;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
     linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
@@ -180,11 +180,11 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(71, 0, 80, 0.093) 0%, lch(38.36% 115.41 302.11 / 0) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(3, 12, 99, 0.168) 1%, #04001610 99%),
-    radial-gradient(142% 91% at 83% 7%, hsla(231, 100%, 19%, 0.109) 1%, rgba(82, 2, 107, 0.178) 99%),
-    radial-gradient(142% 91% at -6% 74%, rgba(2, 19, 104, 0.116) 1%, rgba(3, 99, 154, 0.075) 99%),
-    radial-gradient(142% 91% at 111% 84%, #1144ed0f 25%, rgba(69, 34, 150, 0.045) 95%);
+    radial-gradient(49% 81% at 45% 47%, rgba(2, 25, 46, 0.093) 0%, lch(35.21% 124.69 304.31 / 0) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(82, 71, 129, 0.168) 1%, #04001610 99%),
+    radial-gradient(142% 91% at 83% 7%, hsla(199, 91%, 22%, 0.109) 1%, rgba(82, 2, 107, 0.178) 99%),
+    radial-gradient(142% 91% at -6% 74%, rgba(7, 76, 104, 0.116) 1%, rgba(86, 3, 154, 0) 99%),
+    radial-gradient(142% 91% at 111% 84%, #1144ed0f 25%, rgba(115, 0, 223, 0.096) 95%);
   z-index: -99;
 }
 
@@ -429,10 +429,10 @@ input[type='file'] {
 /* end toastify styles */
 
 .sidebar-link {
-  @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base  font-medium rounded-md border border-transparent hover:border-mirage-500/70 text-slate-400/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-mirage-900/20 ring-2 ring-inset pl-3 from-cod-800/10 to-cod-800/15 bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
+  @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base  font-medium rounded-md border border-transparent hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3 from-cod-800/10 to-cod-800/15 bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
 }
 .sidebar-link.active {
-  @apply hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl  
+  @apply hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl text-slate-400 from-cod-800/10 to-cod-800/20 
 }
 .sidebar-link.active svg {
   @apply text-primary-300 -ml-0.5
@@ -473,7 +473,7 @@ input[type='file'] {
 
 /* wraps the sidebar with search and the main view */
 .sidebar-wrapper {
-  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-cod-800/40 to-cod-800/50 bg-gradient-to-br shadow-xl border-cod-600/40 justify-between  flex relative w-full
+  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-cod-800/40 to-cod-800/50 bg-gradient-to-br shadow-xl border-cod-600/40 justify-between flex relative w-full backdrop-blur-md
 }
 
 .search-container {
@@ -580,7 +580,7 @@ input[type='file'] {
 }
 
 .subpanel-header {
-  @apply flex py-0.5 pb-1 items-center hover:text-slate-500 text-slate-600 hover:border-primary-300/40 border-mirage-400/60 border-b transition-colors duration-300 ease-in-out z-50
+  @apply flex py-0.5 pb-1 items-center hover:text-slate-500 text-slate-600 hover:border-primary-400 border-mirage-400/60 border-b-2 transition-colors duration-300 ease-in-out z-50
 }
 
 .subpanel-header h2 {
