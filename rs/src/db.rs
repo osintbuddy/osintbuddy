@@ -3,10 +3,10 @@ use crate::{
     schemas::errors::{AppError, ErrorKind},
 };
 use actix_web::web::Data;
-use log::{error, info};
+use log::error;
 use sqlx::Postgres;
 use sqlx::Row;
-use sqlx::postgres::{PgColumn, PgPoolOptions, PgRow};
+use sqlx::postgres::{PgPoolOptions, PgRow};
 use sqlx::{PgConnection, PgPool, Transaction};
 use std::string::String;
 use tokio::sync::OnceCell;
@@ -23,12 +23,9 @@ pub async fn get_pool() -> PoolResult {
         .max_connections(128)
         .connect(&cfg.database_url)
         .await
-    // let mut tx = pool.begin().await?;
-
-    // tx.commit().await?;
-
-    // Ok(pool)
 }
+// #151345 -> #101c43
+
 pub type PgTx = Transaction<'static, Postgres>;
 pub type AgeTx = Result<PgTx, AppError>;
 
@@ -49,7 +46,7 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
         .map_err(|err| {
             log::error!("{err}");
             AppError {
-                message: "ugh",
+                message: "Error loading Apache Age extension.",
                 kind: ErrorKind::Critical,
             }
         })?
@@ -72,26 +69,14 @@ pub struct AgeEdge {
     pub end_id: i64,
 }
 
-// Expected return must be WITH Age/opencypher <map>.
-// External resources:
-//  - https://age.apache.org/age-manual/master/intro/types.html#map
-// e.g.
-// "opencypher_query... WITH <age_map> AS <your_return_col> RETURN <your_return_col>"
+// External resources: https://age.apache.org/age-manual/master/intro/types.html#map
+// Expected return must include: WITH <age_map> AS return_var
+// E.g.
+// "query... WITH <age_map> AS <return_var> RETURN <return_var>"
 //
-// WITH {id: id(e), start_id: start_id(e), end_id: end_id(e)} AS e, v WITH {id: id(v), label: label(v), properties: properties(v)} AS v, e RETURN e, v $$) as (e agtype,v agtype)
-//
-// with_cypher(
-//     graph_name,
-//     tx,
-//     "MATCH (v)-[e]->() WITH {
-//          id: id(e),
-//          label: label(e),
-//          properties: properties(e),
-//          start_id: start_id(e),
-//          end_id: end_id(e)
-//      } AS e RETURN e",
-//     "e agtype",
-// )
+// "MATCH (v)-[e] WITH {id: id(e), label: label(e), start_id: start_id(e), end_id: end_id(e)} AS e, v
+//  WITH {id: id(v), label: label(v), properties: properties(v)} AS v, e
+//  RETURN e, v"
 pub async fn with_cypher(
     graph_name: &str,
     tx: &mut PgConnection,

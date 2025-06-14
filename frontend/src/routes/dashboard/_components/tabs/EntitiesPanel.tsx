@@ -1,6 +1,4 @@
-import { useUpdateEntityFavoriteIdMutation } from "@src/app/api";
-import { useMemo, useState } from "react";
-import styles from "../subpanel.module.css"
+import { useMemo, useState } from "preact/hooks";
 import Subpanel from "../Subpanel";
 
 
@@ -11,7 +9,6 @@ export default function EntitiesPanel({
   isSuccess,
   refetchEntities,
 }: JSONObject) {
-  const [updateEntityIsFavorite] = useUpdateEntityFavoriteIdMutation()
   const [showFavoriteEntities, setShowFavoriteEntities] = useState<boolean>(true);
   const [showEntities, setShowEntities] = useState(true);
 
@@ -28,12 +25,12 @@ export default function EntitiesPanel({
 
 
   const updateEntityOnFavorite = (hid: string) => {
-    updateEntityIsFavorite({ hid })
+    // updateEntityIsFavorite({ hid })
     refetchEntities()
   }
 
   return (
-    <section className={styles["subpanel-wrapper"]}>
+    <section className="subpanel-wrapper">
       {/* TODO add to db entitiy favs table and enforce labels unique for pointer to entity */}
       <Subpanel
         label="Favorites"

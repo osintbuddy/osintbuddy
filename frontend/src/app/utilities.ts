@@ -24,24 +24,4 @@ export function capitalize(value: string) {
 
 export const isString = (value: any): boolean => typeof value === 'string';
 
-export function lStorage(
-  key: string,
-  value?: JSONObject | string
-) {
-  if (value) {
-    // console.debug('useLocalStorage: ', key, value)
-    if (isString(value)) {
-      localStorage.setItem(key, value as string)
-    } else {
-      localStorage.setItem(key, JSON.stringify(value))
-    }
-    return value
-  }
-  const rawData = localStorage.getItem(key)
-  try {
-    if (rawData) return JSON.parse(rawData)
-  } catch (error) {
-    console.error(error)
-  }
-  return rawData
-}
+

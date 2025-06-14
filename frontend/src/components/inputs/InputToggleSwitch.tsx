@@ -1,6 +1,5 @@
 
-import { Switch } from "@headlessui/react";
-import classNames from "classnames";
+import { Description, Field, Label, Switch, SwitchGroup } from "@headlessui/react";
 import { Fragment, forwardRef } from "react";
 import { Control, useController } from "react-hook-form";
 
@@ -16,16 +15,11 @@ export const SwitchButton = forwardRef<HTMLButtonElement, SwitchButtonProps>(({ 
     checked={value}
     as={Fragment}
   >
-    <button ref={ref} className={classNames(
-      value ? 'bg-primary-400' : 'bg-dark-600',
-      'relative inline-flex h-7 w-14 flex-shrink-0 ring-3 ring-offset-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary-200 focus:ring-offset-3 hover:ring-3 ring-primary-400 active:ring-3'
-    )}>
+    <button ref={ref} class={`${value ? 'bg-primary-400' : 'bg-dark-600'} relative inline-flex h-7 w-14 flex-shrink-0 ring-3 ring-offset-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none focus:ring-3 focus:ring-primary-200 focus:ring-offset-3 hover:ring-3 ring-primary-400 active:ring-3`}>
       <span
         aria-hidden='true'
-        className={classNames(
-          value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400',
-          'inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out'
-        )}
+        class={
+          `inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400'}`}
       />
     </button>
   </Switch>
@@ -48,22 +42,22 @@ export default function InputToggleSwitch({ control, name, defaultValue, classNa
   })
 
   return (
-    <Switch.Group as='div' className={`pb-5 sm:col-span-2 ${className ?? ''}`}>
-      <Switch.Label as='h3' className=' font-display font-semibold leading-6 text-slate-400' passive>
+    <Field as='div' class={`pb-5 sm:col-span-2 ${className ?? ''}`}>
+      <Label as='h3' class=' font-display font-semibold leading-6 text-slate-400' passive>
         {label ?? ""}
-      </Switch.Label>
-      <div className='mt-2 sm:flex sm:items-start sm:justify-between'>
+      </Label>
+      <div class='mt-2 sm:flex sm:items-start sm:justify-between'>
         {description && (
-          <div className='max-w-xl text-sm text-slate-400'>
-            <Switch.Description>
+          <div class='max-w-xl text-sm text-slate-400'>
+            <Description>
               {description}
-            </Switch.Description>
+            </Description>
           </div>
         )}
-        <div className='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
+        <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
           <SwitchButton {...field} />
         </div>
       </div>
-    </Switch.Group>
+    </Field>
   )
 }

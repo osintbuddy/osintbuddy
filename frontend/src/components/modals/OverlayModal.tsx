@@ -4,7 +4,7 @@ import { Fragment, MutableRefObject, PropsWithChildren, ReactNode } from "react"
 
 export interface OverlayModalProps {
   cancelCreateRef: MutableRefObject<HTMLElement | null>;
-  closeModal: () => void;
+  closeModal: any;
   isOpen: boolean;
 }
 
