@@ -1,6 +1,6 @@
 import { EyeIcon, EyeSlashIcon, FolderIcon } from "@heroicons/react/20/solid";
 import { useState } from "preact/hooks";
-
+import { MouseEventHandler } from "preact/compat";
 import type { JSX } from "preact";
 
 interface FileInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
@@ -47,12 +47,12 @@ export function TransparentPassword(props: PasswordInputProps) {
         <input
           {...props}
           type={hidePassword}
-          className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`font-sans hover:outline-mirage-900 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
         />
         <button
           type="button"
           onClick={() => setHidePassword(hidePassword === "password" ? "text" : "password")}
-          className="text-slate-800 absolute right-0 top-1 border-b-primary p-1 rounded focus:outline-primary-400 focus:outline-2"
+          className="text-slate-800 absolute right-1 top-1 border-b-primary p-1 rounded focus:outline-primary-400 focus:outline-2"
         >
           {
             hidePassword === "password"
@@ -80,17 +80,48 @@ export function Transparent(props: InputProps) {
       )}
       <input
         {...props}
-        className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`font-sans hover:outline-mirage-900 border border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
       />
     </div>
   )
 }
 
+interface IconInputProps extends InputProps {
+  icon: JSX.Element
+  onBtnClick: MouseEventHandler<HTMLButtonElement>
+}
 
+export function TransparentIcon(props: IconInputProps) {
+  const { className, label, icon, onBtnClick } = props;
+
+  return (
+    <div className="flex relative flex-col">
+      {label && (
+        <label for={label} class="text-sm text-slate-300/75 rounded-t absolute -top-6 px-2 -left-1">
+          {label}
+        </label>
+      )}
+      <div className="flex relative">
+        <input
+          {...props}
+          className={`font-sans hover:outline-mirage-900 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        />
+        <button
+          type="button"
+          onClick={onBtnClick}
+          className="text-slate-800 focus:text-primary hover:text-primary-350 absolute right-1 top-1 p-1 rounded focus:outline-primary-400 focus:outline-none"
+        >
+          {icon}
+        </button>
+      </div>
+    </div >
+  )
+}
 const Input = {
   TransparentFile,
   TransparentPassword,
-  Transparent
+  Transparent,
+  TransparentIcon
 }
 
 export default Input;

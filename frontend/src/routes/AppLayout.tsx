@@ -8,7 +8,7 @@ import { authAtom, tokenAtom } from "@/app/api";
 
 export default function AppLayout() {
   const [settings, setSettings] = useAtom(settingsAtom)
-  const [a, b] = useAtom(tokenAtom)
+  const [a, b] = useAtom(authAtom)
   console.log('aurth, stateatom', a, b)
 
   // const [{ data: authData },] = useMutationState({

@@ -24,7 +24,7 @@ export default function LandingPage(): JSX.Element {
               Elevate your Research with <br /> Strategic Insights from Public Data
             </h2>
             <p class='pt-1 text-lg text-slate-350 max-w-2xl'>
-              Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Tell me what sucks?
+              Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain.
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
               <Button.Solid
@@ -49,7 +49,7 @@ export default function LandingPage(): JSX.Element {
         <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-350'>
           {atfQuote}
         </h1>
-        <p class='text-slate-350'>
+        <p class='text-slate-350 mb-2'>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'

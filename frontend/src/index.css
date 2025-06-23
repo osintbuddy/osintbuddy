@@ -152,11 +152,11 @@
 
 html {
   --grid-a: 1px;
-  --grid-gap: 3px;
+  --grid-gap: 2px;
   --grid-size: 80px;
   --grid-small-size: 10px;
   --grid-e: 80px;
-  --grid-color: rgba(13, 17, 59, 0.301);
+  --grid-color: rgba(12, 15, 49, 0.301);
   --paper-color: #020122;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
@@ -182,11 +182,11 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(13, 4, 94, 0.093) 0%, lch(35.21% 124.69 304.31 / 0) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(0, 16, 87, 0.205) 1%, #04001610 99%),
-    radial-gradient(142% 91% at 83% 7%, hsla(278, 96%, 33%, 0.205) 1%, rgba(2, 13, 107, 0.027) 99%),
-    radial-gradient(142% 91% at -6% 74%, rgba(32, 0, 30, 0.199) 1%, rgba(1, 7, 41, 0.13) 99%),
-    radial-gradient(142% 91% at 111% 84%, #1144ed0f 25%, rgba(23, 2, 114, 0.075) 95%);
+    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, lch(35.21% 124.69 304.31 / 0) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 39, 0.103) 1%, #04001609 99%),
+    radial-gradient(142% 91% at 83% 7%, hsla(288, 98%, 40%, 0.116) 1%, rgba(0, 1, 14, 0.205) 99%),
+    radial-gradient(142% 91% at -6% 74%, rgba(49, 3, 46, 0.158) 1%, rgba(2, 30, 189, 0.144) 99%),
+    radial-gradient(142% 91% at 111% 84%, #000e5c0e 25%, rgba(7, 5, 151, 0.075) 95%);
   z-index: -99;
 }
 
@@ -431,7 +431,7 @@ input[type='file'] {
 /* end toastify styles */
 
 .sidebar-link {
-  @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/20 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
+  @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
 }
 .sidebar-link.active {
   @apply hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl text-slate-400 from-cod-800/10 to-cod-800/20 

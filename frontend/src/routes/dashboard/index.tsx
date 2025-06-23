@@ -9,6 +9,7 @@ import MarketPanel from './_components/tabs/MarketPanel';
 import CreateGraphModal from "./_components/modals/CreateGraphModal";
 import CreateEntityModal from "./_components/modals/CreateEntityModal";
 import Button from "@/components/buttons";
+import Input from "@/components/inputs";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -42,13 +43,21 @@ export default function DashboardPage() {
     <>
       <div class="flex ">
         <aside class="sidebar-wrapper">
-          <div class="search-container">
+          {/* <div class="search-container">
             <MagnifyingGlassIcon />
             <input
               type="text"
               placeholder={`Search ${tabIndex === 0 ? 'graphs' : tabIndex === 1 ? 'entities' : 'marketplace'}...`}
             />
-          </div>
+          </div> */}
+          <Input.TransparentIcon
+            icon={<MagnifyingGlassIcon class="h-5 relative right-2" />}
+            onBtnClick={() => console.log("Todo search")}
+            type="text"
+            className="w-full mx-2 mb-1.5"
+            placeholder={`Search ${tabIndex === 0 ? 'graphs' : tabIndex === 1 ? 'entities' : 'marketplace'}...`}
+
+          />
           <TabGroup
             vertical={false}
             as='section'
