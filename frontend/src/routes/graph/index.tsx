@@ -27,7 +27,7 @@ import {
 } from '@/features/graph/graphSlice';
 import { WS_URL } from '@/app/baseApi';
 import CommandPallet from './_components/CommandPallet';
-import { useGetGraphQuery } from '@src/app/api';
+import { useGetGraphQuery } from '@/app/api';
 import RoundLoader from '@/components/Loaders';
 import { useTour } from '@reactour/tour';
 
@@ -159,16 +159,16 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
   const initialEdges = useAppSelector((state) => graphEdges(state));
   const changeState = useAppSelector(state => selectEditState(state))
   const positionMode = useAppSelector((state) => selectPositionMode(state))
-  
+
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(initialNodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(initialEdges)
   const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 });
   const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [activeTransformLabel, setActiveTransformLabel] = useState<string | null>(null)
-  
 
-// @todo implement support for multi-select transforms -
+
+  // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
   const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
@@ -355,7 +355,7 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
       {isLoading && (
         <RoundLoader />
       )}
-      
+
       {isSuccess && (
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <div className='h-screen flex flex-col w-full'>

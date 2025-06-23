@@ -3,7 +3,6 @@ import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOption
 import { ChevronUpDownIcon, CodeBracketIcon, TrashIcon } from '@heroicons/react/24/outline';
 import EntityEditor from '@/components/EntityEditor/EntityEditor';
 import { Icon } from '@/components/Icons';
-import ButtonGhost from '@/components/buttons/ButtonGhost';
 import Button from '@/components/buttons';
 
 export default function WorkspacePage() {
@@ -26,7 +25,7 @@ export default function WorkspacePage() {
   return (
     <>
       <div class="flex flex-col w-full pt-2.5 px-3">
-        <section class="flex items-center shadow-md relative rounded-md border-b  backdrop-blur-md from-cod-800/50 to-cod-800/40 bg-gradient-to-br border-mirage-700/20 h-min justify-center pt-0.5 z-[99]">
+        <section class="flex items-center shadow-md relative rounded-md border-b  backdrop-blur-md from-black/35 to-black/45 bg-gradient-to-br border-mirage-700/20 h-min justify-center pt-0.5 z-[99]">
           {/* <div className='isolate inline-flex shadow-sm'>
                 <button title="Toggle the display view" className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' >
                   <CodeBracketIcon className='h-6' />
@@ -61,7 +60,7 @@ export default function WorkspacePage() {
                     key={entity.label}
                     value={entity}
                     className={({ active }: any) =>
-                      `text-nowrap px-4 flex-col hover:bg-mirage-800 border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-300/90' : 'text-slate-400'}`
+                      `text-nowrap px-4 flex-col hover:bg-mirage-800 border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-350' : 'text-slate-400'}`
                     }
                   >
                     <span class="block truncate text-md">
@@ -86,7 +85,7 @@ export default function WorkspacePage() {
             </div>
           </Combobox>
           <div class="flex gap-4 items-center mx-3 py-1.5">
-            <ButtonGhost
+            <Button.Ghost
               variant='danger'
               onClick={() => {
                 // updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
@@ -98,8 +97,8 @@ export default function WorkspacePage() {
             >
               Delete
               <TrashIcon class="btn-icon" />
-            </ButtonGhost>
-            <Button
+            </Button.Ghost>
+            <Button.Solid
               variant='primary'
               onClick={() => {
                 // updateEntityById({ hid: activeEntity?.id ?? "", entityUpdate: { source: code as string } }).then(() => toast.info(
@@ -114,7 +113,7 @@ export default function WorkspacePage() {
                 icon="device-floppy"
                 className="btn-icon"
               />
-            </Button>
+            </Button.Solid>
           </div>
         </section>
         <EntityEditor

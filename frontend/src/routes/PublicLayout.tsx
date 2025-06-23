@@ -19,7 +19,7 @@ export default function PublicLayout(): React.ReactElement {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme='light'
+        theme='dark'
       />
     </>
   );

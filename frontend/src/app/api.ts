@@ -1,23 +1,31 @@
-import {
-  QueryClient,
-} from '@tanstack/react-query'
-import { BASE_URL } from './baseApi';
-import { atomWithMutation } from 'jotai-tanstack-query';
 
-const queryClient = new QueryClient()
+import { BASE_URL } from './baseApi';
+import { atomWithMutation, atomWithMutationState } from 'jotai-tanstack-query';
+
+const authKey = ['auth']
+
+const authFn = async (user: any) => {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user)
+  });
+  const data = await res.json()
+  if (!data?.token) {
+    throw data
+  }
+  return data
+}
 
 const authAtom = atomWithMutation(() => ({
-  mutationKey: ['auth'],
-  mutationFn: async (user: any ) => {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user)
-    });
-    const data = await res.json()
-    console.log('authAtom withMutation data:', data)
-    return data
-  },
+  mutationKey: authKey,
+  mutationFn: authFn 
 }))
 
-export { queryClient, authAtom };
+const tokenAtom = atomWithMutationState(() => ({
+  filters: {
+    mutationKey: authKey,
+  },
+
+}))
+export { authAtom, tokenAtom };

@@ -3,14 +3,14 @@ import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { useAtom } from "jotai";
-import { useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
-  const [{ mutate, status, isError, isPending, data }] = useAtom(authAtom);
+  const [{ mutate, status, error, data }] = useAtom(authAtom);
 
   const onSubmit = (e: any) => {
     e.preventDefault();
@@ -22,20 +22,29 @@ export default function LoginPage(): JSX.Element {
     const invalidEmail = email === undefined || email.length < 5;
     if (invalidPassword)
       toast.warn("Passwords must have a minimum of 8 characters.");
-    if (invalidEmail) toast.warn("An email is needed to sign in.");
+    if (invalidEmail)
+      toast.warn("An email is needed to sign in.");
 
     if (!invalidEmail && !invalidPassword) {
       mutate({ email, password });
       e.currentTarget.reset(); // clear inputs
-      navigate("/dashboard", { replace: true });
     }
   };
-  console.log(status, isError, isPending, data);
+
+
+  useEffect(() => {
+    if (status === 'success') {
+      navigate("/dashboard", { replace: true });
+    }
+    toast.warn(error?.message)
+    console.log(error)
+  }, [status])
+
   return (
     <>
       <div class="flex flex-col items-center justify-center">
         <div class="shadow-2xl shadow-black/35 px-14 -mt-30 py-8 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r">
-          <h2 class="text-slate-300/85 mb-12 font-medium font-display text-2xl relative">
+          <h2 class="text-slate-300 mb-12 font-medium font-display text-2xl relative">
             Sign into your account
           </h2>
           <div class="font-display flex flex-col items-center">

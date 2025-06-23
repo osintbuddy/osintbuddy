@@ -8,7 +8,7 @@ export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const solidStyles = {
-  primary: "ring-primary-400/90 hover:ring-primary-400 bg-primary-400/90 hover:bg-primary-400 focus:bg-primary-300/90 hover:stroke-primary-400 stroke-primary-400/90",
+  primary: "ring-primary-350 hover:ring-primary-400 bg-primary-350 hover:bg-primary-400 focus:bg-primary-400 hover:stroke-primary-400 stroke-primary-350 focus:outline-primary-300 focus:outline-1",
   danger: "ring-danger-500/90 hover:ring-danger-500 bg-danger-500/90 hover:bg-danger-500 focus:bg-danger-400/90 hover:stroke-danger-500 stroke-danger-500/90"
 }
 
@@ -18,7 +18,7 @@ export function Solid(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold hover:text-slate-200/90 text-slate-200/90 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''}`}W
+      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold hover:text-slate-200/90 text-slate-200/90 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''}`}
     >
       {children}
     </button>
@@ -26,7 +26,7 @@ export function Solid(props: ButtonProps): JSX.Element {
 }
 
 const ghostStyles = {
-  primary: "ring-primary-400/90 focus:ring-primary-400/85 hover:ring-primary-400 border-primary-400/90 focus:border-primary-400/85 hover:border-primary-400",
+  primary: "ring-primary-350 focus:ring-primary-400/85 hover:ring-primary-400 border-primary-350 focus:border-primary-400/85 hover:border-primary-400",
   danger: "ring-danger-500/90 focus:ring-danger-500/85 hover:ring-danger-500 border-danger-500/90 focus:border-danger-500/85 hover:border-danger-500"
 }
 

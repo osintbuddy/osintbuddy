@@ -97,7 +97,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
         isResizable={true}
         allowOverlap={true}
       >
-        {/* <div data-grid={{
+        <div data-grid={{
           x: 38,
           y: 0,
           w: 14,
@@ -106,11 +106,11 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
           minH: 1,
           maxW: 50,
           minW: 2,
-        }} key="a" className="overflow-hidden rounded-sm border-mirage-100/0 shadow-lg border z-10 backdrop-blur-sm from-mirage-800/40 to-mirage-800/70  bg-gradient-to-br from-50% flex flex-col h-full">
-          <div className=" from-mirage-400/20 backdrop-blur-sm bg-gradient-to-tr from-40% to-mirage-400/30 border-mirage-400 border overflow-y-scroll h-full ">
-            <h2 className="text-slate-300/90 px-3 py-3">Migrations</h2>
+        }} key="a" className="overflow-hidden rounded-sm border-mirage-3200/0 shadow-lg border z-10 backdrop-blur-sm from-black/30 to-black/35  bg-gradient-to-br from-50% flex flex-col h-full">
+          <div className="  border-mirage-800/10 border overflow-y-scroll h-full ">
+            <h2 className="text-slate-350 px-3 py-3 font-display text-lg">Migrations</h2>
           </div>
-        </div> */}
+        </div>
         <div
           className="border border-mirage-950 z-10 backdrop-blur-sm shadow-md  from-70% flex flex-col h-full"
           key="editor"
@@ -125,7 +125,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
             minW: 10,
           }}
         >
-          <div className="from-cod-800/40 backdrop-blur-sm bg-gradient-to-br from-40% to-cod-800/50 overflow-y-scroll h-full ">
+          <div className="from-black/35 backdrop-blur-sm bg-gradient-to-br from-40% to-black/30 overflow-y-scroll h-full ">
             <CodeEditor editable={showTaskbar} code={code} setCode={setCode} />
           </div>
           {showTaskbar && (
@@ -170,7 +170,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                   </div>
                 </li>
               </ol>
-              <ResizableBox axis={'y'} className="rounded-sm shadow-lg  backdrop-blur-sm from-70% from-cod-500/40 to-cod-800/50  bg-gradient-to-bl flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
+              <ResizableBox axis={'y'} className="rounded-sm shadow-lg  backdrop-blur-sm from-70% from-black/30 to-black/25  bg-gradient-to-bl flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
                 handle={
                   <div class=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
                     <span class=" react-resizable-handle react-resizable-handle-ne" />

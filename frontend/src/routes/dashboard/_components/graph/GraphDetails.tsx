@@ -35,7 +35,7 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
               </button>
               <ButtonGhost
                 variant='primary'
-                onClick={() => navigate(`/graph/${graph?.id}`, { replace: true})}
+                onClick={() => navigate(`/graph/${graph?.id}`, { replace: true })}
               >
                 Open graph
                 <EyeIcon className='btn-icon' />
@@ -51,35 +51,35 @@ export default function GraphDetails() {
   const graphStats: any = {};
 
   return (
-      <div class="flex flex-col h-screen w-full ">
-        <header class="flex w-full">
-          <GraphHeader refetchGraphs={() => null} graph={{}} />
-        </header>
-        <section class="relative flex z-10 w-full p-4">
-          <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mr-4 py-3">
-            <h2 class="text-slate-300/80 flex items-end">
-              Total Entities <span class="text-6xl ml-auto font-sans font-semibold">{graphStats?.entities_count ?? 0}</span>
-            </h2>
-          </div>
-          <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mx-2 py-3">
-            <h2 class="text-slate-300/80 flex items-end">
-              Total Relationships
-              <span class="text-6xl ml-auto font-sans font-semibold">
-                {graphStats?.edges_count ?? 0}
-              </span>
-            </h2>
-          </div>
-          <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 ml-4 py-3">
-            <h2 class="text-slate-300/80 flex items-end">2nd Degree Entities
-              <span class="text-6xl ml-auto font-sans font-semibold">
-                {graphStats?.second_degree_count ?? 0}
-              </span>
-            </h2>
-          </div>
-        </section>
-        <h2 class="text-slate-600 px-4">
-          TODO: Add notes here <a class="text-radiance-900" href="https://medevel.com/notion-style-editors-21991/">(editors)</a>
-        </h2>
-      </div>
+    <div class="flex flex-col h-screen w-full ">
+      <header class="flex w-full">
+        <GraphHeader refetchGraphs={() => null} graph={{}} />
+      </header>
+      <section class="relative flex z-10 w-full p-4">
+        <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mr-4 py-3">
+          <h2 class="text-slate-300/80 flex items-end">
+            Total Entities <span class="text-6xl ml-auto font-sans font-semibold">{graphStats?.entities_count ?? 0}</span>
+          </h2>
+        </div>
+        <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mx-2 py-3">
+          <h2 class="text-slate-300/80 flex items-end">
+            Total Relationships
+            <span class="text-6xl ml-auto font-sans font-semibold">
+              {graphStats?.edges_count ?? 0}
+            </span>
+          </h2>
+        </div>
+        <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 ml-4 py-3">
+          <h2 class="text-slate-300/80 flex items-end">2nd Degree Entities
+            <span class="text-6xl ml-auto font-sans font-semibold">
+              {graphStats?.second_degree_count ?? 0}
+            </span>
+          </h2>
+        </div>
+      </section>
+      <h2 class="text-slate-600 px-4">
+        TODO: Add notes here <a class="text-radiance-900" href="https://medevel.com/notion-style-editors-21991/">(editors)</a>
+      </h2>
+    </div>
   )
 }

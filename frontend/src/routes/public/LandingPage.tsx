@@ -20,11 +20,11 @@ export default function LandingPage(): JSX.Element {
       <div class='mx-auto mt-52 items-center'>
         <div class='relative text-center'>
           <section class='relative pb-12 flex flex-col items-center'>
-            <h2 class='inline text-center bg-gradient-to-r from-primary-300/85 via-primary-300/95 to-primary-300/85 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
+            <h2 class='inline text-center bg-gradient-to-r from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-5xl font-display font-medium tracking-tight text-transparent leading-14'>
               Elevate your Research with <br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-lg text-slate-400 max-w-2xl'>
-              Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Want to try it?
+            <p class='pt-1 text-lg text-slate-350 max-w-2xl'>
+              Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain. Tell me what sucks?
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
               <Button.Solid
@@ -46,14 +46,14 @@ export default function LandingPage(): JSX.Element {
         </div>
       </div>
       <section class='relative flex flex-col items-center mt-auto bottom-0 mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-400'>
+        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-350'>
           {atfQuote}
         </h1>
-        <p class='text-slate-400 py-2'>
+        <p class='text-slate-350'>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='hover:text-primary-200 text-info-200 transition-all duration-100 font-sans ease-in-out'
+            class='hover:text-primary-100 text-primary-200 transition-all duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>

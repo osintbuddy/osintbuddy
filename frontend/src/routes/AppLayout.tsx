@@ -1,42 +1,30 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AppLayoutSidebar from "@/components/navs/AppLayoutSidebar";
-import { accountAtom, settingsAtom } from "@/app/atoms";
+import { settingsAtom } from "@/app/atoms";
 import { useAtom } from "jotai";
 import "react-toastify/dist/ReactToastify.css";
-import { atomWithMutationState } from "jotai-tanstack-query";
-import { useMutationState } from "@tanstack/react-query";
+import { authAtom, tokenAtom } from "@/app/api";
 
 export default function AppLayout() {
   const [settings, setSettings] = useAtom(settingsAtom)
-  const [account, setAccount] = useAtom(accountAtom)
+  const [a, b] = useAtom(tokenAtom)
+  console.log('aurth, stateatom', a, b)
 
-  const isAuthenticated = account.isAuthenticated
+  // const [{ data: authData },] = useMutationState({
+  //   filters: {
+  //     mutationKey: ['auth'],
+  //   },
+  // })
+  // const isAuthenticated = authData.token;
 
-  const mutationStateAtom = atomWithMutationState((get) => ({
-    filters: {
-      mutationKey: ['auth'],
-    },
-    select: (mutation) => {
-      console.log('seklect', mutation)
-      return mutation.state
-    }
-  }))
-
-  const data = useMutationState({
-    filters: {
-      mutationKey: ['auth'],
-    },
-  })
-
-  console.log("mutaT", mutationStateAtom)
-  console.log("mutaT", mutationStateAtom.toString())
+  // console.log("mutaTa", auth)
 
   const toggleSidebar = () => {
     setSettings({ ...settings, showSidebar: !settings.showSidebar })
   };
 
-  if (!isAuthenticated) return <Navigate to="/" replace />
+  // if (!isAuthenticated) return <Navigate to="/" replace />
 
   return (
     <>

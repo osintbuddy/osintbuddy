@@ -7,7 +7,7 @@ export default function RegisterPage(): JSX.Element {
   return (
     <div class="flex flex-col items-center justify-center">
       <div class="shadow-2xl shadow-black/35 px-14 -mt-30 py-8 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm  border-l-3 border-primary/80 transition-all duration-100 rounded-r">
-        <h2 class="text-slate-300/85 mb-12 font-medium font-display text-2xl relative">
+        <h2 class="text-slate-300 mb-12 font-medium font-display text-2xl relative">
           Sign up for an account
         </h2>
         <div class="font-display flex flex-col">

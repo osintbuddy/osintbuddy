@@ -20,7 +20,7 @@ export function TransparentFile(props: FileInputProps) {
       <button
         onClick={() => onBtnClick()}
         title="Select a folder"
-        className="inset-ring-1 inset-ring-primary-400/95 whitespace-nowrap focus:ring-primary-300/90 hover:inset-ring-primary-400 text-left text-sm font-medium tracking-wide scale-100 hover:scale-[99%]  flex items-center border-1 border-primary-400/95 focus:border-primary-300/90 hover:border-primary-400 px-5 font-display  hover:shadow justify-center transition-all duration-100 ease-linear  rounded-xs text-slate-400 hover:text-slate-300/70 hover:scale-105 group"
+        className="inset-ring-1 inset-ring-primary-400/95 whitespace-nowrap focus:ring-primary-350 hover:inset-ring-primary-400 text-left text-sm font-medium tracking-wide scale-100 hover:scale-[99%]  flex items-center border-1 border-primary-400/95 focus:border-primary-350 hover:border-primary-400 px-5 font-display  hover:shadow justify-center transition-all duration-100 ease-linear  rounded-xs text-slate-400 hover:text-slate-300/70 hover:scale-105 group"
       >
         <FolderIcon className="h-5 text-slate-400/80 group-hover:text-slate-300/70 group-hover:rotate-5 rotate-0 absolute left-2.5 top-1.5" />
       </button>
@@ -47,21 +47,21 @@ export function TransparentPassword(props: PasswordInputProps) {
         <input
           {...props}
           type={hidePassword}
-          className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
         />
         <button
           type="button"
           onClick={() => setHidePassword(hidePassword === "password" ? "text" : "password")}
-          className="text-slate-800 w-0"
+          className="text-slate-800 absolute right-0 top-1 border-b-primary p-1 rounded focus:outline-primary-400 focus:outline-2"
         >
           {
             hidePassword === "password"
-              ? <EyeIcon title="Show Password" className="h-5 relative -left-7 scale-100 rotate-0 hover:rotate-5 hover:scale-110" />
-              : <EyeSlashIcon title="Hide Password" className="h-5 relative -left-7 rotate-0 hover:rotate-5 scale-100 hover:scale-110" />
+              ? <EyeIcon title="Show Password" className="h-5 relative right-0 top-0  scale-100 rotate-0 hover:rotate-5 hover:scale-110 " />
+              : <EyeSlashIcon title="Hide Password" className="h-5 relative right-0 top-0 rotate-0 hover:rotate-5 scale-100 hover:scale-110" />
           }
         </button>
       </div>
-    </div>
+    </div >
   )
 }
 
@@ -80,7 +80,7 @@ export function Transparent(props: InputProps) {
       )}
       <input
         {...props}
-        className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-300/85 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
       />
     </div>
   )
