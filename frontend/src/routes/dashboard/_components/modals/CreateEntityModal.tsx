@@ -1,67 +1,42 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { useEffect } from 'preact/hooks';
-import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-import InputField from '@/components/inputs/InputField';
 import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModal';
-import InputTextarea from '@/components/inputs/InputTextArea';
 import { TrashIcon } from '@heroicons/react/20/solid';
-
-type EntityFormData = {
-  label: string
-  description: string
-  author: string
-}
-
-const entitySchema: Yup.ObjectSchema<EntityFormData> = Yup.object().shape({
-  label: Yup.string().required(),
-  description: Yup.string().optional().default("No description found..."),
-  author: Yup.string().optional().default("")
-});
+import Input from '@/components/inputs';
+import { Icon } from '@/components/Icons';
+import Button from '@/components/buttons';
 
 export function CreateEntityForm({ closeModal, updateEntities }: JSONObject) {
-  const {
-    reset,
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitSuccessful }
-  } = useForm<EntityFormData>({ });
 
-  useEffect(() => {
-    if (!isSubmitSuccessful) return
-    reset({ description: "", label: "", author: "" })
-  }, [isSubmitSuccessful])
-
-
-  const onSubmitHandler = (postEntityCreate: EntityFormData) => {
+  const onSubmitHandler = (postEntityCreate: any) => {
     closeModal()
-    updateEntities()
+    // updateEntities()
   };
 
   return (
 
-    <form onSubmit={handleSubmit(onSubmitHandler)} className='modal-form px-8'>
-      <section>
-        <div>
-          <h1>New Entity</h1>
+    <form onSubmit={onSubmitHandler} className='from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group'>
+      <section class="group-hover:border-primary-350 border-b-2 mt-6 border-mirage-700 pl-1 pb-1 px-px">
+        <div class="flex flex-wrap items-center justify-between">
+          <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new entity plugin</h1>
+          <Icon icon="basket-code" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
         </div>
       </section>
-      <InputField register={register} name="label" label="Label" />
-      <InputTextarea register={register} name="description" label="Description" />
-      <InputField className='mb-6' register={register} name="author" label="Author(s)" description="You can separate multiple authors with commas" />
+      <div class="w-full grid gap-y-8 mt-10 grid-cols-1 ">
+        <Input.Transparent className="w-full" name="label" label="Label" />
+        <Input.Textarea className="w-full" name="description" label="Description" />
+        <Input.Transparent className='w-full mb-6' name="author" label="Author(s)" />
+      </div>
 
-      <section>
-        <div>
-          <button className="btn-danger" onClick={() => closeModal()} type='button'>
-            Cancel
-            <TrashIcon />
-          </button>
-          <button className="btn-primary ml-4" type='submit'>
-            <span>Start editing</span>
-            <PencilIcon />
-          </button>
-        </div>
-      </section>
+      <div class="flex justify-end mb-6">
+        <Button.Solid variant="danger" onClick={() => closeModal()} type='button'>
+          Cancel
+          <TrashIcon class="btn-icon" />
+        </Button.Solid>
+        <Button.Solid className="ml-4" variant="primary" type='submit'>
+          <span>Create entity</span>
+          <PencilIcon class="btn-icon" />
+        </Button.Solid>
+      </div>
     </form>
   );
 }

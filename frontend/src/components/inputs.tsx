@@ -1,4 +1,7 @@
 import { EyeIcon, EyeSlashIcon, FolderIcon } from "@heroicons/react/20/solid";
+import { Description, Field, Label, Switch } from "@headlessui/react";
+import { Fragment, forwardRef } from "react";
+import { Control, useController } from "react-hook-form";
 import { useState } from "preact/hooks";
 import { MouseEventHandler } from "preact/compat";
 import type { JSX } from "preact";
@@ -37,13 +40,13 @@ export function TransparentPassword(props: PasswordInputProps) {
   const { type: _, className, label } = props;
 
   return (
-    <div className="flex relative flex-col">
+    <div className="flex relative flex-col w-full">
       {label && (
-        <label for={label} class="text-sm text-slate-300/75 rounded-t absolute -top-6 px-2 -left-1">
+        <label for={label} class="text-sm text-slate-350 rounded-t absolute font-display -top-6 px-2 -left-1">
           {label}
         </label>
       )}
-      <div className="flex relative">
+      <div className="flex relative w-full">
         <input
           {...props}
           type={hidePassword}
@@ -72,9 +75,9 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 export function Transparent(props: InputProps) {
   const { className, label } = props;
   return (
-    <div className="flex flex-col relative">
+    <div className="flex flex-col relative w-full">
       {label && (
-        <label for={label} class="text-sm text-slate-300/75 rounded-t absolute -top-6 px-2 -left-1 ">
+        <label for={label} class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
         </label>
       )}
@@ -86,6 +89,28 @@ export function Transparent(props: InputProps) {
   )
 }
 
+
+interface TextareaProps extends JSX.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string
+}
+
+export function Textarea(props: TextareaProps) {
+  const { className, label } = props;
+  return (
+    <div className="flex flex-col relative w-full">
+      {label && (
+        <label for={label} class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
+          {label}
+        </label>
+      )}
+
+      <textarea
+        {...props}
+        className={`font-sans p-2 hover:outline-mirage-900 border border-transparent focus:bg-black/60 from-black/35 to-black/10 outline-mirage-700 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out rounded outline-1  focus:outline-primary focus:ring-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+      />
+    </div>
+  )
+}
 interface IconInputProps extends InputProps {
   icon: JSX.Element
   onBtnClick: MouseEventHandler<HTMLButtonElement>
@@ -95,13 +120,13 @@ export function TransparentIcon(props: IconInputProps) {
   const { className, label, icon, onBtnClick } = props;
 
   return (
-    <div className="flex relative flex-col">
+    <div className="flex relative flex-col w-full">
       {label && (
-        <label for={label} class="text-sm text-slate-300/75 rounded-t absolute -top-6 px-2 -left-1">
+        <label for={label} class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1">
           {label}
         </label>
       )}
-      <div className="flex relative">
+      <div className="flex relative w-full">
         <input
           {...props}
           className={`font-sans hover:outline-mirage-900 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
@@ -117,11 +142,74 @@ export function TransparentIcon(props: IconInputProps) {
     </div >
   )
 }
+
+interface SwitchButtonProps {
+  value: boolean;
+  onBlur: () => void;
+  onChange: (value: boolean) => void;
+}
+
+export const SwitchButton = forwardRef<HTMLButtonElement, SwitchButtonProps>(({ value, ...props }, ref) => (
+  <Switch
+    {...props}
+    checked={value}
+    as={Fragment}
+  >
+    <button ref={ref} class={`${value ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1`}>
+      <span
+        aria-hidden='true'
+        class={
+          `inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400'}`}
+      />
+    </button>
+  </Switch>
+));
+
+export interface InputToggleSwitchProps {
+  name: string
+  control: Control<any, any>;
+  defaultValue?: boolean;
+  className?: string
+  label?: string
+  description?: string
+}
+
+export function ToggleSwitch({ control, name, defaultValue, className, label, description }: InputToggleSwitchProps) {
+  const { field } = useController({
+    defaultValue: defaultValue ?? false,
+    control,
+    name
+  })
+
+  return (
+    <Field as='div' class={`${className ?? ''}`}>
+      <Label as='h3' class='text-sm font-display leading-3 text-slate-350' passive>
+        {label ?? ""}
+      </Label>
+      <div class='mt-2 sm:flex sm:items-start sm:justify-between'>
+        {description && (
+          <div class='max-w-xl text-sm text-slate-400'>
+            <Description>
+              {description}
+            </Description>
+          </div>
+        )}
+        <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
+          <SwitchButton {...field} />
+        </div>
+      </div>
+    </Field>
+  )
+}
+
+
 const Input = {
   TransparentFile,
   TransparentPassword,
   Transparent,
-  TransparentIcon
+  TransparentIcon,
+  Textarea,
+  ToggleSwitch
 }
 
 export default Input;

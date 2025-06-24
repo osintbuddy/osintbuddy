@@ -1,5 +1,5 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, MutableRefObject, PropsWithChildren, ReactNode } from "react";
+import { Fragment, MutableRefObject, PropsWithChildren } from "preact/compat";
 
 
 export interface OverlayModalProps {
@@ -25,7 +25,7 @@ export default function OverlayModal({
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='fixed inset-0 bg-mirage-600 bg-opacity-75 transition-opacity' />
+          <div className='fixed inset-0 bg-cod-700/60 backdrop-blur-md transition-opacity' />
         </Transition.Child>
 
         <div className='fixed inset-0 z-10 overflow-y-auto'>
@@ -39,7 +39,7 @@ export default function OverlayModal({
               leaveFrom='opacity-100 translate-y-0 sm:scale-100'
               leaveTo='opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'
             >
-              <Dialog.Panel className='relative max-w-2xl w-full transform overflow-hidden rounded-lg text-left transition-all'>
+              <Dialog.Panel className='relative max-w-2xl w-full transform overflow-hidden rounded-r-xl text-left transition-all'>
                 {children}
               </Dialog.Panel>
             </Transition.Child>

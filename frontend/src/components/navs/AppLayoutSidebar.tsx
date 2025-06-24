@@ -26,7 +26,7 @@ const navigation = [
 export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayoutSidebarProps) {
 
   return (
-    <div class={`fixed inset-y-0 flex border-r from-black/30 to-black/15 bg-gradient-to-br shadow-xl backdrop-blur-md border-black/10 w-64 flex-col transition-transform duration-100 ${showSidebar ? "translate-x-0" : "-translate-x-52 border-r-2"}`}>
+    <div class={`fixed inset-y-0 flex border-r  border-black/10 w-64 flex-col transition-transform duration-100 shadow-2xl shadow-black/35 from-black/30 to-black/20 bg-gradient-to-br backdrop-blur-sm ${showSidebar ? "translate-x-0" : "-translate-x-52 border-r-2"}`}>
       <div class="flex min-h-0 flex-1 flex-col mt-2 ">
         <div class={`flex h-10 my-1 flex-shrink-0 items-center justify-between ${showSidebar ? "px-3.5" : "px-1"}`}>
           <Link to="/" replace>

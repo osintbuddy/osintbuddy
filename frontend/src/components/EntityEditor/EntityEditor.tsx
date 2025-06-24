@@ -106,7 +106,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
           minH: 1,
           maxW: 50,
           minW: 2,
-        }} key="a" className="overflow-hidden rounded-sm border-mirage-3200/0 shadow-lg border z-10 backdrop-blur-sm from-black/30 to-black/35  bg-gradient-to-br from-50% flex flex-col h-full">
+        }} key="a" className="overflow-hidden rounded-sm border-mirage-3200/0 shadow-lg border z-10 backdrop-blur-sm from-black/35 to-black/20  bg-gradient-to-br from-50% flex flex-col h-full">
           <div className="  border-mirage-800/10 border overflow-y-scroll h-full ">
             <h2 className="text-slate-350 px-3 py-3 font-display text-lg">Migrations</h2>
           </div>

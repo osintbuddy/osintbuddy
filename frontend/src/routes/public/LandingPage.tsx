@@ -1,7 +1,10 @@
 import type { JSX } from 'preact';
-import { FingerPrintIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { FingerPrintIcon, RectangleGroupIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
+import { tokenAtom } from '@/app/atoms';
+import { useEffect } from 'preact/hooks';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -15,6 +18,11 @@ const QUOTES = [
 export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
   const navigate = useNavigate();
+
+  const [token,] = useAtom(tokenAtom);
+  useEffect(() => {
+    console.log('token', token)
+  })
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
       <div class='mx-auto md:mt-52 mt-24 items-center'>
@@ -24,16 +32,27 @@ export default function LandingPage(): JSX.Element {
               Elevate your Research with Strategic Insights from Public Data
             </h2>
             <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-350 max-w-2xl'>
-              Hi, I'm jerlendds and I built an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can answer questions like what links to this domain.
+              Hi, I'm jerlendds and I created OSINTBuddy, an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can identify relationships like what links to a given domain.
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
-              <Button.Solid
-                variant='primary'
-                onClick={() => navigate("/login", { replace: true })}
-              >
-                Sign in
-                <FingerPrintIcon class="btn-icon" />
-              </Button.Solid>
+              {token?.length > 1 ? (
+                <Button.Solid
+                  variant='primary'
+                  onClick={() => navigate("/dashboard/graph")}
+                >
+                  Open OSINTBuddy
+                  <Squares2X2Icon class="btn-icon" />
+                </Button.Solid>
+              ) : (
+                <Button.Solid
+                  variant='primary'
+                  onClick={() => navigate("/login", { replace: true })}
+                >
+                  Sign in
+                  <FingerPrintIcon class="btn-icon" />
+                </Button.Solid>
+              )}
+
               <Button.Ghost
                 variant='primary'
                 onClick={() => navigate("/register", { replace: true })}

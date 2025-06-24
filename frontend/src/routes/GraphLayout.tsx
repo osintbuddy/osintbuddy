@@ -2,12 +2,12 @@ import { Navigate, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAtom } from "jotai";
-import { accountAtom } from "@/app/atoms";
+import { tokenAtom } from "@/app/atoms";
 
 export default function GraphLayout() {
-  const [account, setAccount] = useAtom(accountAtom)
+  const [token,] = useAtom(tokenAtom)
 
-  if (!account.isAuthenticated) return <Navigate to="/" replace />
+  if (!token) return <Navigate to="/" replace />
 
   return (
     <>
@@ -29,10 +29,10 @@ export default function GraphLayout() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="dark"
         toastStyle={{
-          backgroundColor: "#1C233B",
-          color: "#94a3b8",
+          backgroundColor: "rgba(0, 2, 22, 0.938)",
+          color: "#e2e8f0",
+          backdropFilter: "var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)"
         }}
       />
     </>

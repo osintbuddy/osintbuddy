@@ -25,7 +25,7 @@ export default function WorkspacePage() {
   return (
     <>
       <div class="flex flex-col w-full pt-2.5 px-3">
-        <section class="flex items-center shadow-md relative rounded-md border-b  backdrop-blur-md from-black/35 to-black/45 bg-gradient-to-br border-mirage-700/20 h-min justify-center pt-0.5 z-[99]">
+        <section class="flex items-center shadow-md relative rounded-md border-b  backdrop-blur-md from-black/35 to-black/20 bg-gradient-to-br border-mirage-700/20 h-min justify-center pt-0.5 z-[99]">
           {/* <div className='isolate inline-flex shadow-sm'>
                 <button title="Toggle the display view" className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' >
                   <CodeBracketIcon className='h-6' />
@@ -39,7 +39,7 @@ export default function WorkspacePage() {
               setActiveEntity(option)
             }}
           >
-            <div class=' p-1.5 w-full rounded-sm relative sm:text-sm sm:leading-6  hover:border-mirage-400/60 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-400/40 from-mirage-500/40 bg-gradient-to-br border-2 focus-within:!border-primary/70 focus-within:ring-1 ring-mirage-400/20  text-slate-100 shadow-sm border-mirage-400/20 focus-within:from-mirage-600/60 focus-within:to-mirage-700 focus-within:bg-gradient-to-l dropdown max-w-xs ml-1.5'>
+            <div class='  w-full  relative sm:text-sm sm:leading-6  hover:border-slate-700/20 justify-between items-center  bg-gradient-to-br focus-within:!border-primary/70 focus-within:ring-1 ring-mirage-400/20  text-slate-100 shadow-sm   focus-within:bg-gradient-to-l dropdown max-w-xs ml-1.5 font-sans hover:outline-slate-900/30 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-slate-900 focus-visible:outline-transparent focus:border-2'>
               <ComboboxInput
                 ref={dropdownRef}
                 onClick={() => {
@@ -49,18 +49,18 @@ export default function WorkspacePage() {
                 }}
                 onChange={(event) => setQuery(event.currentTarget.value)}
                 displayValue={(option: DropdownOption) => option.label}
-                className='nodrag font-display focus:ring-info-400 mr-4 outline-none px-2 placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none w-full'
+                className=' focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 outline-none'
               />
-              <ComboboxButton className='absolute z-[99] inset-y-0 h-9 right-0 focus:outline-none'>
+              <ComboboxButton className='absolute z-[99] inset-y-0 h-8 right-0 focus:outline-none'>
                 <ChevronUpDownIcon className='h-7 w-7 text-slate-600' aria-hidden='true' />
               </ComboboxButton>
-              <ComboboxOptions className='left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-mirage-800/90 to-mirage-900/80 from-30% border-2 border-mirage-900/80 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
+              <ComboboxOptions className='left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-black/35 to-black/10  from-30% border-2 border-mirage-900/80 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm'>
                 {entities?.length !== 0 ? sortedEntities.map((entity: any) => (
                   <ComboboxOption
                     key={entity.label}
                     value={entity}
                     className={({ active }: any) =>
-                      `text-nowrap px-4 flex-col hover:bg-mirage-800 border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-350' : 'text-slate-400'}`
+                      `text-nowrap px-4 flex-col hover:bg-black border-l-2 border-transparent hover:border-primary-300 flex py-1.5  nowheel nodrag cursor-default select-none  ${active ? ' text-slate-350' : 'text-slate-400'}`
                     }
                   >
                     <span class="block truncate text-md">
@@ -71,7 +71,7 @@ export default function WorkspacePage() {
                     </span>
                   </ComboboxOption>
                 )) : (
-                  <div class="text-nowrap px-4 my-2 flex-col hover:bg-mirage-800 flex nowheel nodrag cursor-default select-none text-slate-400 pb-2">
+                  <div class="text-nowrap px-4 my-2 flex-col hover:bg-black/20 flex nowheel nodrag cursor-default select-none text-slate-400 pb-2">
                     <span class="border-b-danger-600/80 border-b-2 font-display text-lg w-min pr-1">
                       No entities found!
                     </span>

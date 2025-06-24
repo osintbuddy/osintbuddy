@@ -156,8 +156,8 @@ html {
   --grid-size: 80px;
   --grid-small-size: 10px;
   --grid-e: 80px;
-  --grid-color: rgba(6, 13, 92, 0.301);
-  --paper-color: #020222;
+  --grid-color: rgba(6, 25, 87, 0.301);
+  --paper-color: #010222;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
     linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
@@ -184,9 +184,9 @@ body {
   background-image:
     radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, lch(3.54% 19.49 285.3 / 0.055) 100%),
     radial-gradient(113% 91% at 17% -2%, rgba(3, 1, 44, 0.103) 1%, #04001609 99%),
-    radial-gradient(142% 91% at 83% 7%, hsla(298, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
-    radial-gradient(142% 91% at -6% 74%, rgba(49, 3, 46, 0.158) 1%, rgba(0, 80, 253, 0.082) 99%),
-    radial-gradient(142% 91% at 111% 84%, #000e5c0e 25%, rgba(5, 15, 151, 0.151) 95%);
+    radial-gradient(142% 91% at 83% 7%, hsla(251, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
+    radial-gradient(142% 91% at -6% 74%, rgba(150, 5, 179, 0.192) 1%, rgba(0, 80, 253, 0.082) 99%),
+    radial-gradient(142% 91% at 111% 84%, #000e5c0e 25%, rgba(0, 8, 116, 0.151) 95%);
   z-index: -99;
 }
 
@@ -373,62 +373,6 @@ input[type='file'] {
   display: none;
 }
 
-/* start toastify styles */
-:root {
-  --toastify-color-light: #fff;
-  --toastify-color-dark: #121212;
-  --toastify-color-info: #0163A4;
-  --toastify-color-success: #48B758;
-  --toastify-color-warning: #CC9900;
-  --toastify-color-error: #C1292E;
-  --toastify-color-transparent: rgba(255, 255, 255, 0.7);
-
-  --toastify-icon-color-info: var(--toastify-color-info);
-  --toastify-icon-color-success: var(--toastify-color-success);
-  --toastify-icon-color-warning: var(--toastify-color-warning);
-  --toastify-icon-color-error: var(--toastify-color-error);
-
-  --toastify-toast-width: 320px;
-  --toastify-toast-background: #fff;
-  --toastify-toast-min-height: 64px;
-  --toastify-toast-max-height: 600px;
-  --toastify-font-family: sans-serif;
-  --toastify-z-index: 9999;
-
-  --toastify-text-color-light: #757575;
-  --toastify-text-color-dark: #fff;
-
-  /* //Used only for colored theme */
-  --toastify-text-color-info: #fff;
-  --toastify-text-color-success: #fff;
-  --toastify-text-color-warning: #fff;
-  --toastify-text-color-error: #fff;
-
-  --toastify-spinner-color: #616161;
-  --toastify-spinner-color-empty-area: #e0e0e0;
-
-  /* // Used when no type is provided */
-  --toastify-color-progress-light: linear-gradient(to right, #4cd964, #5ac8fa, #007aff, #34aadc, #5856d6, #ff2d55);
-  /* // Used when no type is provided */
-  --toastify-color-progress-dark: #bb86fc;
-  --toastify-color-progress-info: var(--toastify-color-info);
-  --toastify-color-progress-success: var(--toastify-color-success);
-  --toastify-color-progress-warning: var(--toastify-color-warning);
-  --toastify-color-progress-error: var(--toastify-color-error);
-}
-
-.Toastify__toast-body {
-  @apply items-start;
-}
-
-.Toastify__close-button.Toastify__close-button--light {
-  @apply w-10 h-8 text-slate-100;
-}
-
-.Toastify__close-button.Toastify__close-button--light svg {
-  @apply w-5 h-5;
-}
-/* end toastify styles */
 
 .sidebar-link {
   @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
@@ -475,7 +419,7 @@ input[type='file'] {
 
 /* wraps the sidebar with search and the main view */
 .sidebar-wrapper {
-  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-black/15 to-black/30 bg-gradient-to-br shadow-xl border-black/10 justify-between flex relative w-full backdrop-blur-md
+  @apply rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-black/20 to-black/25 bg-gradient-to-tr shadow-2xl border-black/10 justify-between flex relative w-full backdrop-blur-md
 }
 
 .search-container {
@@ -503,7 +447,7 @@ input[type='file'] {
 }
 
 .tab {
-  @apply focus:outline-none transition-colors duration-200 ease-in-out flex items-center justify-center pt-2.5 px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto
+  @apply focus:outline-none transition-colors duration-200 ease-in-out flex items-center justify-center pt-2 px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto
 }
 
 .tab span,
@@ -521,7 +465,7 @@ input[type='file'] {
 }
 
 .tab-slider {
-  @apply min-h-[34px] mr-auto min-w-[86px] left-0 relative z-[0] top-1 hover:scale-x-[100%] transition-all duration-200 ease-in-out rounded scale-x-[104%] from-primary-400/90 to-primary-400/80 border border-mirage-400/60 bg-gradient-to-br;
+  @apply min-h-[35px] mr-auto min-w-[86px] left-0 relative z-[0] top-1 hover:scale-x-[100%] transition-all duration-200 ease-in-out rounded scale-x-[104%] from-primary-350/90 to-primary-400 border border-mirage-400/60 bg-gradient-to-br;
   /* clip-path: polygon(0px 0px, 0px 26px, 9px 36px, 90px 36px, 90px 0px, 0px 0px, 0px 0px ); */
 }
 
@@ -530,7 +474,7 @@ input[type='file'] {
 }
 
 .entities-tab[aria-selected="true"]~div {
-  @apply -translate-x-[200px] scale-x-[110%] cursor-pointer
+  @apply -translate-x-[199px] scale-x-[110%] cursor-pointer
 }
 
 .market-tab[aria-selected="true"]~div {
@@ -541,32 +485,6 @@ input[type='file'] {
   @apply w-full relative px-2 pr-2.5;
 }
 
-
-/* start */
-.modal-form {
-  @apply from-mirage-600 to-mirage-600 bg-gradient-to-br w-full shadow rounded-lg
-}
-
-.modal-form section:first-child {
-  @apply border-b border-mirage-300 py-5 pb-1 sm:px-6;
-}
-
-.modal-form section:first-child>div {
-  @apply -ml-6 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap
-}
-
-.modal-form section:first-child>div h1 {
-  @apply font-display text-2xl tracking-tight text-slate-400;
-}
-
-.modal-form section:last-child {
-  @apply flex justify-end items-center pb-6 w-full relative;
-}
-
-.modal-form section:last-child>div {
-  @apply mt-2 flex-shrink-0 flex items-center
-}
-/* end */
 
 /* start... TODO: refactor me */
 .subpanel section {

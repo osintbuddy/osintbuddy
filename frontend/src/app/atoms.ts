@@ -1,25 +1,24 @@
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { StepType } from '@reactour/tour';
+import { atomWithMutation } from 'jotai-tanstack-query';
+import { authKey, authFn } from '@/app/api';
 
-export interface Account {
-  isAuthenticated: boolean
-}
 
-export const accountAtom = atomWithStorage<Account>("ob-user", {
-  isAuthenticated: false,
-});
+// When app guides are toggled by a user, set the appropriate tour steps
+export type TourAtomValue = StepType[]
+const tourAtom = atom<TourAtomValue>([])
 
-export interface Settings {
-  showSidebar: boolean,
-  settingsPage: "account" | "plugins",
-}
+// show/hide main app sidebar found at frontend/src/components/navs/AppLayoutSidebar.tsx
+const showSidebarAtom = atomWithStorage<boolean>('show-sidebar', true);
 
-export const settingsAtom = atomWithStorage<Settings>('ob-settings', {
-  showSidebar: true,
-  settingsPage: "account",
-});
+// Used by 'auth middleware' in frontend/src/routes/AppLayout.tsx
+const tokenAtom = atom<string>('');
+const authAtom = atomWithMutation(() => ({ 
+  mutationKey: authKey,
+  mutationFn: authFn 
+}));
 
-export type TourAtom = StepType[]
 
-export const tourAtom = atom<TourAtom>([])
+// http://localhost:5173/dashboard/graph
+export { authAtom, tokenAtom, showSidebarAtom, tourAtom }

@@ -2,10 +2,11 @@
 import { BASE_URL } from './baseApi';
 import { atomWithMutation, atomWithMutationState, atomWithQuery } from 'jotai-tanstack-query';
 import { MutationFunction, MutationKey, QueryFunction, QueryKey } from "@tanstack/query-core";
-import { atom } from 'jotai';
+import { atom, useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
-const authFn = async (user: any) => {
+export const authKey = ['auth']
+export const authFn = async (user: any) => {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -17,17 +18,3 @@ const authFn = async (user: any) => {
   }
   return data
 }
-
-const authKey = ['auth']
-
-const authAtom = atomWithMutation(() => ({
-  mutationKey: authKey,
-  mutationFn: authFn 
-}))
-
-const tokenAtom = atomWithMutationState(() => ({
-  filters: {
-    mutationKey: authKey,
-  },
-}))
-export { authAtom, tokenAtom };

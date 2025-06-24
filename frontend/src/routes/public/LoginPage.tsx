@@ -1,4 +1,5 @@
-import { authAtom, tAtom } from "@/app/api";
+
+import { authAtom, tokenAtom } from "@/app/atoms";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
@@ -10,6 +11,7 @@ import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
+  const [, setToken] = useAtom(tokenAtom)
   const [{ error, data, mutate, status }] = useAtom(authAtom);
 
   const onSubmit = (e: any) => {
@@ -20,10 +22,10 @@ export default function LoginPage(): JSX.Element {
     // check if inputs valid
     const invalidPassword = password === undefined || password.length < 8;
     const invalidEmail = email === undefined || email.length < 5;
-    if (invalidPassword)
-      toast.warn("Passwords must have a minimum of 8 characters.");
     if (invalidEmail)
       toast.warn("An email is needed to sign in.");
+    if (invalidPassword)
+      toast.warn("Passwords must have a minimum of 8 characters.");
 
     if (!invalidEmail && !invalidPassword) {
       mutate({ email, password });
@@ -34,14 +36,15 @@ export default function LoginPage(): JSX.Element {
 
   useEffect(() => {
     if (status === 'success') {
+      setToken(data.token)
+      console.log(data, status)
       navigate("/dashboard", { replace: true });
     }
     if (error?.message && error?.kind) {
       toast.error(error.message)
       console.log(error)
     }
-    console.log(data, status)
-  }, [data])
+  }, [status])
 
   return (
     <>
