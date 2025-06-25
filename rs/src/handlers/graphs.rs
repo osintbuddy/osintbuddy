@@ -13,7 +13,7 @@ use actix_web::{
     patch, post,
     web::{Json, Path},
 };
-use log::error;
+use log::{error, info};
 use std::string::String;
 
 #[post("/graphs/")]
@@ -46,18 +46,24 @@ async fn create_graph_handler(
             message: "We ran into a missing graph id error!",
             kind: ErrorKind::Critical,
         })?;
-    sqlx::query("SELECT create_graph($1)")
-        .bind(graph_name)
-        .execute(pool.as_ref())
-        .await
-        .map(|_| graph)
-        .map_err(|err| {
-            error!("Error creating age graph: {err}");
-            AppError {
-                kind: ErrorKind::Critical,
-                message: "We ran into an error creating your Age graph.",
-            }
-        })
+    info!("Creating Age graph, graph_name: {}", graph_name);
+    let mut tx = age_tx(pool.as_ref()).await?;
+
+    sqlx::raw_sql(
+        format!("SELECT create_graph('{}')", graph_name)
+            .to_string()
+            .as_str(),
+    )
+    .execute(tx.as_mut())
+    .await
+    .map(|_| graph)
+    .map_err(|err| {
+        error!("Error creating age graph: {err}");
+        AppError {
+            kind: ErrorKind::Critical,
+            message: "We ran into an error creating your Age graph.",
+        }
+    })
 }
 
 #[patch("/graphs/")]
