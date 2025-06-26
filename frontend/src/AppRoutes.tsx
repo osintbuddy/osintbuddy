@@ -4,12 +4,9 @@ import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom"
 import NotFound from "@/routes/public/NotFound";
 import AppLayout from "@/routes/AppLayout";
 import PublicLayout from "@/routes/PublicLayout";
-import CallbackPage from '@/routes/public/CallbackPage';
 import { TourProvider } from "@reactour/tour";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import GraphLayout from "@/routes/GraphLayout";
-import { useAtom } from 'jotai';
-import { tourAtom } from './app/atoms';
 import Button from './components/buttons';
 import RoundLoader from './components/Loaders';
 // Public routes
@@ -111,7 +108,8 @@ const router = createBrowserRouter([
 ]);
 
 export default function AppRoutes(): JSX.Element {
-  const [tourSteps, _] = useAtom(tourAtom)
+  // const [tourSteps, _] = useAtom(tourAtom)
+  const tourSteps = [{ todo: 'zustand' }]
 
   return (
     <TourProvider

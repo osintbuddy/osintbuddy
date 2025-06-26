@@ -143,44 +143,17 @@ export function TransparentIcon(props: IconInputProps) {
   )
 }
 
-interface SwitchButtonProps {
-  value: boolean;
-  onBlur: () => void;
-  onChange: (value: boolean) => void;
-}
-
-export const SwitchButton = forwardRef<HTMLButtonElement, SwitchButtonProps>(({ value, ...props }, ref) => (
-  <Switch
-    {...props}
-    checked={value}
-    as={Fragment}
-  >
-    <button ref={ref} class={`${value ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1`}>
-      <span
-        aria-hidden='true'
-        class={
-          `inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400'}`}
-      />
-    </button>
-  </Switch>
-));
 
 export interface InputToggleSwitchProps {
-  name: string
-  control: Control<any, any>;
-  defaultValue?: boolean;
-  className?: string
-  label?: string
-  description?: string
+  checked: boolean
+  onChange: (checked: boolean) => void | undefined
+  label: string
+  description: string
+  className: string
 }
 
-export function ToggleSwitch({ control, name, defaultValue, className, label, description }: InputToggleSwitchProps) {
-  const { field } = useController({
-    defaultValue: defaultValue ?? false,
-    control,
-    name
-  })
-
+export function ToggleSwitch(props: InputToggleSwitchProps) {
+  const { label, description, className } = props;
   return (
     <Field as='div' class={`${className ?? ''}`}>
       <Label as='h3' class='text-sm font-display leading-3 text-slate-350' passive>
@@ -195,10 +168,22 @@ export function ToggleSwitch({ control, name, defaultValue, className, label, de
           </div>
         )}
         <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
-          <SwitchButton {...field} />
+          <Switch
+            checked={props.checked}
+            onChange={props.onChange}
+            as={Fragment}
+          >
+            <button class={`${props.checked ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1`}>
+              <span
+                aria-hidden='true'
+                class={
+                  `inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400'}`}
+              />
+            </button>
+          </Switch>
         </div>
       </div>
-    </Field>
+    </Field >
   )
 }
 

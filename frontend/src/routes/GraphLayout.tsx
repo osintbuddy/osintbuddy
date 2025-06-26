@@ -1,11 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAtom } from "jotai";
-import { tokenAtom } from "@/app/atoms";
 
 export default function GraphLayout() {
-  const [token,] = useAtom(tokenAtom)
+  const token = "";
 
   if (!token) return <Navigate to="/" replace />
 

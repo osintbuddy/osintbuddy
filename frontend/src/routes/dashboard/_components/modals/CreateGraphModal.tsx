@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
-import { DocumentMagnifyingGlassIcon, DocumentPlusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useForm } from "react-hook-form";
-import * as Yup from "yup";
+import { ArrowUturnLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
 import OverlayModal from '@/components/modals/OverlayModal';
-import InputField from '@/components/inputs/InputField';
-import InputTextarea from '@/components/inputs/InputTextArea';
-import InputToggleSwitch from '@/components/inputs/InputToggleSwitch';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import Input from '@/components/inputs';
@@ -18,27 +13,16 @@ type GraphFormData = {
   enableGraphGuide?: boolean | undefined
 }
 
-const graphSchema: Yup.ObjectSchema<GraphFormData> = Yup.object().shape({
-  label: Yup.string().required("Required"),
-  description: Yup.string().optional().default("No description found..."),
-  enableGraphGuide: Yup.boolean()
-});
+
 
 
 export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
   const navigate = useNavigate()
   const [showGraphGuide, setShowGraphGuide] = useState(false);
 
-  const {
-    reset,
-    control,
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitSuccessful, isSubmitting }
-  } = useForm<GraphFormData>({});
 
   useEffect(() => {
-    if (!isSubmitSuccessful) return
+    if (!false) return
     if (false) {
       closeModal()
       const replace = { replace: true }
@@ -53,8 +37,7 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
       console.error("error")
       toast.error("We ran into an error creating your graph. Please try again")
     }
-    reset({ label: "", description: "", enableGraphGuide: false })
-  }, [isSubmitSuccessful, showGraphGuide])
+  }, [showGraphGuide])
 
   const onSubmitHandler = (graphCreate: GraphFormData) => {
     if (graphCreate?.enableGraphGuide) {
@@ -66,7 +49,7 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmitHandler)} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group">
+    <form onSubmit={onSubmitHandler} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group">
       <section class="group-hover:border-primary-350 border-b-2 mt-6 border-mirage-700 pl-1 pb-1 px-px ">
         <div class=" flex flex-wrap items-center justify-between ">
           <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new graph</h1>
@@ -76,19 +59,19 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
       <div class="w-full grid gap-y-8 mt-10 grid-cols-1 ">
         <Input.Transparent label="Label" placeholder="Enter a name for your graph..." className="w-full" />
         <Input.Textarea rows={3} name="description" className="w-full" label="Description" placeholder="Additional details about your graph..." />
-        <Input.ToggleSwitch className='pb-6' label="Enable Guide" control={control} name={"enableGraphGuide"} description="Get a step-by-step guide on how to perform investigations" />
+        <Input.ToggleSwitch className='pb-6' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
       </div>
 
       <div class="flex justify-end mb-6">
-        <Button.Solid
+        <Button.Ghost
           variant='danger'
           onClick={() => closeModal()}
           type='button'
           className="btn-danger"
         >
           <span>Cancel</span>
-          <TrashIcon class="btn-icon" />
-        </Button.Solid>
+          <ArrowUturnLeftIcon class="btn-icon text-danger" />
+        </Button.Ghost>
         <Button.Solid
           variant='primary'
           type='submit'

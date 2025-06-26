@@ -1,7 +1,7 @@
 {
-  "name": "ui",
+  "name": "osib",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -16,7 +16,9 @@
     "@reactour/tour": "^3.7.0",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/query-core": "^5.77.0",
-    "@tanstack/react-query": "^5.80.7",
+    "@tanstack/react-query": "^5.81.2",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.11",
     "@uiw/codemirror-theme-aura": "^4.23.10",
     "@uiw/react-codemirror": "^4.23.10",
     "@xyflow/react": "^12.6.0",
@@ -25,21 +27,16 @@
     "elkjs": "^0.10.0",
     "graphology": "^0.26.0",
     "graphology-types": "^0.24.8",
-    "jotai": "^2.12.4",
-    "jotai-tanstack-query": "^0.9.0",
     "preact": "^10.26.7",
     "react-grid-layout": "^1.5.1",
-    "react-hook-form": "^7.56.1",
     "react-resizable": "^3.0.5",
     "react-router-dom": "^7.6.0",
-    "react-table": "^7.8.0",
     "react-toastify": "^11.0.5",
     "react-use-websocket": "^4.13.0",
-    "react-virtualized": "^9.22.6",
     "sigma": "^3.0.1",
     "tailwindcss": "^4.1.4",
     "webcola": "^3.4.0",
-    "yup": "^1.6.1"
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",

@@ -1,14 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AppLayoutSidebar from "@/components/navs/AppLayoutSidebar";
-import { showSidebarAtom, tokenAtom } from "@/app/atoms";
-import { useAtom } from "jotai";
 import "react-toastify/dist/ReactToastify.css";
+import { useState } from "preact/hooks";
 
 export default function AppLayout() {
-  const [showSidebar, setShowSidebar] = useAtom(showSidebarAtom)
-  const [token,] = useAtom(tokenAtom)
-
+  const [showSidebar, setShowSidebar] = useState(true);
+  const token = ""
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar)
   };

@@ -1,6 +1,5 @@
-import { PencilIcon } from '@heroicons/react/24/outline';
+import { ArrowUturnLeftIcon, PencilIcon } from '@heroicons/react/24/outline';
 import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModal';
-import { TrashIcon } from '@heroicons/react/20/solid';
 import Input from '@/components/inputs';
 import { Icon } from '@/components/Icons';
 import Button from '@/components/buttons';
@@ -13,7 +12,6 @@ export function CreateEntityForm({ closeModal, updateEntities }: JSONObject) {
   };
 
   return (
-
     <form onSubmit={onSubmitHandler} className='from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group'>
       <section class="group-hover:border-primary-350 border-b-2 mt-6 border-mirage-700 pl-1 pb-1 px-px">
         <div class="flex flex-wrap items-center justify-between">
@@ -28,10 +26,10 @@ export function CreateEntityForm({ closeModal, updateEntities }: JSONObject) {
       </div>
 
       <div class="flex justify-end mb-6">
-        <Button.Solid variant="danger" onClick={() => closeModal()} type='button'>
+        <Button.Ghost variant="danger" onClick={() => closeModal()} type='button'>
           Cancel
-          <TrashIcon class="btn-icon" />
-        </Button.Solid>
+          <ArrowUturnLeftIcon class="btn-icon text-danger" />
+        </Button.Ghost>
         <Button.Solid className="ml-4" variant="primary" type='submit'>
           <span>Create entity</span>
           <PencilIcon class="btn-icon" />

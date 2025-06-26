@@ -1,9 +1,7 @@
 import type { JSX } from 'preact';
-import { FingerPrintIcon, RectangleGroupIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { FingerPrintIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
-import { tokenAtom } from '@/app/atoms';
 import { useEffect } from 'preact/hooks';
 
 const QUOTES = [
@@ -19,7 +17,7 @@ export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
   const navigate = useNavigate();
 
-  const [token,] = useAtom(tokenAtom);
+  const token = ""
   useEffect(() => {
     console.log('token', token)
   })

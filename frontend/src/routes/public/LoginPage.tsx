@@ -1,9 +1,7 @@
 
-import { authAtom, tokenAtom } from "@/app/atoms";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
-import { useAtom } from "jotai";
 import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { useNavigate } from "react-router-dom";
@@ -11,8 +9,6 @@ import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
-  const [, setToken] = useAtom(tokenAtom)
-  const [{ error, data, mutate, status }] = useAtom(authAtom);
 
   const onSubmit = (e: any) => {
     e.preventDefault();
@@ -28,23 +24,22 @@ export default function LoginPage(): JSX.Element {
       toast.warn("Passwords must have a minimum of 8 characters.");
 
     if (!invalidEmail && !invalidPassword) {
-      mutate({ email, password });
+      // mutate({ email, password });
       e.currentTarget.reset(); // clear inputs
     }
   };
 
 
   useEffect(() => {
-    if (status === 'success') {
-      setToken(data.token)
-      console.log(data, status)
-      navigate("/dashboard", { replace: true });
-    }
-    if (error?.message && error?.kind) {
-      toast.error(error.message)
-      console.log(error)
-    }
-  }, [status])
+    // if (status === 'success') {
+    // console.log(data, status)
+    // navigate("/dashboard", { replace: true });
+    // }
+    // if (error?.message && error?.kind) {
+    //   toast.error(error.message)
+    //   console.log(error)
+    // }
+  }, [])
 
   return (
     <>
