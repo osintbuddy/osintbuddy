@@ -1,4 +1,4 @@
-import ButtonGhost from "@/components/buttons/ButtonGhost";
+import Button from "@/components/buttons";
 import { EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
@@ -24,22 +24,23 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
               </p>
             </div>
             <div className="flex w-full gap-x-4 mt-auto relative items-center">
-              <button
+              <Button.Ghost
                 onClick={() => {
                   refetchGraphs()
                 }}
-                className="btn-danger ml-auto"
+                className=" ml-auto"
+                variant="danger"
               >
                 Delete graph
                 <TrashIcon className="text-inherit h-5 w-5 ml-2" />
-              </button>
-              <ButtonGhost
+              </Button.Ghost>
+              <Button.Ghost
                 variant='primary'
                 onClick={() => navigate(`/graph/${graph?.id}`, { replace: true })}
               >
                 Open graph
                 <EyeIcon className='btn-icon' />
-              </ButtonGhost>
+              </Button.Ghost>
             </div>
           </section>
         </div>

@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
-import { useStore, getBezierPath, BaseEdge, EdgeLabelRenderer, MarkerType } from 'reactflow';
 
 import { getEdgeParams } from './utils';
-import classNames from 'classnames';
 import { ChevronDoubleDownIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 
 function EdgeLabel({ transform, label }: { transform: string; label: string }) {

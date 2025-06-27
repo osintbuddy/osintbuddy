@@ -1,33 +1,16 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from '@xyflow/react';
-import { useParams, useLocation, useBlocker, Link, useNavigate } from 'react-router-dom';
+import { useParams, useLocation, useBlocker } from 'react-router-dom';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
-import 'reactflow/dist/style.css';
 import EntityOptions from './_components/EntityOptions';
 import ContextMenu from './_components/ContextMenu';
 import { toast } from 'react-toastify';
 import Graph from './_components/Graph';
 import ELK from 'elkjs/lib/elk.bundled.js';
-import {
-  ProjectViewModes,
-  createEdge,
-  createNode,
-  graphEdges,
-  graphNodes,
-  resetGraph,
-  selectEditState,
-  selectPositionMode,
-  selectViewMode,
-  setAllEdges,
-  setAllNodes,
-  setEditState,
-  setPositionMode,
-} from '@/features/graph/graphSlice';
+
 import { WS_URL } from '@/app/baseApi';
-import CommandPallet from './_components/CommandPallet';
-import { useGetGraphQuery } from '@/app/api';
 import RoundLoader from '@/components/Loaders';
 import { useTour } from '@reactour/tour';
 

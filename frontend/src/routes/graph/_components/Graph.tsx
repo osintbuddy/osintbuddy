@@ -1,20 +1,16 @@
 import { useCallback, useState, useMemo, useEffect } from 'preact/hooks';
-import {  DragEventHandler } from 'preact/compat'
-import ReactFlow, {
+import { DragEventHandler } from 'preact/compat'
+import {
   Edge,
   Background,
   BackgroundVariant,
   FitViewOptions,
-  NodeDragHandler,
   Connection,
   ReactFlowInstance,
 } from '@xyflow/react';
 import EditEntityNode from './EntityEditNode';
-import { addNodeUpdate, createEdge, disableEntityEdit, enableEntityEdit,onEdgesChange, setEditState, updateEdgeEvent, updateNodeFlow } from '@/features/graph/graphSlice';
-import { useAppDispatch } from '@/app/hooks';
 import { toast } from 'react-toastify';
 import ViewEntityNode from './EntityViewNode';
-import { CreateEntityOnDropApiResponse, useCreateEntityOnDropMutation, useRefreshEntityPluginsQuery } from '@/app/api';
 import { useParams } from 'react-router-dom';
 import NewConnectionLine from './ConnectionLine';
 import SimpleFloatingEdge from './SimpleFloatingEdge';

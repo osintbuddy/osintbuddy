@@ -1,22 +1,12 @@
 // @ts-nocheck
 import { ChevronUpDownIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Combobox } from '@headlessui/react';
-import classNames from 'classnames';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { Handle, HandleType, Position } from 'reactflow';
-import { GripIcon, Icon } from '@src/components/Icons';
+import { GripIcon, Icon } from '@/components/Icons';
 import { Dialog } from '@headlessui/react';
-import { useAppDispatch, useAppSelector, useComponentVisible } from '@src/app/hooks';
+import { useAppDispatch, useAppSelector, useComponentVisible } from '@/app/hooks';
 import Color from 'color';
-import { type ThunkDispatch } from 'redux-thunk';
-import {
-  setEditState,
-  type Graph,
-  EditState,
-  saveUserEdits,
-  selectNodeValue,
-  enableEntityEdit,
-} from '@src/features/graph/graphSlice';
+
 import { toast } from 'react-toastify';
 
 const handleStyle = { borderColor: '#39477899', background: '#12172720', width: 12, margin: -1, height: 12 };

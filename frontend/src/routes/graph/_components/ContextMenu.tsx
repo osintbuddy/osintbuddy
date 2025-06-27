@@ -1,11 +1,6 @@
-import { XYPosition } from 'reactflow';
 import ContextAction from './ContextAction';
-import { MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import classNames from 'classnames';
-import { useAppDispatch } from '@src/app/hooks';
-import { deleteNode, setEditState } from '@src/features/graph/graphSlice';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import { useGetEntityTransformsQuery } from '@src/app/api';
 
 export default function ContextMenu({
   closeMenu,
@@ -46,7 +41,7 @@ export default function ContextMenu({
                   </div>
                 </div>
               </div>
-              {transforms &&  (
+              {transforms && (
                 <>
                   {ctxSelection && (
                     <div className=' '>
