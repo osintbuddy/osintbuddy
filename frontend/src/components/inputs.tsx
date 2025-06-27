@@ -18,7 +18,7 @@ export function TransparentFile(props: FileInputProps) {
       <input
         {...props}
         type="text"
-        class="font-sans hover:border-primary border border-slate-900 from-mirage-950/30 to-mirage-900/35 bg-linear-to-br w-full transition-colors duration-75 ease-in-out px-2 rounded-l border-r-0  outline-1 outline-slate-900 focus:outline-2 focus:outline-primary py-1 -mr-0.5 focus:bg-mirage-900 text-slate-300/90"
+        class="font-sans hover:border-primary border border-slate-900 from-mirage-950/30 to-mirage-900/35 bg-linear-to-br w-full transition-colors duration-75 ease-in-out px-2 rounded-l border-r-0  outline-1 outline-slate-900 focus:outline-2 focus:outline-primary py-1 -mr-0.5 focus:bg-mirage-400 text-slate-300/90"
       />
       <button
         onClick={() => onBtnClick()}
@@ -50,7 +50,7 @@ export function TransparentPassword(props: PasswordInputProps) {
         <input
           {...props}
           type={hidePassword}
-          className={`font-sans hover:outline-mirage-900 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`font-sans hover:outline-mirage-400 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
         />
         <button
           type="button"
@@ -83,7 +83,7 @@ export function Transparent(props: InputProps) {
       )}
       <input
         {...props}
-        className={`font-sans hover:outline-mirage-900 border border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-700 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
       />
     </div>
   )
@@ -106,7 +106,7 @@ export function Textarea(props: TextareaProps) {
 
       <textarea
         {...props}
-        className={`font-sans p-2 hover:outline-mirage-900 border border-transparent focus:bg-black/60 from-black/35 to-black/10 outline-mirage-700 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out rounded outline-1  focus:outline-primary focus:ring-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`font-sans p-2 hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 outline-mirage-700 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out rounded outline-1  focus:outline-primary focus:ring-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
       />
     </div>
   )
@@ -129,7 +129,7 @@ export function TransparentIcon(props: IconInputProps) {
       <div className="flex relative w-full">
         <input
           {...props}
-          className={`font-sans hover:outline-mirage-900 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`font-sans hover:outline-mirage-400 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-700 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
         />
         <button
           type="button"
@@ -193,7 +193,7 @@ export function Checkbox(props: InputProps) {
   return (
     <div className={`mx-1 flex items-center justify-between text-slate-350 relative ${className ?? ''}`}>
       <label class="text-sm">{label}</label>
-      <input {...props} type="checkbox" className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4 w-4 text-slate-700 invert-25 checked:invert-0" />
+      <input {...props} type="checkbox" className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4 w-4 text-mirage-600 hover:text-mirage-400 accent-black checked:invert-0 appearance-none border p-2 rounded checked:appearance-auto peer" />
     </div>
   )
 }
