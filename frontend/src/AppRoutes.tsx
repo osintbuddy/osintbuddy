@@ -13,6 +13,7 @@ import RoundLoader from './components/Loaders';
 import RegisterPage from './routes/public/RegisterPage';
 import LoginPage from './routes/public/LoginPage';
 import LandingPage from '@/routes/public/LandingPage';
+import TermsOfService from './routes/public/Tos';
 
 // Auth routes
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
@@ -44,7 +45,11 @@ const router = createBrowserRouter([
       {
         path: "/login",
         element: <LoginPage />
-      }
+      },
+      {
+        path: "/terms",
+        element: <TermsOfService />,
+      },
     ],
   },
   {

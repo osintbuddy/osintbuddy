@@ -40,13 +40,13 @@ export function TransparentPassword(props: PasswordInputProps) {
   const { type: _, className, label } = props;
 
   return (
-    <div className="flex relative flex-col w-full">
+    <div className="flex relative flex-col w-full mt-6">
       {label && (
         <label for={label} class="text-sm text-slate-350 rounded-t absolute font-display -top-6 px-2 -left-1">
           {label}
         </label>
       )}
-      <div className="flex relative w-full">
+      <div className="flex relative w-full ">
         <input
           {...props}
           type={hidePassword}
@@ -69,15 +69,15 @@ export function TransparentPassword(props: PasswordInputProps) {
 }
 
 interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
+  label?: string | JSX.Element | undefined
 }
 
 export function Transparent(props: InputProps) {
   const { className, label } = props;
   return (
-    <div className="flex flex-col relative w-full">
+    <div className="flex flex-col relative w-full mt-6">
       {label && (
-        <label for={label} class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
+        <label class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
         </label>
       )}
@@ -122,7 +122,7 @@ export function TransparentIcon(props: IconInputProps) {
   return (
     <div className="flex relative flex-col w-full">
       {label && (
-        <label for={label} class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1">
+        <label for={label} class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-6">
           {label}
         </label>
       )}
@@ -188,13 +188,24 @@ export function ToggleSwitch(props: InputToggleSwitchProps) {
 }
 
 
+export function Checkbox(props: InputProps) {
+  const { label, className } = props;
+  return (
+    <div className={`mx-1 flex items-center justify-between text-slate-350 relative ${className ?? ''}`}>
+      <label class="text-sm">{label}</label>
+      <input {...props} type="checkbox" className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4 w-4 text-slate-700 invert-25 checked:invert-0" />
+    </div>
+  )
+}
+
 const Input = {
   TransparentFile,
   TransparentPassword,
   Transparent,
   TransparentIcon,
   Textarea,
-  ToggleSwitch
+  ToggleSwitch,
+  Checkbox
 }
 
 export default Input;

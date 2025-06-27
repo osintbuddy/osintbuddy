@@ -4,7 +4,7 @@ import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
@@ -44,12 +44,13 @@ export default function LoginPage(): JSX.Element {
   return (
     <>
       <div class="flex flex-col items-center justify-center">
-        <div class="shadow-2xl shadow-black/35 px-14 -mt-30 py-8 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r">
-          <h2 class="text-slate-350 mb-12 font-semibold font-display text-2xl relative">
+        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center">
+          <h2 class="text-slate-350 mb-4 -ml-3 font-semibold font-display text-2xl relative">
             Sign into OSINTBuddy
           </h2>
-          <div class="font-display flex flex-col items-center">
-            <form onSubmit={onSubmit} class="grid gap-y-7 max-w-xs w-full">
+
+          <div class="font-display flex flex-col items-center px-5">
+            <form onSubmit={onSubmit} class="grid gap-y-2 max-w-2xs w-full">
               <Input.Transparent
                 label="Email"
                 type="email"
@@ -63,11 +64,29 @@ export default function LoginPage(): JSX.Element {
                 name="password"
                 placeholder="Your password"
               />
+              <Input.Checkbox
+                label="Remember me?"
+                name="remember"
+                placeholder="Your password"
+                className="mt-2 mb-3"
+              />
+
               <Button.Solid type="submit" variant="primary" className="w-full ">
                 Sign in
                 <FingerPrintIcon class="btn-icon " />
               </Button.Solid>
             </form>
+
+            <hr class="w-sm text-slate-900 mt-6 mb-4" />
+            <section class="text-sm flex flex-col items-center text-slate-400">
+              <p class="font-display">Don't have an account yet?</p>
+              <NavLink
+                to='/register'
+                class="border-b-2 border-transparent hover:text-slate-350 hover:border-primary font-display"
+              >
+                Sign up here
+              </NavLink>
+            </section>
           </div>
         </div>
       </div>
