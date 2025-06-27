@@ -38,7 +38,6 @@
     "react-use-websocket": "^4.13.0",
     "sigma": "^3.0.1",
     "tailwindcss": "^4.1.4",
-    "unplugin-markdoc": "^0.4.0",
     "vite-plugin-markdown": "^2.2.0",
     "webcola": "^3.4.0",
     "zustand": "^5.0.6"
