@@ -122,7 +122,7 @@ export function TransparentIcon(props: IconInputProps) {
   return (
     <div className="flex relative flex-col w-full">
       {label && (
-        <label for={label} class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-6">
+        <label class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-6">
           {label}
         </label>
       )}
@@ -154,6 +154,7 @@ export interface InputToggleSwitchProps {
 
 export function ToggleSwitch(props: InputToggleSwitchProps) {
   const { label, description, className } = props;
+
   return (
     <Field as='div' class={`${className ?? ''}`}>
       <Label as='h3' class='text-sm font-display leading-3 text-slate-350' passive>
@@ -172,12 +173,13 @@ export function ToggleSwitch(props: InputToggleSwitchProps) {
             checked={props.checked}
             onChange={props.onChange}
             as={Fragment}
+
           >
-            <button class={`${props.checked ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1`}>
+            <button class={`${props.checked ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1 group`}>
               <span
                 aria-hidden='true'
                 class={
-                  `inline-block h-6 w-6  transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${value ? 'translate-x-7 bg-slate-400' : 'translate-x-0 bg-slate-400'}`}
+                  `inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out group-data-checked:translate-x-7 group-data-checked:bg-slate-400 translate-x-0 bg-slate-400`}
               />
             </button>
           </Switch>
@@ -192,8 +194,8 @@ export function Checkbox(props: InputProps) {
   const { label, className } = props;
   return (
     <div className={`mx-1 flex items-center justify-between text-slate-350 relative ${className ?? ''}`}>
-      <label class="text-sm">{label}</label>
-      <input {...props} type="checkbox" className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4 w-4 text-mirage-600 hover:text-mirage-400 accent-black checked:invert-0 appearance-none border p-2 rounded checked:appearance-auto peer" />
+      <label for={label?.toString()} class="text-sm">{label}</label>
+      <input {...props} type="checkbox" id={label?.toString()} className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-600 hover:text-mirage-400 accent-black checked:invert-0 appearance-none border p-2 rounded checked:appearance-auto peer" />
     </div>
   )
 }
