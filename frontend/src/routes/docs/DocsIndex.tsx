@@ -4,7 +4,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom"
 import { Hero } from "@/components/Hero"
 import Prose from "@/components/Prose"
 import Markdoc from "@markdoc/markdoc"
-import React from 'preact/compat'
+import React, { lazy } from 'preact/compat'
 import nodes from '@/markdoc/nodes'
 import tags from '@/markdoc/tags'
 
@@ -198,17 +198,16 @@ function collectHeadings(nodes: any): any {
 export default function Documentation() {
   const pageProps: any = {}
   const location = useLocation();
-  const docPage = `./pages/${location.pathname.replace("/docs/", '')}.md`;
 
   const [attrs, setAttrs] = useState({ pageTitle: "", title: "", description: "" })
   const [source, setSource] = useState("");
-
-  console.log('importing doc', docPage)
-  import(docPage).then(({ attributes, markdown }) => {
+  console.log(location)
+  import(`./${location.pathname.replace('/docs/', '')}.md`).then(({ attributes, markdown }) => {
+    console.log('attributesattributes', attributes, markdown)
     setAttrs(attributes)
     setSource(markdown)
-    console.log('inside import attributes, markdown', attributes, markdown)
   })
+  console.log('importing doc', source, attrs)
 
   let tableOfContents = source
     ? collectHeadings(source)
@@ -242,7 +241,7 @@ export default function Documentation() {
   const ast = Markdoc.parse(source)
   const content = Markdoc.transform(ast, { nodes, tags })
 
-  console.log('whereami?!?!')
+  console.log('whereami?!?!', source)
   return (
     <>
       {isHomePage && <Hero />}
