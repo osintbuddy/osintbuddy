@@ -3,16 +3,17 @@ import Sprite from '../assets/images/tabler-sprite.svg';
 interface TablerIconProps {
   icon: string
   className?: string
+  style?: any | undefined
 }
 
 interface IconProps {
   className?: string;
 }
 
-export function Icon({ icon, className }: TablerIconProps) {
+export function Icon({ icon, className, style }: TablerIconProps) {
   return (
     <>
-      <svg className={`h-5 w-5 ${className}`} fill="none" stroke="currentColor">
+      <svg style={style} className={`h-5 w-5 ${className}`} fill="none" stroke="currentColor">
         <use href={`${Sprite}#tabler-${icon}`} />
       </svg>
     </>

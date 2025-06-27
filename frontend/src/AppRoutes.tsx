@@ -15,6 +15,10 @@ import LoginPage from './routes/public/LoginPage';
 import LandingPage from '@/routes/public/LandingPage';
 import TermsOfService from './routes/public/Tos';
 
+// Doc routes
+import Documentation from './routes/docs/DocsIndex';
+
+
 // Auth routes
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const Market = lazy(() => import("@/routes/dashboard/_components/Market"))
@@ -50,6 +54,10 @@ const router = createBrowserRouter([
         path: "/terms",
         element: <TermsOfService />,
       },
+      {
+        path: "/docs/*",
+        element: <Documentation />,
+      }
     ],
   },
   {

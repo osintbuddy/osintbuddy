@@ -1,5 +1,5 @@
 import Button from "@/components/buttons";
-import { ArrowUturnLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowUturnLeftIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
 export default function TermsOfService() {
@@ -7,21 +7,22 @@ export default function TermsOfService() {
 
   // TODO: Update ToS
   return (
-    <div class='relative flex flex-col items-between bg-black/15 mx-64 rounded-2xl  overflow-clip overflow-y-scroll max-h-[calc(100vh-6.5rem)]'>
-      <section className="flex flex-col items-center justify-between w-full max-w-6xl mx-auto">
-        <div className="flex justify-between items-center w-full ">
-          <h2 class='inline text-center  text-slate-400  text-3xl font-semibold md:text-3xl font-display tracking-tight md:leading-14 md:px-0 my-10'>
+    <div class='relative flex flex-col items-between bg-primary-1000/80 md:mx-40 rounded-2xl   overflow-y-scroll max-h-[calc(100vh-6.5rem)] mb-10'>
+      <section className="flex flex-col items-center justify-between w-full mx-auto">
+        <div className="flex justify-between items-center w-full sticky py-3 top-0 bg-primary-1000/95">
+          <h2 class='inline lg:text-center text-slate-400 font-semibold md:text-3xl font-display tracking-tight md:leading-14 ml-[6%]'>
             GNU Affero General Public License
           </h2>
           <Button.Ghost
             variant='primary'
             onClick={() => navigate(-1)}
+            className="mr-[6%]"
           >
             Go back
             <ArrowUturnLeftIcon class="btn-icon" />
           </Button.Ghost>
         </div>
-        <p class="pt-1 text-md whitespace-pre-line text-xs py-2 md:text-lg text-slate-350 max-w-7xl text-start h-full mx-auto whitespace-break-wrap rounded">
+        <p class="pt-1 max-w-7/8 text-md whitespace-pre-line text-xs py-2 md:text-sm text-slate-350 text-start h-full mx-auto whitespace-break-wrap rounded">
           GNU AFFERO GENERAL PUBLIC LICENSE <br />
 
           Version 3, 19 November 2007 <br />
@@ -644,7 +645,17 @@ export default function TermsOfService() {
           <br /><br />
           END OF TERMS AND CONDITIONS
           <br />
-
+          How to Apply These Terms to Your New Programs
+          <br />
+          If you develop a new program, and you want it to be of the greatest
+          possible use to the public, the best way to achieve this is to make it
+          free software which everyone can redistribute and change under these terms.
+          <br /><br />
+          To do so, attach the following notices to the program.  It is safest
+          to attach them to the start of each source file to most effectively
+          state the exclusion of warranty; and each file should have at least
+          the "copyright" line and a pointer to where the full notice is found.
+          <br /><br />
           Node graphs, OSINT data mining, and plugins. Connect unstructured and public data for transformative insights.
           Copyright	&copy; 2025  jerlendds
           <br /><br />
@@ -668,13 +679,13 @@ export default function TermsOfService() {
           <div className="flex justify-between items-center w-full my-4">
             <h2 class='inline text-center  text-slate-400  text-3xl md:text-3xl font-display font-medium tracking-tight md:leading-14  px-2 md:px-0'>
             </h2>
-            <Button.Ghost
+            <Button.Solid
               variant='primary'
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/')}
             >
-              Go back
-              <ArrowUturnLeftIcon class="btn-icon" />
-            </Button.Ghost>
+              Go home
+              <HomeIcon class="btn-icon" />
+            </Button.Solid>
           </div>
         </p>
       </section>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import './assets/styles/global.css';
 
 @theme {
@@ -19,6 +20,7 @@
   --color-primary-800: #000977;
   --color-primary-900: #000649;
   --color-primary-950: #000432;
+  --color-primary-1000: #06062d;
 
   --color-slate: #94a3b8;
   --color-slate-50: #f8fafc;
@@ -211,7 +213,7 @@ button {
 }
 
 #app {
-  @apply flex flex-col h-full min-h-screen relative justify-between;
+  @apply flex flex-col h-full min-h-screen relative justify-between
 }
 
 svg.icon {
@@ -579,3 +581,4 @@ svg.link-icon-true {
   @apply !text-slate-400/80
 }
 /* end */
+

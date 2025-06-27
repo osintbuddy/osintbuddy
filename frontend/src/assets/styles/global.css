@@ -1,4 +1,52 @@
 @import './nodes.css';
-@import './prism.css';
 
+/* /docs/ hero codeblock */
+pre[class*='language-'] {
+  @apply text-slate-300
+}
 
+.token.tag,
+.token.class-name,
+.token.selector,
+.token.selector .class,
+.token.selector.class,
+.token.function {
+  @apply text-teal-300;
+}
+
+.token.attr-name,
+.token.keyword,
+.token.rule,
+.token.pseudo-class,
+.token.important {
+  @apply text-purple-400;
+}
+
+.token.module {
+  @apply text-pink-400;
+}
+
+.token.attr-value,
+.token.class,
+.token.string,
+.token.property {
+  @apply text-radiance-300;
+}
+
+.token.punctuation,
+.token.attr-equals {
+  @apply text-slate-500;
+}
+
+.token.unit,
+.language-css .token.function {
+  @apply text-green-300;
+}
+
+.token.comment,
+.token.operator,
+.token.combinator {
+  @apply text-pink-400;
+}
+
+/* end hero codeblock */

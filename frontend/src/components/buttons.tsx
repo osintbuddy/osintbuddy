@@ -8,7 +8,7 @@ export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const solidStyles = {
-  primary: "ring-primary-350 hover:ring-primary-400 bg-primary-350 hover:bg-primary-400 focus:bg-primary-400 hover:stroke-primary-400 stroke-primary-350 focus:outline-1 focus:outline-primary-300",
+  primary: "ring-primary-350 hover:ring-primary-400 bg-primary-350 hover:bg-primary-400 focus:bg-primary-400 hover:stroke-primary-400 stroke-primary-350 focus:outline-1 focus:outline-primary-300 disabled:bg-slate-800 disable:border-slate-800 disabled:stroke-slate-800 disable:outline-slate-800 disabled:ring-slate-800 disabled:text-slate-400/80",
   danger: "ring-danger-500/90 hover:ring-danger-500 bg-danger-500/90 hover:bg-danger-500 focus:bg-danger-400/90 hover:stroke-danger-500 stroke-danger-500/90"
 }
 
@@ -26,7 +26,7 @@ export function Solid(props: ButtonProps): JSX.Element {
 }
 
 const ghostStyles = {
-  primary: "ring-primary-350 focus:ring-primary-400/85 hover:ring-primary-400 border-primary-350 focus:border-primary-400/85 hover:border-primary-400",
+  primary: "ring-primary-350 focus:ring-primary-400/85 hover:ring-primary-400 border-primary-350 focus:border-primary-400/85 hover:border-primary-400 disabled:ring-slate-600 disabled:border-slate-600 disabled:text-slate-500",
   danger: "ring-danger-500/90 focus:ring-danger-500/85 hover:ring-danger-500 border-danger-500/90 focus:border-danger-500/85 hover:border-danger-500"
 }
 
