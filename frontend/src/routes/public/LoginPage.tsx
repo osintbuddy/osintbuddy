@@ -2,9 +2,8 @@
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
-import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function LoginPage(): JSX.Element {
@@ -19,27 +18,15 @@ export default function LoginPage(): JSX.Element {
     const invalidPassword = password === undefined || password.length < 8;
     const invalidEmail = email === undefined || email.length < 5;
     if (invalidEmail)
-      toast.warn("An email is needed to sign in.");
+      toast.error("An email is required to sign in.");
     if (invalidPassword)
-      toast.warn("Passwords must have a minimum of 8 characters.");
+      toast.error("Passwords must have a minimum of 8 characters.");
 
     if (!invalidEmail && !invalidPassword) {
       // mutate({ email, password });
       e.currentTarget.reset(); // clear inputs
     }
   };
-
-
-  useEffect(() => {
-    // if (status === 'success') {
-    // console.log(data, status)
-    // navigate("/dashboard", { replace: true });
-    // }
-    // if (error?.message && error?.kind) {
-    //   toast.error(error.message)
-    //   console.log(error)
-    // }
-  }, [])
 
   return (
     <>

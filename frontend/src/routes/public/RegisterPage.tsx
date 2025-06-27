@@ -74,7 +74,7 @@ export default function RegisterPage(): JSX.Element {
               placeholder="Confirm your password"
             />
             <Input.Checkbox
-              label={<>I agree to the <NavLink class="border-b-3 border-primary-350 hover:border-primary text-slate-300 hover:text-slate-100" to="/terms" >terms and conditions</NavLink>.</>}
+              label={<>I agree to the <NavLink class="border-b-3 border-primary-350 hover:border-primary  hover:text-slate-200" to="/terms">terms and conditions</NavLink>.</>}
               name="tos"
               placeholder="Your password"
               className="mt-2 mb-4"
