@@ -159,7 +159,7 @@ html {
   --grid-small-size: 10px;
   --grid-e: 80px;
   --grid-color: rgba(6, 25, 87, 0.301);
-  --paper-color: #010222;
+  --paper-color: #00011b;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
     linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
