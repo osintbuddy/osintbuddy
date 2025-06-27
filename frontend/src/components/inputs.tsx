@@ -194,8 +194,8 @@ export function Checkbox(props: InputProps) {
   const { label, className } = props;
   return (
     <div className={`mx-1 flex items-center justify-between text-slate-350 relative ${className ?? ''}`}>
-      <label for={label?.toString()} class="text-sm">{label}</label>
-      <input {...props} type="checkbox" id={label?.toString()} className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-600 hover:text-mirage-400 accent-black checked:invert-0 appearance-none border p-2 rounded checked:appearance-auto peer" />
+      <label for={label?.toString()} class="text-sm hover:text-slate-300">{label}</label>
+      <input {...props} type="checkbox" id={label?.toString()} className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-600 hover:text-mirage-400 appearance-none border p-2 rounded checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 checked:before:content-['\2713\0020'] checked:before:top-0 checked:before:right-[3px] checked:before:absolute checked:before:text-slate-200 peer" />
     </div>
   )
 }

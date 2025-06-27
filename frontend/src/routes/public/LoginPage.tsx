@@ -64,7 +64,7 @@ export default function LoginPage(): JSX.Element {
               </Button.Solid>
             </form>
 
-            <hr class="w-sm text-slate-900 mt-6 mb-4" />
+            <hr class="w-sm text-mirage-700 mt-6 mb-4" />
             <section class="text-sm flex flex-col items-center text-slate-400">
               <p class="font-display">Don't have an account yet?</p>
               <NavLink

@@ -19,7 +19,7 @@ export default function PublicNavbar(): JSX.Element {
   }, [])
 
   return (
-    <header class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-8 ${isScrolled ? 'dark:bg-slate-800/95 dark:backdrop-blur dark:[@supports(backdrop-filter:blur(0))]:bg-slate-900/75' : 'dark:bg-transparent'}`}>
+    <header class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-8 ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}>
       <div class="flex lg:hidden">
         <Link to="/">
           <img class=" h-7 w-auto fill-slate-700 dark:fill-sky-100 block" src={Logo} />

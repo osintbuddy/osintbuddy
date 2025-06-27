@@ -1,6 +1,6 @@
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
-import { FingerPrintIcon } from "@heroicons/react/24/outline";
+import { FingerPrintIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { JSX } from "preact/jsx-runtime";
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -40,7 +40,7 @@ export default function RegisterPage(): JSX.Element {
   return (
     <div class="flex flex-col items-center justify-center">
       <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center">
-        <h2 class="text-slate-350 mb-4 ml-3 text-center font-semibold font-display text-2xl relative">
+        <h2 class="text-slate-350 mb-4 ml-3.5 text-center font-semibold font-display text-2xl relative">
           Sign up for OSINTBuddy
         </h2>
 
@@ -81,11 +81,11 @@ export default function RegisterPage(): JSX.Element {
             />
             <Button.Solid type="submit" variant="primary" className="w-full">
               Sign up
-              <FingerPrintIcon class="btn-icon " />
+              <UserPlusIcon class="btn-icon " />
             </Button.Solid>
           </form>
 
-          <hr class="w-sm text-slate-900 mt-6 mb-4" />
+          <hr class="w-sm text-mirage-700 mt-6 mb-4" />
           <section class="text-sm flex flex-col items-center text-slate-400">
             <p class="font-display">Already have an account?</p>
             <NavLink
