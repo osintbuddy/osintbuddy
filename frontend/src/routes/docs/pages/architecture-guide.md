@@ -3,13 +3,13 @@ title: Architecture guide
 description: The overall design and architecture of OSINTBuddy.
 ---
 
-This document describes the high-level architecture of osintbuddy. Please be aware the project is in a very early beta state and major changes may occur!
+This document describes the high-level architecture of osintbuddy. Please be aware the project is in a very early alpha state and major changes may occur!
 
 ---
 
 ## Overview
 
-On the highest level, OSINTBuddy is a thing which lets users build interactive node based project graphs on the client, which can be expanded through data transforms that pull from: custom plugin based sources, open data sources, search engines, or for whatever you decide to implement.
+On the highest level, OSINTBuddy is a thing which lets users build node graphs on the client, these nodes, known as entities, can have transforms attached to them. Data transforms connect to a Python plugin system which can be hooked up to public data sources such as: government data, search engines, or for whatever a Plugin author decides to implement.
 
 ### Project Structure
 

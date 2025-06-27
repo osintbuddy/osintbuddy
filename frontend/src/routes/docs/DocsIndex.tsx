@@ -255,7 +255,7 @@ export default function Documentation() {
   return (
     <>
       {isHomePage && <Hero />}
-      <div className="relative self-center  border rounded-t-2xl flex max-w-7xl justify-center sm:px-2 lg:px-8  border-slate-700/10 shadow-black/50 shadow-2xl to-black/25 from-black/15 bg-gradient-to-tl w-full backdrop-blur-sm">
+      <div className="relative self-center border rounded-t-2xl flex max-w-5/6 justify-center sm:px-2 lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl to-black/25 from-black/15 bg-gradient-to-tl w-full backdrop-blur-sm">
         <div className="hidden lg:relative lg:block lg:flex-none">
           <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 ">
             <Navigation
@@ -264,7 +264,7 @@ export default function Documentation() {
             />
           </div>
         </div>
-        <div className="min-w-0 max-w-2xl flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 ">
+        <div className="min-w-0 max-w-5/6 flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 ">
           <article>
             {(title || section) && (
               <header className="mb-7 space-y-1">

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { Icon } from '../Icons';
 import Logo from '@/assets/images/logo.svg';
 import Button from '../buttons';
-import { DocumentTextIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, DocumentTextIcon, HomeIcon, UserIcon } from '@heroicons/react/24/outline';
 
 export default function PublicNavbar(): JSX.Element {
   const navigate = useNavigate();
@@ -46,13 +46,13 @@ export default function PublicNavbar(): JSX.Element {
       </div>
       {!location.pathname.includes('/docs') ? (
         <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/docs/index")}>
-          Open Docs
-          <DocumentTextIcon class="btn-icon" />
+          The OSIB Book
+          <BookOpenIcon class="btn-icon" />
         </Button.Solid>
       ) : (
-        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/")}>
-          Go Home
-          <HomeIcon class="btn-icon" />
+        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/login")}>
+          Sign in
+          <UserIcon class="btn-icon" />
         </Button.Solid>
       )}
     </header>
