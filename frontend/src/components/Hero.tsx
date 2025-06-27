@@ -77,31 +77,29 @@ export function Hero() {
       <div className="py-10 px-3 lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0">
         <div className='mx-auto grid grid-cols-1 max-w-5/6 items-center gap-y-16 lg:grid-cols-2 '>
           <div className='relative px-3 z-10 md:text-center lg:text-left'>
-            <div className='relative  '>
-              <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-4xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-lg md:px-0 whitespace-pre-line'>
-                OSINTBuddy: Designed for researchers, analysts, and anyone seeking deeper insights from the public sphere
-              </h2>
-              <p className='pt-1 text-slate-350 '>
-                Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data, from defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.
-              </p>
-              <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 md:justify-center lg:justify-start'>
-                <Button.Solid
-                  variant='primary'
-                  disabled
-                  onClick={() => toast.warn("The marketplace isn't available yet.")}
-                >
-                  Marketplace
-                  <Icon icon="lock-exclamation" className="btn-icon" />
-                </Button.Solid>
-                <Button.Ghost
-                  variant='primary'
-                  onClick={() => navigate("/docs/intro/roadmap")}
-                >
-                  View Roadmap
-                  <Icon icon="road" className="btn-icon" />
-                </Button.Ghost>
+            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-4xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-lg md:px-0 whitespace-pre-line'>
+              OSINTBuddy: Designed for anyone seeking deeper insights from the public sphere
+            </h2>
+            <p className='pt-1 text-lg text-slate-350 '>
+              Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data. From defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.
+            </p>
+            <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 md:justify-center lg:justify-start'>
+              <Button.Solid
+                variant='primary'
+                disabled
+                onClick={() => toast.warn("The marketplace isn't available yet.")}
+              >
+                Marketplace
+                <Icon icon="lock-exclamation" className="btn-icon" />
+              </Button.Solid>
+              <Button.Ghost
+                variant='primary'
+                onClick={() => navigate("/docs/intro/roadmap")}
+              >
+                View Roadmap
+                <Icon icon="road" className="btn-icon" />
+              </Button.Ghost>
 
-              </div>
             </div>
           </div>
           <div className="relative lg:static ">

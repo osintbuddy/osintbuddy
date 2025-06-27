@@ -22,11 +22,11 @@ description: "Learn more about the long term plans for the OSINTBuddy project."
 
 ## OSINTBuddy Roadmap
 
-OSINTBuddy is a project driven by a passion for efficient web data extraction, visualization, and analysis. I'm prioritizing a solid core experience while continually exploring new technologies and approaches to OSINT on the side to see what could be integrated in the future.
+OSINTBuddy is a project driven by my passion for data extraction, graphs, visualization, and analysis. With the rewrite I'm prioritizing a solid core experience and continually exploring new technologies and approaches on the side to see what should be integrated into this web app.
 
 ### 1. Introduction
 
-This document outlines the future development plans for OSINTBuddy, including features currently under development, and completed functionalities. OSINTBuddy is first and foremost a project for me to play with web tech, graphs, plugins, and OSINT crawling.
+This document outlines the future development plans for OSINTBuddy, including features currently under development, and completed functionalities. OSINTBuddy is first and foremost a project for me to play with web tech, graphs, plugins, and OSINT crawling *(this is just for fun, won’t be big and professional like Maltego)*.
 
 ### 2. Completed Functionalities
 

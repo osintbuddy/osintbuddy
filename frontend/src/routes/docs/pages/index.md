@@ -29,7 +29,5 @@ The plugin system works by allowing users to create and share small, focused mod
 
 As an open-source project, OSINTBuddy offers several advantages over proprietary tools like [Maltego](https://www.maltego.com/). The most significant of these is the ability for users to actively participate in the development process, suggesting improvements, reporting bugs, and [contributing their own plugins and enhancements](/docs/registry-api).
 
-This collaborative approach ensures that OSINTBuddy remains responsive to the needs of its users, continually evolving to address new challenges and opportunities in the rapidly changing world of open-source intelligence.
-
 Moreover, as an open-source project, OSINTBuddy is freely available to all, lowering the barriers to entry for individuals and organizations seeking to leverage the power of OSINT in their work. This democratizes access to powerful intelligence-gathering tools and fosters a more diverse and inclusive community of practitioners.
 

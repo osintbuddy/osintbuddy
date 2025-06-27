@@ -8,9 +8,9 @@ Learn all the ways you can get involved with the OSINTBuddy community and the pr
 
 {% quick-links %}
 
-{% quick-link title="Plugin System" icon="plug" href="/docs/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
+{% quick-link title="The Entity Plugin System" icon="plug" href="/docs/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
 
-{% quick-link title="OSINTBuddy Membership" icon="coin" href="https://opencollective.com/openinfolabs/projects/osintbuddy#contribute" description="Join the OSINTBuddy community to support my coffee habit" /%}
+{% quick-link title="Contributing your Time" icon="hourglass" href="/docs/how-to-contribute" description="Learn about how you can contribute to the OSINTBuddy project to help move us along" /%}
 
 {% /quick-links %}
 
@@ -33,5 +33,5 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 We *love* thorough bug reports!
 
 ## Reporting Security Issues
- Please email the core contributors directly at [oss@osintbuddy.com](mailto:oss@osintbuddy.com) directly if you encounter a serious security issue (e.g. in a package we use, etc)
+ Please email the core contributors directly at [oss@osintbuddy.com](mailto:oss@osintbuddy.com) if you encounter a serious security issue (e.g. in a package we use, etc)
 
