@@ -44,7 +44,6 @@ Learn how to get OSINTBuddy set up in about 30 minutes. To start using the alpha
    ```
    - **Note:** the stack will take a few minutes to startup while Solr and ScyllaDB configure themselves for JanusGraph. If you try to connect before all the databases are ready you will encounter errors.
 
-
 You can now access OSINTBuddy through the URLs provided for the frontend, backend, and documentation.
 - **Default login**:
    - username:  `osintbuddy`
@@ -54,3 +53,11 @@ You can now access OSINTBuddy through the URLs provided for the frontend, backen
   - Casdoor: [localhost:45910](http://localhost:45910)
   - Backend: [localhost:48997/api](http://localhost:48997/api)
   - Documentation: [localhost:48997/docs](http://localhost:48997/docs)
+
+## How can I do that, that's for experts, isn't it?
+
+No.
+
+Allow the comparison with cycling: Building a bike is ambitious and only few can do that. But riding one makes sense for many. If it is robust and durable, chances are, you can ride for years with little maintenance and without repair. Likewise it takes a lot to responsibly operate (let alone build) an entire internet-server. And the more complicated, the more difficult to operate and maintain.
+
+The solution is to leverage cheaply available commodities, focus, omit secondary things and make housekeeping smooth and safe. For both, human and machine.

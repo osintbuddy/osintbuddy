@@ -6,6 +6,7 @@ description: Fetch data from different sources and returns the results as visual
 
 OSINTBuddy was born out of a passion for web crawling, data extraction, graphs, visualization, and analysis. I needed a powerful, user-friendly tool that simplified data collection and analysis. At the core of this project lies a far more ambitious vision than the mere creation of an all-in-one data aggregation and analysis tool.
 
+---
 
 ## A potential future
 

@@ -275,7 +275,7 @@ export default function Documentation() {
               {Markdoc.renderers.react(content, React)}
             </Prose>
           </article>
-          <dl className="mt-12 flex border-t border-slate-200 pt-6 dark:border-slate-800">
+          <dl className="mt-12 flex border-t pt-6 border-slate-800">
             {previousPage && (
               <div>
                 <dt className="font-display text-sm font-medium text-slate-900 dark:text-slate-300/90">

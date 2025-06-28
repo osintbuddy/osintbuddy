@@ -42,7 +42,7 @@ export default function NotFound() {
           </div>
           <div class='mt-12'>
             <h2 class='text-base font-semibold text-slate-400'>Popular pages</h2>
-            <ul role='list' class='mt-4 divide-y divide-mirage-100 border-y border-mirage-100'>
+            <ul role='list' class='mt-4 divide-y divide-slate-400 border-y border-mirage-100'>
               {links.map(({ title, href, description, icon }) => (
                 <li class='relative flex items-start space-x-4 py-6 group'>
                   <span class='flex h-12 w-12 items-center justify-center rounded border border-mirage-100 group-hover:border-primary transition-colors duration-75 ease-in-out'>
