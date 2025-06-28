@@ -88,7 +88,7 @@ export function Hero() {
               </Button.Solid>
               <Button.Ghost
                 variant='primary'
-                onClick={() => navigate("/docs/intro/roadmap")}
+                onClick={() => navigate("/docs/roadmap")}
               >
                 View Roadmap
                 <Icon icon="road" className="btn-icon" />
