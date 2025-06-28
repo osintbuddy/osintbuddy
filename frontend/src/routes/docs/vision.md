@@ -34,10 +34,10 @@ We want to create a browser extension that allows you to seamlessly browse the w
 
 ### AI, swarm intelligence, and evolutionary algorithms
 
-Integrating [AI](https://ollama.com/), [swarm intelligence](https://ijcsi.org/papers/IJCSI-10-5-1-134-141.pdf), and [evolutionary algorithms](https://ieeexplore.ieee.org/document/1425193) could let us create a tool that can continually evolve and optimize your operations over time. From NLP and sentiment analysis to search and anomaly detection with swarm intelligence, bringing data science tools and techniques to OSINTBuddy could let use create a powerful tool that reveals deep insights among a "haystack" of noisy information. 
+Integrating [AI](https://ollama.com/), [swarm intelligence](https://ijcsi.org/papers/IJCSI-10-5-1-134-141.pdf), and [evolutionary algorithms](https://ieeexplore.ieee.org/document/1425193) could let us create a tool that can continually evolve and optimize your operations over time. From NLP and sentiment analysis to anomaly detection and more, bringing data science tools and techniques to OSINTBuddy could let use create a powerful tool that reveals deep insights among a "haystack" of noisy information. 
 
 
-# Where we are
+---
 
 This is a project that will most likely not be finished for many years if ever, and that will require collaboration among experts in many fields. We're always looking for help, from writing documentation, researching feature ideas, designing the UX/UI, donating, to simply marketing and sharing the project, anything you contribute helps realize a vision for what could turn into a cross-disciplinary toolkit for working with information. Will you join me?
 
