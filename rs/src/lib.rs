@@ -5,22 +5,21 @@ pub mod middleware;
 pub mod schemas;
 
 // use actix_web::cookie::time::error;
+use actix_cors::Cors;
+use actix_files::{Files, NamedFile};
+use actix_web::http::Method;
+use actix_web::middleware::Logger;
 use actix_web::web::Data;
+use actix_web::{App, HttpServer, http::header, web};
 use config::AppConfig;
+use log::info;
 use moka::sync::Cache;
 use sqids::Sqids;
 use std::io;
 use std::time::Duration;
 
-use actix_cors::Cors;
-use actix_files::Files;
-use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer, http::header, web};
-use log::info;
-
 use crate::config::CONFIG;
 use crate::db::DB;
-
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
     pub id: Sqids,
@@ -28,6 +27,10 @@ pub struct AppState {
 }
 
 pub type AppData = Data<AppState>;
+
+async fn spa_index() -> actix_web::Result<NamedFile> {
+    Ok(NamedFile::open("../frontend/dist/index.html".to_string())?)
+}
 
 pub async fn run() -> std::io::Result<()> {
     let config = CONFIG.get_or_init(config::get).await;
@@ -42,15 +45,6 @@ pub async fn run() -> std::io::Result<()> {
         .await
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
 
-    let blacklist: Cache<String, bool> = Cache::builder()
-        .max_capacity(64_000)
-        .time_to_live(Duration::from_secs(config.jwt_maxage * 60))
-        .build();
-    let id = Sqids::builder()
-        .alphabet(config.sqids_alphabet.chars().collect())
-        .build()
-        .map_err(|err| std::io::Error::new(io::ErrorKind::Other, err))?;
-
     let web_addr = config.backend_addr.clone();
     let web_port = config.backend_port.clone();
     info!("Listening on: http://{web_addr}:{web_port}");
@@ -60,8 +54,15 @@ pub async fn run() -> std::io::Result<()> {
             .wrap(Logger::default())
             .app_data(web::Data::new(AppState {
                 cfg: config.clone(),
-                blacklist: blacklist.clone(),
-                id: id.clone(),
+                blacklist: Cache::builder()
+                    .max_capacity(64_000)
+                    .time_to_live(Duration::from_secs(config.jwt_maxage * 60))
+                    .build(),
+                id: Sqids::builder()
+                    .alphabet(config.sqids_alphabet.chars().collect())
+                    .build()
+                    .map_err(|err| std::io::Error::new(io::ErrorKind::Other, err))
+                    .expect("Fatal error building Sqids!"),
             }))
             .app_data(web::Data::new(pool.clone()))
             .wrap(
@@ -78,18 +79,13 @@ pub async fn run() -> std::io::Result<()> {
             .configure(handlers::config);
 
         if config.build_dir.clone().is_some() {
-            let default_build = config
+            let default_build = &config
                 .build_dir
                 .clone()
-                .unwrap_or("../frontend/build/".to_string());
-            return app.service(
-                Files::new("/", &default_build)
-                    .index_file("index.html")
-                    .default_handler(
-                        actix_files::NamedFile::open(default_build)
-                            .expect("Frontend build dir should be valid!"),
-                    ),
-            );
+                .unwrap_or("../frontend/dist/".to_string());
+            return app
+                .service(Files::new("/", &default_build).index_file("index.html"))
+                .default_service(web::route().method(Method::GET).to(spa_index));
         }
         app
     })
