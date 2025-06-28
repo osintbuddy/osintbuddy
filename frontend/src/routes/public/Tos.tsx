@@ -7,10 +7,10 @@ export default function TermsOfService() {
 
   // TODO: Update ToS
   return (
-    <div class='relative flex flex-col items-between bg-primary-1000/80 md:mx-40 rounded-2xl   overflow-y-scroll max-h-[calc(100vh-6.5rem)] mb-10'>
-      <section className="flex flex-col items-center justify-between w-full mx-auto">
-        <div className="flex justify-between items-center w-full sticky py-3 top-0 bg-primary-1000/95">
-          <h2 class='inline lg:text-center text-slate-400 font-semibold md:text-3xl font-display tracking-tight md:leading-14 ml-[6%]'>
+    <div class='relative flex flex-col items-between from-black/60 to-black/30 bg-gradient-to-tr md:mx-40 rounded-2xl   overflow-y-scroll max-h-[calc(100vh-6.5rem)] mb-10'>
+      <section className="flex flex-col items-center justify-between w-full mx-auto ">
+        <div className="flex justify-between items-center w-full sticky py-3 top-0 bg-[#050525]">
+          <h2 class='inline lg:text-center text-slate-400 font-semibold md:text-3xl font-display tracking-tight md:leading-14 ml-[6%] '>
             GNU Affero General Public License
           </h2>
           <Button.Ghost

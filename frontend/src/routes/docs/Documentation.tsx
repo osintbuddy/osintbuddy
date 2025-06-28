@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "preact/hooks"
-import { NavLink, Outlet, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import { Hero } from "@/components/Hero"
 import Prose from "@/components/Prose"
 import Markdoc from "@markdoc/markdoc"
-import React, { lazy } from 'preact/compat'
+import React from 'preact/compat'
 import nodes from '@/markdoc/nodes'
 import tags from '@/markdoc/tags'
 
@@ -12,7 +12,7 @@ const navigation = [
   {
     title: 'Introduction',
     links: [
-      { title: 'Introduction', href: '/docs/index' },
+      { title: 'The OSINTBuddy Project', href: '/docs/overview' },
       { title: 'Get involved', href: '/docs/intro/getting-started' },
       { title: 'Roadmap', href: '/docs/intro/roadmap' },
       { title: 'Installation (Alpha)', href: '/docs/intro/installation' },
@@ -136,7 +136,7 @@ function Navigation({ navigation }: any) {
                     to={link.href}
                     className={
                       `block w-full pl-3.5 before:pointer-events-none before:absolute before:-left-1 before:top-1/2 before:h-1.5 before:w-1.5  border-b-0 before:-translate-y-1/2 before:rounded-sm ${link.href === location.pathname
-                        ? 'font-semibold text-primary-300 before:bg-primary-300'
+                        ? 'font-semibold text-primary-200 before:bg-primary-200'
                         : 'text-slate-500 before:hidden before:bg-slate-300 hover:text-slate-600 hover:before:block dark:text-slate-400 dark:before:bg-slate-700 dark:hover:text-slate-300'}`
                     }
                   >
@@ -196,33 +196,31 @@ function collectHeadings(nodes: any): any {
 }
 
 export default function Documentation() {
-  const pageProps: any = {}
   const location = useLocation();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (location.pathname.length <= 6) navigate("/docs/overview")
+  }, [])
 
   const [attrs, setAttrs] = useState({ pageTitle: "", title: "", description: "" })
   const [source, setSource] = useState("");
-  console.log(location)
   import(`./${location.pathname.replace('/docs/', '')}.md`).then(({ attributes, markdown }) => {
-    console.log('attributesattributes', attributes, markdown)
     setAttrs(attributes)
     setSource(markdown)
   })
-  console.log('importing doc', source, attrs)
 
   let tableOfContents = source
     ? collectHeadings(source)
     : []
 
-  console.log(location.pathname)
-  let isHomePage = location.pathname === '/docs/index'
-  console.log('isHomePage', isHomePage)
+  let isHomePage = location.pathname === '/docs/overview'
   let allLinks = navigation.flatMap((section) => section.links)
   let linkIndex = allLinks.findIndex((link) => link.href === location.pathname)
   let previousPage = allLinks[linkIndex - 1]
   let nextPage = allLinks[linkIndex + 1]
   let section = navigation.find((section) =>
     section.links.find((link) => {
-      console.log('section find', link.href, location.pathname)
       return link.href === location.pathname
     })
   )
@@ -241,11 +239,11 @@ export default function Documentation() {
   const ast = Markdoc.parse(source)
   const content = Markdoc.transform(ast, { nodes, tags })
 
-  console.log('whereami?!?!', source)
   return (
     <>
       {isHomePage && <Hero />}
-      <div className="relative self-center border rounded-t-2xl flex max-w-5/6 justify-center sm:px-2 lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl to-black/35 from-black/20 bg-gradient-to-tl w-full backdrop-blur-sm">
+      <div className="relative self-center border rounded-t-2xl flex md:max-w-5/6 justify-center  lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl backdrop-blur-sm from-black/60 to-black/30 bg-gradient-to-tr ring-1 ring-slate-700/10 w-full md:mt-6">
+        <div className="absolute -left-px h-2/3 top-11 bottom-20 w-px bg-gradient-to-b from-blue-400/0 via-primary-700 to-blue-400/0" />
         <div className="hidden lg:relative lg:block lg:flex-none">
           <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 ">
             <Navigation
@@ -254,12 +252,12 @@ export default function Documentation() {
             />
           </div>
         </div>
-        <div className="min-w-0 max-w-5/6 flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 ">
+        <div className="min-w-0 max-w-5/6 flex-auto md:px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 ">
           <article>
             {(attrs.title || section) && (
               <header className="mb-7 space-y-1">
                 {section && (
-                  <p className="font-display text-sm font-medium text-primary-100">
+                  <p className="font-display text-md font-medium text-primary-200">
                     {section.title}
                   </p>
                 )}

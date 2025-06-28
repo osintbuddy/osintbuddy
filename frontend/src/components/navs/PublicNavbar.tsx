@@ -45,7 +45,7 @@ export default function PublicNavbar(): JSX.Element {
         </a>
       </div>
       {!location.pathname.includes('/docs') ? (
-        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/docs/index")}>
+        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/docs/overview")}>
           The OSIB Book
           <BookOpenIcon class="btn-icon" />
         </Button.Solid>

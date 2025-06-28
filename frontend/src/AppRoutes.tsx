@@ -16,7 +16,7 @@ import LandingPage from '@/routes/public/LandingPage';
 import TermsOfService from './routes/public/Tos';
 
 // Doc routes
-import Documentation from './routes/docs/DocsIndex';
+import Documentation from './routes/docs/Documentation';
 
 
 // Auth routes

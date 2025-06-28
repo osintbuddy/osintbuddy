@@ -1,5 +1,5 @@
 import { Fragment, } from 'preact/compat'
-import { Highlight } from 'prism-react-renderer'
+import { Highlight, themes } from 'prism-react-renderer'
 import { HeroBackground } from './HeroBackground'
 import blurCyanImage from '@/assets/images/blur-cyan.png'
 import blurIndigoImage from '@/assets/images/blur-indigo.png'
@@ -9,7 +9,9 @@ import { Icon } from './Icons'
 import { toast } from 'react-toastify'
 
 const codeLanguage = 'python'
-const code = `class URL(ob.Plugin):
+const code = `import osintbuddy as ob
+
+class URL(ob.Plugin):
     label = "URL"
     color = "#642CA9"
     entity = [TextInput(label="URL", icon="link")]
@@ -49,15 +51,7 @@ const tabs = [
   { name: 'shodan.plugin.py', isActive: false },
 ]
 
-function TrafficLightsIcon(props) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 42 10" fill="none" {...props}>
-      <circle cx="5" cy="5" r="4.5" />
-      <circle cx="21" cy="5" r="4.5" />
-      <circle cx="37" cy="5" r="4.5" />
-    </svg>
-  )
-}
+
 
 const QUOTES = [
   "Vision is the art of seeing insight in the invisible",
@@ -73,12 +67,12 @@ export function Hero() {
   const navigate = useNavigate()
 
   return (
-    <div className="z-10 overflow-hidden bg-gradient-to-b dark:pt-[4.5rem] dark:lg:mt-[-4.75rem] dark:lg:pt-[4.75rem] pb-12">
-      <div className="py-10 px-3 lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0">
+    <div className="z-10 overflow-hidden bg-gradient-to-b pt-6 lg:mt-[-4.75rem] lg:pt-[4.75rem] pb-12">
+      <div className=" lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0">
         <div className='mx-auto grid grid-cols-1 max-w-5/6 items-center gap-y-16 lg:grid-cols-2 '>
-          <div className='relative px-3 z-10 md:text-center lg:text-left'>
-            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-lg md:px-0 whitespace-pre-line'>
-              OSINTBuddy: Designed for anyone seeking deeper insights from the public sphere
+          <div className='relative z-10 md:text-center lg:text-left'>
+            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-lg md:px-0 whitespace-pre-line y'>
+              Leverage the power of public data to fuel your research and uncover hidden connections
             </h2>
             <p className='pt-1 text-slate-350 '>
               Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data. From defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.
@@ -127,14 +121,18 @@ export function Hero() {
                 <div className="absolute -top-px left-20  h-px bg-gradient-to-r from-primary-300/10 via-primary-300/70 to-primary-300/0" />
                 <div className="absolute -bottom-px left-11 right-20 h-px bg-gradient-to-r from-blue-400/0 via-primary-400 to-blue-400/0" />
                 <div className="pl-4 pt-4 max-h-[28.5rem] overflow-y-scroll">
-                  <TrafficLightsIcon className="h-2.5 w-auto stroke-slate-600/30" />
+                  <div className="gap-x-2 grid grid-cols-3 w-10">
+                    <Icon icon="circle" className="!h-3 text-slate-600/30" />
+                    <Icon icon="circle" className="!h-3 text-slate-600/30" />
+                    <Icon icon="circle" className="!h-3 text-slate-600/30" />
+                  </div>
                   <div className="mt-4 flex space-x-2 text-xs">
                     {tabs.map((tab) => (
                       <div
                         key={tab.name}
                         className={
                           `flex h-6 rounded-full py-0.5 ${tab.isActive
-                            ? 'bg-gradient-to-br from-black/10 via-black/20 to-black/10 p-px font-medium text-primary-200'
+                            ? 'bg-gradient-to-br from-black/30 via-black/40 to-black/30 p-px font-medium text-primary-200'
                             : 'text-slate-600'}`}
                       >
                         <div
@@ -162,6 +160,7 @@ export function Hero() {
                     <Highlight
                       code={code}
                       language={codeLanguage}
+                      theme={themes.nightOwl}
                     >
                       {({
                         className,
@@ -175,6 +174,7 @@ export function Hero() {
                             className +
                             ' flex overflow-x-auto'
                           }
+                          style={{ ...style, backgroundColor: 'transparent' }}
                         >
                           <code >
                             {tokens.map((line, lineIndex) => (

@@ -31,7 +31,7 @@ export default function LoginPage(): JSX.Element {
   return (
     <>
       <div class="flex flex-col items-center justify-center">
-        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/25 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center">
+        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/60 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center">
           <h2 class="text-slate-350 mb-4 -ml-3 font-semibold font-display text-2xl relative">
             Sign into OSINTBuddy
           </h2>
