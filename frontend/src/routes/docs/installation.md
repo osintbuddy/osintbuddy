@@ -1,5 +1,6 @@
 ---
 title: Installation
+pageTitle: "Introducing OSINTBuddy: Transformative Link Analysis"
 description: Fetch data from different sources and returns the results as visual entities that you can explore step-by-step
 ---
 

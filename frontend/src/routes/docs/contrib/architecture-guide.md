@@ -1,5 +1,6 @@
 ---
 title: Architecture guide
+pageTitle: Architecture.md 
 description: The overall design and architecture of OSINTBuddy.
 ---
 

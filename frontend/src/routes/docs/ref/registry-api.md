@@ -5,4 +5,4 @@ description:
 ---
 ## Share your plugins through the registry 
 
-Coming soon. ETA 12-18 weeks from some unknown day.
+The docs are not yet completed...

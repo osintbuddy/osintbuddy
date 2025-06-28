@@ -10,29 +10,26 @@ import tags from '@/markdoc/tags'
 
 const navigation = [
   {
-    title: 'Introduction',
+    title: 'What is OSINTBuddy',
     links: [
-      { title: 'The OSINTBuddy Project', href: '/docs/overview' },
-      { title: 'Get involved', href: '/docs/intro/getting-started' },
-      { title: 'Roadmap', href: '/docs/intro/roadmap' },
-      { title: 'Installation (Alpha)', href: '/docs/intro/installation' },
+      { title: 'Overview', href: '/docs/overview' },
+      { title: 'Motivation', href: '/docs/motivation' },
+      { title: 'Strategy, history, and roadmap', href: '/docs/roadmap' },
+      { title: 'Get involved', href: '/docs/getting-started' },
+      { title: 'Installation', href: '/docs/installation' },
     ],
   },
   {
     title: 'Core concepts',
     links: [
       {
-        title: 'Understanding OSINTBuddy',
-        href: '/docs/understanding-osintbuddy',
-      },
-      {
         title: 'Graphs',
-        href: '/docs/project-graphs',
+        href: '/docs/core/project-graphs',
       },
-      { title: 'Transforms *', href: '/docs/transforms' },
+      { title: 'Transforms *', href: '/docs/core/transforms' },
       {
         title: 'Entities *',
-        href: '/docs/entities',
+        href: '/docs/core/entities',
       },
     ],
   },
@@ -41,33 +38,33 @@ const navigation = [
     links: [
       {
         title: 'Plugin System Overview',
-        href: '/docs/plugin-system',
+        href: '/docs/guides/plugin-system',
       },
       {
         title: 'Writing plugins',
-        href: '/docs/writing-plugins',
+        href: '/docs/guides/writing-plugins',
       },
       {
         title: 'Plugin recipes *',
-        href: '/docs/plugin-recipes'
+        href: '/docs/guides/plugin-recipes'
       },
     ],
   },
   {
     title: 'API reference',
     links: [
-      { title: 'Plugin *', href: '/docs/plugins-api' },
-      { title: 'Transform *', href: '/docs/transforms-api' },
-      { title: 'Entities *', href: '/docs/entities-api' },
-      { title: 'Settings *', href: '/docs/settings-api' },
-      { title: 'Registry *', href: '/docs/registry-api' },
+      { title: 'Plugin *', href: '/docs/ref/plugins-api' },
+      { title: 'Transform *', href: '/docs/ref/transforms-api' },
+      { title: 'Entities *', href: '/docs/ref/entities-api' },
+      { title: 'Settings *', href: '/docs/ref/settings-api' },
+      { title: 'Registry *', href: '/docs/ref/registry-api' },
     ],
   },
   {
     title: 'Contributing',
     links: [
-      { title: 'How to contribute', href: '/docs/how-to-contribute' },
-      { title: 'Architecture guide', href: '/docs/architecture-guide' },
+      { title: 'How to contribute', href: '/docs/contrib/how-to-contribute' },
+      { title: 'Architecture guide', href: '/docs/contrib/architecture-guide' },
     ],
   },
 ]
@@ -197,18 +194,26 @@ function collectHeadings(nodes: any): any {
 
 export default function Documentation() {
   const location = useLocation();
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
   useEffect(() => {
+    // redirect on /docs/ visit because we don't want to show blank content
     if (location.pathname.length <= 6) navigate("/docs/overview")
-  }, [])
+  });
 
+  // dynamically import the relevent .md file for the given /docs/* URL
   const [attrs, setAttrs] = useState({ pageTitle: "", title: "", description: "" })
   const [source, setSource] = useState("");
   import(`./${location.pathname.replace('/docs/', '')}.md`).then(({ attributes, markdown }) => {
-    setAttrs(attributes)
-    setSource(markdown)
-  })
+    setAttrs(attributes);
+    setSource(markdown);
+  });
+
+
+  useEffect(() => {
+    document.title = attrs.title;
+    const meta = document.getElementsByTagName("META")[2]
+    if (meta) (meta as HTMLMetaElement).content = attrs.description
+  }, [attrs])
 
   let tableOfContents = source
     ? collectHeadings(source)
@@ -219,11 +224,7 @@ export default function Documentation() {
   let linkIndex = allLinks.findIndex((link) => link.href === location.pathname)
   let previousPage = allLinks[linkIndex - 1]
   let nextPage = allLinks[linkIndex + 1]
-  let section = navigation.find((section) =>
-    section.links.find((link) => {
-      return link.href === location.pathname
-    })
-  )
+  let section = navigation.find((section) => section.links.find((link) => link.href === location.pathname))
   let currentSection = useTableOfContents(tableOfContents)
 
   function isActive(section: any) {
@@ -237,6 +238,7 @@ export default function Documentation() {
   }
 
   const ast = Markdoc.parse(source)
+  // @ts-ignore 
   const content = Markdoc.transform(ast, { nodes, tags })
 
   return (
@@ -261,9 +263,9 @@ export default function Documentation() {
                     {section.title}
                   </p>
                 )}
-                {attrs.title && (
+                {attrs.pageTitle && (
                   <h1 className="font-display text-3xl tracking-tight text-slate-900 dark:text-slate-300/90">
-                    {attrs.title}
+                    {attrs.pageTitle}
                   </h1>
                 )}
               </header>
