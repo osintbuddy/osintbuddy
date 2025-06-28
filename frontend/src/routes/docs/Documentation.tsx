@@ -14,7 +14,7 @@ const navigation = [
     links: [
       { title: 'Overview', href: '/docs/overview' },
       { title: 'Motivation', href: '/docs/motivation' },
-      { title: 'Strategy, history, and roadmap', href: '/docs/roadmap' },
+      { title: 'Roadmap and history ', href: '/docs/roadmap' },
       { title: 'Get involved', href: '/docs/getting-started' },
       { title: 'Installation', href: '/docs/installation' },
     ],
@@ -116,7 +116,7 @@ function useTableOfContents(tableOfContents: any) {
 function Navigation({ navigation }: any) {
   const location = useLocation()
   return (
-    <nav className='text-base lg:text-sm px-4'>
+    <nav className='text-base lg:text-sm px-6'>
       <ul role="list" className="space-y-9">
         {navigation.map((section: any) => (
           <li key={section.title}>
