@@ -44,7 +44,7 @@ export default function LandingPage(): JSX.Element {
               ) : (
                 <Button.Solid
                   variant='primary'
-                  onClick={() => navigate("/login", { replace: true })}
+                  onClick={() => navigate("/login")}
                 >
                   Sign in
                   <FingerPrintIcon class="btn-icon" />
@@ -53,7 +53,7 @@ export default function LandingPage(): JSX.Element {
 
               <Button.Ghost
                 variant='primary'
-                onClick={() => navigate("/register", { replace: true })}
+                onClick={() => navigate("/register")}
               >
                 Create account
                 <UserPlusIcon class="btn-icon" />
