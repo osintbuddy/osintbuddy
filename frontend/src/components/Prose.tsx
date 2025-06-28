@@ -4,7 +4,7 @@ export default function Prose({ className, ...props }: any) {
     <div
       className={`
       ${className}
-        prose prose-em:text-slate-350/95 prose-slate max-w-none prose-code:text-pink-400 not-prose-pre:prose-code:bg-slate-900 prose-pre:prose-code:text-teal-400 rounded prose-code:px-0.5 prose-code:py-px prose-code:rounded prose-pre:text-inherit  prose-ul:text-slate-400 prose-ol:text-slate-350 prose-p:text-slate-350 prose-headings:text-slate-350
+        prose prose-em:text-slate-350/95 prose-slate max-w-none prose-code:text-pink-400 not-prose-pre:prose-code:bg-slate-900 prose-pre:prose-code:text-teal-400 rounded prose-code:px-0.5 prose-code:py-px prose-code:rounded prose-pre:text-inherit  prose-ul:text-slate-350 prose-ol:text-slate-350 prose-p:text-slate-350 prose-headings:text-slate-350
         prose-headings:scroll-mt-22 prose-heading:mt-2 prose-headings:mb-2 prose-headings:font-display prose-headings:font-normal lg:prose-headings:scroll-mt-[8.5rem]
         prose-lead:text-slate-400 dark:prose-lead:text-slate-350
         prose-a:font-semibold dark:prose-a:text-primary-340

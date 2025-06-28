@@ -10,9 +10,9 @@ OSINTBuddy provides a range of tools for performing OSINT research. One of the k
 
 {% quick-link title="Installation" icon="world-download" href="/docs/installation" description="Step-by-step guides for setting up your system and installing OSINTBuddy." /%}
 
-{% quick-link title="Architecture overview" icon="hammer" href="/docs/architecture-guide" description="Learn how the internals work and start contributing to OSINTbuddy." /%}
+{% quick-link title="Architecture overview" icon="hammer" href="/docs/contrib/architecture-guide" description="Learn how the internals work and start contributing to OSINTbuddy." /%}
 
-{% quick-link title="Plugin System" icon="plug" href="/docs/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
+{% quick-link title="Plugin System" icon="plug" href="/docs/guides/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
 
 {% quick-link title="OSINTBuddy Membership" icon="coin" href="https://opencollective.com/openinfolabs/projects/osintbuddy#contribute" description="Join the OSINTBuddy project for unique benefits. This helps us stay free for everyone" /%}
 

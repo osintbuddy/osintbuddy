@@ -8,9 +8,9 @@ Learn all the ways you can get involved with the OSINTBuddy community and the pr
 
 {% quick-links %}
 
-{% quick-link title="The Entity Plugin System" icon="plug" href="/docs/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
+{% quick-link title="The Entity Plugin System" icon="plug" href="/docs/guides/plugin-system" description="Learn how to build powerful plugins that can pull from any data source." /%}
 
-{% quick-link title="Contributing your Time" icon="hourglass" href="/docs/how-to-contribute" description="Learn about how you can contribute to the OSINTBuddy project to help move us along" /%}
+{% quick-link title="Contributing your Time" icon="hourglass" href="/docs/contrib/how-to-contribute" description="Learn about how you can contribute to the OSINTBuddy project to help move us along" /%}
 
 {% /quick-links %}
 

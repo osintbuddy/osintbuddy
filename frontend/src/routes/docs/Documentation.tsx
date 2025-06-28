@@ -13,7 +13,7 @@ const navigation = [
     title: 'What is OSINTBuddy',
     links: [
       { title: 'Overview', href: '/docs/overview' },
-      { title: 'Motivation', href: '/docs/motivation' },
+      { title: 'Vision and motivation', href: '/docs/vision' },
       { title: 'Roadmap and history ', href: '/docs/roadmap' },
       { title: 'Get involved', href: '/docs/getting-started' },
       { title: 'Installation', href: '/docs/installation' },
@@ -64,6 +64,7 @@ const navigation = [
     title: 'Contributing',
     links: [
       { title: 'How to contribute', href: '/docs/contrib/how-to-contribute' },
+      { title: 'Code of Conduct', href: '/docs/contrib/conduct' },
       { title: 'Architecture guide', href: '/docs/contrib/architecture-guide' },
     ],
   },

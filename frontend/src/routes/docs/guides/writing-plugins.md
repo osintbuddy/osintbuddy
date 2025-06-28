@@ -1,10 +1,8 @@
 ---
 title: Writing plugins
-pageTitle: OSINTBuddy - Creating your first plugin
+pageTitle: Creating your first OSINTBuddy plugin
 description:
 ---
-
-## Creating your first plugin
 
 In this guide, we will dive into creating a custom plugin for OSINTBuddy that extends its capabilities. This will enable you to incorporate additional sources and transformations into the OSINTBuddy toolbox. We will use the provided code example as a reference to build our plugin.
 
