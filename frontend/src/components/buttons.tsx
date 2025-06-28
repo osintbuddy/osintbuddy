@@ -8,7 +8,7 @@ export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const solidStyles = {
-  primary: "ring-primary-350 hover:ring-primary-400 bg-primary-350 hover:bg-primary-400 focus:bg-primary-400 hover:stroke-primary-400 stroke-primary-350 focus:outline-1 focus:outline-primary-300 disabled:bg-slate-800 disable:border-slate-800 disabled:stroke-slate-800 disable:outline-slate-800 disabled:ring-slate-800 disabled:text-slate-400/80",
+  primary: "hover:ring-primary-400 ring-primary-350 bg-primary-350 hover:bg-primary-400 focus:bg-primary-400 focus:outline-primary-300 disabled:bg-slate-800 disable:border-slate-800 disabled:stroke-slate-800 disable:outline-slate-800 disabled:ring-slate-800 disabled:text-slate-400/80 focus:outline-primary-200 outline-1 outline-primary-350 focus:outline-inset disabled:outline-slate-800 disabled:hover:scale-100",
   danger: "ring-danger-500/90 hover:ring-danger-500 bg-danger-500/90 hover:bg-danger-500 focus:bg-danger-400/90 hover:stroke-danger-500 stroke-danger-500/90"
 }
 
@@ -18,7 +18,7 @@ export function Solid(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold hover:text-slate-200/90 text-slate-200/90 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''}`}
+      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold hover:text-slate-200/90 text-slate-200/90 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''} `}
     >
       {children}
     </button>

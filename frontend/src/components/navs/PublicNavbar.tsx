@@ -34,23 +34,19 @@ export default function PublicNavbar(): JSX.Element {
         </Link>
       </div>
 
-      <div class="relative flex justify-end mr-4">
-        <a href="https://discord.gg/gsbbYHA3K3" class="group" aria-label="Discord">
-          <Icon icon="brand-discord" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
-        </a>
-      </div>
-      <div class="relative flex justify-end">
-        <a href="https://github.com/jerlendds/osintbuddy" class="group" aria-label="GitHub">
-          <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300 mr-4" />
-        </a>
-      </div>
+      <a href="https://discord.gg/gsbbYHA3K3" aria-label="Discord">
+        <Icon icon="brand-discord" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
+      </a>
+      <a href="https://github.com/jerlendds/osintbuddy" class="mx-4" aria-label="GitHub">
+        <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
+      </a>
       {!location.pathname.includes('/docs') ? (
-        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/docs/overview")}>
-          The OSIB Book
+        <Button.Solid variant='primary' onClick={() => navigate("/docs/overview")}>
+          OSIB Book
           <BookOpenIcon class="btn-icon" />
         </Button.Solid>
       ) : (
-        <Button.Solid variant='primary' className="mr-6" onClick={() => navigate("/login")}>
+        <Button.Solid variant='primary' onClick={() => navigate("/login")}>
           Sign in
           <UserIcon class="btn-icon" />
         </Button.Solid>
