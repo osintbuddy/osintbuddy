@@ -12,21 +12,6 @@ services:
     ports:
       - "${FRONTEND_PORT-5173}:5173"
 
-  plugins:
-    container_name: "plugins"
-    tty: true
-    command: "ob start"
-    build:
-      context: ./
-      dockerfile: plugins.Dockerfile 
-    volumes:
-      - "./plugins:/plugins"
-      - "./osintbuddy-plugins:/app"
-    ports:
-      - "42562:42562"
-    environment:
-      PYTHONDONTWRITEBYTECODE: 1
-
   db:
     container_name: "db"
     image: apache/age
