@@ -95,4 +95,4 @@ printf "${PURPLE}Building rust server...${NC}\n"
 cargo build --release
 
 printf "${PURPLE}OSINTBuddy is ready to be started!\nRun the following command to start the server ${iYELLOW}(remember to update your rs/.env file)${NC}:\n\n"
-printf "${GREEN}cd rs/ && ./target/release/osib &${NC}\n\n"
+printf "${GREEN}cd rs/ && killall -q osib && ./target/release/osib &${NC}\n\n"

@@ -121,7 +121,7 @@ function Navigation({ navigation }: any) {
       <ul role="list" className="space-y-9">
         {navigation.map((section: any) => (
           <li key={section.title}>
-            <h2 className="font-display font-medium text-slate-900 dark:text-slate-300">
+            <h2 className="font-display font-semibold text-slate-350">
               {section.title}
             </h2>
             <ul

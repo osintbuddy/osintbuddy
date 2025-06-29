@@ -71,8 +71,8 @@ export function Hero() {
       <div className=" lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0">
         <div className='mx-auto grid grid-cols-1 md:px-0 px-4 md:max-w-5/6 gap-y-16 lg:grid-cols-2 '>
           <div className='relative z-10 lg:mt-28'>
-            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-2xl md:px-0 whitespace-pre-line'>
-              Leverage the power of public data to fuel your research and uncover hidden connections
+            <h2 className='inline bg-gradient-to-br from-primary-100 via-blue-500 to-primary-200 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-md md:px-0 whitespace-pre-line'>
+              Leverage the power of public data to fuel<br /> your research and uncover hidden connections
             </h2>
             <p className='pt-1 text-slate-350 max-w-2xl'>
               Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data. From defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.

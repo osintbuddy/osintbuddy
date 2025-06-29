@@ -18,16 +18,14 @@ export default function LandingPage(): JSX.Element {
   const navigate = useNavigate();
 
   const token = ""
-  useEffect(() => {
-    console.log('token', token)
-  })
+
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
-      <div class='mx-auto md:mt-52 mt-24 items-center'>
+      <div class='mx-auto md:mt-52 mt-36 items-center'>
         <div class='relative text-center'>
           <section class='relative pb-12 flex flex-col items-center'>
-            <h2 class='inline text-center bg-gradient-to-r from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2 md:px-0'>
-              Elevate your Research with Strategic Insights from Public Data
+            <h2 class='inline text-center bg-gradient-to-br from-primary-200 via-blue-500 to-primary-200 bg-clip-text text-2xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2'>
+              Elevate your Research with<br /> Strategic Insights from Public Data
             </h2>
             <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-350 max-w-2xl'>
               Hi, I'm jerlendds and I created OSINTBuddy, an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can identify relationships like what links to a given domain.
@@ -62,15 +60,16 @@ export default function LandingPage(): JSX.Element {
           </section>
         </div>
       </div>
-      <section class='relative px-3 flex flex-col items-center justify-center mt-auto bottom-0 mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight bg-gradient-to-r text-slate-350'>
+      <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
+        <h1 class='font-display text-2xl tracking-tight text-slate-350'>
           {atfQuote}
+
         </h1>
         <p class='text-slate-350 mb-2 '>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'
-            class='hover:text-primary-100 text-primary-200 transition-all duration-100 font-sans ease-in-out'
+            class='hover:text-primary-50 active:text-primary-50 text-primary-100 transition-all duration-100 font-sans ease-in-out'
           >
             &nbsp;oss@osintbuddy.com&nbsp;
           </a>

@@ -30,9 +30,9 @@ export default function LoginPage(): JSX.Element {
 
   return (
     <>
-      <div class="flex flex-col items-center justify-center">
-        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/60 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center w-11/12 md:w-auto">
-          <h2 class="text-slate-350 mb-4 md:-ml-3 font-semibold font-display text-2xl relative">
+      <div class="flex flex-col items-center justify-center my-20 py-20">
+        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/50 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center w-11/12 md:w-auto">
+          <h2 class="text-slate-350 mb-4 md:-ml-7 font-semibold font-display text-2xl relative">
             Sign into OSINTBuddy
           </h2>
 
@@ -64,12 +64,12 @@ export default function LoginPage(): JSX.Element {
               </Button.Solid>
             </form>
 
-            <hr class="w-sm text-mirage-700 mt-6 mb-4" />
+            <hr class="w-xs md:w-sm text-mirage-700 mt-6 mb-4" />
             <section class="text-sm flex flex-col items-center text-slate-400">
-              <p class="font-display">Don't have an account yet?</p>
+              <p>Don't have an account yet?</p>
               <NavLink
                 to='/register'
-                class="border-b-2 border-transparent hover:text-slate-350 hover:border-primary font-display"
+                class="border-b-2 border-transparent hover:text-slate-300 hover:border-primary active:border-primary"
               >
                 Sign up here
               </NavLink>

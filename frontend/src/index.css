@@ -3,8 +3,8 @@
 @import './assets/styles/global.css';
 
 @theme {
-  --font-sans: "Inter";
-  --font-display: "Lexend";
+  --font-sans: "Lato";
+  --font-display: "Onest";
   --font-code: "Fira Code", "monospace";
 
   --color-primary: #1628FF;
@@ -220,7 +220,7 @@ svg.icon {
   @apply flex items-center justify-center;
 }
 
-p {
+p, a {
   @apply font-sans;
 }
 
