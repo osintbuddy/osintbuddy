@@ -31,13 +31,13 @@ export default function LoginPage(): JSX.Element {
   return (
     <>
       <div class="flex flex-col items-center justify-center">
-        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/60 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center">
-          <h2 class="text-slate-350 mb-4 -ml-3 font-semibold font-display text-2xl relative">
+        <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/60 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center w-11/12 md:w-auto">
+          <h2 class="text-slate-350 mb-4 md:-ml-3 font-semibold font-display text-2xl relative">
             Sign into OSINTBuddy
           </h2>
 
-          <div class="font-display flex flex-col items-center px-5">
-            <form onSubmit={onSubmit} class="grid gap-y-2 max-w-2xs w-full">
+          <div class="font-display flex flex-col items-center md:px-5">
+            <form onSubmit={onSubmit} class="grid gap-y-2 max-w-2xs w-full px-2 md:px-0">
               <Input.Transparent
                 label="Email"
                 type="email"
