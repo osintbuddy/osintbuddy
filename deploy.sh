@@ -16,7 +16,7 @@ sudo apt update -y
 
 # check for and install missing packages
 packages_to_install=()
-for package in "neovim" "libssl-dev" "git" "build-essential" "pkg-config" "docker"; do
+for package in "neovim" "libssl-dev" "git" "build-essential" "pkg-config"; do
     printf "${PURPLE}checking for $package...${NC}\n"
     if ! dpkg -s $package | grep -q "Status: install ok installed"; then
         packages_to_install+=("$package")
