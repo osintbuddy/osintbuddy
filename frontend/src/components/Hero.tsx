@@ -69,32 +69,33 @@ export function Hero() {
   return (
     <div className="z-10 overflow-hidden bg-gradient-to-b pt-6 lg:mt-[-4.75rem] lg:pt-[4.75rem] pb-12">
       <div className=" lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0">
-        <div className='mx-auto grid grid-cols-1 md:px-0 px-4 md:max-w-5/6 items-center gap-y-16 lg:grid-cols-2 '>
-          <div className='relative z-10 md:text-center lg:text-left'>
-            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-lg md:px-0 whitespace-pre-line'>
+        <div className='mx-auto grid grid-cols-1 md:px-0 px-4 md:max-w-5/6 gap-y-16 lg:grid-cols-2 '>
+          <div className='relative z-10 lg:mt-28'>
+            <h2 className='inline bg-gradient-to-br from-primary-300 via-primary-200 to-primary-300 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-2xl md:px-0 whitespace-pre-line'>
               Leverage the power of public data to fuel your research and uncover hidden connections
             </h2>
-            <p className='pt-1 text-slate-350 '>
+            <p className='pt-1 text-slate-350 max-w-2xl'>
               Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data. From defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.
-            </p>
-            <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 md:justify-center lg:justify-start'>
-              <Button.Solid
-                variant='primary'
-                disabled
-                onClick={() => toast.warn("The marketplace isn't available yet.")}
-              >
-                Marketplace
-                <Icon icon="lock-exclamation" className="btn-icon" />
-              </Button.Solid>
-              <Button.Ghost
-                variant='primary'
-                onClick={() => navigate("/docs/roadmap")}
-              >
-                View Roadmap
-                <Icon icon="road" className="btn-icon" />
-              </Button.Ghost>
+              <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 '>
+                <Button.Solid
+                  variant='primary'
+                  disabled
+                  onClick={() => toast.warn("The marketplace isn't available yet.")}
+                >
+                  Marketplace
+                  <Icon icon="lock-exclamation" className="btn-icon" />
+                </Button.Solid>
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => navigate("/docs/roadmap")}
+                >
+                  View Roadmap
+                  <Icon icon="road" className="btn-icon" />
+                </Button.Ghost>
 
-            </div>
+              </div>
+            </p>
+
           </div>
           <div className="relative lg:static ">
             <div className="select-none absolute inset-x-[-50vw] -top-32 -bottom-48 [mask-image:linear-gradient(transparent,white,white)] dark:[mask-image:linear-gradient(transparent,black,transparent)] lg:left-[calc(50%+14rem)] lg:right-0 lg:-top-32 lg:-bottom-32 lg:[mask-image:none] lg:dark:[mask-image:linear-gradient(white,white,transparent)]">

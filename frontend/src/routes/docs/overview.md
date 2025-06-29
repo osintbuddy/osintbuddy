@@ -4,6 +4,7 @@ pageTitle: "Meet OSINTBuddy: Transformative link analysis"
 description: "Fetch data from different sources and return the results as visual entities that you can explore step-by-step. OSINTBuddy, the open source link analysis solution."
 ---
 
+
 OSINTBuddy provides a range of tools for performing OSINT research. One of the key features of OSINTBuddy is its plugin system which allows researchers to easily add or modify Python plugins _(also referred to as "entities")_ to suit their specific needs. This system provides a flexible and customizable approach to data gathering and analysis, making it an open-source alternative to popular proprietary tools such as Maltego. Please note that OSINTBuddy is currently experimental software. We do not recommend using the project for anything serious.
 
 {% quick-links %}
