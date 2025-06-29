@@ -1,21 +1,20 @@
 #!/bin/env bash
-# TODO: test me on Debian 12...
+# Tested on Debian 12!
 
 NC='\e[0m' # no color/color off
-BLACK='\033[0;30m'
 RED='\033[0;31m'
 GREEN='\033[0;32m' 
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-WHITE='\033[0;37m'
 iYELLOW='\033[0;93m'
 
 # update system
 printf "${PURPLE}Updating your system...${NC}\n"
 sudo apt update -y
 
+# check for and install missing packages
 packages_to_install=()
 for package in "neovim" "libssl-dev" "git" "build-essential" "pkg-config" "docker"; do
     printf "${PURPLE}checking for $package...${NC}\n"
@@ -42,7 +41,6 @@ then
     sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
     sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-    # Add the repository to Apt sources:
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
       $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
@@ -55,6 +53,7 @@ fi
 # I use alacritty so this makes my life easier :)
 curl -sSL https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info | tic -x -
 
+# check for rust
 if ! command -v cargo >/dev/null 2>&1
 then
     printf "${RED}cargo/rust not found!${NC}\n"
@@ -62,6 +61,7 @@ then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 fi
 
+# check for sqlx-cli
 if ! command -v sqlx >/dev/null 2>&1
 then
     printf "${RED}sqlx-cli not found.${NC}"
@@ -69,6 +69,7 @@ then
     cargo install sqlx-cli --no-default-features --features native-tls,postgres
 fi
 
+# check for nvm
 if ! command -v nvm >/dev/null 2>&1
 then
     printf "${RED}nvm not found!${NC}\n"
