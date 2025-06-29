@@ -47,6 +47,7 @@ cd frontend/
 yarn && yarn build
 cd ..
 
+docker compose up db -d
 cd rs/
 cargo build --release
 
