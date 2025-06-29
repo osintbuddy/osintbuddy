@@ -18,7 +18,7 @@ export function Solid(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold hover:text-slate-200/90 text-slate-200 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''} `}
+      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold text-slate-200/95 text-slate-200 flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear ${solidStyles[variant]} ${className ?? ''} `}
     >
       {children}
     </button>
@@ -36,7 +36,7 @@ export function Ghost(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={` group ring-1  whitespace-nowrap text-left text-sm tracking-wide font-semibold  scale-100 hover:scale-[99%] flex items-center border hover:ring-inset  py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear hover:text-slate-200/90 text-slate-200 ${ghostStyles[variant]} ${className ?? ''}`}
+      class={` group ring-1  whitespace-nowrap text-left text-sm tracking-wide font-semibold  scale-100 hover:scale-[99%] flex items-center border hover:ring-inset  py-2 px-5 font-display rounded-md hover:shadow justify-center transition-all duration-75 ease-linear text-slate-200/95 text-slate-200 ${ghostStyles[variant]} ${className ?? ''}`}
     >
       {children}
     </button>
