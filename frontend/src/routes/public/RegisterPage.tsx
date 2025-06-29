@@ -90,7 +90,7 @@ export default function RegisterPage(): JSX.Element {
             <p>Already have an account?</p>
             <NavLink
               to='/login'
-              class="border-b-2 border-transparent hover:text-slate-300 hover:border-primary active:border-primary"
+              class="border-b-2 border-transparent hover:text-slate-200 hover:border-primary active:border-primary"
             >
               Sign in here
             </NavLink>
