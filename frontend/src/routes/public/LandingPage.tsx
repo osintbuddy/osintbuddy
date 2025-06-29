@@ -27,7 +27,7 @@ export default function LandingPage(): JSX.Element {
             <h2 class='inline text-center bg-gradient-to-br from-primary-200 via-blue-500 to-primary-200 bg-clip-text text-2xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2'>
               Elevate your Research with<br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-350 max-w-2xl'>
+            <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-300 max-w-2xl'>
               Hi, I'm jerlendds and I created OSINTBuddy, an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can identify relationships like what links to a given domain.
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
@@ -61,11 +61,11 @@ export default function LandingPage(): JSX.Element {
         </div>
       </div>
       <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight text-slate-350'>
+        <h1 class='font-display text-2xl tracking-tight text-slate-300'>
           {atfQuote}
 
         </h1>
-        <p class='text-slate-350 mb-2 '>
+        <p class='text-slate-300 mb-2 '>
           Email me at
           <a
             href='mailto:oss@osintbuddy.com'

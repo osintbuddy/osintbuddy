@@ -74,7 +74,7 @@ export function Hero() {
             <h2 className='inline bg-gradient-to-br from-primary-100 via-blue-500 to-primary-200 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-md md:px-0 whitespace-pre-line'>
               Leverage the power of public data to fuel<br /> your research and uncover hidden connections
             </h2>
-            <p className='pt-1 text-slate-350 max-w-2xl'>
+            <p className='pt-1 text-slate-300 max-w-2xl'>
               Reveal the insights that shape our world and stay informed through the power of public data. See the connections, understand the data. From defending against cyber threats to uncovering scientific misconduct, visualize the invisible with OSINTBuddy.
               <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 '>
                 <Button.Solid
