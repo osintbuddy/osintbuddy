@@ -449,7 +449,7 @@ input[type='file'] {
 }
 
 .tab {
-  @apply focus:outline-none transition-colors duration-200 ease-in-out flex items-center justify-center pt-2 px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto
+  @apply focus:outline-none transition-colors duration-200 ease-in-out flex items-center justify-center pt-2 px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold
 }
 
 .tab span,

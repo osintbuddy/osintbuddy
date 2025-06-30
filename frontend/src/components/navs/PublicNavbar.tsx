@@ -4,13 +4,17 @@ import { useEffect, useState } from 'preact/hooks';
 import { Icon } from '../Icons';
 import Logo from '@/assets/images/logo.svg';
 import Button from '../buttons';
-import { BookOpenIcon, DocumentTextIcon, HomeIcon, UserIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, Squares2X2Icon, UserIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/app/api';
 
 export default function PublicNavbar(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  let [isScrolled, setIsScrolled] = useState(false)
+  const isDocsPage = location.pathname.includes('/docs');
+  const { isAuthenticated } = useAuth();
 
+  // controls the header styles
+  let [isScrolled, setIsScrolled] = useState(false)
   useEffect(() => {
     function onScroll() {
       setIsScrolled(window.scrollY > 0)
@@ -21,6 +25,7 @@ export default function PublicNavbar(): JSX.Element {
       window.removeEventListener('scroll', onScroll)
     }
   }, [])
+
   return (
     <header class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-16 ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}>
       <div class="flex lg:hidden">
@@ -40,12 +45,19 @@ export default function PublicNavbar(): JSX.Element {
       <a href="https://github.com/jerlendds/osintbuddy" class="mx-4" aria-label="GitHub">
         <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
       </a>
-      {!location.pathname.includes('/docs') ? (
+      {!isDocsPage && (
         <Button.Solid variant='primary' onClick={() => navigate("/docs/overview")}>
           OSIB Book
           <BookOpenIcon class="btn-icon" />
         </Button.Solid>
-      ) : (
+      )}
+      {isAuthenticated && isDocsPage && (
+        <Button.Solid variant='primary' onClick={() => navigate("/dashboard/graph")}>
+          Open OSINTBuddy
+          <Squares2X2Icon class="btn-icon" />
+        </Button.Solid>
+      )}
+      {!isAuthenticated && isDocsPage && (
         <Button.Solid variant='primary' onClick={() => navigate("/login")}>
           Sign in
           <UserIcon class="btn-icon" />

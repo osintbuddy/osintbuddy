@@ -1,6 +1,6 @@
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
-import { FingerPrintIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { JSX } from "preact/jsx-runtime";
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -30,9 +30,12 @@ export default function RegisterPage(): JSX.Element {
       toast.error("A username is required and must be 3 or more characters.")
     if (!tos)
       toast.error("Please agree to the terms and conditions to sign up.")
+
+    // attempt register when valid
     if (!invalidEmail && !invalidPassword && !invalidUsername && password === confirm && tos) {
       // mutate({ email, password });
-      e.currentTarget.reset(); // clear inputs after successful submission
+      toast.warn("Account registration is currently disabled! Please try again later...")
+      e.currentTarget.reset();
     }
   };
 
@@ -52,6 +55,7 @@ export default function RegisterPage(): JSX.Element {
               type="text"
               className="w-full"
               placeholder="Your username"
+              required
             />
             <Input.Transparent
               name="email"
@@ -59,12 +63,14 @@ export default function RegisterPage(): JSX.Element {
               type="email"
               className="w-full"
               placeholder="you@provider.com"
+              required
             />
             <Input.TransparentPassword
               name="password"
               label="Password"
               className="w-full"
               placeholder="Your password"
+              required
             />
             <Input.Transparent
               name="confirm"
@@ -72,12 +78,14 @@ export default function RegisterPage(): JSX.Element {
               type="password"
               className="w-full"
               placeholder="Confirm your password"
+              required
             />
             <Input.Checkbox
               label={<>I agree to the <NavLink class="border-b-3 border-primary-350 hover:border-primary  hover:text-slate-200" to="/terms">terms and conditions</NavLink>.</>}
               name="tos"
               placeholder="Your password"
               className="mt-2 mb-4"
+              required
             />
             <Button.Solid type="submit" variant="primary" className="w-full">
               Sign up

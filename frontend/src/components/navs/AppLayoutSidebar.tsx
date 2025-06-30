@@ -1,13 +1,13 @@
-import { type MouseEventHandler } from "preact/compat";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CogIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";
 import HamburgerMenu from "./HamburgerMenu";
 import Logo from "@/assets/images/logo.svg";
 import { Icon } from "../Icons";
 
-interface AppLayoutSidebarProps {
+interface SidebarProps {
   showSidebar: boolean
-  toggleSidebar: MouseEventHandler<HTMLButtonElement>
+  toggleSidebar: () => void
+  logout: () => void
 }
 
 const navigation = [
@@ -23,7 +23,8 @@ const navigation = [
   }
 ];
 
-export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayoutSidebarProps) {
+export default function AppLayoutSidebar({ showSidebar, toggleSidebar, logout }: SidebarProps) {
+  const navigate = useNavigate();
 
   return (
     <div class={`fixed inset-y-0 flex border-r  border-black/10 w-64 flex-col transition-transform duration-100 shadow-2xl shadow-black/35 from-black/30 to-black/20 bg-gradient-to-br backdrop-blur-sm ${showSidebar ? "translate-x-0" : "-translate-x-52 border-r-2"}`}>
@@ -74,7 +75,10 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar }: AppLayo
               </a>
               <a
                 class={`sidebar-link !mb-2 ${showSidebar ? "mx-2.5" : 'ml-0.5 mr-px'}`}
-                onClick={() => console.log("TODO logout")}
+                onClick={() => {
+                  logout('')
+                  navigate('/', { replace: true })
+                }}
                 href="javascript:void(0);"
               >
                 <Icon

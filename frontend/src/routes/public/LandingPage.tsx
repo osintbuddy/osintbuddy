@@ -1,8 +1,9 @@
 import type { JSX } from 'preact';
-import { FingerPrintIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { FingerPrintIcon, LockClosedIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'preact/hooks';
+import { useAuth } from '@/app/api';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -16,8 +17,7 @@ const QUOTES = [
 export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
   const navigate = useNavigate();
-
-  const token = ""
+  const { isAuthenticated, logout } = useAuth()
 
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
@@ -31,7 +31,7 @@ export default function LandingPage(): JSX.Element {
               Hi, I'm jerlendds and I created OSINTBuddy, an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can identify relationships like what links to a given domain.
             </p>
             <div class='mt-4 flex gap-4 justify-center'>
-              {token?.length > 1 ? (
+              {isAuthenticated ? (
                 <Button.Solid
                   variant='primary'
                   onClick={() => navigate("/dashboard/graph")}
@@ -48,14 +48,23 @@ export default function LandingPage(): JSX.Element {
                   <FingerPrintIcon class="btn-icon" />
                 </Button.Solid>
               )}
-
-              <Button.Ghost
-                variant='primary'
-                onClick={() => navigate("/register")}
-              >
-                Create account
-                <UserPlusIcon class="btn-icon" />
-              </Button.Ghost>
+              {isAuthenticated ? (
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => logout()}
+                >
+                  Sign out
+                  <LockClosedIcon class="btn-icon" />
+                </Button.Ghost>
+              ) : (
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => navigate("/register")}
+                >
+                  Create account
+                  <UserPlusIcon class="btn-icon" />
+                </Button.Ghost>
+              )}
             </div>
           </section>
         </div>

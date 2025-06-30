@@ -1,21 +1,24 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AppLayoutSidebar from "@/components/navs/AppLayoutSidebar";
-import "react-toastify/dist/ReactToastify.css";
-import { useState } from "preact/hooks";
+import { useAuth } from "@/app/api";
+import { useAppStore } from "@/app/store";
 
 export default function AppLayout() {
-  const [showSidebar, setShowSidebar] = useState(true);
-  const token = ""
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar)
-  };
-  if (!token) return <Navigate to="/" replace />
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+  const { showSidebar, toggleSidebar } = useAppStore();
+
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />
 
   return (
     <>
       <div className="flex flex-col max-w-screen">
-        <AppLayoutSidebar toggleSidebar={toggleSidebar} showSidebar={showSidebar} />
+        <AppLayoutSidebar
+          logout={logout}
+          toggleSidebar={toggleSidebar}
+          showSidebar={showSidebar}
+        />
         <div
           style={{ width: `calc(100% - ${showSidebar ? 16 : 3}rem)` }}
           className={`w-full transition-all overflow-hidden duration-100 relative ${showSidebar ? 'translate-x-64' : 'translate-x-12'}`}

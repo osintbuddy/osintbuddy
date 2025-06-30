@@ -78,7 +78,7 @@ async fn login_user_handler(
     pool: db::Database,
 ) -> Result<Token, AppError> {
     let body = body.into_inner().validate()?;
-    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
+    let user: User = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(pool.as_ref())
         .await
         .map_err(|err| {
@@ -117,6 +117,9 @@ async fn login_user_handler(
         sub,
         exp,
         iat,
+        email: user.email,
+        name: user.name,
+        ctime: user.ctime.unwrap(), // valid users always have a ctime
         roles: vec![String::from("user")],
     };
 
