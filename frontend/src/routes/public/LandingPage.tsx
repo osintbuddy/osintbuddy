@@ -2,7 +2,6 @@ import type { JSX } from 'preact';
 import { FingerPrintIcon, LockClosedIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'preact/hooks';
 import { useAuth } from '@/app/api';
 
 const QUOTES = [
