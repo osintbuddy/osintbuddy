@@ -5,7 +5,11 @@ description: "Fetch data from different sources and return the results as visual
 ---
 
 
-OSINTBuddy provides a range of tools for performing OSINT research. One of the key features of OSINTBuddy is its plugin system which allows researchers to easily add or modify Python plugins _(also referred to as "entities")_ to suit their specific needs. This system provides a flexible and customizable approach to data gathering and analysis, making it an open-source alternative to popular proprietary tools such as Maltego. Please note that OSINTBuddy is currently experimental software. We do not recommend using the project for anything serious.
+OSINTBuddy provides a range of tools for performing OSINT research. One of the key features of OSINTBuddy is its plugin system which allows researchers to easily add or modify Python plugins _(also referred to as "entities")_ to suit their specific needs. This system provides a flexible and customizable approach to data gathering and analysis, making it an open-source alternative to popular proprietary tools such as Maltego. 
+
+{% callout type="warning" title="Experimental Software (Alpha)" %}
+Please note that OSINTBuddy is currently experimental software. We do not recommend using the project for anything serious.
+{% /callout %}
 
 {% quick-links %}
 
