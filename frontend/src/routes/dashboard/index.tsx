@@ -56,32 +56,32 @@ export default function DashboardPage() {
             placeholder={`Search...`}
           />
           <div class='overflow-y-hidden flex-grow flex flex-col items-stretch relative my-1'>
-            <ul class='flex justify-between rounded pb-1 items-center'>
+            <section class='flex justify-between rounded pb-1 items-center font-display font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
-                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
                 aria-selected={currentTab === 0}
               >
                 Graphs
               </Link>
               <Link
                 to='entity'
-                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
                 aria-selected={currentTab === 1}
               >
                 Entities
               </Link>
               <Link
                 to='market'
-                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
                 aria-selected={currentTab === 2}
               >
                 Market
               </Link>
-              <div class={`${currentTab === 1 ? '!translate-x-[111px]' : currentTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[5px]'} min-h-[35px] mr-auto min-w-[95px] left-0 absolute z-[0] top-0  transition-all duration-200 ease-out rounded from-primary-350 to-primary-400 border border-mirage-400/60 bg-gradient-to-br cursor-pointer`} />
-            </ul>
+              <div class={`${currentTab === 1 ? '!translate-x-[111px]' : currentTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} min-h-[35px] mr-auto min-w-[95px] left-0 absolute z-[0] top-0  transition-all duration-200 ease-out rounded from-primary-350 to-primary-400 border border-mirage-400/60 bg-gradient-to-br cursor-pointer`} />
+            </section>
             <div class="h-full overflow-y-scroll ">
-              <div class="w-full relative px-2 pr-2.5">
+              <div class="w-full relative px-2.5">
                 {currentTab === 0 && (
                   <GraphPanel
                     refetchGraphs={() => null}
