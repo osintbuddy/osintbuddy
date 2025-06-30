@@ -30,7 +30,7 @@ export function Timeline({ title, releaseDate, description, downloadLink }: Time
             <time class="block mb-2 text-sm font-normal leading-none text-slate-400">{releaseDate}</time>
             <p class="mb-4 text-base font-normal text-slate-600 dark:text-slate-400">{description}</p>
             {downloadLink && (
-                <Button.Ghost variant="primary" className='max-w-xs min-w-min'>
+                <Button.Ghost variant="primary" className='max-w-xs min-w-min !my-4'>
                     <a href={downloadLink} className="!text-inherit !font-display !text-sm">Download Source Code</a>
                     <CodeBracketIcon className="btn-icon" />
                 </Button.Ghost>

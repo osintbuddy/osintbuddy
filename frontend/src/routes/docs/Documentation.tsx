@@ -66,6 +66,7 @@ const navigation = [
       { title: 'How to contribute', href: '/docs/contrib/how-to-contribute' },
       { title: 'Code of Conduct', href: '/docs/contrib/conduct' },
       { title: 'Architecture guide', href: '/docs/contrib/architecture-guide' },
+      { title: 'Bugs and Security', href: '/docs/contrib/bugs-security' },
     ],
   },
 ]
@@ -258,7 +259,7 @@ export default function Documentation() {
         <div className="min-w-0 max-w-5/6 flex-auto md:px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 ">
           <article>
             {(attrs.title || section) && (
-              <header className="mb-7 space-y-1">
+              <header className="mb-3 space-y-1">
                 {section && (
                   <p className="font-display text-md font-medium text-primary-200">
                     {section.title}

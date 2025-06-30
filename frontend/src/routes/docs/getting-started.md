@@ -19,19 +19,4 @@ Learn all the ways you can get involved with the OSINTBuddy community and the pr
 
 [Join us on Discord](https://discord.gg/b8vW4J4skv) where you can connect with others, exchange ideas, get help, and more. We offer dedicated channels for various topics, including general discussions, bug reporting, and feature requests. People are encouraged to ask questions, share their experiences, lurk, and or contribute to the development of the application.
 
-By joining the OSINTBuddy community, you'll gain access to insider dev logs and support.
-
-## Bug reporting
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/osintbuddy/osintbuddy/issues/new?assignees=jerlendds&labels=Type%3A+Bug&projects=&template=&title=%5BBUG%5D+); it's that easy! **Great Bug Reports** tend to have:
-
-- Error logs wrapped in code blocks
-- A quick summary and/or background
-- Steps to reproduce
-- What you expected would happen
-- What actually happens
-
-We *love* thorough bug reports!
-
-## Reporting Security Issues
- Please email the core contributors directly at [oss@osintbuddy.com](mailto:oss@osintbuddy.com) if you encounter a serious security issue (e.g. in a package we use, etc)
-
+By joining the OSINTBuddy community, you'll gain access to insider dev logs and community support.
