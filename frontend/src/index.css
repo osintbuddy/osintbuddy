@@ -201,7 +201,7 @@ button {
 }
 
 .btn-icon {
-  @apply ml-3 w-5 h-5 group-hover:scale-[99%] scale-100
+  @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
 }
 
 ::-moz-selection {
