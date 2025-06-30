@@ -1,7 +1,7 @@
 import { BookOpenIcon, WrenchIcon, ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
 import Logo from '@/assets/images/logo.svg';
 import { Link } from 'react-router-dom';
-import { Icon } from '@/components/Icons';
+import { Icon } from '@/components/icons';
 import Button from '@/components/buttons';
 
 const links = [

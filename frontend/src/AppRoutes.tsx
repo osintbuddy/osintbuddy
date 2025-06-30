@@ -2,13 +2,13 @@ import type { JSX } from 'preact';
 import { Suspense, lazy } from 'preact/compat';
 import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
 import NotFound from "@/routes/public/NotFound";
-import AppLayout from "@/routes/AppLayout";
-import PublicLayout from "@/routes/PublicLayout";
+import AppLayout from "@/components/layouts/AppLayout";
+import PublicLayout from "@/components/layouts/PublicLayout";
 import { TourProvider } from "@reactour/tour";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import GraphLayout from "@/routes/GraphLayout";
+import GraphLayout from "@/components/layouts/GraphLayout";
 import Button from './components/buttons';
-import RoundLoader from './components/Loaders';
+import RoundLoader from './components/loaders';
 // Public routes
 import RegisterPage from './routes/public/RegisterPage';
 import LoginPage from './routes/public/LoginPage';
@@ -23,12 +23,12 @@ import Documentation from './routes/docs/Documentation';
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
 const Market = lazy(() => import("@/routes/dashboard/_components/Market"))
 
-const GraphOverview = lazy(() => import("@/routes/dashboard/_components/graph/GraphOverview"))
-const GraphDetails = lazy(() => import("@/routes/dashboard/_components/graph/GraphDetails"))
+const GraphOverview = lazy(() => import("@/routes/dashboard/_components/GraphOverview"))
+const GraphDetails = lazy(() => import("@/routes/dashboard/_components/GraphDetails"))
 const GraphInquiry = lazy(() => import("@/routes/graph/index"));
 
-const EntitiesOverview = lazy(() => import("@/routes/dashboard/_components/entity/EntitiesOverview"))
-const EntityDetails = lazy(() => import("@/routes/dashboard/_components/entity/EntityDetails"))
+const EntitiesOverview = lazy(() => import("@/routes/dashboard/_components/EntitiesOverview"))
+const EntityDetails = lazy(() => import("@/routes/dashboard/_components/EntityDetails"))
 
 const Settings = lazy(() => import("@/routes/settings"));
 const Workspaces = lazy(() => import("@/routes/workspaces"));

@@ -11,7 +11,7 @@ import Graph from './_components/Graph';
 import ELK from 'elkjs/lib/elk.bundled.js';
 
 import { WS_URL } from '@/app/baseApi';
-import RoundLoader from '@/components/Loaders';
+import RoundLoader from '@/components/loaders';
 import { useTour } from '@reactour/tour';
 
 const keyMap = {

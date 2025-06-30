@@ -1,5 +1,5 @@
 import Button from "@/components/buttons";
-import Prose from "@/components/Prose";
+import Prose from "@/components/docs/Prose";
 import { ArrowUturnLeftIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { CommandLineIcon, LockClosedIcon, LockOpenIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
-import { Icon } from "../Icons";
+import { Icon } from "../icons";
 import { toast } from "react-toastify";
 import { PlayIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { EditorView } from "@codemirror/view"

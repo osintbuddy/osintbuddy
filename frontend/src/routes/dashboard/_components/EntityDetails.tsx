@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom"
-import { Icon } from "@/components/Icons";
+import { Icon } from "@/components/icons";
 import { formatPGDate } from "@/app/utilities";
 
 export default function EntityDetailsPage() {

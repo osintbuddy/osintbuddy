@@ -10,7 +10,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import 'react-grid-layout/css/styles.css';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { HandRaisedIcon, ViewfinderCircleIcon } from '@heroicons/react/20/solid';
-import { Icon } from '@/components/Icons';
+import { Icon } from '@/components/icons';
 
 type UseResizeProps = {
   minWidth: number;

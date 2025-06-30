@@ -2,7 +2,7 @@ import { useRef, useState } from 'preact/hooks';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import { ChevronUpDownIcon, CodeBracketIcon, TrashIcon } from '@heroicons/react/24/outline';
 import EntityEditor from '@/components/EntityEditor/EntityEditor';
-import { Icon } from '@/components/Icons';
+import { Icon } from '@/components/icons';
 import Button from '@/components/buttons';
 
 export default function WorkspacePage() {

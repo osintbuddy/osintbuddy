@@ -1,5 +1,5 @@
 
-import { Icon } from '@/components/Icons'
+import { Icon } from '@/components/icons'
 import { NavLink } from 'react-router-dom'
 
 export function QuickLinks({ children }: any) {

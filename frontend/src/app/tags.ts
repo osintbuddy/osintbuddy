@@ -1,6 +1,6 @@
-import { Callout } from '../components/Callout'
-import { QuickLink, QuickLinks } from '../components/QuickLinks'
-import { Timeline, Timelines } from '../components/Timeline'
+import { Callout } from '../components/docs/Callout'
+import { QuickLink, QuickLinks } from '../components/docs/QuickLinks'
+import { Timeline, Timelines } from '../components/docs/Timeline'
 
 const tags = {
   callout: {

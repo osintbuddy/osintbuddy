@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { ChevronUpDownIcon, PaperClipIcon } from '@heroicons/react/24/outline';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { GripIcon, Icon } from '@/components/Icons';
+import { GripIcon, Icon } from '@/components/icons';
 import { toast } from 'react-toastify';
 
 var dropdownKey = 0;

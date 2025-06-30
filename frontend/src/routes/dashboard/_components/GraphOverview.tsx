@@ -1,6 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { useOutletContext } from "react-router-dom";
-import { DashboardContextType } from "../..";
+import { DashboardContextType } from "..";
 
 export default function GraphOverview() {
   const { graphsData } = useOutletContext<DashboardContextType>();
@@ -39,7 +39,7 @@ export default function GraphOverview() {
                   {graphs.length + favoriteGraphs.length}{" "}
                   {favoriteGraphs.length + graphs.length > 1
                     ? "graphs"
-                    : "graph"}{" "}
+                    : "graph"}&nbsp;
                   available
                 </h1>
                 <p className="md:pt-4 max-w-xl text-slate-300/80">

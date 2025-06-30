@@ -1,7 +1,7 @@
 import type { JSX } from 'preact/jsx-runtime'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'preact/hooks';
-import { Icon } from '../Icons';
+import { Icon } from '../icons';
 import Logo from '@/assets/images/logo.svg';
 import Button from '../buttons';
 import { BookOpenIcon, Squares2X2Icon, UserIcon } from '@heroicons/react/24/outline';

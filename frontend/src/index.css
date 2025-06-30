@@ -419,20 +419,6 @@ input[type='file'] {
 }
 /* end react-grid-layout and codemirror */
 
-/* wraps the sidebar with search and the main view */
-
-.graph-tab[aria-selected="true"]~div {
-  @apply -translate-x-[300px]
-}
-/* 
-.entities-tab[aria-selected="true"]~div {
-  @apply 
-}
-
-.market-tab[aria-selected="true"]~div {
-  @apply -translate-x-[95px]
-} */
-
 
 /* start... TODO: refactor me */
 .subpanel section {
@@ -440,7 +426,7 @@ input[type='file'] {
 }
 
 .subpanel-wrapper {
-  @apply flex flex-col justify-between relative flex-shrink overflow-clip;
+  @apply ;
 }
 
 .subpanel>h2 {

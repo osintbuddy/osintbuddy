@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
-import { DashboardContextType } from "../..";
+import { DashboardContextType } from "..";
 
 export default function EntitiesOverview() {
   const { entitiesData } = useOutletContext<DashboardContextType>();

@@ -2,7 +2,7 @@
 import { ChevronUpDownIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Combobox } from '@headlessui/react';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { GripIcon, Icon } from '@/components/Icons';
+import { GripIcon, Icon } from '@/components/icons';
 import { Dialog } from '@headlessui/react';
 import { useAppDispatch, useAppSelector, useComponentVisible } from '@/app/hooks';
 import Color from 'color';

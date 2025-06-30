@@ -1,6 +1,6 @@
 import { JSX } from "preact/jsx-runtime"
-import { Icon } from "./Icons"
-import Button from "./buttons"
+import { Icon } from "../icons"
+import Button from "../buttons"
 import { CodeBracketIcon } from "@heroicons/react/24/outline"
 
 export function Timelines({ children }: { children: JSX.Element | JSX.Element[] | undefined }) {

@@ -3,9 +3,6 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { formatPGDate } from "@/app/utilities";
 
-const MAX_DESCRIPTION_LENGTH = 79;
-const MAX_LABEL_LENGTH = 32;
-
 export function GraphLoaderCard() {
   return (
     <>
@@ -22,7 +19,7 @@ export function GraphLoaderCard() {
   );
 }
 
-interface EntitiesSubpanelProps {
+interface SubpanelProps {
   showError: any;
   showEntities: boolean;
   isLoading: boolean | undefined;
@@ -50,10 +47,10 @@ export default function Subpanel({
   errorMessage,
   dateLabel = "Last edit",
   dateKey = "last_edit",
-}: EntitiesSubpanelProps) {
+}: SubpanelProps) {
   const { hid } = useParams();
   return (
-    <section class="subpanel">
+    <div class="subpanel">
       <header class="subpanel-header" onClick={setShowEntities}>
         <h2>{label}</h2>
         <ChevronDownIcon
@@ -87,7 +84,7 @@ export default function Subpanel({
           <GraphLoaderCard />
         </>
       )}
-      <section
+      <div
         class={` transition-transform duration-150 ease-out ${showEntities ? "translate-y-0" : "-translate-y-[45%] -scale-y-0 !h-0"}`}
       >
         {items &&
@@ -117,7 +114,7 @@ export default function Subpanel({
               </Link>
             );
           })}
-      </section>
-    </section>
+      </div>
+    </div>
   );
 }

@@ -1,14 +1,12 @@
-import { useRef, useState } from "preact/hooks";
-import { Fragment } from "preact/jsx-runtime";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MagnifyingGlassIcon, PlusIcon, CloudIcon } from "@heroicons/react/24/outline";
-import GraphPanel from "./_components/tabs/GraphPanel";
-import EntitiesPanel from "./_components/tabs/EntitiesPanel";
-import MarketPanel from './_components/tabs/MarketPanel';
-import CreateGraphModal from "./_components/modals/CreateGraphModal";
-import CreateEntityModal from "./_components/modals/CreateEntityModal";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
+import { EntitiesPanel, GraphPanel, MarketPanel } from "./_components/panels";
+import { ArrowUturnLeftIcon, PencilIcon } from '@heroicons/react/24/outline';
+import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModal';
+import { Icon } from '@/components/icons';
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -23,6 +21,164 @@ export type DashboardContextType = {
   isLoadingGraphs: boolean
   isGraphsError: boolean
 };
+
+
+function CreateEntityForm({ closeModal, updateEntities }: JSONObject) {
+
+  const onSubmitHandler = (postEntityCreate: any) => {
+    closeModal()
+    // updateEntities()
+  };
+
+  return (
+    <form onSubmit={onSubmitHandler} className='from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group'>
+      <section class="group-hover:border-primary-350 border-b-2 mt-6 border-mirage-700 pl-1 pb-1 px-px">
+        <div class="flex flex-wrap items-center justify-between">
+          <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new entity plugin</h1>
+          <Icon icon="basket-code" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
+        </div>
+      </section>
+      <div class="w-full grid gap-y-8 mt-10 grid-cols-1 ">
+        <Input.Transparent className="w-full" name="label" label="Label" />
+        <Input.Textarea className="w-full" name="description" label="Description" />
+        <Input.Transparent className='w-full mb-6' name="author" label="Author(s)" />
+      </div>
+
+      <div class="flex justify-end mb-6">
+        <Button.Ghost variant="danger" onClick={() => closeModal()} type='button'>
+          Cancel
+          <ArrowUturnLeftIcon class="btn-icon text-danger" />
+        </Button.Ghost>
+        <Button.Solid className="ml-4" variant="primary" type='submit'>
+          <span>Create entity</span>
+          <PencilIcon class="btn-icon" />
+        </Button.Solid>
+      </div>
+    </form>
+  );
+}
+
+interface CreateEntityModalProps extends OverlayModalProps {
+  refreshAllEntities: any
+  closeModal: any
+  isOpen: boolean
+  cancelCreateRef: any
+}
+
+function CreateEntityModal({
+  closeModal,
+  isOpen,
+  cancelCreateRef,
+  refreshAllEntities
+}: CreateEntityModalProps) {
+  return (
+    <OverlayModal isOpen={isOpen} closeModal={closeModal} cancelCreateRef={cancelCreateRef}>
+      <CreateEntityForm closeModal={closeModal} updateEntities={refreshAllEntities} />
+    </OverlayModal>
+  );
+}
+
+
+type GraphFormData = {
+  label: string
+  description: string
+  enableGraphGuide?: boolean | undefined
+}
+
+function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
+  const navigate = useNavigate()
+  const [showGraphGuide, setShowGraphGuide] = useState(false);
+
+
+  useEffect(() => {
+    if (!false) return
+    if (false) {
+      closeModal()
+      const replace = { replace: true }
+      // we only navigate to the graph when the guide is enabled
+      refreshGraphs()
+      if (showGraphGuide) {
+        navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
+      } else {
+        navigate(`/dashboard/graph/${newGraph.id}`, replace)
+      }
+    } else {
+      console.error("error")
+      toast.error("We ran into an error creating your graph. Please try again")
+    }
+  }, [showGraphGuide])
+
+  const onSubmitHandler = (graphCreate: GraphFormData) => {
+    if (graphCreate?.enableGraphGuide) {
+      // dispatch(setGraphTour())
+      setShowGraphGuide(true)
+    }
+    delete graphCreate.enableGraphGuide
+    // createGraph({ graphCreate })
+  };
+
+  return (
+    <form onSubmit={onSubmitHandler} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll ">
+      <section class=" border-b-2 mt-6 border-primary pl-1 pb-1 px-px ">
+        <div class=" flex flex-wrap items-center justify-between ">
+          <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new graph</h1>
+          <Icon icon="chart-dots-3" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
+        </div>
+      </section>
+      <div class="w-full grid gap-y-8 mt-10 grid-cols-1 ">
+        <Input.Transparent label="Label" placeholder="Enter a name for your graph..." className="w-full" />
+        <Input.Textarea rows={3} name="description" className="w-full" label="Description" placeholder="Additional details about your graph..." />
+        <Input.ToggleSwitch className='pb-6' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
+      </div>
+
+      <div class="flex justify-end mb-6">
+        <Button.Ghost
+          variant='danger'
+          onClick={() => closeModal()}
+          type='button'
+          className="btn-danger"
+        >
+          <span>Cancel</span>
+          <ArrowUturnLeftIcon class="btn-icon text-danger" />
+        </Button.Ghost>
+        <Button.Solid
+          variant='primary'
+          type='submit'
+          disabled={false}
+          className='btn-primary ml-4'
+        >
+          <span>Create graph</span>
+          <PlusIcon class="btn-icon" />
+        </Button.Solid>
+      </div>
+    </form>
+
+  );
+}
+
+interface CreateGraphModalProps {
+  refreshAllGraphs: Function
+  closeModal: Function
+  isOpen: boolean
+  cancelCreateRef: any
+}
+
+export function CreateGraphModal({
+  closeModal,
+  isOpen,
+  cancelCreateRef,
+  refreshAllGraphs
+}: CreateGraphModalProps) {
+  return (
+    <OverlayModal isOpen={isOpen} closeModal={closeModal} cancelCreateRef={cancelCreateRef}>
+      <CreateGraphForm
+        refreshGraphs={() => refreshAllGraphs()}
+        closeModal={() => closeModal()}
+      />
+    </OverlayModal>
+  );
+}
+
 
 export default function DashboardPage() {
   const location = useLocation()
@@ -55,7 +211,7 @@ export default function DashboardPage() {
             className="w-full mx-2 mb-1.5"
             placeholder={`Search...`}
           />
-          <div class='overflow-y-hidden flex-grow flex flex-col items-stretch relative my-1'>
+          <div class='overflow-y-hidden flex-grow flex flex-col items-stretch relative my-1 mt-[5px]'>
             <section class='flex justify-between rounded pb-1 items-center font-display font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'

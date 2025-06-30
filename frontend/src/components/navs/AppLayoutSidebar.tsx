@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CogIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";
 import HamburgerMenu from "./HamburgerMenu";
 import Logo from "@/assets/images/logo.svg";
-import { Icon } from "../Icons";
+import { Icon } from "../icons";
 
 interface SidebarProps {
   showSidebar: boolean

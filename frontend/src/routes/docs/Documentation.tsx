@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "preact/hooks"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
-import { Hero } from "@/components/Hero"
-import Prose from "@/components/Prose"
+import { Hero } from "@/components/docs/Hero"
+import Prose from "@/components/docs/Prose"
 import Markdoc from "@markdoc/markdoc"
 import React from 'preact/compat'
-import nodes from '@/markdoc/nodes'
-import tags from '@/markdoc/tags'
+import nodes from '@/app/nodes'
+import tags from '@/app/tags'
 
 const navigation = [
   {
