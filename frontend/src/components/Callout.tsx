@@ -42,7 +42,7 @@ export function Callout({ type = 'info', title, children }: CalloutProps) {
           <Icon icon={styles[type].icon} className="h-6 w-6 mr-2 flex-none text-inherit" />
           <span>{title}</span>
         </h5>
-        <div className={'prose-p:!text-slate-300 *:text-sm'}>
+        <div className={'prose-p:!text-slate-300 *:!pb-0 *:text-sm'}>
           {children}
         </div>
       </section>
