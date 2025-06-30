@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { ChevronUpDownIcon, PaperClipIcon } from '@heroicons/react/24/outline';
-import { Combobox } from '@headlessui/react';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { GripIcon, Icon } from '@/components/Icons';
 import { toast } from 'react-toastify';
@@ -360,21 +359,23 @@ export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatc
 
   const rowRenderer = ({ index, key, isScrolling, isVisible, style }) => {
     return (
-      <Combobox.Option
-        key={key}
-        style={style}
-        value={filteredOptions[index]}
-        className={({ active }) =>
-          `overflow-y-none px-2 flex flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-700 text-slate-400' : 'text-slate-500'}`
-        }
-      >
+      <>
+        {/* <Combobox.Option
+          key={key}
+          style={style}
+          value={filteredOptions[index]}
+          className={({ active }) =>
+            `overflow-y-none px-2 flex flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-700 text-slate-400' : 'text-slate-500'}`
+          }
+        > */}
         <span
           className="block truncate"
           title={options[index].tooltip !== filteredOptions[index].label ? filteredOptions[index].tooltip : 'No description found'}
         >
           {filteredOptions[index].label}
         </span>
-        {filteredOptions[index]?.value &&
+        {
+          filteredOptions[index]?.value &&
           <span
             className="flex truncate leading-3 text-[0.5rem]"
             title={filteredOptions[index].tooltip !== filteredOptions[index].label ? filteredOptions[index].tooltip : 'No description found'}
@@ -382,13 +383,14 @@ export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatc
             {filteredOptions[index].value}
           </span>
         }
-      </Combobox.Option>
+        {/* </Combobox.Option > */}
+      </>
     )
   }
 
   return (
     <>
-      <Combobox
+      <div
         className='w-full dropdown-input'
         as='div'
         value={activeOption}
@@ -409,20 +411,20 @@ export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatc
           );
         }}
       >
-        <Combobox.Label>
+        <label>
           <p className='text-[0.5rem] text-slate-400 whitespace-wrap font-semibold font-display mt-1'>{label}</p>
-        </Combobox.Label>
+        </label>
         <div className='relative node-field dropdown !px-0'>
-          <Combobox.Input
+          <input
             ref={dropdownRef}
             onChange={(event) => setQuery(event.target.value)}
             displayValue={(option: DropdownOption) => option.label}
             className='nodrag focus:ring-info-400 mr-4 outline-none px-2'
           />
-          <Combobox.Button className='absolute z-[99] -top-px inset-y-0 h-6 w-4 right-0 focus:outline-none'>
+          <button className='absolute z-[99] -top-px inset-y-0 h-6 w-4 right-0 focus:outline-none'>
             <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
-          </Combobox.Button>
-          <Combobox.Options className='absolute nodrag nowheel mr-1 z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg  focus:outline-none sm:text-sm'>
+          </button>
+          <div className='absolute nodrag nowheel mr-1 z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg  focus:outline-none sm:text-sm'>
             <List
               rowCount={filteredOptions.length}
               width={dropdownRef?.current?.clientWidth}
@@ -430,9 +432,9 @@ export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatc
               rowRenderer={rowRenderer}
               rowHeight={({ index }) => filteredOptions[index]?.value ? 54 : 40}
             />
-          </Combobox.Options>
+          </div>
         </div>
-      </Combobox>
+      </div>
     </>
   );
 }

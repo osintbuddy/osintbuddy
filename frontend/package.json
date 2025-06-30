@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.1.7",
-    "@headlessui/react": "^2.2.2",
     "@heroicons/react": "^2.2.0",
     "@markdoc/markdoc": "^0.5.2",
     "@react-sigma/core": "^5.0.2",

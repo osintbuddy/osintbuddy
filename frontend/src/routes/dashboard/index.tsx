@@ -2,7 +2,6 @@ import { useRef, useState } from "preact/hooks";
 import { Fragment } from "preact/jsx-runtime";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { MagnifyingGlassIcon, PlusIcon, CloudIcon } from "@heroicons/react/24/outline";
-import { Tab, TabGroup, TabList, TabPanel } from "@headlessui/react";
 import GraphPanel from "./_components/tabs/GraphPanel";
 import EntitiesPanel from "./_components/tabs/EntitiesPanel";
 import MarketPanel from './_components/tabs/MarketPanel';
@@ -27,11 +26,15 @@ export type DashboardContextType = {
 
 export default function DashboardPage() {
   const location = useLocation()
-  const initialTab = location.pathname.includes("entity") ?
-    0 : location.pathname.includes("market")
-      ? 2 : 0
 
-  const [tabIndex, setTabIndex] = useState<number>(initialTab)
+  // Determine current tab based on route
+  const getCurrentTab = () => {
+    if (location.pathname.includes("/entity")) return 1;
+    if (location.pathname.includes("/market")) return 2;
+    return 0; // default to graphs
+  };
+
+  const currentTab = getCurrentTab();
 
   const [showCreateEntityModal, setShowCreateEntityModal] = useState<boolean>(false);
   const cancelCreateEntityRef = useRef<HTMLElement>(null);
@@ -39,105 +42,79 @@ export default function DashboardPage() {
   const [showCreateGraphModal, setShowCreateGraphModal] = useState<boolean>(false);
   const cancelCreateGraphRef = useRef<HTMLElement>(null);
 
+  const selected = true;
+
   return (
     <>
       <div class="flex ">
-        <aside class="sidebar-wrapper">
-          {/* <div class="search-container">
-            <MagnifyingGlassIcon />
-            <input
-              type="text"
-              placeholder={`Search ${tabIndex === 0 ? 'graphs' : tabIndex === 1 ? 'entities' : 'marketplace'}...`}
-            />
-          </div> */}
+        <aside class="rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-black/40 to-black/50 bg-gradient-to-tr shadow-2xl border-black/10 justify-between flex relative w-full backdrop-blur-md shadow-black/25">
           <Input.TransparentIcon
             icon={<MagnifyingGlassIcon class="h-5 relative right-2" />}
             onBtnClick={() => console.log("Todo search")}
             type="text"
             className="w-full mx-2 mb-1.5"
-            placeholder={`Search ${tabIndex === 0 ? 'graphs' : tabIndex === 1 ? 'entities' : 'marketplace'}...`}
-
+            placeholder={`Search...`}
           />
-          <TabGroup
-            vertical={false}
-            as='section'
-            selectedIndex={tabIndex}
-            onChange={setTabIndex}
-            class={'dashboard-tabs'}
-          >
-            <TabList class='tabs-list'>
-              <Tab as={Fragment}>
-                {({ selected }) => (
-                  <Link
-                    to='graph'
-                    class={`tab graph-tab tab-${selected}`}
-                    aria-selected={selected}
-                  >
-                    Graphs
-                  </Link>
-                )}
-              </Tab>
-              <Tab as={Fragment}>
-                {({ selected }) => (
-                  <Link
-                    to='entity'
-                    class={`tab entities-tab tab-${selected}`}
-                    aria-selected={selected}
-                  >
-                    <span>
-                      Entities
-                    </span>
-                  </Link>
-                )}
-              </Tab>
-              <Tab as={Fragment}>
-                {({ selected }) => (
-                  <Link
-                    to='market'
-                    class={`tab market-tab tab-${selected}`}
-                    aria-selected={selected}
-                  >
-                    Market
-                  </Link>
-                )}
-              </Tab>
-              <div class="tab-slider" />
-            </TabList>
+          <div class='overflow-y-hidden flex-grow flex flex-col items-stretch relative my-1'>
+            <ul class='flex justify-between rounded pb-1 items-center'>
+              <Link
+                to='graph'
+                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                aria-selected={currentTab === 0}
+              >
+                Graphs
+              </Link>
+              <Link
+                to='entity'
+                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                aria-selected={currentTab === 1}
+              >
+                Entities
+              </Link>
+              <Link
+                to='market'
+                class='flex items-center justify-center px-0 mx-0 rounded min-w-[6.5rem] text-sm leading-none z-[1] font-display flex-grow hover:pointer-events-auto font-semibold cursor-pointer h-8.5 market-tab text-slate-600 hover:text-slate-500 aria-selected:text-slate-200/95'
+                aria-selected={currentTab === 2}
+              >
+                Market
+              </Link>
+              <div class={`${currentTab === 1 ? '!translate-x-[111px]' : currentTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[5px]'} min-h-[35px] mr-auto min-w-[95px] left-0 absolute z-[0] top-0  transition-all duration-200 ease-out rounded from-primary-350 to-primary-400 border border-mirage-400/60 bg-gradient-to-br cursor-pointer`} />
+            </ul>
             <div class="h-full overflow-y-scroll ">
-              <TabPanel class="tab-panel">
-                <GraphPanel
-                  refetchGraphs={() => null}
-                  graphsData={{ favorite_graphs: [], graphs: [] }}
-                  isLoadingGraphs={false}
-                  isGraphsError={false}
-                  isGraphsSuccess={false}
-                />
-              </TabPanel>
-              <TabPanel class="tab-panel">
-                <EntitiesPanel
-                  entitiesData={[]}
-                  isLoading={false}
-                  isError={false}
-                  isSuccess={false}
-                  refetchEntities={() => null}
+              <div class="w-full relative px-2 pr-2.5">
+                {currentTab === 0 && (
+                  <GraphPanel
+                    refetchGraphs={() => null}
+                    graphsData={{ favorite_graphs: [], graphs: [] }}
+                    isLoadingGraphs={false}
+                    isGraphsError={false}
+                    isGraphsSuccess={false}
+                  />
+                )}
+                {currentTab === 1 && (
+                  <EntitiesPanel
+                    entitiesData={[]}
+                    isLoading={false}
+                    isError={false}
+                    isSuccess={false}
+                    refetchEntities={() => null} />
+                )}
 
-                />
-              </TabPanel>
-              <TabPanel class="tab-panel">
-                <MarketPanel />
-              </TabPanel>
+                {currentTab === 2 && (<MarketPanel />)}
+              </div>
+
             </div>
-          </TabGroup>
-          {tabIndex !== 2 ? (
+          </div>
+          {currentTab !== 2 ? (
             <Button.Ghost
               variant='primary'
               onClick={() => {
-                if (tabIndex === 0) setShowCreateGraphModal(true)
-                if (tabIndex === 1) setShowCreateEntityModal(true) // TODO
+                if (currentTab === 0) setShowCreateGraphModal(true)
+                if (currentTab === 1) setShowCreateEntityModal(true) // TODO
               }}
               className='mt-auto mb-4 mx-4 mr-6'
             >
-              Create {tabIndex === 0 ? 'graph' : 'entity'}
+              Create {currentTab === 0 ? 'graph' : 'entity'}
               <PlusIcon class='btn-icon !ml-7' />
             </Button.Ghost>
           ) : (
@@ -156,7 +133,7 @@ export default function DashboardPage() {
           isLoadingGraphs: false,
           isGraphsError: false,
         } satisfies DashboardContextType} />
-      </div>
+      </div >
       <CreateGraphModal
         cancelCreateRef={cancelCreateGraphRef}
         isOpen={showCreateGraphModal}

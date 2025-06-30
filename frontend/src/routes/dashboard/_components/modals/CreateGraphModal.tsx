@@ -49,8 +49,8 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
   };
 
   return (
-    <form onSubmit={onSubmitHandler} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll group">
-      <section class="group-hover:border-primary-350 border-b-2 mt-6 border-mirage-700 pl-1 pb-1 px-px ">
+    <form onSubmit={onSubmitHandler} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll ">
+      <section class=" border-b-2 mt-6 border-primary pl-1 pb-1 px-px ">
         <div class=" flex flex-wrap items-center justify-between ">
           <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new graph</h1>
           <Icon icon="chart-dots-3" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
@@ -75,7 +75,7 @@ export function CreateGraphForm({ closeModal, refreshGraphs }: JSONObject) {
         <Button.Solid
           variant='primary'
           type='submit'
-          disabled={isSubmitting}
+          disabled={false}
           className='btn-primary ml-4'
         >
           <span>Create graph</span>

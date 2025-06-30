@@ -14,17 +14,6 @@ OSINTBuddy is its plugin system which allows researchers to easily add or modify
 Please note that OSINTBuddy is currently experimental software. We do not recommend using the project for anything serious.
 {% /callout %}
 
----
-
-## Why Choose OSINTBuddy?
-
-- **Visual Intelligence Made Simple:** Our intuitive graph-based interface transforms complex data relationships into clear, interactive visualizations. Click, drag, and explore connections as you build comprehensive intelligence pictures from multiple data sources.
-
-- **Extensible Plugin Architecture:** With our Python-based plugin system, you're not limited to predefined data sources. Create custom entities to pull from APIs, databases, or any information source relevant to your investigation. With plans for a community-driven plugin registry, we want to ensure you always have access to the latest tools and techniques.
-
-- **Self-hosted:** Your data stays under your control. Unlike proprietary solutions, OSINTBuddy can run on your own hardware, ensuring sensitive investigations remain private and secure. Useful for organizations with strict data governance requirements.
-
-- **Cost-Effective Intelligence:** Access link analysis capabilities without the enterprise price tag. We're making advanced OSINT techniques accessible to everyone from solo researchers to large organizations. [For free.](https://www.fsf.org/appeal)
 
 {% quick-links %}
 
@@ -38,6 +27,16 @@ Please note that OSINTBuddy is currently experimental software. We do not recomm
 
 
 {% /quick-links %}
+
+## Why Choose OSINTBuddy?
+
+- **Visual Intelligence Made Simple:** Our intuitive graph-based interface transforms complex data relationships into clear, interactive visualizations. Click, drag, and explore connections as you build comprehensive intelligence pictures from multiple data sources.
+
+- **Extensible Plugin Architecture:** With our Python-based plugin system, you're not limited to predefined data sources. Create custom entities to pull from APIs, databases, or any information source relevant to your investigation. With plans for a community-driven plugin registry, we want to ensure you always have access to the latest tools and techniques.
+
+- **Self-hosted:** Your data stays under your control. Unlike proprietary solutions, OSINTBuddy can run on your own hardware, ensuring sensitive investigations remain private and secure. Useful for organizations with strict data governance requirements.
+
+- **Cost-Effective Intelligence:** Access link analysis capabilities without the enterprise price tag. We're making advanced OSINT techniques accessible to everyone from solo researchers to large organizations. [For free.](https://www.fsf.org/appeal)
 
 
 ## The Benefits of an Open-Source Alternative

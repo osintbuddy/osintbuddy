@@ -1,7 +1,4 @@
 import { EyeIcon, EyeSlashIcon, FolderIcon } from "@heroicons/react/20/solid";
-import { Description, Field, Label, Switch } from "@headlessui/react";
-import { Fragment, forwardRef } from "react";
-import { Control, useController } from "react-hook-form";
 import { useState } from "preact/hooks";
 import { MouseEventHandler } from "preact/compat";
 import type { JSX } from "preact";
@@ -150,42 +147,42 @@ export interface InputToggleSwitchProps {
   label: string
   description: string
   className: string
+  name: string
 }
 
 export function ToggleSwitch(props: InputToggleSwitchProps) {
   const { label, description, className } = props;
 
   return (
-    <Field as='div' class={`${className ?? ''}`}>
-      <Label as='h3' class='text-sm font-display leading-3 text-slate-350' passive>
+    <div class={`${className ?? ''}`}>
+      <label htmlFor={props.name} class='text-sm font-display leading-3 text-slate-350' passive>
         {label ?? ""}
-      </Label>
+      </label>
       <div class='mt-2 sm:flex sm:items-start sm:justify-between'>
         {description && (
           <div class='max-w-xl text-sm text-slate-400'>
-            <Description>
+            <p>
               {description}
-            </Description>
+            </p>
           </div>
         )}
         <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
-          <Switch
+          <input
+            type='checkbox'
             checked={props.checked}
-            onChange={props.onChange}
-            as={Fragment}
-
-          >
-            <button class={`${props.checked ? 'bg-primary-400' : 'bg-black/90'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1 group`}>
-              <span
-                aria-hidden='true'
-                class={
-                  `inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out group-data-checked:translate-x-7 group-data-checked:bg-slate-400 translate-x-0 bg-slate-400`}
-              />
-            </button>
-          </Switch>
+            // onChange={props.onChange}
+            name={props.name}
+          />
+          <button class={`${props.checked ? 'bg-primary-400' : 'bg-cod/50'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1 group`}>
+            <span
+              aria-hidden='true'
+              class={
+                `inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out group-data-checked:translate-x-7 group-data-checked:bg-slate-400 translate-x-0 bg-slate-400`}
+            />
+          </button>
         </div>
       </div>
-    </Field >
+    </div >
   )
 }
 

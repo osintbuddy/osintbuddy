@@ -266,7 +266,7 @@ export default function Documentation() {
                   </p>
                 )}
                 {attrs.pageTitle && (
-                  <h1 className="font-display text-3xl tracking-tight text-slate-900 dark:text-slate-300/90">
+                  <h1 className="font-display text-3xl font-medium tracking-tight text-slate-900 dark:text-slate-300/90">
                     {attrs.pageTitle}
                   </h1>
                 )}
