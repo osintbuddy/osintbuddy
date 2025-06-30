@@ -14,7 +14,7 @@ export default function LoginPage(): JSX.Element {
   const location = useLocation();
   const { login, isLoggingIn, loginError, isAuthenticated } = useAuth();
   const rememberedEmail = localStorage.getItem('remember-email') ?? ''
-  const from = location.state?.from || '/dashboard/graph';
+  const from = location.state?.from;
 
   const onLoginSubmit: JSX.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -38,9 +38,6 @@ export default function LoginPage(): JSX.Element {
     // attempt login when valid
     if (!invalidEmail && !invalidPassword) {
       login({ email, password });
-      // from is used when a user previously tried to visit an app
-      // page without being signed in so we direct them to from after sign in
-      if (isAuthenticated) navigate(from ? from : '/dashboard/graph')
       e.currentTarget.reset();
     }
   }
@@ -48,6 +45,15 @@ export default function LoginPage(): JSX.Element {
   useEffect(() => {
     if (loginError) toast.error(loginError.message)
   }, [loginError])
+
+  // from is used when a user previously tried to visit an app
+  // page without being signed in so we direct them to that page after sign in
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (from) navigate(from, { replace: true })
+      else navigate('/dashboard/graph', { replace: true })
+    }
+  }, [isAuthenticated])
 
   return (
     <>
