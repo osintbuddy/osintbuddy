@@ -8,7 +8,7 @@ const secondaryNavigation = [
 export default function SettingsPage() {
   return (
     <>
-      <header class="border-b from-black/30 backdrop-blur-md to-black/25 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10">
+      <header class="border-b from-black/50 backdrop-blur-md to-black/40 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10">
         <nav class="flex overflow-x-auto py-4">
           <ul class="flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-gray-400 sm:px-6 lg:px-8">
             {secondaryNavigation.map((item) => (

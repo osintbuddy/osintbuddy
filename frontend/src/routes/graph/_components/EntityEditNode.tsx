@@ -221,7 +221,7 @@ export function TextArea({ nodeId, label, sendJsonMessage, icon, dispatch }: Nod
       <div className='node-field !w-full !min-w-2xl'>
         <textarea
           rows={16}
-          className={`form-input min-w-[16rem] text-xs text-slate-400 nodrag nowheel whitespace-wrap px-1 py-1.5 ${showMonospace && '!font-code'}`}
+          className={`block w-full placeholder:text-slate-700 bg-transparent focus:outline-hidden outline-hidden  sm:text-sm  min-w-[16rem] text-xs text-slate-400 nodrag nowheel whitespace-wrap px-1 py-1.5 ${showMonospace && '!font-code'}`}
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {

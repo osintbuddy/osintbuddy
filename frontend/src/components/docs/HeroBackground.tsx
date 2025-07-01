@@ -196,7 +196,7 @@ export function HeroBackground(props: SvgProps) {
           filter="url(#subtleGlow)"
         >
           <animate attributeName="r" values="16;64;16" dur="10s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.4;0.2;0.4" fill="url(#subtleGlow" dur="10s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.4;0.2;0.4" dur="10s" repeatCount="indefinite" />
         </circle>
 
         <g class="pulse-highlights">

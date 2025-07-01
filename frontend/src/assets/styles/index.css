@@ -2,6 +2,7 @@
 @plugin "@tailwindcss/typography";
 @import '../../../node_modules/react-grid-layout/css/styles.css';
 @import './global.css';
+@import './fonts.css';
 
 @custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
 @custom-variant theme-blueprint {  &:where([data-theme="blueprint"] *) {    @slot;  }}
@@ -353,36 +354,9 @@ input[type='file'] {
   display: none;
 }
 
-/* TODO: refactor the below into components */
-.btn-form {
-  @apply flex px-2 py-2 hover:ring-2 focus:ring-1 focus:ring-inset outline-hidden items-center text-slate-400 hover:text-slate-200 rounded-md ring-1
-}
-.btn-form svg {
-  @apply w-5 h-5 text-white
-}
-.btn-form span {
-  @apply mx-2
-}
-.form-input-wrapper {
-  @apply mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br rounded border  focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l
-}
-.form-input {
-  @apply block w-full placeholder:text-slate-700 bg-transparent focus:outline-hidden outline-hidden  sm:text-sm 
-}
-/* end refactor */
-
-
 /* start react-grid-layout and codemirror */
 .react-resizable-handle::after {
   @apply !border-slate-600 !w-2 !h-2
-}
-
-.cm-lineNumbers.cm-gutter, .cm-foldGutter .cm-gutterElement {
-  color: #445068
-}
-
-.cm-foldGutter .cm-gutterElement>span:hover {
-  color: #667694;
 }
 /* end react-grid-layout and codemirror */
 
@@ -476,112 +450,3 @@ svg.link-icon-true {
 }
 /* end */
 
-
-
-@font-face {
-  font-family: 'Onest';
-  src: url('fonts/Onest-Regular.woff2') format('woff2'),
-      url('fonts/Onest-Regular.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-Italic.woff2') format('woff2'),
-      url('fonts/Lato-Italic.woff') format('woff');
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-BoldItalic.woff2') format('woff2'),
-      url('fonts/Lato-BoldItalic.woff') format('woff');
-  font-weight: bold;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-Bold.woff2') format('woff2'),
-      url('fonts/Lato-Bold.woff') format('woff');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-Regular.woff2') format('woff2'),
-      url('fonts/Lato-Regular.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato Hairline';
-  src: url('fonts/Lato-HairlineItalic.woff2') format('woff2'),
-      url('fonts/Lato-HairlineItalic.woff') format('woff');
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-Light.woff2') format('woff2'),
-      url('fonts/Lato-Light.woff') format('woff');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-BlackItalic.woff2') format('woff2'),
-      url('fonts/Lato-BlackItalic.woff') format('woff');
-  font-weight: 900;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-Black.woff2') format('woff2'),
-      url('fonts/Lato-Black.woff') format('woff');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato';
-  src: url('fonts/Lato-LightItalic.woff2') format('woff2'),
-      url('fonts/Lato-LightItalic.woff') format('woff');
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lato Hairline';
-  src: url('fonts/Lato-Hairline.woff2') format('woff2'),
-      url('fonts/Lato-Hairline.woff') format('woff');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Fira Code';
-  src: url('../fonts/FiraCode-Light.woff2') format('woff2'),
-    url('../fonts/FiraCode-Light.woff') format('woff');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
