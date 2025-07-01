@@ -26,7 +26,7 @@ export function Solid(props: ButtonProps): JSX.Element {
 }
 
 const ghost = {
-  primary: "shadow-primary-900/50 bg-primary/1 hover:backdrop-brightness-90 hover:bg-primary/7 ring-primary-350 outline-primary-350 border-primary-350 hover:ring-primary-400 hover:shadow-primary-900 hover:border-primary-400 hover:shadow-2xs focus:ring-primary-350 focus:bg-primary/6 active:bg-primary/5 focus:border-primary-350 focus:outline-0 active:ring-primary-300 active:outline-primary-300 active:border-primary-300 disabled:ring-slate-600 disabled:border-slate-600 disabled:text-slate-500 shadow-lg",
+  primary: "shadow-primary-900/50 bg-primary/1 backdrop-brightness-100 hover:backdrop-brightness-90 hover:bg-primary/7 ring-primary-350 outline-primary-350 border-primary-350 hover:ring-primary-400 hover:shadow-primary-900 hover:border-primary-400 hover:shadow-2xs focus:ring-primary-350 focus:bg-primary/6 active:bg-primary/5 focus:border-primary-350 focus:outline-0 focus:backdrop-brightness-80 active:backdrop-brightness-75 active:ring-primary-300 active:outline-primary-300 active:border-primary-300 disabled:ring-slate-600 disabled:border-slate-600 disabled:text-slate-500 shadow-lg",
   danger: "ring-danger-500/90 focus:ring-danger-500/85 hover:ring-danger-500 border-danger-500/90 focus:border-danger-500/85 hover:border-danger-500"
 }
 

@@ -71,8 +71,8 @@ export default function LandingPage(): JSX.Element {
             </div>
           </section>
           <div className="h-screen w-screen fixed top-0 -z-50">
-            <div className="select-none absolute top-[56%] -bottom-4 [mask-image:linear-gradient(#05050520,,#050505)] hue-rotate-292 right-0 left-0 ">
-              <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%] lg:translate-x-0 lg:translate-y-[-60%]" />
+            <div className="select-none absolute top-[58%] -bottom-2 [mask-image:linear-gradient(#05050520,,#050505)] right-0 left-8 ">
+              <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%]  lg:translate-y-[-60%]" />
             </div>
             <img
               className="absolute -top-64 right-12 select-none w-[40%] h-[40%] opacity-40"
