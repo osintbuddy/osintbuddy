@@ -70,16 +70,17 @@ then
 fi
 
 # check for nvm
-if ! command -v nvm >/dev/null 2>&1
+if ! type nvm >/dev/null 2>&1
 then
     printf "${RED}nvm not found!${NC}\n"
     printf "${PURPLE}installing nvm, node, and yarn...${NC}\n"
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
     nvm install 20
     npm i --global yarn
 fi
+
 
 printf "${PURPLE}Installing frontend deps and building...${NC}\n"
 cd frontend/
