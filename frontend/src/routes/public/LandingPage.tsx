@@ -1,11 +1,9 @@
 import type { JSX } from 'preact';
 import { HeroBackground } from '@/components/docs/HeroBackground'
 import { FingerPrintIcon, LockClosedIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
-import blurCyanImage from '@/assets/images/blur-cyan.png'
-import blurIndigoImage from '@/assets/images/blur-indigo.png'
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/app/api';
+import { useAuth } from '@/app/hooks';
 
 const QUOTES = [
   "Find the connections that matter to you",

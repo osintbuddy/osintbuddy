@@ -1,16 +1,23 @@
+import { useAuth } from "@/app/hooks";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function RegisterPage(): JSX.Element {
+  const { register, registerError, registerData } = useAuth();
 
+  const resetForm = () => {
+    const form = document.getElementById("register") as HTMLFormElement;
+    form.reset();
+  }
   const onSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username")?.toString();
+    const name = formData.get("username")?.toString();
     const email = formData.get("email")?.toString();
     const password = formData.get("password")?.toString();
     const confirm = formData.get("confirm")?.toString();
@@ -19,7 +26,7 @@ export default function RegisterPage(): JSX.Element {
     // check if inputs valid
     const invalidPassword = password === undefined || password.length < 8;
     const invalidEmail = email === undefined || email.length < 5;
-    const invalidUsername = username === undefined || username.length < 3;
+    const invalidUsername = name === undefined || name.length < 3;
     if (invalidEmail)
       toast.error("A valid email is needed to sign up.");
     if (invalidPassword)
@@ -33,11 +40,21 @@ export default function RegisterPage(): JSX.Element {
 
     // attempt register when valid
     if (!invalidEmail && !invalidPassword && !invalidUsername && password === confirm && tos) {
-      // mutate({ email, password });
-      toast.warn("Account registration is currently disabled! Please try again later...")
-      e.currentTarget.reset();
+      register({ email, password, name })
     }
   };
+
+  useEffect(() => {
+    if (registerError) toast.error(registerError.message)
+  }, [registerError])
+
+
+  useEffect(() => {
+    if (registerData) {
+      toast.success(`Welcome to OSINTBuddy ${registerData.name}! Your account has has been created! You can try signing in now.`)
+      resetForm()
+    }
+  }, [registerData])
 
 
   return (
@@ -48,7 +65,7 @@ export default function RegisterPage(): JSX.Element {
         </h2>
 
         <div class="font-display flex flex-col items-center md:px-5">
-          <form onSubmit={onSubmit} class="grid gap-y-2 max-w-2xs w-full px-2 md:px-0">
+          <form id="register" onSubmit={onSubmit} class="grid gap-y-2 max-w-2xs w-full px-2 md:px-0">
             <Input.Transparent
               name="username"
               label="Username"

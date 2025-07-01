@@ -5,7 +5,7 @@ import { Icon } from '../icons';
 import Logo from '@/assets/images/logo.svg';
 import Button from '../buttons';
 import { BookOpenIcon, Squares2X2Icon, UserIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '@/app/api';
+import { useAuth } from '@/app/hooks';
 
 export default function PublicNavbar(): JSX.Element {
   const navigate = useNavigate();

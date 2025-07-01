@@ -4,7 +4,7 @@ import { Combobox } from '@headlessui/react';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { GripIcon, Icon } from '@/components/icons';
 import { Dialog } from '@headlessui/react';
-import { useAppDispatch, useAppSelector, useComponentVisible } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import Color from 'color';
 
 import { toast } from 'react-toastify';

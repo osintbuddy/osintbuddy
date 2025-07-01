@@ -1,12 +1,22 @@
-
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuthStore } from './store';
-import { parseJwt } from './utilities';
 import { BASE_URL } from './baseApi';
 
-interface LoginCredentials {
+export interface LoginCredentials {
   email: string
   password: string
+}
+
+export interface RegisterCredentials {
+  name: string
+  email: string
+  password: string
+}
+
+export interface RegisterResponse {
+  name: string
+  email: string
+  verified: boolean
+  ctime: string
+  mtime: string
 }
 
 export const authApi = {
@@ -23,7 +33,19 @@ export const authApi = {
     }
     return data
   },
-    logout: async (token: string): Promise<void> => {
+  register: async (user: RegisterCredentials): Promise<RegisterResponse> => {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    });
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed')
+    }
+    return data
+  },
+  logout: async (token: string) => {
     await fetch(`${BASE_URL}/auth/logout`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -31,36 +53,34 @@ export const authApi = {
   },
 }
 
-export const useAuth = () => {
-  const { user, token, isAuthenticated, login, logout } = useAuthStore()
-  const queryClient = useQueryClient()
+export interface CreateGraphPayload {
+  label: string
+  description: string
+}
 
-  // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      const user = parseJwt(data.token);
-      login(user, data.token)
-    },
-  })
+export interface GraphResponse {
+  id: string
+  label: string
+  description: string
+  createdAt: string
+  updatedAt: string
+}
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: () => authApi.logout(token as string),
-    onSettled: () => {
-      logout()
-      queryClient.clear()
-    },
-  })
+export const graphsApi = {
+  create: async (payload: CreateGraphPayload, token: string): Promise<GraphResponse> => {
+    const response = await fetch(`${BASE_URL}/graphs`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-  return {
-    user,
-    token,
-    isAuthenticated,
-    login: loginMutation.mutate,
-    logout: logoutMutation.mutate,
-    isLoggingIn: loginMutation.isPending,
-    isLoggingOut: logoutMutation.isPending,
-    loginError: loginMutation.error,
-  }
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create graph')
+    }
+    return data
+  },
 }

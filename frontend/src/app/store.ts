@@ -56,7 +56,6 @@ export const useAuthStore = create<AuthState>()(
   )
 )
 
-
 // App settings store 
 type SettingsPage = 'account' | 'plugins'
 export interface SettingsState {

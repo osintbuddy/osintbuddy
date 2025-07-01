@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import AppLayoutSidebar from "@/components/navs/AppLayoutSidebar";
-import { useAuth } from "@/app/api";
 import { useAppStore } from "@/app/store";
+import { useAuth } from "@/app/hooks";
 
 export default function AppLayout() {
   const location = useLocation();

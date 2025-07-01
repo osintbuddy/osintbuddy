@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/app/api";
+import { useAuth } from "@/app/hooks";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { FingerPrintIcon } from "@heroicons/react/24/outline";
