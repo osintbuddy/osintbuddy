@@ -342,6 +342,6 @@ export function HeroBackground(props: SvgProps) {
 
         />
       </g>
-    </svg >
+    </svg>
   )
 }
