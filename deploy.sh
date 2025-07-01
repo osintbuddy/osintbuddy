@@ -93,6 +93,9 @@ cd rs/
 sqlx migrate run
 printf "${PURPLE}Building rust server...${NC}\n"
 cargo build --release
+cd ..
 
-printf "${PURPLE}OSINTBuddy is ready to be started!\nRun the following command to start the server ${iYELLOW}(remember to update your rs/.env file)${NC}:\n\n"
-printf "${GREEN}cd rs/ && killall -q osib && ./target/release/osib &${NC}\n\n"
+printf "${PURPLE}OSINTBuddy is starting!\nKilling old process and starting the server!\n${iYELLOW}(Did you remember to update your rs/.env file?)${NC}:\n\n"
+printf "${GREEN}killall osib && ./rs/target/release/osib &${NC}\n"
+killall osib
+./rs/target/release/osib &
