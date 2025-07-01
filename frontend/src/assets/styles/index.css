@@ -1,4 +1,597 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@import 'global.css';
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import '../../../node_modules/react-grid-layout/css/styles.css';
+@import './global.css';
+
+@custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
+
+
+@font-face {
+  font-family: 'Onest';
+  src: url('fonts/Onest-Regular.woff2') format('woff2'),
+      url('fonts/Onest-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-Italic.woff2') format('woff2'),
+      url('fonts/Lato-Italic.woff') format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-BoldItalic.woff2') format('woff2'),
+      url('fonts/Lato-BoldItalic.woff') format('woff');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-Bold.woff2') format('woff2'),
+      url('fonts/Lato-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-Regular.woff2') format('woff2'),
+      url('fonts/Lato-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato Hairline';
+  src: url('fonts/Lato-HairlineItalic.woff2') format('woff2'),
+      url('fonts/Lato-HairlineItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-Light.woff2') format('woff2'),
+      url('fonts/Lato-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-BlackItalic.woff2') format('woff2'),
+      url('fonts/Lato-BlackItalic.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-Black.woff2') format('woff2'),
+      url('fonts/Lato-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('fonts/Lato-LightItalic.woff2') format('woff2'),
+      url('fonts/Lato-LightItalic.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lato Hairline';
+  src: url('fonts/Lato-Hairline.woff2') format('woff2'),
+      url('fonts/Lato-Hairline.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Code';
+  src: url('../fonts/FiraCode-Light.woff2') format('woff2'),
+    url('../fonts/FiraCode-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@theme {
+  --font-sans: "Lato";
+  --font-display: "Onest";
+  --font-code: "Fira Code", "monospace";
+
+  --color-primary: #1628FF;
+  --color-primary-50: #5E6AFF;
+  --color-primary-100: #5460FF;
+  --color-primary-200: #3F4EFF;
+  --color-primary-300: #2B3BFF;
+  --color-primary-350: #1524ea;
+  --color-primary-400: #1628FF;
+  --color-primary-500: #0215FF;
+  --color-primary-600: #0010D3;
+  --color-primary-700: #000CA5;
+  --color-primary-800: #000977;
+  --color-primary-900: #000649;
+  --color-primary-950: #000432;
+  --color-primary-1000: #06062d;
+
+  --color-slate: #94a3b8;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-350: #b8c0d1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  --color-mirage: #1C233B;
+  --color-mirage-50: #394778;
+  --color-mirage-100: #35426F;
+  --color-mirage-200: #2D385E;
+  --color-mirage-300: #242E4D;
+  --color-mirage-400: #1C233B;
+  --color-mirage-500: #14192A;
+  --color-mirage-600: #121727;
+  --color-mirage-700: #111523;
+  --color-mirage-800: #0F1320;
+  --color-mirage-900: #0D111C;
+  --color-mirage-950: #0D101A;
+
+  --color-gray-50: #3D3D3D;
+  --color-gray-100: #383838;
+  --color-gray-200: #2E2E2E;
+  --color-gray-300: #232323;
+  --color-gray-400: #191919;
+  --color-gray-500: #0F0F0F;
+  --color-gray-600: #0C0C0C;
+  --color-gray-700: #0A0A0A;
+  --color-gray-800: #070707;
+  --color-gray-900: #050505;
+  --color-gray-950: #040404;
+
+  --color-info: #1A386D;
+  --color-info-50: #648FDA;
+  --color-info-100: #5483D6;
+  --color-info-200: #336BCE;
+  --color-info-300: #2A5AAF;
+  --color-info-400: #22498E;
+  --color-info-500: #1A386D;
+  --color-info-600: #16305D;
+  --color-info-700: #12274C;
+  --color-info-800: #0E1F3C;
+  --color-info-900: #0A162B;
+  --color-info-950: #081223;
+
+  --color-danger: #C1292E;
+  --color-danger-50: #F7D9DA;
+  --color-danger-100: #F2C4C5;
+  --color-danger-200: #E99A9C;
+  --color-danger-300: #E16F73;
+  --color-danger-400: #D8454A;
+  --color-danger-500: #C1292E;
+  --color-danger-600: #972024;
+  --color-danger-700: #6D171A;
+  --color-danger-800: #430E10;
+  --color-danger-900: #190506;
+
+  --color-radiance: #029AFE;
+  --color-radiance-50: #A2DAFF;
+  --color-radiance-100: #90D3FF;
+  --color-radiance-200: #6DC5FE;
+  --color-radiance-300: #49B6FE;
+  --color-radiance-400: #26A8FE;
+  --color-radiance-500: #029AFE;
+  --color-radiance-600: #0188E1;
+  --color-radiance-700: #0175C2;
+  --color-radiance-800: #0163A4;
+  --color-radiance-900: #015085;
+  --color-radiance-950: #004776;
+
+  --color-success: #42A951;
+  --color-success-50: #7BCB87;
+  --color-success-100: #74C980;
+  --color-success-200: #65C373;
+  --color-success-300: #56BD66;
+  --color-success-400: #48B758;
+  --color-success-500: #42A951;
+  --color-success-600: #3B9649;
+  --color-success-700: #348440;
+  --color-success-800: #2C7237;
+  --color-success-900: #255F2E;
+
+  --color-cod: #0F0F0F;
+  --color-cod-50: #3D3D3D;
+  --color-cod-100: #383838;
+  --color-cod-200: #2E2E2E;
+  --color-cod-300: #232323;
+  --color-cod-400: #191919;
+  --color-cod-500: #0F0F0F;
+  --color-cod-600: #0C0C0C;
+  --color-cod-700: #0A0A0A;
+  --color-cod-800: #070707;
+  --color-cod-900: #050505;
+  --color-cod-950: #040404;
+}
+
+html {
+  --grid-a: 1px;
+  --grid-gap: 2px;
+  --grid-size: 80px;
+  --grid-small-size: 10px;
+  --grid-e: 80px;
+  --grid-color: rgba(6, 25, 87, 0.301);
+  --paper-color: #00031b;
+  background:
+    linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
+    linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
+    linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
+    linear-gradient(var(--grid-color) var(--grid-a), transparent var(--grid-a)),
+    linear-gradient(transparent var(--grid-gap), var(--paper-color) var(--grid-gap), var(--paper-color) var(--grid-size), transparent var(--grid-size)),
+    linear-gradient(-90deg, #040a2c var(--grid-a), transparent var(--grid-a)),
+    linear-gradient(-90deg, transparent var(--grid-gap), var(--paper-color) var(--grid-gap), var(--paper-color) var(--grid-size), transparent var(--grid-size)),
+    linear-gradient(#040a2c var(--grid-a), transparent var(--grid-a)),
+    var(--paper-color);
+  background-size:
+    var(--grid-small-size) var(--grid-small-size),
+    var(--grid-small-size) var(--grid-small-size),
+    var(--grid-e) var(--grid-e),
+    var(--grid-e) var(--grid-e),
+    var(--grid-e) var(--grid-e),
+    var(--grid-e) var(--grid-e),
+    var(--grid-e) var(--grid-e),
+    var(--grid-e) var(--grid-e);
+  z-index: -99;
+}
+
+body {
+  background-image:
+    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, lch(3.54% 19.49 285.3 / 0.055) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(3, 1, 44, 0.103) 1%, #04001609 99%),
+    radial-gradient(142% 91% at 83% 7%, hsla(251, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
+    radial-gradient(142% 91% at -6% 74%, rgba(150, 5, 179, 0.192) 1%, rgba(0, 80, 253, 0.219) 99%),
+    radial-gradient(142% 91% at 111% 84%, #000e5c0e 25%, rgba(0, 8, 116, 0.151) 95%);
+  z-index: -99;
+}
+
+button {
+  cursor: pointer;
+}
+
+:disabled {
+  cursor: default;
+}
+
+.btn-icon {
+  @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
+}
+
+::-moz-selection {
+  @apply text-slate-200 bg-radiance-500/50
+}
+
+::selection {
+  @apply text-slate-200 bg-radiance-500/50
+}
+
+#app {
+  @apply flex flex-col h-full min-h-screen relative justify-between
+}
+
+svg.icon {
+  @apply flex items-center justify-center;
+}
+
+p, a {
+  @apply font-sans;
+}
+
+/* 
+  Custom Scrollbar Style 
+  Works on Chrome, Edge, and Safari 
+*/
+*::-webkit-scrollbar {
+  width: 12px;
+  border-radius: none;
+
+}
+
+*::-webkit-scrollbar-track {
+  background: #19233433;
+  width: 12px;
+  border-radius: none;
+
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #1a1f2793;
+  border-radius: none;
+  border-right: 10px solid #1b243a84;
+}
+
+* {
+  scrollbar-width: 12px;
+  scrollbar-color: #36497962 #202d4333;
+
+}
+
+/* end Custom Scrollbar Style */
+
+/* start Animated CSS Hamburger Menu */
+.hamburger.is-active {
+  @apply transition-transform -rotate-45 duration-75;
+}
+
+.hamburger {
+  @apply relative hover:cursor-pointer rotate-0;
+  -webkit-transition: all 0.15s ease-in-out;
+  -o-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+}
+
+.hamburger:hover .line {
+  background-color: rgb(71 85 105);
+
+}
+
+.hamburger .line {
+  background-color: rgb(51 65 85);
+  border-radius: 50px;
+  height: 2px;
+  display: block;
+  margin: 6px auto;
+  -webkit-transition: all 0.15s ease-in-out;
+  -o-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+}
+
+.hamburger.is-active .line:nth-child(1),
+.hamburger.is-active .line:nth-child(2),
+.hamburger.is-active .line:nth-child(3) {
+  width: 20px;
+}
+
+.hamburger .line:nth-child(1) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger .line:nth-child(2) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger .line:nth-child(3) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(1) {
+  -webkit-transform: translateY(8px);
+  -ms-transform: translateY(8px);
+  -o-transform: translateY(8px);
+  transform: translateY(8px);
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  -webkit-transform: translateY(-8px) rotate(90deg);
+  -ms-transform: translateY(-8px) rotate(90deg);
+  -o-transform: translateY(-8px) rotate(90deg);
+  transform: translateY(-8px) rotate(90deg);
+}
+
+/* end Animated CSS Hamburger Menu */
+
+/* hide number inputs */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  margin: 0;
+}
+
+/* end hide number inputs */
+
+/* start react flow style overrides */
+.react-flow__attribution {
+  @apply invisible;
+}
+
+.react-flow__edge-path {
+  stroke: #49505a !important;
+}
+
+/* .react-flow__edge {
+  cursor: grab !important;
+  pointer-events: none !important;
+} */
+.react-flow__node {
+  cursor: default !important;
+}
+
+.react-flow__background #pattern-1undefined {
+  width: 100px;
+  height: 100px;
+}
+
+/* .react-flow__pane, .react-flow__renderer {
+  top: 13rem !important;
+  bottom: 0;
+} */
+/* .react-flow__background {
+  bottom: 0;
+  top: none !important;
+} */
+/* end react flow style overrides */
+
+input[type='file'] {
+  display: none;
+}
+
+
+.sidebar-link {
+  @apply flex items-center duration-150 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display;
+}
+.sidebar-link.active {
+  @apply hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl text-slate-400 from-cod-800/10 to-cod-800/20 
+}
+.sidebar-link.active svg {
+  @apply text-primary-300 -ml-0.5
+}
+
+/* TODO: refactor the below into components */
+.btn-form {
+  @apply flex px-2 py-2 hover:ring-2 focus:ring-1 focus:ring-inset outline-hidden items-center text-slate-400 hover:text-slate-200 rounded-md ring-1
+}
+.btn-form svg {
+  @apply w-5 h-5 text-white
+}
+.btn-form span {
+  @apply mx-2
+}
+.form-input-wrapper {
+  @apply mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br rounded border  focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l
+}
+.form-input {
+  @apply block w-full placeholder:text-slate-700 bg-transparent focus:outline-hidden outline-hidden  sm:text-sm 
+}
+/* end refactor */
+
+
+/* start react-grid-layout and codemirror */
+.react-resizable-handle::after {
+  @apply !border-slate-600 !w-2 !h-2
+}
+
+.cm-lineNumbers.cm-gutter, .cm-foldGutter .cm-gutterElement {
+  color: #445068
+}
+
+.cm-foldGutter .cm-gutterElement>span:hover {
+  color: #667694;
+}
+/* end react-grid-layout and codemirror */
+
+/* start... TODO: refactor me */
+.subpanel section {
+  @apply py-1 flex flex-col h-min relative z-0 items-start justify-start
+}
+
+.subpanel>h2 {
+  @apply text-sm py-4 font-medium text-slate-500 focus:outline-hidden cursor-pointer px-2
+}
+
+.subpanel-header {
+  @apply flex py-0.5 pb-1 items-center hover:text-slate-500 text-slate-600 hover:border-primary-400 border-slate-500/30 border-b transition-colors duration-300 ease-in-out z-50
+}
+
+.subpanel-header h2 {
+  @apply text-sm px-1 font-semibold font-display leading-3 select-none text-inherit focus:outline-hidden cursor-pointer
+}
+
+.subpanel-header svg {
+  @apply h-5 w-5 mr-1 hover:rotate-3 origin-center text-slate-600 ml-auto transform focus:outline-hidden cursor-pointer
+}
+
+.subpanel-header:hover svg {
+  @apply border-primary-300/40
+}
+
+.show-header-icon-true {
+  @apply !-rotate-180
+}
+
+.show-header-icon-false {
+  @apply rotate-0;
+}
+
+.subpanel-link {
+  @apply mb-1 focus:outline-hidden bg-transparent border rounded-md border-transparent hover:ring-slate-700/20 hover:to-mirage-400/30 shadow hover:bg-gradient-to-tl from-10% hover:translate-x-px z-0 transition-transform hover:from-mirage-400/10 w-full flex items-center -translate-x-px relative duration-100 ease-out overflow-hidden
+}
+
+.subpanel-link div:hover .subpanel-label {
+  @apply !text-slate-400/95
+}
+
+.subpanel-link-true {
+  @apply hover:-translate-x-px shadow -translate-x-px ring-slate-600/10 ring-1 ring-inset from-mirage-300/20 to-mirage-300/10 bg-gradient-to-tl from-10% hover:from-mirage-300/20 hover:to-mirage-300/10 hover:bg-gradient-to-tl
+}
+
+.subpanel-link div {
+  @apply flex w-full p-2.5 pr-0 flex-col items-start mb-0.5 text-slate-400/40 hover:text-slate-400/60
+}
+
+.subpanel-link div p:nth-child(2) {
+  @apply max-h-8 line-clamp-2 leading-4 w-full pr-2 h-full
+}
+
+.subpanel-link div p:last-child {
+  @apply mt-1
+}
+
+svg.link-icon {
+  @apply bg-slate-800/20 border-transparent text-slate-600 border ml-auto rounded p-1 h-8 w-8 transition-colors duration-150 hover:text-primary-300 hover:border-mirage-300/20
+}
+
+svg.link-icon-true {
+  @apply !text-primary-300 hover:!text-primary-200 !bg-transparent;
+}
+
+.link-active-true {
+  @apply !bg-transparent hover:!bg-slate-800/40 transition-colors duration-200;
+}
+
+.subpanel-label {
+  @apply text-sm leading-4 font-display font-medium line-clamp-1 pb-0.5
+}
+
+.subpanel-label-true {
+  @apply text-slate-400/95;
+}
+
+.subpanel-label-false {
+  @apply text-slate-500/60;
+}
+
+.subpanel-desc {
+  @apply text-xs font-display font-light leading-none text-left;
+}
+
+.subpanel-desc-true {
+  @apply !text-slate-400/80
+}
+/* end */
+

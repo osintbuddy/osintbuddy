@@ -29,7 +29,7 @@ export default function ContextMenu({
       <div id='context-menu' className='z-[999] absolute' style={ctxPosition}>
         {showMenu && (
           <div className='relative z-50 inline-block text-left'>
-            <div className='absolute  right-0 z-10 mt-2 w-56 origin-top-right divide-y border border-mirage-400/70 divide-mirage-400/70 rounded-md to-mirage-700/95 from-mirage-600/95 bg-gradient-to-br shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+            <div className='absolute  right-0 z-10 mt-2 w-56 origin-top-right divide-y border border-mirage-400/70 divide-mirage-400/70 rounded-md to-mirage-700/95 from-mirage-600/95 bg-gradient-to-br shadow-lg ring-1 ring-black/5 focus:outline-hidden'>
               <div className='py-1'>
                 <div>
                   <div
@@ -59,7 +59,7 @@ export default function ContextMenu({
                               onChange={(e) => setQuery(e.currentTarget.value)}
                               name='message'
                               id='message'
-                              className='block w-full placeholder:text-slate-700 bg-transparent outline-none  sm:text-sm'
+                              className='block w-full placeholder:text-slate-700 bg-transparent outline-hidden  sm:text-sm'
                               placeholder='Search transforms...'
                             />
                           </div>

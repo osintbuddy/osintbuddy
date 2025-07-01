@@ -124,7 +124,7 @@ export default function WorkspacePage() {
                 onInput={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsOpen(true)}
-                class="focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 outline-none bg-transparent"
+                class="focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 outline-hidden bg-transparent"
                 placeholder="Select entity..."
                 autocomplete="off"
                 role="combobox"
@@ -134,7 +134,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={toggleDropdown}
-                class="absolute z-[99] inset-y-0 h-8 right-0 focus:outline-none flex items-center pr-2"
+                class="absolute z-[99] inset-y-0 h-8 right-0 focus:outline-hidden flex items-center pr-2"
                 aria-label="Toggle dropdown"
               >
                 <ChevronUpDownIcon class="h-7 w-7 text-slate-600" aria-hidden="true" />
@@ -145,7 +145,7 @@ export default function WorkspacePage() {
             {isOpen && (
               <div
                 ref={optionsRef}
-                class="left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-black/35 to-black/10 from-30% border-2 border-mirage-900/80 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-none sm:text-sm"
+                class="left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-black/35 to-black/10 from-30% border-2 border-mirage-900/80 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-hidden sm:text-sm"
                 role="listbox"
               >
                 {entities?.length !== 0 ? (

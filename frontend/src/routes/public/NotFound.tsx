@@ -49,14 +49,14 @@ export default function NotFound() {
                     {icon}
                   </span>
                   <section class='min-w-0 flex-1'>
-                    <a href={href} target='_blank' rel='noreferrer' class='focus:outline-none text-base font-medium text-slate-200'>
+                    <a href={href} target='_blank' rel='noreferrer' class='focus:outline-hidden text-base font-medium text-slate-200'>
                       {title}
                     </a>
                     <p class='text-base text-slate-400'>
                       {description}
                     </p>
                   </section>
-                  <ChevronRightIcon class='flex-shrink-0 self-center h-5 w-5 text-slate-400' />
+                  <ChevronRightIcon class='shrink-0 self-center h-5 w-5 text-slate-400' />
                 </li>
               ))}
             </ul>

@@ -33,7 +33,7 @@ export default function PublicNavbar(): JSX.Element {
           <img class=" h-7 w-auto fill-slate-700 dark:fill-sky-100 block" src={Logo} />
         </NavLink>
       </div>
-      <div class="relative flex flex-grow basis-0 items-center">
+      <div class="relative flex grow basis-0 items-center">
         <Link to="/">
           <img class="hidden h-8  fill-slate-700 dark:fill-sky-100 lg:block" src={Logo} />
         </Link>

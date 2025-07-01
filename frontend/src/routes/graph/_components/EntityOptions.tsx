@@ -7,7 +7,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback, useMemo, useLayoutEffect } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import 'react-grid-layout/css/styles.css';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
 import { HandRaisedIcon, ViewfinderCircleIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@/components/icons';
@@ -189,7 +188,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
       <div key='positions' className="flex flex-col w-full">
         <section className="flex shadow-md relative rounded-lg border  backdrop-blur-md border-mirage-800/40 from-mirage-800/40 to-mirage-800/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
           <div className='flex items-center'>
-            <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
+            <button className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
               <HomeIcon className='h-6' />
             </button>
             <h5
@@ -201,7 +200,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             </h5>
             <ul className='isolate inline-flex shadow-sm'>
               <div className='flex items-center'>
-                <button className='justify-center flex-grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
+                <button className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
                   <ViewfinderCircleIcon className='h-6' />
                 </button>
 
@@ -220,7 +219,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               }}
               type='button'
               className={classNames(
-                'justify-center flex-grow rounded-sm border  from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/60 relative 2 inline-flex items-center transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'justify-center grow rounded-sm border  from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/60 relative 2 inline-flex items-center transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
                 positionMode === 'manual' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
               )}
             >
@@ -237,7 +236,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
                 positionMode === 'force' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
               )}
             >
@@ -262,7 +261,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
                 positionMode === 'right tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
               )}
             >
@@ -284,7 +283,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm flex-grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-none px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
                 positionMode === 'tree' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
               )}
             >
@@ -329,7 +328,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             <div className='mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/70 from-mirage-300/60 bg-gradient-to-br rounded border mb-2 mx-4 focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l'>
               <input
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className='block backdrop-blur-md w-full placeholder:text-slate-700 bg-transparent outline-none  sm:text-sm'
+                className='block backdrop-blur-md w-full placeholder:text-slate-700 bg-transparent outline-hidden  sm:text-sm'
                 placeholder='Search entities...'
               />
             </div>

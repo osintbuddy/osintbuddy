@@ -55,7 +55,7 @@ export default function DashboardPage() {
             className="w-full mx-2 mb-1.5"
             placeholder={`Search...`}
           />
-          <div class='overflow-y-hidden flex-grow flex flex-col items-stretch relative my-1 mt-[5px]'>
+          <div class='overflow-y-hidden grow flex flex-col items-stretch relative my-1 mt-[5px]'>
             <section class='flex justify-between rounded pb-1 items-center font-display font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'

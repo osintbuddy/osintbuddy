@@ -131,7 +131,7 @@ export function TransparentIcon(props: IconInputProps) {
         <button
           type="button"
           onClick={onBtnClick}
-          className="text-slate-800 focus:text-primary hover:text-primary-350 absolute right-1 top-1 p-1 rounded focus:outline-primary-400 focus:outline-none"
+          className="text-slate-800 focus:text-primary hover:text-primary-350 absolute right-1 top-1 p-1 rounded focus:outline-primary-400 focus:outline-hidden"
         >
           {icon}
         </button>
@@ -173,7 +173,7 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
             </p>
           </div>
         )}
-        <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
+        <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:shrink-0 sm:items-center'>
           {/* Hidden checkbox for form submission and accessibility */}
           <input
             type='checkbox'
@@ -189,7 +189,7 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
             type="button"
             onClick={handleToggle}
             class={`${isChecked ? 'bg-primary-400' : 'bg-cod-600/50'
-              } relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:ring-1 hover:ring-1 hover:ring-primary-400 focus:appearance-none outline-none`}
+              } relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:ring-1 hover:ring-1 hover:ring-primary-400 focus:appearance-none outline-hidden`}
             role="switch"
             aria-checked={isChecked}
             aria-labelledby={props.name}

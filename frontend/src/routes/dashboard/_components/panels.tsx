@@ -7,7 +7,7 @@ export function MarketPanel() {
 
   return (
     <>
-      <section class="flex flex-col justify-between relative flex-shrink overflow-clip">
+      <section class="flex flex-col justify-between relative shrink overflow-clip">
         <Subpanel
           label="Community"
           showError={true}
@@ -77,7 +77,7 @@ export function GraphPanel({
   }
 
   return (
-    <section class="flex flex-col justify-between relative flex-shrink overflow-clip">
+    <section class="flex flex-col justify-between relative shrink overflow-clip">
       <Subpanel
         label="Favorites"
         showError={isGraphsError}
@@ -138,7 +138,7 @@ export function EntitiesPanel({
   }
 
   return (
-    <section className="flex flex-col justify-between relative flex-shrink overflow-clip">
+    <section className="flex flex-col justify-between relative shrink overflow-clip">
       {/* TODO add to db entitiy favs table and enforce labels unique for pointer to entity */}
       <Subpanel
         label="Favorites"

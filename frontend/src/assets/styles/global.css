@@ -1,11 +1,10 @@
-@import './nodes.css';
-@import './loaders.css';
+/* @import './nodes.css'; */
+/* @import './loaders.css'; */
 
 /* /docs/ hero codeblock */
-pre[class*='language-'] {
+/* pre[class*='language-'] {
   @apply text-slate-300
 }
-
 .token.tag,
 .token.class-name,
 .token.selector,
@@ -14,7 +13,6 @@ pre[class*='language-'] {
 .token.function {
   @apply text-teal-300;
 }
-
 .token.attr-name,
 .token.keyword,
 .token.rule,
@@ -22,32 +20,26 @@ pre[class*='language-'] {
 .token.important {
   @apply text-purple-400;
 }
-
 .token.module {
   @apply text-pink-400;
 }
-
 .token.attr-value,
 .token.class,
 .token.string,
 .token.property {
   @apply text-radiance-300;
 }
-
 .token.punctuation,
 .token.attr-equals {
   @apply text-slate-500;
 }
-
 .token.unit,
 .language-css .token.function {
   @apply text-green-300;
 }
-
 .token.comment,
 .token.operator,
 .token.combinator {
   @apply text-pink-400;
-}
-
+} */
 /* end hero codeblock */
