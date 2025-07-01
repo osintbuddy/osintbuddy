@@ -70,31 +70,14 @@ export default function LandingPage(): JSX.Element {
               )}
             </div>
           </section>
-          <div className="h-screen w-screen fixed top-0 -z-50">
-            <div className="select-none absolute top-[58%] -bottom-2 [mask-image:linear-gradient(#05050520,,#050505)] right-0 left-8 ">
-              <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%]  lg:translate-y-[-60%]" />
-            </div>
-            <img
-              className="absolute -top-64 right-12 select-none w-[40%] h-[40%] opacity-40"
-              src={blurCyanImage}
-              alt=""
-              width={530}
-              height={530}
-            />
-            <img
-              className="absolute bottom-2/3 right-12 select-none w-[40%] h-[40%] opacity-40"
-              src={blurIndigoImage}
-              alt=""
-              width={567}
-              height={567}
-            />
+          <div className="select-none absolute top-1/3 md:top-1/4 -bottom-2 h-screen w-screen  -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-0 left-8 ">
+            <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%]  lg:translate-y-[-60%]" />
           </div>
         </div>
       </div>
       <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
         <h1 class='font-display text-2xl tracking-tight text-slate-300'>
           {atfQuote}
-
         </h1>
         <p class='text-slate-300 mb-2 '>
           Email me at
