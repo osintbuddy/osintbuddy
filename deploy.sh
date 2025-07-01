@@ -70,8 +70,7 @@ then
 fi
 
 # check for nvm
-if ! type nvm >/dev/null 2>&1
-then
+if ! [ -d "${HOME}/.nvm/.git" ]; then
     printf "${RED}nvm not found!${NC}\n"
     printf "${PURPLE}installing nvm, node, and yarn...${NC}\n"
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
