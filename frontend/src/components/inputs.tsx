@@ -212,7 +212,7 @@ export function Checkbox(props: InputProps) {
   return (
     <div className={`flex items-center justify-between text-slate-350 relative ${className ?? ''}`}>
       <label for={label?.toString()} class="text-sm hover:text-slate-300">{label}</label>
-      <input {...props} type="checkbox" id={label?.toString()} className="ms-2 text-sm font-medium  checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-500 bg-black/40 hover:text-mirage-400 appearance-none border p-2 rounded checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 checked:before:content-['\2713\0020'] checked:before:-top-2.5 checked:before:right-[0.3rem] checked:before:relative checked:before:text-slate-200 peer" />
+      <input {...props} type="checkbox" id={label?.toString()} className="ms-2 text-sm font-sans checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-500 bg-black/40 hover:text-mirage-400 appearance-none border p-2 rounded checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 checked:before:content-['\2713\0020'] checked:before:-top-2.5 checked:before:right-[0.3rem] checked:before:relative checked:before:text-slate-200 peer" />
     </div>
   )
 }
