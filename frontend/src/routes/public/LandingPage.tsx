@@ -1,5 +1,8 @@
 import type { JSX } from 'preact';
+import { HeroBackground } from '@/components/docs/HeroBackground'
 import { FingerPrintIcon, LockClosedIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
+import blurCyanImage from '@/assets/images/blur-cyan.png'
+import blurIndigoImage from '@/assets/images/blur-indigo.png'
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/app/api';
@@ -29,6 +32,7 @@ export default function LandingPage(): JSX.Element {
             <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-300 max-w-2xl'>
               Hi, I'm jerlendds and I created OSINTBuddy, an open source tool for collecting, processing, and visualizing connections between entities through a Python plugin system. You can identify relationships like what links to a given domain.
             </p>
+
             <div class='mt-4 flex gap-4 justify-center'>
               {isAuthenticated ? (
                 <Button.Solid
@@ -66,6 +70,25 @@ export default function LandingPage(): JSX.Element {
               )}
             </div>
           </section>
+          <div className="h-screen w-screen fixed top-0 -z-50">
+            <div className="select-none absolute top-[56%] -bottom-4 [mask-image:linear-gradient(#05050520,,#050505)] hue-rotate-292 right-0 left-0 ">
+              <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%] lg:translate-x-0 lg:translate-y-[-60%]" />
+            </div>
+            <img
+              className="absolute -top-64 right-12 select-none w-[40%] h-[40%] opacity-40"
+              src={blurCyanImage}
+              alt=""
+              width={530}
+              height={530}
+            />
+            <img
+              className="absolute bottom-2/3 right-12 select-none w-[40%] h-[40%] opacity-40"
+              src={blurIndigoImage}
+              alt=""
+              width={567}
+              height={567}
+            />
+          </div>
         </div>
       </div>
       <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
