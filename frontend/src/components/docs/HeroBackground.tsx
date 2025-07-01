@@ -16,6 +16,10 @@ export function HeroBackground(props: SvgProps) {
       {...props}
     >
       <defs>
+        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+          <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#0a347c10" stroke-width="1" opacity="0.3" />
+        </pattern>
+
         <linearGradient id="flowingConnection" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" style="stop-color:#0215FF;stop-opacity:0" />
           <stop offset="30%" style="stop-color:#0215FF;stop-opacity:0.8" />

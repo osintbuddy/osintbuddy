@@ -24,7 +24,7 @@ export default function LandingPage(): JSX.Element {
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
       <div class='mx-auto md:mt-52 mt-36 items-center'>
-        <div class='relative text-center'>
+        <div class='relative text-center '>
           <section class='relative pb-12 flex flex-col items-center'>
             <h2 class='inline text-center bg-gradient-to-br from-primary-200 via-blue-500 to-primary-200 bg-clip-text text-2xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2'>
               Elevate your Research with<br /> Strategic Insights from Public Data
@@ -70,8 +70,8 @@ export default function LandingPage(): JSX.Element {
               )}
             </div>
           </section>
-          <div className="select-none absolute top-1/3 md:top-1/4 -bottom-2 h-screen w-screen  -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-0 left-8 ">
-            <HeroBackground className="absolute top-1/2 -translate-y-1/2  -rotate-90 lg:right-[40%]  lg:translate-y-[-60%]" />
+          <div className="select-none fixed bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-5/11 md:right-1/11">
+            <HeroBackground className="absolute  -rotate-90 lg:right-[40%]  translate-y-[-60%]" />
           </div>
         </div>
       </div>
