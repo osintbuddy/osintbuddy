@@ -16,10 +16,6 @@ export function HeroBackground(props: SvgProps) {
       {...props}
     >
       <defs>
-        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#0a347c90" stroke-width="1" opacity="0.3" />
-        </pattern>
-
         <linearGradient id="flowingConnection" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" style="stop-color:#0215FF;stop-opacity:0" />
           <stop offset="30%" style="stop-color:#0215FF;stop-opacity:0.8" />
@@ -58,7 +54,7 @@ export function HeroBackground(props: SvgProps) {
         <circle cx="434" cy="346" r="5" fill="#0a347c90" stroke="#10b98130" strokeWidth="1.5" />
         <circle cx="484" cy="750" r="7" fill="#0a347c90" stroke="#f59e0b16" strokeWidth="2" />
         <circle r="3" fill="#0215FF" fillOpacity="0.6">
-          <animateMotion dur="8s" repeatCount="indefinite" path="M584.5 770.4v-474M484.5 770.4v-474M384.5 770.4v-474M283.5 769.4v-474M183.5 768.4v-474M83.5 767.4v-474" />
+          <animateMotion dur="26s" repeatCount="indefinite" path="M584.5 770.4v-474M484.5 770.4v-474M384.5 770.4v-474M283.5 769.4v-474M183.5 768.4v-474M83.5 767.4v-474" />
         </circle>
         <circle r="2.5" fill="#22d3ee" fillOpacity="0.5">
           <animateMotion dur="12s" repeatCount="indefinite" path="M83.5 221.275v6.587a50.1 50.1 0 0 0 22.309 41.686l55.581 37.054a50.102 50.102 0 0 1 22.309 41.686v6.587M83.5 716.012v6.588a50.099 50.099 0 0 0 22.309 41.685l55.581 37.054a50.102 50.102 0 0 1 22.309 41.686v6.587M183.7 584.5v6.587a50.1 50.1 0 0 0 22.31 41.686l55.581 37.054a50.097 50.097 0 0 1 22.309 41.685v6.588M384.101 277.637v6.588a50.1 50.1 0 0 0 22.309 41.685l55.581 37.054a50.1 50.1 0 0 1 22.31 41.686v6.587M384.1 770.288v6.587a50.1 50.1 0 0 1-22.309 41.686l-55.581 37.054A50.099 50.099 0 0 0 283.9 897.3v6.588" />
@@ -68,10 +64,10 @@ export function HeroBackground(props: SvgProps) {
         </circle>
 
         <circle r="2.5" fill="#0215FF" fillOpacity="0.5">
-          <animateMotion dur="s" repeatCount="indefinite" path="M580 720 Q 780 660, 980 720 Q 1180 780, 1380 720" />
+          <animateMotion dur="26s" repeatCount="indefinite" path="M580 720 Q 780 660, 980 720 Q 1180 780, 1380 720" />
         </circle>
 
-        <circle r="3" fill="#22d3ee" fillOpacity="0.6">
+        <circle r="3" fill="rgba(0, 80, 253, 1)" fillOpacity="0.6">
           <animateMotion dur="10s" repeatCount="indefinite" path="M620 890 Q 820 830, 1020 890 Q 1220 950, 1420 890" />
         </circle>
 
@@ -89,7 +85,7 @@ export function HeroBackground(props: SvgProps) {
 
         <rect width="1920" height="1080" fill="url(#grid)" filter="url(#glow)" />
         <circle r="3" fill="#0215FF" opacity="0.8">
-          <animateMotion dur="8s" repeatCount="indefinite">
+          <animateMotion dur="16s" repeatCount="indefinite">
             <path d="M 960 540 Q 630 370 300 200" />
           </animateMotion>
         </circle>
