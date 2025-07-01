@@ -37,7 +37,7 @@ export function TransparentPassword(props: PasswordInputProps) {
   const { type: _, className, label } = props;
 
   return (
-    <div className="flex relative flex-col w-full mt-6">
+    <div className="flex relative flex-col w-full mt-7">
       {label && (
         <label for={label} class="text-sm text-slate-350 rounded-t absolute font-display -top-6 px-2 -left-1">
           {label}
@@ -72,7 +72,7 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 export function Transparent(props: InputProps) {
   const { className, label } = props;
   return (
-    <div className="flex flex-col relative w-full mt-6">
+    <div className="flex flex-col relative w-full mt-7">
       {label && (
         <label class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
@@ -94,7 +94,7 @@ interface TextareaProps extends JSX.TextareaHTMLAttributes<HTMLTextAreaElement> 
 export function Textarea(props: TextareaProps) {
   const { className, label } = props;
   return (
-    <div className="flex flex-col relative w-full">
+    <div className="flex flex-col relative w-full mt-7">
       {label && (
         <label for={label} class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
@@ -119,7 +119,7 @@ export function TransparentIcon(props: IconInputProps) {
   return (
     <div className="flex relative flex-col w-full">
       {label && (
-        <label class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-6">
+        <label class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-7">
           {label}
         </label>
       )}
@@ -141,21 +141,28 @@ export function TransparentIcon(props: IconInputProps) {
 }
 
 
-export interface InputToggleSwitchProps {
-  checked: boolean
-  onChange: (checked: boolean) => void | undefined
-  label: string
-  description: string
-  className: string
-  name: string
+
+interface ToggleSwitchProps {
+  label?: string;
+  description?: string;
+  className?: string;
+  name?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
 }
 
-export function ToggleSwitch(props: InputToggleSwitchProps) {
-  const { label, description, className } = props;
+export function ToggleSwitch(props: ToggleSwitchProps) {
+  const { label, description, className, defaultChecked = false } = props;
+
+  const [isChecked, setIsChecked] = useState(defaultChecked);
+
+  const handleToggle = () => {
+    setIsChecked(!isChecked);
+  };
 
   return (
     <div class={`${className ?? ''}`}>
-      <label htmlFor={props.name} class='text-sm font-display leading-3 text-slate-350' passive>
+      <label htmlFor={props.name} class='text-sm font-display leading-3 text-slate-350'>
         {label ?? ""}
       </label>
       <div class='mt-2 sm:flex sm:items-start sm:justify-between'>
@@ -167,25 +174,38 @@ export function ToggleSwitch(props: InputToggleSwitchProps) {
           </div>
         )}
         <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:flex-shrink-0 sm:items-center'>
+          {/* Hidden checkbox for form submission and accessibility */}
           <input
             type='checkbox'
-            checked={props.checked}
-            // onChange={props.onChange}
+            checked={isChecked}
+            onChange={handleToggle}
             name={props.name}
+            id={props.name}
+            class='sr-only'
           />
-          <button class={`${props.checked ? 'bg-primary-400' : 'bg-cod/50'} relative inline-flex h-7 w-14 flex-shrink-0 ring-1  cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:outline-none hover:ring-2 ring-primary-400 focus:ring-none active:ring-1 group`}>
+
+          {/* Visual toggle button */}
+          <button
+            type="button"
+            onClick={handleToggle}
+            class={`${isChecked ? 'bg-primary-400' : 'bg-cod-600/50'
+              } relative inline-flex h-7 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:ring-1 hover:ring-1 hover:ring-primary-400 focus:appearance-none outline-none`}
+            role="switch"
+            aria-checked={isChecked}
+            aria-labelledby={props.name}
+          >
+            <span class="sr-only">{label}</span>
             <span
               aria-hidden='true'
-              class={
-                `inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out group-data-checked:translate-x-7 group-data-checked:bg-slate-400 translate-x-0 bg-slate-400`}
+              class={`${isChecked ? 'translate-x-7 bg-slate-200' : 'translate-x-0 bg-slate-300'
+                } inline-block h-5 w-5 transform rounded-full shadow transition duration-200 ease-in-out mt-0.5`}
             />
           </button>
         </div>
       </div>
-    </div >
-  )
+    </div>
+  );
 }
-
 
 export function Checkbox(props: InputProps) {
   const { label, className } = props;
