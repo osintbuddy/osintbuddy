@@ -39,7 +39,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           <DropdownInput
             key={key}
             nodeId={ctx.id}
-            value={ctx?.value}
             options={element.options || []}
             label={element.label}
             value={element.value as string}
@@ -100,8 +99,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-
-            dispatch={dispatch}
             sendJsonMessage={sendJsonMessage}
             dispatch={dispatch}
           />
