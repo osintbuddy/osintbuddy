@@ -299,7 +299,6 @@ export function HeroBackground(props: SvgProps) {
           r="10.438"
           transform="rotate(-180 83.5 484.3)"
           fillOpacity=".42"
-          stroke=""
           fill="#0a347c90"
           stroke="#2A5AAF90"
         />
