@@ -24,7 +24,7 @@ export default function GraphOverview() {
           <div className="max-w-2xl w-full backdrop-blur-xl from-mirage-300/20 bg-gradient-to-br from-40% to-mirage-500/20 border-mirage-300/20 border rounded-md grid place-items-start px-24 py-14">
             {favoriteGraphs.length === 0 && graphs.length === 0 && (
               <>
-                <h1 className="text-slate-300/80 text-3xl leading-4 lg:text-4xl font-bold pr-2 font-display">
+                <h1 className="text-slate-300/80 text-3xl leading-4 lg:text-4xl font-semibold pr-2 font-display">
                   Oh no!
                 </h1>
                 <p className="pt-4 max-w-xl text-slate-300/80">
@@ -35,7 +35,7 @@ export default function GraphOverview() {
             )}
             {(graphs.length > 0 || favoriteGraphs.length > 0) && (
               <>
-                <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold pr-2">
+                <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-semibold pr-2">
                   {graphs.length + favoriteGraphs.length}{" "}
                   {favoriteGraphs.length + graphs.length > 1
                     ? "graphs"
@@ -51,7 +51,7 @@ export default function GraphOverview() {
             )}
           </div>
           <div className="max-w-2xl w-full backdrop-blur-xl from-mirage-300/20 bg-gradient-to-br from-40% to-mirage-500/20 border-mirage-300/20 border rounded-md grid place-items-start my-5 py-10 mt-8 px-24">
-            <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-bold border-b-3 pr-2 border-b-primary-400 font-display leading-9">
+            <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-semibold border-b-3 pr-2 border-b-primary-400 font-display leading-9">
               The availability bias{" "}
             </h1>
             <p className="py-3 max-w-xl text-slate-300/80">
