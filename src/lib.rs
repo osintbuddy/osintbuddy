@@ -29,6 +29,7 @@ pub struct AppState {
 pub type AppData = Data<AppState>;
 
 async fn spa_index() -> actix_web::Result<NamedFile> {
+    info!("handling spa");
     Ok(NamedFile::open("../frontend/dist/index.html".to_string())?)
 }
 

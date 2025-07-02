@@ -1,5 +1,3 @@
-#  ⚠️🚧 WORK IN PROGRESS 🚧⚠️ 
-
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -10,7 +8,7 @@
 
 <p>
   <a href="https://github.com/osintbuddy/osintbuddy">
-    <img src="./watermark.svg" height="130px" alt="Logo">
+    <img src="./frontend/src/assets/images/watermark.svg" height="130px" alt="Logo">
   </a>
 
 > *I have no data yet. It is a capital mistake to theorize before one has data. Insensibly
@@ -21,6 +19,7 @@
 | &nbsp;&nbsp; [plugins-system](https://github.com/osintbuddy/plugins) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy.com](https://osintbuddy.com) &nbsp;&nbsp; | &nbsp;&nbsp; [osintbuddy discord](https://discord.gg/b8vW4J4skv) &nbsp;&nbsp; | &nbsp;&nbsp; [entities](https://github.com/osintbuddy/entities) &nbsp;&nbsp; | &nbsp;&nbsp; [pypi package](https://pypi.org/project/osintbuddy/) &nbsp;&nbsp; |
 <span style="display: inline-block; width:830px"> </span>
 
+  🚧 ⚠️ <ins> **Work in progress** </ins> ⚠️  🚧
 
   ## Introducing OSINTBuddy
 
@@ -32,7 +31,6 @@
       on discovering, interacting, and visualizing what's important to you
   </p>
 
-  🚧  <ins>Work in progress</ins>  🚧
   
 <br/>
 
@@ -126,13 +124,40 @@ To start using OSINTBuddy, follow these simple installation steps:
     - *username:* `osintbuddy`
     - *password:* `osintbuddy`
 
+---
+
 - URLs
-  - Frontend: *http://localhost:5173*
-  - Casdoor: *http://localhost:45910*
-  - Backend: *http://localhost:48997/api*
-  - Documentation: *http://localhost:48997/docs*
+  - Frontend: *`http://localhost:5173`*
+  - Backend: *`http://localhost:48997/api`*
 
 Access OSINTBuddy through the URLs provided for the frontend, backend, and documentation.
+
+
+## Introducing the Rust Rewrite
+
+Welcome to the Rust backend! OSINTBuddy is a platform that helps you dig through the internet for information. Built with Rust and modern web technologies. Originally built in Python, this Rust rewrite exists because Igot tired of Python being slow and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*. 
+
+### Development
+
+1. Install
+   ```bash
+   cargo install sqlx-cli --no-default-features --features native-tls,postgres
+   cargo install cargo-watch
+   ```
+
+2. Migrate db and build and start web server with watch
+   ```bash
+   docker compose up db ui
+   sqlx migrate run
+   # run and watch server
+   cargo watch -q -c -w src/ -x run
+   ```
+
+3. Visit the app
+   - frontend: http://localhost:5173
+   - backend: http://localhost:48997/api
+
+
 
 ## [↑](#introducing-osintbuddy)Roadmap
 

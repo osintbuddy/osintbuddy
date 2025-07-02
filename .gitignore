@@ -5,3 +5,5 @@ plugins/
 osintbuddy-plugins/
 .vscode/
 rs/target/
+target/
+frontend/.env
