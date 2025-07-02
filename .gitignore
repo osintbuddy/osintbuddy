@@ -7,3 +7,4 @@ osintbuddy-plugins/
 rs/target/
 target/
 frontend/.env
+.env
