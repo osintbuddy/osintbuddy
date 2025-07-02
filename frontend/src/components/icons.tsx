@@ -1,19 +1,20 @@
+import { HTMLAttributes } from 'preact/compat';
 import Sprite from '../assets/images/tabler-sprite.svg';
 
-interface TablerIconProps {
+interface TablerIconProps extends HTMLAttributes<SVGSVGElement> {
   icon: string
   className?: string
-  style?: any | undefined
 }
 
 interface IconProps {
   className?: string;
 }
 
-export function Icon({ icon, className, style }: TablerIconProps) {
+export function Icon(props: TablerIconProps) {
+  const { icon, className } = props;
   return (
     <>
-      <svg style={style} className={`h-5 w-5 ${className}`} fill="none" stroke="currentColor">
+      <svg {...props} className={`h-5 w-5 text-inherit ${className}`} fill="none" stroke="currentColor">
         <use href={`${Sprite}#tabler-${icon}`} />
       </svg>
     </>

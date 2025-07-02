@@ -1,5 +1,4 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { CogIcon, HomeIcon, VariableIcon } from "@heroicons/react/24/outline";
 import HamburgerMenu from "./HamburgerMenu";
 import Logo from "@/assets/images/logo.svg";
 import { Icon } from "../icons";
@@ -14,12 +13,12 @@ const navigation = [
   {
     name: <><span>Dashboard</span></>,
     to: "/dashboard",
-    Icon: HomeIcon,
+    icon: 'home-infinity',
   },
   {
     name: <><span>Workspace</span></>,
     to: "/workspaces",
-    Icon: VariableIcon,
+    icon: 'variable',
   }
 ];
 
@@ -41,13 +40,13 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar, logout }:
         </div>
         <div class="flex flex-1 flex-col overflow-y-auto">
           <nav class="flex-1 flex flex-col mt-px">
-            {navigation.map(({ Icon, to, name }) => (
+            {navigation.map(({ icon, to, name }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) => `flex items-center duration-150 ease-in-out my-1 py-2.5 text-base  rounded-md border   z-50 transition-all pl-3 font-semibold  from-10% pr-1.5 font-display ${isActive ? 'hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl text-slate-350 from-cod-800/10 to-cod-800/20 ' : 'hover:border-slate-700/10 hover:ring-transparent hover:text-slate-400/60 hover:from-mirage-600/20 hover:to-mirage-600/10  to-mirage-900/10 from-mirage-900/5 border-slate-800/10 shadow hover:translate-x-px text-slate-600/50 -translate-x-px ring-slate-950/10 ring-2 ring-inset bg-gradient-to-br'}  ${showSidebar ? 'mx-2.5' : 'ml-0 mr-px'}`}
               >
-                <Icon className={
+                <Icon icon={icon} className={
                   `transition-all mr-2 shrink-0 h-6 w-6 duration-100 text-slate-600/50 ${location.pathname.includes(to) && '!text-primary '} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`} />
                 {name}
               </NavLink>
@@ -58,7 +57,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar, logout }:
                 replace
                 className={({ isActive }) => `flex items-center duration-300 ease-in-out my-1 py-2.5 text-base  rounded-md border   z-50 transition-all pl-3 font-semibold  from-10% pr-1.5 font-display ${isActive ? '  hover:translate-x-px shadow translate-x-px ring-1 ring-primary-400/80 border-primary-400/80 ring-inset bg-gradient-to-tl text-slate-350 from-cod-800/10 to-cod-800/20 ' : 'hover:border-slate-700/10 hover:ring-transparent hover:text-slate-400/60 hover:from-mirage-600/20 hover:to-mirage-600/10  to-mirage-900/10 from-mirage-900/5 border-slate-800/10 shadow hover:translate-x-px text-slate-600/50  -translate-x-px  ring-slate-950/10 ring-2 ring-inset bg-gradient-to-br'}  ${showSidebar ? 'mx-2.5' : 'ml-0 mr-px'}`}
               >
-                <CogIcon
+                <Icon icon='settings'
                   class={`mr-2 shrink-0 h-6 w-6 duration-100 transition-all text-slate-600/50 ${location.pathname.includes("settings") && '!mr-2 hover:-ml-0.5 !text-primary'} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
                 />
                 <span>Settings</span> <span class="half-grayscale ml-auto mr-2.5 right-0 opacity-30">🚧</span>

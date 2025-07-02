@@ -1,6 +1,6 @@
 import Button from "@/components/buttons";
 import Prose from "@/components/docs/Prose";
-import { ArrowUturnLeftIcon, HomeIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 
 export default function TermsOfService() {
@@ -20,7 +20,7 @@ export default function TermsOfService() {
             className="mr-[6%]"
           >
             Go back
-            <ArrowUturnLeftIcon class="btn-icon" />
+            <Icon icon='backspace' className="btn-icon" />
           </Button.Ghost>
         </div>
         <Prose>
@@ -662,7 +662,7 @@ export default function TermsOfService() {
                 onClick={() => navigate('/')}
               >
                 Go home
-                <HomeIcon class="btn-icon" />
+                <Icon icon='home' className="btn-icon" />
               </Button.Solid>
             </div>
           </p>

@@ -1,14 +1,6 @@
-import {
-  BackspaceIcon,
-  HomeIcon,
-  LockClosedIcon,
-  LockOpenIcon,
-  TableCellsIcon,
-} from '@heroicons/react/24/outline';
-import { useState, useEffect, useCallback, useMemo, useLayoutEffect } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
-import { HandRaisedIcon, ViewfinderCircleIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@/components/icons';
 
 type UseResizeProps = {
@@ -189,7 +181,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
         <section className="flex shadow-md relative rounded-lg border  backdrop-blur-md border-mirage-800/40 from-mirage-800/40 to-mirage-800/50 bg-gradient-to-r h-min rounded-b-sm justify-between">
           <div className='flex items-center'>
             <button className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => navigate('/dashboard', { replace: true })}>
-              <HomeIcon className='h-6' />
+              <Icon icon='home' className='h-6' />
             </button>
             <h5
               title={activeGraph?.description ?? ''}
@@ -201,7 +193,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
             <ul className='isolate inline-flex shadow-sm'>
               <div className='flex items-center'>
                 <button className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10' onClick={() => fitView({ duration: 300 })}>
-                  <ViewfinderCircleIcon className='h-6' />
+                  <Icon icon='viewfinder' className='h-6' />
                 </button>
 
               </div>
@@ -223,7 +215,7 @@ export default function EntityOptions({ positionMode, activeGraph, setElkLayout,
                 positionMode === 'manual' && 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
               )}
             >
-              <HandRaisedIcon
+              <Icon icon='hand-three-fingers'
                 className={classNames('h-6 w-6 ', positionMode === 'manual' && 'text-primary-300')}
                 aria-hidden='true'
               />

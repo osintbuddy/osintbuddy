@@ -1,8 +1,8 @@
 
 import { useAuth } from "@/app/hooks";
 import Button from "@/components/buttons";
+import { Icon } from "@/components/icons";
 import Input from "@/components/inputs";
-import { FingerPrintIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
@@ -90,8 +90,8 @@ export default function LoginPage(): JSX.Element {
               />
 
               <Button.Solid disabled={isLoggingIn} type="submit" variant="primary" className="w-full ">
-                {isLoggingIn ? <>Signing in <div class="dot-flashing !top-[3px] ml-2.5" /></> : 'Sign in'}
-                {!isLoggingIn && <FingerPrintIcon class="btn-icon " />}
+                {isLoggingIn ? <>Authenticating... <div class="dot-flashing !top-[3px] ml-2.5" /></> : 'Sign in'}
+                {!isLoggingIn && <Icon icon='fingerprint' className="btn-icon " />}
               </Button.Solid>
             </form>
 

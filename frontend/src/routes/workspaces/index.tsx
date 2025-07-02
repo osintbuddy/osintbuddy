@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'preact/hooks';
-import { ChevronUpDownIcon, CodeBracketIcon, TrashIcon } from '@heroicons/react/24/outline';
 import EntityEditor from '@/components/EntityEditor/EntityEditor';
 import { Icon } from '@/components/icons';
 import Button from '@/components/buttons';
@@ -140,7 +139,7 @@ export default function WorkspacePage() {
                 class="absolute z-[99] inset-y-0 h-8 right-0 focus:outline-hidden flex items-center pr-2"
                 aria-label="Toggle dropdown"
               >
-                <ChevronUpDownIcon class="h-7 w-7 text-slate-600" aria-hidden="true" />
+                <Icon icon='chevron-down' className="h-7 w-7 text-slate-600" aria-hidden="true" />
               </button>
             </div>
 
@@ -198,7 +197,7 @@ export default function WorkspacePage() {
                 className="!text-danger-500"
               >
                 Delete
-                <TrashIcon class="btn-icon" />
+                <Icon icon='trash' className="btn-icon" />
               </Button.Ghost>
               <Button.Solid
                 variant='primary'

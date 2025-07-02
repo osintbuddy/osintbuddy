@@ -5,7 +5,6 @@ import NotFound from "@/routes/public/NotFound";
 import AppLayout from "@/components/layouts/AppLayout";
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { TourProvider } from "@reactour/tour";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import GraphLayout from "@/components/layouts/GraphLayout";
 import Button from './components/buttons';
 import RoundLoader from './components/loaders';
@@ -17,6 +16,7 @@ import TermsOfService from './routes/public/Tos';
 
 // Doc routes
 import Documentation from './routes/docs/Documentation';
+import { Icon } from './components/icons';
 
 
 // Auth routes
@@ -134,14 +134,14 @@ export default function AppRoutes(): JSX.Element {
       }}
       padding={{ mask: 10, popover: [5, 10], wrapper: 0 }}
       prevButton={({ currentStep, setCurrentStep, steps }: JSONObject) => (
-        <Button
+        <Button.Ghost
           variant='primary'
           className={`!justify-between ${currentStep === 0 && '!opacity-0 hidden'}`}
           onClick={() => currentStep === 0 ? setCurrentStep(() => steps.length - 1) : setCurrentStep((s: number) => s - 1)}
         >
-          <ChevronLeftIcon className="w-5 h-5 !ml-0 mr-5" />
+          <Icon icon='chevron-left' className="w-5 h-5 !ml-0 mr-5" />
           <span>Back</span>
-        </Button>
+        </Button.Ghost>
       )}
       nextButton={({
         currentStep,
@@ -150,13 +150,13 @@ export default function AppRoutes(): JSX.Element {
         setCurrentStep,
         steps,
       }: JSONObject) => (
-        <Button
+        <Button.Ghost
           onClick={() => currentStep === stepsLength - 1 ? setIsOpen(false) : setCurrentStep((s: number) => s === steps?.length - 1 ? 0 : s + 1)}
           variant='primary'
         >
           {!(currentStep === stepsLength - 1) ? "Next" : "Close guide"}
-          <ChevronRightIcon className="w-5 h-5 !ml-0" />
-        </Button>
+          <Icon icon='chevron-right' className="w-5 h-5 !ml-0 mr-5" />
+        </Button.Ghost>
       )}
       styles={{
         popover: (base) => ({

@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { ChevronUpDownIcon, PaperClipIcon } from '@heroicons/react/24/outline';
 import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { GripIcon, Icon } from '@/components/icons';
 import { toast } from 'react-toastify';
@@ -183,7 +182,7 @@ export function CopyText({ nodeId, label, value }: { nodeId: string; label: stri
       }}
       className='flex items-center max-w-xs text-info-300'
     >
-      <PaperClipIcon className='w-4 h-4' />
+      <Icon icon='paperclip' className='w-4 h-4' />
       <p
         title='Click to copy'
         data-type='link'
@@ -419,7 +418,7 @@ export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatc
             className='nodrag focus:ring-info-400 mr-4 outline-hidden px-2'
           />
           <button className='absolute z-[99] -top-px inset-y-0 h-6 w-4 right-0 focus:outline-hidden'>
-            <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
+            <Icon icon='chevron-down' className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
           </button>
           <div className='absolute nodrag nowheel mr-1 z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg  focus:outline-hidden sm:text-sm'>
             <List

@@ -1,9 +1,9 @@
 import type { JSX } from 'preact';
 import { HeroBackground } from '@/components/docs/HeroBackground'
-import { FingerPrintIcon, LockClosedIcon, Squares2X2Icon, UserPlusIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/app/hooks';
+import { Icon } from '@/components/icons';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -38,7 +38,7 @@ export default function LandingPage(): JSX.Element {
                   onClick={() => navigate("/dashboard/graph")}
                 >
                   Open OSINTBuddy
-                  <Squares2X2Icon class="btn-icon" />
+                  <Icon icon="folder-open" className="btn-icon" />
                 </Button.Solid>
               ) : (
                 <Button.Solid
@@ -46,7 +46,7 @@ export default function LandingPage(): JSX.Element {
                   onClick={() => navigate("/login")}
                 >
                   Sign in
-                  <FingerPrintIcon class="btn-icon" />
+                  <Icon icon="fingerprint" className="btn-icon" />
                 </Button.Solid>
               )}
               {isAuthenticated ? (
@@ -55,7 +55,7 @@ export default function LandingPage(): JSX.Element {
                   onClick={() => logout()}
                 >
                   Sign out
-                  <LockClosedIcon class="btn-icon" />
+                  <Icon icon="lock" className="btn-icon" />
                 </Button.Ghost>
               ) : (
                 <Button.Ghost
@@ -63,7 +63,7 @@ export default function LandingPage(): JSX.Element {
                   onClick={() => navigate("/register")}
                 >
                   Create account
-                  <UserPlusIcon class="btn-icon" />
+                  <Icon icon="user-plus" className="btn-icon" />
                 </Button.Ghost>
               )}
             </div>

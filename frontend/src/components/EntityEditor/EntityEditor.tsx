@@ -3,17 +3,10 @@ import CodeMirror from "@uiw/react-codemirror";
 import { tags as t } from "@lezer/highlight";
 import { python } from "@codemirror/lang-python";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { CommandLineIcon, LockClosedIcon, LockOpenIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import { Icon } from "../icons";
-import { toast } from "react-toastify";
-import { PlayIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { EditorView } from "@codemirror/view"
-import { ResizableBox } from 'react-resizable';
-import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
-import ButtonGhost from "../buttons/ButtonGhost";
-import Button from "../buttons";
 
 export const auraTheme = auraInit({
   settings: {
@@ -138,7 +131,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                       class="flex items-center py-2"
                       title="Run transform"
                     >
-                      <CommandLineIcon class="h-6 mx-2 text-success-500" />
+                      <Icon icon='terminal-2' className="h-6 mx-2 text-success-500" />
                       <span class="text-nowrap mr-4 ">{!activeEntity?.label?.includes('Select entity') && (activeEntity?.label ?? '')} Console</span>
                     </div>
                   </div>
@@ -161,16 +154,16 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                       class="text-slate-500 hover:text-slate-400"
                     >
                       {isEntityDraggable ? (
-                        <LockOpenIcon class="w-5 h-5" />
+                        <Icon icon='lock-open' className="w-5 h-5" />
                       ) : (
-                        <LockClosedIcon class="w-5 h-5" />
+                        <Icon icon='lock' className="w-5 h-5" />
                       )}
                     </button>
 
                   </div>
                 </li>
               </ol>
-              <ResizableBox axis={'y'} className="rounded-sm shadow-lg  backdrop-blur-sm from-70% from-black/30 to-black/25  bg-gradient-to-bl flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
+              {/* <ResizableBox axis={'y'} className="rounded-sm shadow-lg  backdrop-blur-sm from-70% from-black/30 to-black/25  bg-gradient-to-bl flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
                 handle={
                   <div class=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
                     <span class=" react-resizable-handle react-resizable-handle-ne" />
@@ -180,7 +173,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                 <textarea disabled={true} readOnly={true} class={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-cod-800/10 bg-transparent to-cod-800/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2 pt-1.5`} value={`No output, try running a transform`}>
 
                 </textarea>
-              </ResizableBox>
+              </ResizableBox> */}
             </>
           )}
         </div>

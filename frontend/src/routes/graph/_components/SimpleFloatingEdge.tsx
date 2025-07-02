@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 
 import { getEdgeParams } from './utils';
-import { ChevronDoubleDownIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
+import { Icon } from '@/components/icons';
+import { BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
 
 function EdgeLabel({ transform, label }: { transform: string; label: string }) {
   return (
@@ -12,7 +13,7 @@ function EdgeLabel({ transform, label }: { transform: string; label: string }) {
           className="absolute border-2 bg-slate-800/5 pointer-events-auto cursor-grab font-semibold border-slate-700 p-1 px-3  rounded-md text-[0.6rem] leading-none capitalize text-slate-500 hover:text-slate-400/80 backdrop-blur-md flex items-center justify-between  font-display"
         >
           <p className="flex items-center justify-between cursor-pointer">
-            {label} <ChevronDownIcon className='h-4 w-4 ml-2 origin-center hover:rotate-3' />
+            {label} <Icon icon='chevron-down' className='h-4 w-4 ml-2 origin-center hover:rotate-3' />
           </p>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useAuth } from "@/app/hooks";
 import Button from "@/components/buttons";
+import { Icon } from "@/components/icons";
 import Input from "@/components/inputs";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import { NavLink } from "react-router-dom";
@@ -98,15 +98,15 @@ export default function RegisterPage(): JSX.Element {
               required
             />
             <Input.Checkbox
-              label={<>I agree to the <NavLink class="border-b-3 border-primary-350 hover:border-primary  hover:text-slate-200" to="/terms">terms and conditions</NavLink>.</>}
+              label={<>I agree to the <NavLink class="border-b-3 border-primary-350 hover:border-primary hover:text-slate-200 text-base" to="/terms">terms and conditions</NavLink>.</>}
               name="tos"
               placeholder="Your password"
-              className="mt-2 mb-4"
+              className="mt-2 mb-4 "
               required
             />
             <Button.Solid type="submit" variant="primary" className="w-full">
               Sign up
-              <UserPlusIcon class="btn-icon " />
+              <Icon icon='user-plus' className="btn-icon " />
             </Button.Solid>
           </form>
 

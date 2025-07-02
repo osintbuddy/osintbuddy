@@ -1,5 +1,5 @@
+import { Icon } from '@/components/icons';
 import ContextAction from './ContextAction';
-import { TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
 export default function ContextMenu({
@@ -91,7 +91,7 @@ export default function ContextMenu({
                       }}
                       type='button'
                     >
-                      <TrashIcon aria-hidden='true' />
+                      <Icon icon='trash' aria-hidden='true' />
                       Delete
                     </button>
                   </div>

@@ -1,4 +1,3 @@
-import { BookOpenIcon, WrenchIcon, ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
 import Logo from '@/assets/images/logo.svg';
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/icons';
@@ -9,13 +8,13 @@ const links = [
     title: 'Documentation',
     href: 'https://osintbuddy.com',
     description: 'Learn about OSINTBuddy',
-    icon: <BookOpenIcon class='h-6 w-6 text-slate-300/70 group-hover:text-slate-300' />
+    icon: <Icon icon='book' className='h-6 w-6 text-slate-300/70 group-hover:text-slate-300' />
   },
   {
     title: 'Architecture guide',
     href: 'https://osintbuddy.com/docs/architecture-guide',
     description: 'Overview of the OSINTBuddy architecture',
-    icon: <WrenchIcon class='h-6 w-6 text-slate-300/70 group-hover:text-slate-300' />
+    icon: <Icon icon='buildings' className='h-6 w-6 text-slate-300/70 group-hover:text-slate-300' />
   },
 ];
 
@@ -56,14 +55,14 @@ export default function NotFound() {
                       {description}
                     </p>
                   </section>
-                  <ChevronRightIcon class='shrink-0 self-center h-5 w-5 text-slate-400' />
+                  <Icon icon='chevron-right' className='shrink-0 self-center h-5 w-5 text-slate-400' />
                 </li>
               ))}
             </ul>
             <Link to='/' replace>
               <Button.Ghost variant='primary' className='mt-8'>
                 Or go back home
-                <HomeIcon class='btn-icon' />
+                <Icon icon='home' className='btn-icon' />
               </Button.Ghost>
             </Link>
           </div>

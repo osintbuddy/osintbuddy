@@ -1,7 +1,7 @@
-import { EyeIcon, EyeSlashIcon, FolderIcon } from "@heroicons/react/20/solid";
 import { useState } from "preact/hooks";
 import { MouseEventHandler } from "preact/compat";
 import type { JSX } from "preact";
+import { Icon } from "./icons";
 
 interface FileInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   onBtnClick: Function
@@ -22,7 +22,7 @@ export function TransparentFile(props: FileInputProps) {
         title="Select a folder"
         className="inset-ring-1 inset-ring-primary-400/95 whitespace-nowrap focus:ring-primary-350 hover:inset-ring-primary-400 text-left text-sm font-medium tracking-wide scale-100 hover:scale-[99%]  flex items-center border-1 border-primary-400/95 focus:border-primary-350 hover:border-primary-400 px-5 font-display  hover:shadow justify-center transition-all duration-100 ease-linear  rounded-xs text-slate-400 hover:text-slate-300/70 hover:scale-105 group"
       >
-        <FolderIcon className="h-5 text-slate-400/80 group-hover:text-slate-300/70 group-hover:rotate-5 rotate-0 absolute left-2.5 top-1.5" />
+        <Icon icon='folder' className="h-5 text-slate-400/80 group-hover:text-slate-300/70 group-hover:rotate-5 rotate-0 absolute left-2.5 top-1.5" />
       </button>
     </div>
   )
@@ -52,12 +52,12 @@ export function TransparentPassword(props: PasswordInputProps) {
         <button
           type="button"
           onClick={() => setHidePassword(hidePassword === "password" ? "text" : "password")}
-          className="text-slate-800 absolute right-1 top-1 border-b-primary p-1 rounded focus:outline-primary-400 focus:outline-2"
+          className="text-slate-800 absolute right-1 top-1  p-1 rounded"
         >
           {
             hidePassword === "password"
-              ? <EyeIcon title="Show Password" className="h-5 relative right-0 top-0  scale-100 rotate-0 hover:rotate-5 hover:scale-110 " />
-              : <EyeSlashIcon title="Hide Password" className="h-5 relative right-0 top-0 rotate-0 hover:rotate-5 scale-100 hover:scale-110" />
+              ? <Icon icon='eye' title="Show Password" className="h-6 w-6 relative right-0 -top-0.5  scale-100 rotate-0 hover:rotate-5 hover:scale-110 " />
+              : <Icon icon='eye-off' title="Hide Password" className="h-6 w-6 relative right-0 -top-0.5 rotate-0 hover:rotate-5 scale-100 hover:scale-110 !text-primary-350" />
           }
         </button>
       </div>

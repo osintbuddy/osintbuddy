@@ -1,7 +1,6 @@
 import { JSX } from "preact/jsx-runtime"
 import { Icon } from "../icons"
 import Button from "../buttons"
-import { CodeBracketIcon } from "@heroicons/react/24/outline"
 
 export function Timelines({ children }: { children: JSX.Element | JSX.Element[] | undefined }) {
     return (
@@ -32,7 +31,7 @@ export function Timeline({ title, releaseDate, description, downloadLink }: Time
             {downloadLink && (
                 <Button.Ghost variant="primary" className='max-w-xs min-w-min !my-4'>
                     <a href={downloadLink} className="!text-inherit !font-display !text-sm">Download Source Code</a>
-                    <CodeBracketIcon className="btn-icon" />
+                    <Icon icon='world-download' className="btn-icon" />
                 </Button.Ghost>
             )}
         </li>

@@ -1,7 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { StarIcon } from "@heroicons/react/24/outline";
 import { formatPGDate } from "@/app/utilities";
+import { Icon } from "@/components/icons";
 
 export function GraphLoaderCard() {
   return (
@@ -53,8 +52,8 @@ export default function Subpanel({
     <div class="subpanel">
       <header class="subpanel-header" onClick={setShowEntities}>
         <h2>{label}</h2>
-        <ChevronDownIcon
-          class={
+        <Icon icon='chevron-down'
+          className={
             `show-header-icon-${showEntities}` +
             " transition-transform duration-100"
           }
@@ -107,7 +106,7 @@ export default function Subpanel({
                     {formatPGDate(item[dateKey])}
                   </p>
                 </div>
-                <StarIcon
+                <Icon icon='star'
                   onClick={async () => await onClick(item.id)}
                   class={`link-icon link-icon-${item.is_favorite} link-active-${hid !== item.id}`}
                 />

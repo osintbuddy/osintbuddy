@@ -1,21 +1,13 @@
-// @ts-nocheck
-import { ChevronUpDownIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Combobox } from '@headlessui/react';
-import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { GripIcon, Icon } from '@/components/icons';
-import { Dialog } from '@headlessui/react';
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import Color from 'color';
+import { useMemo } from 'preact/hooks';
+import { Icon } from '@/components/icons';
+import { Handle, Position } from '@xyflow/react';
 
-import { toast } from 'react-toastify';
 
 const handleStyle = { borderColor: '#39477899', background: '#12172720', width: 12, margin: -1, height: 12 };
 
 type NodeElement = NodeInput & {
   nodeId: string;
   editState: EditState;
-  dispatch: ThunkDispatch<{ settings: { showSidebar: boolean }; graph: Graph }, undefined, AnyAction> &
-  Dispatch<AnyAction>;
 };
 
 

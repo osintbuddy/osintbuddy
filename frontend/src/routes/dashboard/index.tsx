@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { MagnifyingGlassIcon, PlusIcon, CloudIcon } from "@heroicons/react/24/outline";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { EntitiesPanel, GraphPanel, MarketPanel } from "./_components/panels";
-import { ArrowUturnLeftIcon, PencilIcon } from '@heroicons/react/24/outline';
 import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModal';
 import { Icon } from '@/components/icons';
 import { toast } from "react-toastify";
@@ -49,7 +47,7 @@ export default function DashboardPage() {
       <div class="flex ">
         <aside class="rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-black/40 to-black/50 bg-gradient-to-tr shadow-2xl border-black/10 justify-between flex relative w-full backdrop-blur-md shadow-black/25">
           <Input.TransparentIcon
-            icon={<MagnifyingGlassIcon class="h-5 relative right-2" />}
+            icon={<Icon icon='search' className="h-5 relative right-2" />}
             onBtnClick={() => console.log("Todo search")}
             type="text"
             className="w-full mx-2 mb-1.5"
@@ -115,7 +113,7 @@ export default function DashboardPage() {
               className='mt-auto mb-4 mx-4 mr-6'
             >
               Create {currentTab === 0 ? 'graph' : 'entity'}
-              <PlusIcon class='btn-icon !ml-7' />
+              {currentTab === 0 ? <Icon icon='chart-dots-3' className='btn-icon !ml-7' /> : <Icon icon='ghost-3' className='btn-icon !ml-7' />}
             </Button.Ghost>
           ) : (
             <Button.Ghost
@@ -123,7 +121,7 @@ export default function DashboardPage() {
               className='mx-4 mr-6 mt-auto mb-4'
             >
               Connect server plugins
-              <CloudIcon class='btn-icon !ml-7' />
+              <Icon icon='cloud' className='btn-icon !ml-7' />
             </Button.Ghost>
           )}
         </aside>
@@ -189,11 +187,11 @@ function CreateEntityModal({
         <div class="flex justify-end mb-6">
           <Button.Ghost variant="danger" onClick={() => closeModal()} type='button'>
             Cancel
-            <ArrowUturnLeftIcon class="btn-icon text-danger" />
+            <Icon icon='cancel' className="btn-icon !text-danger-500" />
           </Button.Ghost>
           <Button.Solid className="ml-4" variant="primary" type='submit'>
             <span>Create entity</span>
-            <PencilIcon class="btn-icon" />
+            <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>
       </form>
@@ -267,10 +265,9 @@ export function CreateGraphModal({
             variant='danger'
             onClick={() => closeModal()}
             type='button'
-            className="btn-danger"
           >
             <span>Cancel</span>
-            <ArrowUturnLeftIcon class="btn-icon text-danger" />
+            <Icon icon='cancel' className="btn-icon !text-danger-500 " />
           </Button.Ghost>
           <Button.Solid
             variant='primary'
@@ -279,7 +276,7 @@ export function CreateGraphModal({
             className='btn-primary ml-4'
           >
             <span>Create graph</span>
-            <PlusIcon class="btn-icon" />
+            <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>
       </form>

@@ -1,5 +1,5 @@
 import { MouseEventHandler } from 'preact/compat'
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { Icon } from './icons';
 
 interface PageHeaderProps {
   title?: string
@@ -20,7 +20,7 @@ export function Header({ title, header, btnTxt, btnAction }: PageHeaderProps) {
           )}
           {header && (
             <p class='font-display leading-4 text-xl tracking-tight text-slate-400 dark:text-slate-300'>
-                {header}
+              {header}
             </p>
           )}
         </section>
@@ -32,7 +32,7 @@ export function Header({ title, header, btnTxt, btnAction }: PageHeaderProps) {
           class='ml-auto relative mb-3.5 ring-1 bg-dark-800  pr-3 text-left text-sm font-semibold text-primary-100 hover:text-primary-200 flex items-center border border-primary-200 hover:border-primary-300 py-2 px-3 rounded-md mr-1 z-50'
         >
           {btnTxt}
-          <PlusIcon class='ml-2 w-5 h-5 ' />
+          <Icon icon='plus' className='ml-2 w-5 h-5 ' />
         </button>
       )
       }
