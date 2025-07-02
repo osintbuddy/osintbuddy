@@ -60,7 +60,7 @@ export default function PublicNavbar(): JSX.Element {
           className="!font-code !font-bold"
           onClick={() => navigate("/dashboard/graph")}
         >
-          OPEN://OSIB
+          OSIB://ACCESS
           <Icon icon="folder-open" className="btn-icon" />
         </Button.Solid>
       )}
