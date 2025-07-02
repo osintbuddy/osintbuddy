@@ -29,8 +29,7 @@ pub struct AppState {
 pub type AppData = Data<AppState>;
 
 async fn spa_index() -> actix_web::Result<NamedFile> {
-    info!("handling spa");
-    Ok(NamedFile::open("../frontend/dist/index.html".to_string())?)
+    Ok(NamedFile::open("./frontend/dist/index.html")?)
 }
 
 pub async fn run() -> std::io::Result<()> {
@@ -79,13 +78,13 @@ pub async fn run() -> std::io::Result<()> {
             )
             .configure(handlers::config);
 
-        if config.build_dir.clone().is_some() {
-            let default_build = &config
-                .build_dir
-                .clone()
-                .unwrap_or("../frontend/dist/".to_string());
+        if config
+            .serve_build
+            .clone()
+            .expect("serve_build .env var not found or set in cfg!")
+        {
             return app
-                .service(Files::new("/", &default_build).index_file("index.html"))
+                .service(Files::new("/", "./frontend/dist/").index_file("index.html"))
                 .default_service(web::route().method(Method::GET).to(spa_index));
         }
         app

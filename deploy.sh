@@ -88,9 +88,7 @@ cd ..
 
 # start db so we can run migrations needed to compile the server with sqlx
 printf "${PURPLE}Starting docker db and running migrations...${NC}\n"
-docker compose up db -d
-cd rs/
-sqlx migrate run
+docker compose up db -d && sqlx migrate run
 printf "${PURPLE}Building rust server...${NC}\n"
 cargo build --release
 cd ..
