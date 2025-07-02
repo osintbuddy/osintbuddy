@@ -39,10 +39,10 @@ export default function PublicNavbar(): JSX.Element {
         </Link>
       </div>
 
-      <a href="https://discord.gg/gsbbYHA3K3" aria-label="Discord">
+      <a target='_blank' href="https://discord.gg/gsbbYHA3K3" aria-label="Discord">
         <Icon icon="brand-discord" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
       </a>
-      <a href="https://github.com/jerlendds/osintbuddy" class="mx-4" aria-label="GitHub">
+      <a target='_blank' href="https://github.com/jerlendds/osintbuddy" class="mx-4" aria-label="GitHub">
         <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
       </a>
       {!isDocsPage && (

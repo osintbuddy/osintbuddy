@@ -23,35 +23,12 @@ class URL(ob.Plugin):
         website_entity = await ob.Registry.get_plugin('website')
         domain = urlparse(node.url).netloc
         return website_entity.blueprint(domain=domain)
-
-
-class UsernameProfile(ob.Plugin):
-    label = "Username Profile"
-    color = "#D842A6"
-    icon = "user-scan"
-    author = "Team@OSIB"
-    
-    entity = [
-        TextInput(label='Link', icon='link'),
-        TextInput(label='Category', icon='category'),
-        TextInput(label='Site', icon='world'),
-        TextInput(label='Username', icon='user'),
-    ]
-
-    @ob.transform(label="To URL", icon="link")
-    async def transform_to_url(self, node, use):
-        url_entity = await ob.Registry.get_plugin('url')
-        url_node = url_entity.blueprint(
-            url=node.link
-        )
-        return url_node`
+  `
 
 const tabs = [
   { name: 'google.plugin.py', isActive: true },
   { name: 'shodan.plugin.py', isActive: false },
 ]
-
-
 
 const QUOTES = [
   "Vision is the art of seeing insight in the invisible",
@@ -118,10 +95,10 @@ export function Hero() {
               />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10 blur-lg" />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10" />
-              <div className="relative rounded-2xl bg-black/60 ring-1 ring-slate-400/10 backdrop-blur">
+              <div className="relative rounded-2xl from-black/70 to-black/50 bg-gradient-to-br ring-1 ring-slate-400/10 backdrop-blur-xs">
                 <div className="absolute -top-px left-20  h-px bg-gradient-to-r from-primary-300/10 via-primary-300/70 to-primary-300/0" />
                 <div className="absolute -bottom-px left-11 right-20 h-px bg-gradient-to-r from-blue-400/0 via-primary-400 to-blue-400/0" />
-                <div className="pl-4 pt-4 max-h-[28.5rem] overflow-y-scroll">
+                <div className="pl-4 pt-4 max-h-[26rem] overflow-y-scroll">
                   <div className="gap-x-2 grid grid-cols-3 w-10">
                     <Icon icon="circle" className="!h-3 text-slate-600/30" />
                     <Icon icon="circle" className="!h-3 text-slate-600/30" />
@@ -161,7 +138,7 @@ export function Hero() {
                     <Highlight
                       code={code}
                       language={codeLanguage}
-                      theme={themes.nightOwl}
+                      theme={themes.oneDark}
                     >
                       {({
                         className,

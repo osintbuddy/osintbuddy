@@ -173,30 +173,31 @@ export function HeroBackground(props: SvgProps) {
           r="10.438"
           transform="rotate(-180 384.1 651.3)"
           fill="rgba(150, 5, 179, 0.05)"
-          stroke="#2A5AAF90"
+          stroke="#2A5AAF"
         />
         <circle
           cx="484.301"
           cy="574.062"
           r="10.438"
           transform="rotate(-180 484.301 574.062)"
-          fill="rgba(150, 5, 179, 0.1)"
-          fillOpacity=".42"
-          stroke="#336BCE"
-          filter="url(#glow)"
+          fill="#520fbd"
+          fillOpacity="0.1"
+          stroke="#2A5AAF"
+          stroke-opacity="1"
+          filter="url(#subtleGlow)"
         />
         <circle
           cx="484.301"
           cy="574.062"
           r="10.438"
           transform="rotate(-180 484.301 574.062)"
-          fill="#336BCE60"
-          fillOpacity=".42"
+          fill="#336BCA"
+          fillOpacity=".1"
           stroke="#fb64b620"
           filter="url(#subtleGlow)"
         >
-          <animate attributeName="r" values="16;64;16" dur="10s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.4;0.2;0.4" dur="10s" repeatCount="indefinite" />
+          <animate attributeName="r" values="16;64;16" dur="4s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.4;0.01;0.4" dur="4s" repeatCount="indefinite" />
         </circle>
 
         <g class="pulse-highlights">
@@ -236,45 +237,48 @@ export function HeroBackground(props: SvgProps) {
           r="10.438"
           transform="rotate(-180 384.1 749.412)"
           fill="#0a347c60"
-          stroke="#2A5AAF90"
+          stroke="#2A5AAF"
         />
         <circle
           cx="384.1"
           cy="1027.05"
           r="10.438"
           transform="rotate(-180 384.1 1027.05)"
-          stroke="#2A5AAF90"
+          stroke="#2A5AAF"
         />
         <circle
           cx="283.9"
           cy="924.763"
           r="10.438"
           transform="rotate(-180 283.9 924.763)"
-          stroke="#2A5AAF90"
-          fill="hsla(251, 98%, 40%, .4)"
+          stroke="#2A5AAF"
+          fill="#0fb7bd"
+          fill-opacity="0.2"
         />
         <circle
           cx="183.699"
           cy="870.487"
           r="10.438"
           transform="rotate(-180 183.699 870.487)"
-          fill="hsla(251, 98%, 40%, .4)"
-          stroke="#2A5AAF90"
+          fill-opacity="0.2"
+          fill="#520fbd"
+          stroke="#2A5AAF"
         />
 
         <circle cx="183.699"
-          cy="870.487" r="100" fill="none" stroke="#181a5b" stroke-width="1" opacity="0">
-          <animate attributeName="r" values="20;120;20" dur="20s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.8;0;0.8" dur="20s" repeatCount="indefinite" />
+          cy="870.487" r="100" fill="none" stroke="#0f3375" stroke-width="1" opacity="0">
+          <animate attributeName="r" values="20;120;20" dur="8s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.8;0;0.8" dur="4s" repeatCount="indefinite" />
         </circle>
         <circle cx="183.699"
-          cy="870.487" r="100" fill="none" stroke="#181a5b" stroke-width="1" opacity="0">
+          cy="870.487" r="100" fill="none" stroke="#0f3375" stroke-width="1" opacity="0">
           <animate attributeName="r" values="20;120;20" dur="14s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="0.8;0;0.8" dur="14s" repeatCount="indefinite" />
         </circle>
         <circle cx="183.699"
-          cy="870.487" r="80" fill="none" stroke="#212975" stroke-width="1" opacity="0">
-          <animate attributeName="r" values="15;90;15" dur="15s" repeatCount="indefinite" />
+          filter="url(#subtleGlow)"
+          cy="870.487" r="80" fill="none" stroke="#720288" stroke-width="1" opacity="0">
+          <animate attributeName="r" values="15;100;15" dur="15s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="0.6;0;0.6" dur="15s" repeatCount="indefinite" />
         </circle>
         <circle
@@ -282,7 +286,7 @@ export function HeroBackground(props: SvgProps) {
           cy="738.975"
           r="10.438"
           transform="rotate(-180 283.9 738.975)"
-          fill="#0a347c90"
+          fill="#02209a"
           stroke="#2A5AAF90"
         />
         <circle
@@ -290,7 +294,7 @@ export function HeroBackground(props: SvgProps) {
           cy="695.138"
           r="10.438"
           transform="rotate(-180 83.5 695.138)"
-          fill="#0a347c90"
+          fill="#02209a"
           stroke="#2A5AAF90"
         />
         <circle
@@ -299,7 +303,7 @@ export function HeroBackground(props: SvgProps) {
           r="10.438"
           transform="rotate(-180 83.5 484.3)"
           fillOpacity=".42"
-          fill="#0a347c90"
+          fill="#02209a"
           stroke="#2A5AAF90"
         />
         <circle
@@ -307,7 +311,7 @@ export function HeroBackground(props: SvgProps) {
           cy="432.112"
           r="10.438"
           transform="rotate(-180 484.301 432.112)"
-          fill="#0a347c90"
+          fill="#02209a"
           stroke="#2A5AAF90"
         />
         <circle
@@ -315,30 +319,31 @@ export function HeroBackground(props: SvgProps) {
           cy="432.112"
           r="10.438"
           transform="rotate(-180 584.5 432.112)"
-          fill="#0a347c90"
-          stroke="#2A5AAF90"
+          fill="#02209a"
+          stroke="#2A5AAF"
+          opacity={90}
         />
         <circle
           cx="584.5"
           cy="642.95"
           r="10.438"
           transform="rotate(-180 584.5 642.95)"
-          fill="#0a347c90"
-          stroke="#2A5AAF90"
+          fill="#02209a"
+          stroke="#2A5AAF"
         />
         <circle
           cx="484.301"
           cy="851.699"
           r="10.438"
           transform="rotate(-180 484.301 851.699)"
-          stroke="#2A5AAF90"
+          stroke="#2A5AAF"
         />
         <circle
           cx="384.1"
           cy="256.763"
           r="10.438"
           transform="rotate(-180 384.1 256.763)"
-          stroke="#2A5AAF90"
+          stroke="#2A5AAF"
 
         />
       </g>

@@ -246,7 +246,7 @@ export default function Documentation() {
   return (
     <>
       {isHomePage && <Hero />}
-      <div className="relative self-center border rounded-t-2xl flex md:max-w-5/6 justify-center  lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl backdrop-blur-sm from-black/60 to-black/30 bg-gradient-to-tr ring-1 ring-slate-700/10 w-full md:mt-6">
+      <div className="relative self-center border rounded-t-2xl flex md:max-w-5/6 justify-center  lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl backdrop-blur-sm from-black/60 to-black/30 bg-gradient-to-tr ring-1 ring-slate-700/10 w-full">
         <div className="absolute -left-px h-2/3 top-11 bottom-20 w-px bg-gradient-to-b from-blue-400/0 via-primary-700 to-blue-400/0" />
         <div className="hidden lg:relative lg:block lg:flex-none">
           <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 ">

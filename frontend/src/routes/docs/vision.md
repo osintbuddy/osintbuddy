@@ -4,7 +4,7 @@ pageTitle: "The Vision for the Next Generation of Intelligence"
 description: Fetch data from different sources and returns the results as visual entities that you can explore step-by-step
 ---
 
-OSINTBuddy was born out of a passion for web crawling, data extraction, graphs, visualization, and analysis. I needed a powerful, user-friendly tool that simplified data collection and analysis. At the core of this project lies a far more ambitious vision than the mere creation of an all-in-one data aggregation and analysis tool.
+OSINTBuddy was born out of a passion for web crawling, data extraction, graphs, visualization, and analysis. I wanted a powerful, user-friendly tool that simplified data collection and analysis. At the core of this project lies a far more ambitious vision than the mere creation of an all-in-one data aggregation and analysis tool.
 
 ---
 
