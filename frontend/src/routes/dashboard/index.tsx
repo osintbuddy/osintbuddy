@@ -129,7 +129,7 @@ export default function DashboardPage() {
           ) : (
             <Button.Ghost
               variant='primary'
-              className='mx-4 mr-6 mt-auto mb-4 !font-code !font-semibold'
+              className='mx-4 mr-6 mt-auto mb-4'
               title="Connect third-party servers providing plugin access"
             >
               Connect server plugins
