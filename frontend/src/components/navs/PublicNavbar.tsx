@@ -46,20 +46,32 @@ export default function PublicNavbar(): JSX.Element {
         <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
       </a>
       {!isDocsPage && (
-        <Button.Solid variant='primary' onClick={() => navigate("/docs/overview")}>
-          OSIB Book
-          <BookOpenIcon class="btn-icon" />
+        <Button.Solid
+          variant='primary'
+          className="!font-code !font-bold"
+          onClick={() => navigate("/docs/overview")}
+        >
+          OSIB://BOOK
+          <Icon icon="eye-search" className="ml-2" />
         </Button.Solid>
       )}
       {isAuthenticated && isDocsPage && (
-        <Button.Solid variant='primary' onClick={() => navigate("/dashboard/graph")}>
-          Open OSINTBuddy
+        <Button.Solid
+          variant='primary'
+          className="!font-code !font-bold"
+          onClick={() => navigate("/dashboard/graph")}
+        >
+          OPEN://OSIB
           <Squares2X2Icon class="btn-icon" />
         </Button.Solid>
       )}
       {!isAuthenticated && isDocsPage && (
-        <Button.Solid variant='primary' onClick={() => navigate("/login")}>
-          Sign in
+        <Button.Solid
+          variant='primary'
+          className="!font-code !font-bold"
+          onClick={() => navigate("/login")}
+        >
+          OSIB://LOGIN
           <UserIcon class="btn-icon" />
         </Button.Solid>
       )}
