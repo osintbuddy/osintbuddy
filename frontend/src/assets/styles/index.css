@@ -126,8 +126,8 @@
   --color-cod-600: #0C0C0C;
   --color-cod-700: #0A0A0A;
   --color-cod-800: #070707;
-  --color-cod-900: #050505;
-  --color-cod-950: #040404;
+  --color-cod-900: #040416;
+  --color-cod-950: #02020c;
 }
 
 html {
@@ -235,7 +235,7 @@ p, a {
 
 /* start Animated CSS Hamburger Menu */
 .hamburger.is-active {
-  @apply transition-transform -rotate-45 duration-75;
+  @apply transition-transform -rotate-45 duration-300;
 }
 
 .hamburger {

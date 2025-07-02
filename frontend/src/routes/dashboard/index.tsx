@@ -57,21 +57,21 @@ export default function DashboardPage() {
             <section class='flex justify-between rounded pb-1 items-center font-display font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
-                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
                 aria-selected={currentTab === 0}
               >
                 Graphs
               </Link>
               <Link
                 to='entity'
-                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
                 aria-selected={currentTab === 1}
               >
                 Entities
               </Link>
               <Link
                 to='market'
-                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit'
+                class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
                 aria-selected={currentTab === 2}
               >
                 Market
@@ -104,27 +104,39 @@ export default function DashboardPage() {
             </div>
           </div>
           {currentTab !== 2 ? (
-            <Button.Ghost
-              variant='primary'
-              onClick={() => {
-                if (currentTab === 0) setShowCreateGraphModal(true)
-                if (currentTab === 1) setShowCreateEntityModal(true) // TODO
-              }}
-              className='mt-auto mb-4 mx-4 mr-6'
-            >
-              Create {currentTab === 0 ? 'graph' : 'entity'}
-              {currentTab === 0 ? <Icon icon='chart-dots-3' className='btn-icon !ml-7' /> : <Icon icon='ghost-3' className='btn-icon !ml-7' />}
-            </Button.Ghost>
+            <>
+              {currentTab === 0 && (
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => setShowCreateGraphModal(true)}
+                  className='mt-auto mb-4 mx-4 mr-6'
+                >
+                  Create graph
+                  <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
+                </Button.Ghost>
+              )}
+              {currentTab === 1 && (
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => setShowCreateEntityModal(true)}
+                  className='mt-auto mb-4 mx-4 mr-6'
+                >
+                  Create entity
+                  <Icon icon='ghost-3' className='btn-icon !ml-7' />
+                </Button.Ghost>
+              )}
+            </>
           ) : (
             <Button.Ghost
               variant='primary'
-              className='mx-4 mr-6 mt-auto mb-4'
+              className='mx-4 mr-6 mt-auto mb-4 !font-code !font-semibold'
+              title="Connect third-party servers providing plugin access"
             >
               Connect server plugins
               <Icon icon='cloud' className='btn-icon !ml-7' />
             </Button.Ghost>
           )}
-        </aside>
+        </aside >
         <Outlet context={{
           graphsData: { favorite_graphs: [], graphs: [] },
           entitiesData: [],
@@ -171,17 +183,17 @@ function CreateEntityModal({
 
   return (
     <OverlayModal isOpen={isOpen} closeModal={closeModal} cancelRef={cancelCreateRef}>
-      <form onSubmit={onSubmitHandler} className='from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll '>
+      <form onSubmit={onSubmitHandler} className='from-cod-900 to-cod-950 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll '>
         <section class="border-primary-350 border-b-2 mt-6 pl-1 pb-1 px-px">
           <div class="flex flex-wrap items-center justify-between">
-            <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new entity plugin</h1>
+            <h1 class="font-code font-semibold text-2xl tracking-tight text-slate-400">CREATE://ENTITY</h1>
             <Icon icon="basket-code" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
           </div>
         </section>
-        <div class="w-full gap-y-2 grid mt-10 grid-cols-1 ">
+        <div class="w-full gap-y-2 grid mt-3 grid-cols-1 ">
           <Input.Transparent placeholder="Your entity name..." className="w-full" name="label" label="Label" />
           <Input.Textarea placeholder="Describe the purpose of your entity..." className="w-full" name="description" label="Description" />
-          <Input.Transparent placeholder="Entity authors name..." className='w-full mb-6' name="author" label="Author(s)" />
+          <Input.Transparent placeholder="Entity authors name..." className='w-full mb-6' name="author" label="Authors" />
         </div>
 
         <div class="flex justify-end mb-6">
@@ -190,7 +202,7 @@ function CreateEntityModal({
             <Icon icon='cancel' className="btn-icon !text-danger-500" />
           </Button.Ghost>
           <Button.Solid className="ml-4" variant="primary" type='submit'>
-            <span>Create entity</span>
+            Create entity
             <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>
@@ -247,17 +259,17 @@ export function CreateGraphModal({
 
   return (
     <OverlayModal isOpen={isOpen} closeModal={closeModal} cancelRef={cancelCreateRef}>
-      <form onSubmit={onSubmitHandler} class="from-cod-950/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll ">
+      <form onSubmit={onSubmitHandler} class="from-cod-900/85 to-cod-950/80 bg-gradient-to-br w-full shadow border-l-3 border-l-primary px-10 flex flex-col overflow-y-scroll ">
         <section class=" border-b-2 mt-6 border-primary pl-1 pb-1 px-px ">
           <div class=" flex flex-wrap items-center justify-between ">
-            <h1 class="font-display font-semibold text-2xl tracking-tight text-slate-400">Create a new graph</h1>
+            <h1 class="font-code font-semibold text-2xl tracking-tight text-slate-400">CREATE://GRAPH</h1>
             <Icon icon="chart-dots-3" className="w-6 h-6 mr-2 mt-1 text-slate-400" />
           </div>
         </section>
-        <div class="w-full grid gap-y-8 mt-10 grid-cols-1 ">
+        <div class="w-full grid gap-y-2 mt-3 grid-cols-1 ">
           <Input.Transparent label="Label" placeholder="Enter a name for your graph..." className="w-full" />
           <Input.Textarea rows={3} name="description" className="w-full" label="Description" placeholder="Additional details about your graph..." />
-          <Input.ToggleSwitch className='pb-6' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
+          <Input.ToggleSwitch className='pb-6 pt-1' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
         </div>
 
         <div class="flex justify-end mb-6">
@@ -266,7 +278,7 @@ export function CreateGraphModal({
             onClick={() => closeModal()}
             type='button'
           >
-            <span>Cancel</span>
+            Cancel
             <Icon icon='cancel' className="btn-icon !text-danger-500 " />
           </Button.Ghost>
           <Button.Solid
@@ -275,7 +287,7 @@ export function CreateGraphModal({
             disabled={false}
             className='btn-primary ml-4'
           >
-            <span>Create graph</span>
+            Create graph
             <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>

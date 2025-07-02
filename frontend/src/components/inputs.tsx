@@ -74,7 +74,7 @@ export function Transparent(props: InputProps) {
   return (
     <div className="flex flex-col relative w-full mt-7">
       {label && (
-        <label class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
+        <label class="text-sm font-medium text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
         </label>
       )}
@@ -96,7 +96,7 @@ export function Textarea(props: TextareaProps) {
   return (
     <div className="flex flex-col relative w-full mt-7">
       {label && (
-        <label for={label} class="text-sm text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
+        <label for={label} class="text-sm font-medium text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 ">
           {label}
         </label>
       )}
@@ -119,7 +119,7 @@ export function TransparentIcon(props: IconInputProps) {
   return (
     <div className="flex relative flex-col w-full">
       {label && (
-        <label class="text-sm text-slate-350 font-display rounded-t absolute -top-6 px-2 -left-1 mt-7">
+        <label class="text-sm text-slate-350 font-medium  font-display rounded-t absolute -top-6 px-2 -left-1 mt-7">
           {label}
         </label>
       )}
@@ -162,18 +162,18 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
 
   return (
     <div class={`${className ?? ''}`}>
-      <label htmlFor={props.name} class='text-sm font-display leading-3 text-slate-350'>
+      <label htmlFor={props.name} class='text-sm font-display font-medium leading-3 text-slate-350'>
         {label ?? ""}
       </label>
-      <div class='mt-2 sm:flex sm:items-start sm:justify-between'>
+      <div class='sm:flex sm:items-start sm:justify-between'>
         {description && (
-          <div class='max-w-xl text-sm text-slate-400'>
+          <div class='max-w-xl text-sm text-slate-350'>
             <p>
               {description}
             </p>
           </div>
         )}
-        <div class='mt-5 sm:ml-6 sm:-mt-2 sm:flex sm:shrink-0 sm:items-center'>
+        <div class='mt-5 sm:ml-6 sm:-mt-3 sm:flex sm:shrink-0 sm:items-center'>
           {/* Hidden checkbox for form submission and accessibility */}
           <input
             type='checkbox'
