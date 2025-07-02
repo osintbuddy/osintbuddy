@@ -10,6 +10,7 @@ import { toast } from 'react-toastify'
 
 const codeLanguage = 'python'
 const code = `import osintbuddy as ob
+from urllib.parse import urlparse
 
 class URL(ob.Plugin):
     label = "URL"
@@ -23,11 +24,12 @@ class URL(ob.Plugin):
         website_entity = await ob.Registry.get_plugin('website')
         domain = urlparse(node.url).netloc
         return website_entity.blueprint(domain=domain)
-  `
+`
 
 const tabs = [
-  { name: 'google.plugin.py', isActive: true },
+  { name: 'url.plugin.py', isActive: true },
   { name: 'shodan.plugin.py', isActive: false },
+  { name: 'searxng.plugin.py', isActive: false },
 ]
 
 const QUOTES = [
@@ -95,29 +97,29 @@ export function Hero() {
               />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10 blur-lg" />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10" />
-              <div className="relative rounded-2xl from-black/70 to-black/50 bg-gradient-to-br ring-1 ring-slate-400/10 backdrop-blur-xs">
+              <div className="relative rounded-2xl from-black/60 to-black/50 bg-gradient-to-br ring-1 ring-slate-400/10 backdrop-blur-xs">
                 <div className="absolute -top-px left-20  h-px bg-gradient-to-r from-primary-300/10 via-primary-300/70 to-primary-300/0" />
                 <div className="absolute -bottom-px left-11 right-20 h-px bg-gradient-to-r from-blue-400/0 via-primary-400 to-blue-400/0" />
-                <div className="pl-4 pt-4 max-h-[26rem] overflow-y-scroll">
-                  <div className="gap-x-2 grid grid-cols-3 w-10">
+                <div className="pl-4 pt-4  overflow-y-scroll">
+                  <div className="gap-x-2 grid grid-cols-3 w-10 mb-4">
                     <Icon icon="circle" className="!h-3 text-slate-600/30" />
                     <Icon icon="circle" className="!h-3 text-slate-600/30" />
                     <Icon icon="circle" className="!h-3 text-slate-600/30" />
                   </div>
-                  <div className="mt-4 flex space-x-2 text-xs">
+                  <div className=" flex text-sm">
                     {tabs.map((tab) => (
                       <div
                         key={tab.name}
                         className={
-                          `flex h-6 rounded-full py-0.5 ${tab.isActive
-                            ? 'bg-gradient-to-br from-black/30 via-black/40 to-black/30 p-px font-medium text-primary-200'
+                          `flex px-2 h-8 rounded-full ${tab.isActive
+                            ? 'bg-black font-medium text-primary-200'
                             : 'text-slate-600'}`}
                       >
-                        <div
-                          className={`flex items-center rounded-full py-0.5 px-2.5 ${tab.isActive && 'bg-black/20'}`}
+                        <p
+                          className={`flex items-center rounded-full py-0.5 px-2.5 select-none`}
                         >
                           {tab.name}
-                        </div>
+                        </p>
                       </div>
                     ))}
                   </div>
