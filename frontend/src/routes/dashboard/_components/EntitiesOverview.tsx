@@ -23,7 +23,7 @@ export default function EntitiesOverview() {
             {entitiesData.length > 0 && (
               <>
                 <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-semibold pr-2">
-                  {entitiesData.length ?? ""}{" "}
+                  {entitiesData.length}{" "}
                   {entitiesData.length > 1 ? "entities" : "entity"} available
                 </h1>
                 <p className="md:pt-4 max-w-xl text-slate-300/80">

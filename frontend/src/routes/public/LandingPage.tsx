@@ -4,6 +4,7 @@ import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/app/hooks';
 import { Icon } from '@/components/icons';
+import { Callout } from '@/components/docs/Callout';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -22,6 +23,7 @@ export default function LandingPage(): JSX.Element {
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
       <div class='mx-auto md:mt-52 mt-36 items-center'>
+
         <div class='relative text-center '>
           <section class='relative pb-12 flex flex-col items-center'>
             <h2 class='inline text-center bg-gradient-to-br from-primary-200 via-blue-500 to-primary-200 bg-clip-text text-2xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2'>
@@ -73,25 +75,34 @@ export default function LandingPage(): JSX.Element {
           </div>
         </div>
       </div>
+      <div className="lg:max-w-lg absolute top-0 lg:top-auto lg:bottom-3 left-4.5 *:my-2 *:mx-0 *:mr-4">
+        <Callout type='warning' title="Experimental Software (Alpha)">
+          <p>Please note that OSINTBuddy is currently experimental software. We do not recommend using this project for anything serious!</p>
+        </Callout>
+      </div>
       <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
-        <h1 class='font-display text-2xl tracking-tight text-slate-300'>
-          {atfQuote}
-        </h1>
-        <p class='text-slate-300 mb-2 '>
-          Email me at
-          <a
-            href='mailto:oss@osintbuddy.com'
-            class='hover:text-primary-50 active:text-primary-50 text-primary-100 transition-all duration-100 font-sans ease-in-out'
-          >
-            &nbsp;oss@osintbuddy.com&nbsp;
-          </a>
-          to share ideas or <a
-            href="#todo-redirect-to-security.mdx-page"
-            class='border-b-2 border-b-transparent hover:border-b-red-600/40 transition-all duration-100 font-sans ease-in-out mx-px'
-          >
-            security concerns.
-          </a>
-        </p>
+
+        <section className="flex flex-col items-center">
+          <h1 class='font-display text-2xl tracking-tight text-slate-300'>
+            {atfQuote}
+          </h1>
+          <p class='text-slate-300 mb-2 '>
+            Email me at
+            <a
+              href='mailto:oss@osintbuddy.com'
+              class='hover:text-primary-50 active:text-primary-50 text-primary-100 transition-all duration-100 font-sans ease-in-out'
+            >
+              &nbsp;oss@osintbuddy.com&nbsp;
+            </a>
+            to share ideas or <a
+              href="#todo-redirect-to-security.mdx-page"
+              class='border-b-2 border-b-transparent hover:border-b-red-600/40 transition-all duration-100 font-sans ease-in-out mx-px'
+            >
+              security concerns.
+            </a>
+          </p>
+        </section>
+
       </section>
     </div>
   );

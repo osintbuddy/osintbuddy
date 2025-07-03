@@ -52,7 +52,7 @@ export function TransparentPassword(props: PasswordInputProps) {
         <button
           type="button"
           onClick={() => setHidePassword(hidePassword === "password" ? "text" : "password")}
-          className="text-slate-800 absolute right-1 top-1  p-1 rounded"
+          className="text-slate-800 absolute right-1 top-1  p-1 rounded outline-hidden focus:outline-hidden focus:text-slate-600"
         >
           {
             hidePassword === "password"
