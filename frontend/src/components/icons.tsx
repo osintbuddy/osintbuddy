@@ -14,7 +14,7 @@ export function Icon(props: TablerIconProps) {
   const { icon, className } = props;
   return (
     <>
-      <svg {...props} className={`h-5 w-5 text-inherit ${className}`} fill="none" stroke="currentColor">
+      <svg {...props} className={` ${className ?? 'h-5 w-5 text-inherit'}`} fill="none" stroke="currentColor">
         <use href={`${Sprite}#tabler-${icon}`} />
       </svg>
     </>

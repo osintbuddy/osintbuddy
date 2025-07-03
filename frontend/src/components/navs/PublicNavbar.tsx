@@ -51,7 +51,7 @@ export default function PublicNavbar(): JSX.Element {
           onClick={() => navigate("/docs/overview")}
         >
           OSIB://BOOK
-          <Icon icon="eye-search" className="ml-3" />
+          <Icon icon="eye-search" className="ml-3 btn-icon" />
         </Button.Solid>
       )}
       {isAuthenticated && isDocsPage && (
@@ -71,7 +71,7 @@ export default function PublicNavbar(): JSX.Element {
           onClick={() => navigate("/login")}
         >
           OSIB://LOGIN
-          <Icon icon="key" className="ml-3" />
+          <Icon icon="key" className="ml-3 btn-icon" />
         </Button.Solid>
       )}
     </header>

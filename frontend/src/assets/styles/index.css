@@ -198,8 +198,8 @@ svg.icon {
   @apply flex items-center justify-center;
 }
 
-p, a {
-  @apply font-sans;
+p {
+  font-family: var(--font-sans);
 }
 
 /* 
