@@ -74,8 +74,7 @@ export default function AppLayoutSidebar({ showSidebar, toggleSidebar, logout }:
                 Github
               </a>
               <button
-                target="_blank"
-                class={`flex items-center duration-200 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display !mb-2 ${showSidebar ? "mx-2.5" : 'ml-0.5 mr-px'}`}
+                class={`w-[calc(100%-1.25rem)] flex items-center duration-200 ease-in-out my-1 py-2.5 text-base to-mirage-900/10 from-mirage-900/5 font-medium rounded-md border border-slate-800/10 hover:border-slate-700/10 hover:ring-transparent text-slate-600/50 hover:text-slate-400/60 shadow hover:translate-x-px z-50 transition-all focus:text-slate-400/70 -translate-x-px  ring-slate-950/10 ring-2 ring-inset pl-3  bg-gradient-to-br from-10% pr-1.5 hover:from-mirage-600/20 hover:to-mirage-600/10 font-display !mb-2 ${showSidebar ? "mx-2.5" : 'ml-0.5 mr-px'}`}
                 onClick={() => {
                   logout()
                   navigate('/', { replace: true })

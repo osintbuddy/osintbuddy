@@ -1,5 +1,6 @@
 import { useAuth } from "@/app/hooks";
 import Button from "@/components/buttons";
+import { HeroBackground } from "@/components/docs/HeroBackground";
 import { Icon } from "@/components/icons";
 import Input from "@/components/inputs";
 import { useEffect } from "preact/hooks";
@@ -59,7 +60,10 @@ export default function RegisterPage(): JSX.Element {
 
   return (
     <div class="flex flex-col items-center justify-center my-20 py-20">
-      <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/50 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r flex flex-col items-center w-11/12 md:w-auto">
+      <div className="select-none fixed bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-5/11 md:right-1/11">
+        <HeroBackground className="absolute  -rotate-90 lg:right-[40%]  translate-y-[-60%]" />
+      </div>
+      <div class="shadow-2xl shadow-black/35 -mt-30 py-6 from-black/50 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r-lg flex flex-col items-center w-11/12 md:w-auto">
         <h2 class="text-slate-350 mb-4 md:-ml-2 text-center font-semibold font-display text-2xl relative">
           Sign up for OSINTBuddy
         </h2>
