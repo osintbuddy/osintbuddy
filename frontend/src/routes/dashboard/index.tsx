@@ -47,10 +47,10 @@ export default function DashboardPage() {
       <div class="flex ">
         <aside class="rounded py-px !min-w-[20rem] max-w-[20rem] flex-col h-screen pt-3.5 border-r-[3px] from-black/40 to-black/50 bg-gradient-to-tr shadow-2xl border-black/10 justify-between flex relative w-full backdrop-blur-md shadow-black/25">
           <Input.TransparentIcon
-            icon={<Icon icon='search' className="h-5 relative right-2" />}
+            icon={<Icon icon='search' className="h-6 w-6 relative" />}
             onBtnClick={() => console.log("Todo search")}
             type="text"
-            className="w-full mx-2 mb-1.5"
+            className="w-full mx-2 mb-1.5 "
             placeholder={`Search...`}
           />
           <div class='overflow-y-hidden grow flex flex-col items-stretch relative my-1 mt-[5px]'>

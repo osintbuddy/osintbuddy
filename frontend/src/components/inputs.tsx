@@ -131,7 +131,7 @@ export function TransparentIcon(props: IconInputProps) {
         <button
           type="button"
           onClick={onBtnClick}
-          className="text-slate-800 focus:text-primary hover:text-primary-350 absolute right-1 top-1 p-1 rounded focus:outline-primary-400 focus:outline-hidden"
+          className="text-slate-800 h-6 w-6 focus:text-primary hover:text-primary-350 absolute top-1 p-0.5 rounded focus:outline-primary-400 focus:outline-hidden right-4"
         >
           {icon}
         </button>
