@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useAuthStore } from './store';
 import { parseJwt } from './utilities';
-import { authApi, CreateGraphPayload, graphsApi, DeleteGraphPayload, UpdateGraphPayload } from './api';
+import { authApi, CreateGraphPayload, graphsApi, DeleteGraphPayload, UpdateGraphPayload, entitiesApi, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload } from './api';
 
 export const useMountEffect = (fun: any) => useEffect(fun, [])
 
@@ -120,5 +120,78 @@ export const useGraph = (id: string) => {
     isLoadingGraph: getGraphQuery.isPending,
     graphError: getGraphQuery.error,
     refetchGraph: getGraphQuery.refetch,
+  }
+}
+
+export const useEntities = (skip = 0, limit = 50) => {
+  const { token } = useAuthStore()
+  const queryClient = useQueryClient()
+
+  const listEntitiesQuery = useQuery({
+    queryKey: ['entities', skip, limit],
+    queryFn: () => entitiesApi.list(token!, skip, limit),
+    enabled: !!token,
+  })
+
+  const createEntityMutation = useMutation({
+    mutationFn: (payload: CreateEntityPayload) => 
+      entitiesApi.create(payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entities'] })
+    },
+  })
+
+  const updateEntityMutation = useMutation({
+    mutationFn: (payload: UpdateEntityPayload) => 
+      entitiesApi.update(payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entities'] })
+    },
+  })
+
+  const deleteEntityMutation = useMutation({
+    mutationFn: (payload: DeleteEntityPayload) => 
+      entitiesApi.delete(payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entities'] })
+    },
+  })
+
+  return {
+    entities: listEntitiesQuery.data,
+    isLoadingEntities: listEntitiesQuery.isPending,
+    entitiesError: listEntitiesQuery.error,
+    refetchEntities: listEntitiesQuery.refetch,
+    createEntity: createEntityMutation.mutate,
+    createEntityAsync: createEntityMutation.mutateAsync,
+    isCreatingEntity: createEntityMutation.isPending,
+    createEntityError: createEntityMutation.error,
+    createEntityData: createEntityMutation.data,
+    updateEntity: updateEntityMutation.mutate,
+    updateEntityAsync: updateEntityMutation.mutateAsync,
+    isUpdatingEntity: updateEntityMutation.isPending,
+    updateEntityError: updateEntityMutation.error,
+    updateEntityData: updateEntityMutation.data,
+    deleteEntity: deleteEntityMutation.mutate,
+    deleteEntityAsync: deleteEntityMutation.mutateAsync,
+    isDeletingEntity: deleteEntityMutation.isPending,
+    deleteEntityError: deleteEntityMutation.error,
+  }
+}
+
+export const useEntity = (id: number) => {
+  const { token } = useAuthStore()
+
+  const getEntityQuery = useQuery({
+    queryKey: ['entity', id],
+    queryFn: () => entitiesApi.getById(id, token!),
+    enabled: !!token && !!id,
+  })
+
+  return {
+    entity: getEntityQuery.data,
+    isLoadingEntity: getEntityQuery.isPending,
+    entityError: getEntityQuery.error,
+    refetchEntity: getEntityQuery.refetch,
   }
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
-import { graphsApi, GraphResponse, GraphDetailsResponse, UpdateGraphPayload, UpdateGraphResponse, DeleteGraphPayload } from './api';
+import { graphsApi, GraphResponse, GraphDetailsResponse, UpdateGraphPayload, UpdateGraphResponse, DeleteGraphPayload, entitiesApi, EntityResponse, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload } from './api';
 
 type LoaderType = 'screen' | 'bar';
 
@@ -178,6 +178,135 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to delete graph',
+        isDeleting: false 
+      })
+      throw error
+    }
+  },
+}))
+
+// Entities store
+interface EntitiesState {
+  entities: EntityResponse[]
+  currentEntity: EntityResponse | null
+  isLoading: boolean
+  isLoadingEntity: boolean
+  isCreating: boolean
+  isUpdating: boolean
+  isDeleting: boolean
+  error: string | null
+  fetchEntities: (token: string, skip?: number, limit?: number) => Promise<void>
+  fetchEntityById: (id: number, token: string) => Promise<void>
+  createEntity: (payload: CreateEntityPayload, token: string) => Promise<EntityResponse>
+  updateEntity: (payload: UpdateEntityPayload, token: string) => Promise<EntityResponse>
+  deleteEntity: (payload: DeleteEntityPayload, token: string) => Promise<void>
+}
+
+export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
+  entities: [],
+  currentEntity: null,
+  isLoading: false,
+  isLoadingEntity: false,
+  isCreating: false,
+  isUpdating: false,
+  isDeleting: false,
+  error: null,
+  fetchEntities: async (token: string, skip: number = 0, limit: number = 50) => {
+    set({ isLoading: true, error: null })
+    try {
+      const entities = await entitiesApi.list(token, skip, limit)
+      set({ entities, isLoading: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch entities',
+        isLoading: false 
+      })
+    }
+  },
+  fetchEntityById: async (id: number, token: string) => {
+    set({ isLoadingEntity: true, error: null })
+    try {
+      const entity = await entitiesApi.getById(id, token)
+      set({ currentEntity: entity, isLoadingEntity: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch entity',
+        isLoadingEntity: false 
+      })
+    }
+  },
+  createEntity: async (payload: CreateEntityPayload, token: string) => {
+    set({ isCreating: true, error: null })
+    try {
+      const newEntity = await entitiesApi.create(payload, token)
+      
+      // Add the new entity to the entities list
+      const currentEntities = get().entities
+      set({ 
+        entities: [...currentEntities, newEntity],
+        isCreating: false 
+      })
+      
+      return newEntity
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to create entity',
+        isCreating: false 
+      })
+      throw error
+    }
+  },
+  updateEntity: async (payload: UpdateEntityPayload, token: string) => {
+    set({ isUpdating: true, error: null })
+    try {
+      const updatedEntity = await entitiesApi.update(payload, token)
+      
+      // Update the entities list if the updated entity is in it
+      const currentEntities = get().entities
+      const updatedEntities = currentEntities.map(entity => 
+        entity.id === updatedEntity.id 
+          ? updatedEntity
+          : entity
+      )
+      
+      set({ 
+        entities: updatedEntities,
+        currentEntity: updatedEntity,
+        isUpdating: false 
+      })
+      
+      return updatedEntity
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to update entity',
+        isUpdating: false 
+      })
+      throw error
+    }
+  },
+  deleteEntity: async (payload: DeleteEntityPayload, token: string) => {
+    set({ isDeleting: true, error: null })
+    try {
+      await entitiesApi.delete(payload, token)
+      
+      // Remove the deleted entity from the entities list
+      const currentEntities = get().entities
+      const filteredEntities = currentEntities.filter(entity => 
+        entity.id !== payload.id
+      )
+      
+      // Clear currentEntity if it's the one being deleted
+      const currentEntity = get().currentEntity
+      const updatedCurrentEntity = currentEntity?.id === payload.id ? null : currentEntity
+      
+      set({ 
+        entities: filteredEntities,
+        currentEntity: updatedCurrentEntity,
+        isDeleting: false 
+      })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to delete entity',
         isDeleting: false 
       })
       throw error

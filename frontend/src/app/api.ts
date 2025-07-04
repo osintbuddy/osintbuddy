@@ -119,8 +119,8 @@ export interface GraphResponse {
   id: string
   label: string
   description: string
-  createdAt: string
-  updatedAt: string
+  ctime: string
+  mtime: string
 }
 
 export interface GraphDetailsResponse {
@@ -134,6 +134,62 @@ export interface GraphDetailsResponse {
   vertices_count: number
   edges_count: number
   degree2_count: number
+}
+
+export interface CreateEntityPayload {
+  label: string
+  description: string
+  author: string
+  source: string
+}
+
+export interface UpdateEntityPayload {
+  id: number
+  label: string
+  description: string
+  author: string
+  source: string
+}
+
+export interface DeleteEntityPayload {
+  id: number
+}
+
+export interface EntityResponse {
+  id: number
+  label: string
+  description: string
+  author: string
+  source: string
+  ctime: string
+  mtime: string
+}
+
+export const entitiesApi = {
+  create: async (payload: CreateEntityPayload, token: string): Promise<EntityResponse> => {
+    return appRequest<EntityResponse>('/entities/', token, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+  list: async (token: string, skip: number = 0, limit: number = 50): Promise<EntityResponse[]> => {
+    return appRequest<EntityResponse[]>(`/entities/?skip=${skip}&limit=${limit}`, token);
+  },
+  getById: async (id: number, token: string): Promise<EntityResponse> => {
+    return appRequest<EntityResponse>(`/entities/${id}`, token);
+  },
+  update: async (payload: UpdateEntityPayload, token: string): Promise<EntityResponse> => {
+    return appRequest<EntityResponse>('/entities/', token, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  },
+  delete: async (payload: DeleteEntityPayload, token: string): Promise<void> => {
+    return appRequest<void>('/entities/', token, {
+      method: 'DELETE',
+      body: JSON.stringify(payload)
+    });
+  },
 }
 
 export const graphsApi = {

@@ -7,6 +7,7 @@ import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModa
 import { Icon } from '@/components/icons';
 import { toast } from "react-toastify";
 import { JSX } from "preact/jsx-runtime";
+import { useGraphs, useEntities } from "@/app/hooks";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -34,13 +35,46 @@ export default function DashboardPage() {
 
   const currentTab = getCurrentTab();
 
+  // Integration with useGraphs hook
+  const {
+    graphs,
+    isLoadingGraphs,
+    graphsError,
+    refetchGraphs,
+    createGraph,
+    isCreatingGraph,
+    createGraphError
+  } = useGraphs();
+
+  // Integration with useEntities hook
+  const {
+    entities,
+    isLoadingEntities,
+    entitiesError,
+    refetchEntities,
+    createEntity,
+    isCreatingEntity,
+    createEntityError
+  } = useEntities();
+
+  // Error handling - wrapped in useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if (createGraphError) {
+      toast.error(`Graph creation failed: ${createGraphError.message}`);
+    }
+  }, [createGraphError]);
+  
+  useEffect(() => {
+    if (createEntityError) {
+      toast.error(`Entity creation failed: ${createEntityError.message}`);
+    }
+  }, [createEntityError]);
+
   const [showCreateEntityModal, setShowCreateEntityModal] = useState<boolean>(false);
   const cancelCreateEntityRef = useRef<HTMLElement>(null);
 
   const [showCreateGraphModal, setShowCreateGraphModal] = useState<boolean>(false);
   const cancelCreateGraphRef = useRef<HTMLElement>(null);
-
-  const selected = true;
 
   return (
     <>
@@ -82,20 +116,20 @@ export default function DashboardPage() {
               <div class="w-full relative px-2.5">
                 {currentTab === 0 && (
                   <GraphPanel
-                    refetchGraphs={() => null}
-                    graphsData={{ favorite_graphs: [], graphs: [] }}
-                    isLoadingGraphs={false}
-                    isGraphsError={false}
-                    isGraphsSuccess={false}
+                    refetchGraphs={refetchGraphs}
+                    graphsData={{ favorite_graphs: [], graphs: graphs || [] }}
+                    isLoadingGraphs={isLoadingGraphs}
+                    isGraphsError={!!graphsError}
+                    isGraphsSuccess={!!graphs}
                   />
                 )}
                 {currentTab === 1 && (
                   <EntitiesPanel
-                    entitiesData={[]}
-                    isLoading={false}
-                    isError={false}
-                    isSuccess={false}
-                    refetchEntities={() => null} />
+                    entitiesData={entities || []}
+                    isLoading={isLoadingEntities}
+                    isError={!!entitiesError}
+                    isSuccess={!!entities}
+                    refetchEntities={refetchEntities} />
                 )}
 
                 {currentTab === 2 && (<MarketPanel />)}
@@ -138,23 +172,27 @@ export default function DashboardPage() {
           )}
         </aside >
         <Outlet context={{
-          graphsData: { favorite_graphs: [], graphs: [] },
-          entitiesData: [],
-          isLoadingGraphs: false,
-          isGraphsError: false,
+          graphsData: { favorite_graphs: [], graphs: graphs || [] },
+          entitiesData: entities || [],
+          isLoadingGraphs,
+          isGraphsError: !!graphsError,
         } satisfies DashboardContextType} />
       </div >
       <CreateGraphModal
         cancelCreateRef={cancelCreateGraphRef}
         isOpen={showCreateGraphModal}
         closeModal={() => setShowCreateGraphModal(false)}
-        refreshAllGraphs={() => null}
+        refreshAllGraphs={refetchGraphs}
+        createGraph={createGraph}
+        isCreatingGraph={isCreatingGraph}
       />
       <CreateEntityModal
-        refreshAllEntities={() => null}
+        refreshAllEntities={refetchEntities}
         cancelRef={cancelCreateEntityRef}
         isOpen={showCreateEntityModal}
         closeModal={() => setShowCreateEntityModal(false)}
+        createEntity={createEntity}
+        isCreatingEntity={isCreatingEntity}
       />
     </>
   );
@@ -167,18 +205,37 @@ interface CreateEntityModalProps extends OverlayModalProps {
   closeModal: any
   isOpen: boolean
   cancelRef: any
+  createEntity: Function
+  isCreatingEntity: boolean
 }
 
 function CreateEntityModal({
   closeModal,
   isOpen,
   cancelRef: cancelCreateRef,
-  refreshAllEntities
+  refreshAllEntities,
+  createEntity,
+  isCreatingEntity
 }: CreateEntityModalProps) {
   const onSubmitHandler: JSX.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
-    closeModal()
-    // updateEntities()
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      label: formData.get('label') as string,
+      description: formData.get('description') as string,
+      author: formData.get('author') as string,
+      source: "import osintbuddy as ob" // Default source as per API examples
+    };
+
+    createEntity(payload, {
+      onSuccess: () => {
+        closeModal();
+        toast.success('Entity created successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(`Failed to create entity: ${error.message}`);
+      }
+    });
   };
 
   return (
@@ -201,8 +258,13 @@ function CreateEntityModal({
             Cancel
             <Icon icon='cancel' className="btn-icon !text-danger-500" />
           </Button.Ghost>
-          <Button.Solid className="ml-4" variant="primary" type='submit'>
-            Create entity
+          <Button.Solid 
+            className={`ml-4 ${isCreatingEntity ? 'opacity-50' : ''}`} 
+            variant="primary" 
+            type='submit'
+            disabled={isCreatingEntity}
+          >
+            {isCreatingEntity ? 'Creating...' : 'Create entity'}
             <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>
@@ -223,13 +285,17 @@ interface CreateGraphModalProps {
   closeModal: Function
   isOpen: boolean
   cancelCreateRef: any
+  createGraph: Function
+  isCreatingGraph: boolean
 }
 
 export function CreateGraphModal({
   closeModal,
   isOpen,
   cancelCreateRef,
-  refreshAllGraphs
+  refreshAllGraphs,
+  createGraph,
+  isCreatingGraph
 }: CreateGraphModalProps) {
   const navigate = useNavigate()
   const [showGraphGuide, setShowGraphGuide] = useState(false);
@@ -240,11 +306,11 @@ export function CreateGraphModal({
       closeModal()
       const replace = { replace: true }
       // we only navigate to the graph when the guide is enabled
-      refreshGraphs()
+      refreshAllGraphs()
       if (showGraphGuide) {
-        navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
+        // navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
       } else {
-        navigate(`/dashboard/graph/${newGraph.id}`, replace)
+        // navigate(`/dashboard/graph/${newGraph.id}`, replace)
       }
     } else {
       console.error("error")
@@ -254,7 +320,21 @@ export function CreateGraphModal({
 
   const onSubmitHandler: JSX.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
-    // createGraph({ graphCreate })
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      label: formData.get('label') as string,
+      description: formData.get('description') as string
+    };
+
+    createGraph(payload, {
+      onSuccess: () => {
+        closeModal();
+        toast.success('Graph created successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(`Failed to create graph: ${error.message}`);
+      }
+    });
   };
 
   return (
@@ -267,7 +347,7 @@ export function CreateGraphModal({
           </div>
         </section>
         <div class="w-full grid gap-y-2 mt-3 grid-cols-1 ">
-          <Input.Transparent label="Label" placeholder="Enter a name for your graph..." className="w-full" />
+          <Input.Transparent name="label" label="Label" placeholder="Enter a name for your graph..." className="w-full" />
           <Input.Textarea rows={3} name="description" className="w-full" label="Description" placeholder="Additional details about your graph..." />
           <Input.ToggleSwitch className='pb-6 pt-1' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
         </div>
@@ -284,10 +364,10 @@ export function CreateGraphModal({
           <Button.Solid
             variant='primary'
             type='submit'
-            disabled={false}
-            className='btn-primary ml-4'
+            disabled={isCreatingGraph}
+            className={`btn-primary ml-4 ${isCreatingGraph ? 'opacity-50' : ''}`}
           >
-            Create graph
+            {isCreatingGraph ? 'Creating...' : 'Create graph'}
             <Icon icon='plus' className="btn-icon" />
           </Button.Solid>
         </div>
