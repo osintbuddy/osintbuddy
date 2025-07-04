@@ -24,7 +24,6 @@ const navigation = [
 
 export default function AppLayoutSidebar({ showSidebar, toggleSidebar, logout }: SidebarProps) {
   const navigate = useNavigate();
-  console.log(location.pathname.includes("settings"))
   return (
     <div class={`fixed inset-y-0 flex border-r  border-black/10 w-64 flex-col transition-transform duration-200 shadow-2xl shadow-black/15 from-black/50 to-black/40 bg-gradient-to-br backdrop-blur-sm ${showSidebar ? "translate-x-0" : "-translate-x-52 border-r-2"}`}>
       <div class="flex min-h-0 flex-1 flex-col mt-2">

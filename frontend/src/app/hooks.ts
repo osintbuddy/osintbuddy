@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useAuthStore } from './store';
 import { parseJwt } from './utilities';
-import { authApi, CreateGraphPayload, graphsApi } from './api';
+import { authApi, CreateGraphPayload, graphsApi, DeleteGraphPayload, UpdateGraphPayload } from './api';
 
 export const useMountEffect = (fun: any) => useEffect(fun, [])
 
@@ -10,7 +10,6 @@ export const useAuth = () => {
   const { user, token, isAuthenticated, login, logout } = useAuthStore()
   const queryClient = useQueryClient()
 
-  // Login mutation
   const loginMutation = useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
@@ -19,14 +18,12 @@ export const useAuth = () => {
     },
   })
 
-  // Register mutation
   const registerMutation = useMutation({
     mutationFn: authApi.register,
   })
 
-  // Logout mutation
   const logoutMutation = useMutation({
-    mutationFn: () => authApi.logout(token as string),
+    mutationFn: () => authApi.logout(token!),
     onSettled: () => {
       logout()
       queryClient.clear()
@@ -49,58 +46,79 @@ export const useAuth = () => {
   }
 }
 
-export const useGraphs = () => {
+export const useGraphs = (skip = 0, limit = 50) => {
   const { token } = useAuthStore()
   const queryClient = useQueryClient()
 
-  // Create graph mutation
+  const listGraphsQuery = useQuery({
+    queryKey: ['graphs', skip, limit],
+    queryFn: () => graphsApi.list(token!, skip, limit),
+    enabled: !!token,
+  })
+
   const createGraphMutation = useMutation({
     mutationFn: (payload: CreateGraphPayload) => 
-      graphsApi.create(payload, token as string),
+      graphsApi.create(payload, token!),
     onSuccess: () => {
-      // Invalidate graphs queries if you have any
+      queryClient.invalidateQueries({ queryKey: ['graphs'] })
+    },
+  })
+
+  const updateGraphMutation = useMutation({
+    mutationFn: (payload: UpdateGraphPayload) => 
+      graphsApi.update(payload, token!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['graphs'] })
+    },
+  })
+
+  const deleteGraphMutation = useMutation({
+    mutationFn: (payload: DeleteGraphPayload) => 
+      graphsApi.delete(payload, token!),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['graphs'] })
     },
   })
 
   return {
+    // List query
+    graphs: listGraphsQuery.data,
+    isLoadingGraphs: listGraphsQuery.isPending,
+    graphsError: listGraphsQuery.error,
+    refetchGraphs: listGraphsQuery.refetch,
+    // Create mutation
     createGraph: createGraphMutation.mutate,
     createGraphAsync: createGraphMutation.mutateAsync,
     isCreatingGraph: createGraphMutation.isPending,
     createGraphError: createGraphMutation.error,
     createGraphData: createGraphMutation.data,
+    // Update mutation
+    updateGraph: updateGraphMutation.mutate,
+    updateGraphAsync: updateGraphMutation.mutateAsync,
+    isUpdatingGraph: updateGraphMutation.isPending,
+    updateGraphError: updateGraphMutation.error,
+    updateGraphData: updateGraphMutation.data,
+    // Delete mutation
+    deleteGraph: deleteGraphMutation.mutate,
+    deleteGraphAsync: deleteGraphMutation.mutateAsync,
+    isDeletingGraph: deleteGraphMutation.isPending,
+    deleteGraphError: deleteGraphMutation.error,
   }
 }
 
-export const useEffectOnce = (effect: () => void | (() => void)) => {
-  const destroyFunc = useRef<void | (() => void)>(null);
-  const effectCalled = useRef(false);
-  const renderAfterCalled = useRef(false);
-  const [val, setVal] = useState<number>(0);
+export const useGraph = (id: string) => {
+  const { token } = useAuthStore()
 
-  if (effectCalled.current) {
-    renderAfterCalled.current = true;
+  const getGraphQuery = useQuery({
+    queryKey: ['graph', id],
+    queryFn: () => graphsApi.getById(id, token!),
+    enabled: !!token && !!id,
+  })
+
+  return {
+    graph: getGraphQuery.data,
+    isLoadingGraph: getGraphQuery.isPending,
+    graphError: getGraphQuery.error,
+    refetchGraph: getGraphQuery.refetch,
   }
-
-  useEffect(() => {
-    // only execute the effect first time around
-    if (!effectCalled.current) {
-      destroyFunc.current = effect();
-      effectCalled.current = true;
-    }
-
-    // this forces one render after the effect is run
-    setVal((val) => val + 1);
-
-    return () => {
-      // if the comp didn't render since the useEffect was called,
-      // we know it's the dummy React cycle
-      if (!renderAfterCalled.current) {
-        return;
-      }
-      if (destroyFunc.current) {
-        destroyFunc.current();
-      }
-    };
-  }, []);
-};
+}

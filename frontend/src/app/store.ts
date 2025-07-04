@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
+import { graphsApi, GraphResponse, GraphDetailsResponse, UpdateGraphPayload, UpdateGraphResponse, DeleteGraphPayload } from './api';
 
 type LoaderType = 'screen' | 'bar';
 
@@ -79,5 +80,109 @@ export const useAppStore = create<SettingsState>()(
     }
   )
 )
+
+// Graphs store
+interface GraphsState {
+  graphs: GraphResponse[]
+  currentGraph: GraphDetailsResponse | null
+  isLoading: boolean
+  isLoadingGraph: boolean
+  isUpdating: boolean
+  isDeleting: boolean
+  error: string | null
+  fetchGraphs: (token: string, skip?: number, limit?: number) => Promise<void>
+  fetchGraphById: (id: string, token: string) => Promise<void>
+  updateGraph: (payload: UpdateGraphPayload, token: string) => Promise<UpdateGraphResponse>
+  deleteGraph: (payload: DeleteGraphPayload, token: string) => Promise<void>
+}
+
+export const useGraphsStore = create<GraphsState>()((set, get) => ({
+  graphs: [],
+  currentGraph: null,
+  isLoading: false,
+  isLoadingGraph: false,
+  isUpdating: false,
+  isDeleting: false,
+  error: null,
+  fetchGraphs: async (token: string, skip: number = 0, limit: number = 50) => {
+    set({ isLoading: true, error: null })
+    try {
+      const graphs = await graphsApi.list(token, skip, limit)
+      set({ graphs, isLoading: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch graphs',
+        isLoading: false 
+      })
+    }
+  },
+  fetchGraphById: async (id: string, token: string) => {
+    set({ isLoadingGraph: true, error: null })
+    try {
+      const graphDetails = await graphsApi.getById(id, token)
+      set({ currentGraph: graphDetails, isLoadingGraph: false })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch graph',
+        isLoadingGraph: false 
+      })
+    }
+  },
+  updateGraph: async (payload: UpdateGraphPayload, token: string) => {
+    set({ isUpdating: true, error: null })
+    try {
+      const updatedGraph = await graphsApi.update(payload, token)
+      
+      // Update the graphs list if the updated graph is in it
+      const currentGraphs = get().graphs
+      const updatedGraphs = currentGraphs.map(graph => 
+        graph.id === updatedGraph.id.toString() 
+          ? { ...graph, label: updatedGraph.label, description: updatedGraph.description }
+          : graph
+      )
+      
+      set({ 
+        graphs: updatedGraphs,
+        isUpdating: false 
+      })
+      
+      return updatedGraph
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to update graph',
+        isUpdating: false 
+      })
+      throw error
+    }
+  },
+  deleteGraph: async (payload: DeleteGraphPayload, token: string) => {
+    set({ isDeleting: true, error: null })
+    try {
+      await graphsApi.delete(payload, token)
+      
+      // Remove the deleted graph from the graphs list
+      const currentGraphs = get().graphs
+      const filteredGraphs = currentGraphs.filter(graph => 
+        graph.id !== payload.id.toString()
+      )
+      
+      // Clear currentGraph if it's the one being deleted
+      const currentGraph = get().currentGraph
+      const updatedCurrentGraph = currentGraph?.graph.id === payload.id ? null : currentGraph
+      
+      set({ 
+        graphs: filteredGraphs,
+        currentGraph: updatedCurrentGraph,
+        isDeleting: false 
+      })
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to delete graph',
+        isDeleting: false 
+      })
+      throw error
+    }
+  },
+}))
 
 

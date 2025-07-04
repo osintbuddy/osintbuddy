@@ -1,4 +1,39 @@
+import { toast } from 'react-toastify';
 import { BASE_URL } from './baseApi';
+
+// Base API middleware for authenticated requests
+interface ApiOptions {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+}
+
+export const appRequest = async <T>(
+  endpoint: string,
+  token: string,
+  options: ApiOptions = {}
+): Promise<T> => {
+  const { method = 'GET', headers = {}, body } = options;
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body,
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    const errorMsg = data.message ?? `Your request failed! ${response.status}`
+    toast.warn(errorMsg)
+    throw new Error(errorMsg);
+  }
+  
+  return data;
+};
 
 export interface LoginCredentials {
   email: string
@@ -23,8 +58,10 @@ export const authApi = {
   login: async (user: LoginCredentials) => {
     const response = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user)
+      body: JSON.stringify(user),
+      headers: {
+      'Content-Type': 'application/json',
+      }
     });
 
     const data = await response.json()
@@ -36,26 +73,46 @@ export const authApi = {
   register: async (user: RegisterCredentials): Promise<RegisterResponse> => {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user)
+      body: JSON.stringify(user),
+      headers: {
+      'Content-Type': 'application/json',
+      }
     });
     const data = await response.json()
     if (!response.ok) {
-      throw new Error(data.message || 'Registration failed')
+      throw new Error(data.message ?? 'Registration failed!')
     }
     return data
   },
   logout: async (token: string) => {
-    await fetch(`${BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const response: { message: string } = await appRequest('/auth/logout', token, {
+      method: 'GET',
+    });
+    toast.success(response.message)
   },
 }
 
 export interface CreateGraphPayload {
   label: string
   description: string
+}
+
+export interface UpdateGraphPayload {
+  id: number
+  label: string
+  description: string
+}
+
+export interface UpdateGraphResponse {
+  id: number
+  label: string
+  description: string
+  ctime: string
+  mtime: string
+}
+
+export interface DeleteGraphPayload {
+  id: number
 }
 
 export interface GraphResponse {
@@ -66,21 +123,42 @@ export interface GraphResponse {
   updatedAt: string
 }
 
+export interface GraphDetailsResponse {
+  graph: {
+    id: number
+    label: string
+    description: string
+    ctime: string
+    mtime: string
+  }
+  vertices_count: number
+  edges_count: number
+  degree2_count: number
+}
+
 export const graphsApi = {
   create: async (payload: CreateGraphPayload, token: string): Promise<GraphResponse> => {
-    const response = await fetch(`${BASE_URL}/graphs`, {
+    return appRequest<GraphResponse>('/graphs', token, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(payload)
     });
-
-    const data = await response.json()
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to create graph')
-    }
-    return data
+  },
+  list: async (token: string, skip: number = 0, limit: number = 50): Promise<GraphResponse[]> => {
+    return appRequest<GraphResponse[]>(`/graphs/?skip=${skip}&limit=${limit}`, token);
+  },
+  getById: async (id: string, token: string): Promise<GraphDetailsResponse> => {
+    return appRequest<GraphDetailsResponse>(`/graphs/${id}`, token);
+  },
+  update: async (payload: UpdateGraphPayload, token: string): Promise<UpdateGraphResponse> => {
+    return appRequest<UpdateGraphResponse>('/graphs/', token, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  },
+  delete: async (payload: DeleteGraphPayload, token: string): Promise<void> => {
+    return appRequest<void>('/graphs/', token, {
+      method: 'DELETE',
+      body: JSON.stringify(payload)
+    });
   },
 }
