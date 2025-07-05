@@ -225,7 +225,7 @@ export const entitiesApi = {
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<Entity> => {
-    return request<Entity>(`/entities${id}`, token, {}, onExp);
+    return request<Entity>(`/entities/${id}`, token, {}, onExp);
   },
   update: async (
     payload: UpdateEntityPayload, 

@@ -18,6 +18,7 @@ export function MarketPanel() {
           items={[]}
           onClick={async (hid: string) => null}
           to="/dashboard/graph"
+          isFavorite={true}
           errorMessage={"The market will be here one day... Follow the project on the forum or on discord to get the latest updates"}
         />
         <Subpanel
@@ -106,9 +107,8 @@ export function GraphPanel({
         isSuccess={isSuccess}
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
+        isFavorite={true}
         to="/dashboard/graph"
-        dateLabel="Created"
-        dateKey="created"
       />
       <Subpanel
         label="All graphs"
@@ -120,8 +120,6 @@ export function GraphPanel({
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to="/dashboard/graph"
-        dateLabel="Created"
-        dateKey="created"
       />
     </section>
   )

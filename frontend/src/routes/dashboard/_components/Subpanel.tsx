@@ -1,6 +1,7 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import { formatPGDate } from "@/app/utilities";
 import { Icon } from "@/components/icons";
+import { Entity, Graph } from "@/app/api";
 
 export function GraphLoaderCard() {
   return (
@@ -26,11 +27,12 @@ interface SubpanelProps {
   isSuccess: boolean | undefined;
   label: string;
   onClick: (hid: string) => void;
-  items: JSONObject[] | undefined; // Entity[] | Graph[]
+  items: Entity[] | Graph[]
   to: "/dashboard/entity" | "/dashboard/graph";
   errorMessage?: string | null;
   dateLabel?: string;
   dateKey?: string;
+  isFavorite?: boolean
 }
 
 export default function Subpanel({
@@ -44,17 +46,16 @@ export default function Subpanel({
   items,
   to,
   errorMessage,
-  dateLabel = "Last edit",
-  dateKey = "last_edit",
+  isFavorite
 }: SubpanelProps) {
   const { hid } = useParams();
   return (
     <div class="subpanel">
-      <header class="subpanel-header" onClick={setShowEntities}>
-        <h2>{label}</h2>
+      <header class="flex py-0.5 pb-1 items-center hover:text-slate-500 text-slate-600 hover:border-primary-400 border-slate-500/30 border-b transition-colors duration-300 ease-in-out z-50" onClick={setShowEntities}>
+        <h2 class="text-sm px-1 font-semibold font-display leading-3 select-none text-inherit focus:outline-hidden cursor-pointer">{label}</h2>
         <Icon icon='chevron-down'
           className={
-            `show-header-icon-${showEntities}` +
+            ` h-5 w-5 mr-1 hover:rotate-3 origin-center text-slate-600 ml-auto transform focus:outline-hidden hover:border-primary-300/40 cursor-pointer show-header-icon-${showEntities}` +
             " transition-transform duration-100"
           }
         />
@@ -84,39 +85,36 @@ export default function Subpanel({
         </>
       )}
       <div
-        class={` transition-transform duration-150 ease-out ${showEntities ? "translate-y-0" : "-translate-y-[45%] -scale-y-0 !h-0"}`}
+        class={` transition-transform duration-150 ease-out ${showEntities ? "translate-y-0" : "-translate-y-[45%] first-child:mt-2 -scale-y-0 !h-0"}`}
       >
-        {items &&
-          items.map((item) => {
-            const isActive = hid === `${item.id}`;
-            const descriptionClassName = `subpanel-desc subpanel-desc-${isActive}`;
-            return (
-              <Link
-                key={item.id}
-                to={`${to}/${item.id}`}
-                className={`subpanel-link subpanel-link-${isActive} ${isSuccess && showEntities ? "translate-y-0 scale-y-100" : "-translate-y-full  scale-y-0 "}`}
-              >
-                <div>
-                  <p class={`subpanel-label-${isActive} subpanel-label`}>
-                    {item.label}
-                  </p>
-                  <p class={descriptionClassName}>{item.description}</p>
-                  <p class={descriptionClassName}>
-                    <span className="font-sans">{dateLabel} </span>{" "}
-                    {formatPGDate(item[dateKey])}
-                  </p>
-                </div>
-                <Icon icon='star'
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    await onClick(item.id);
-                  }}
-                  class={`link-icon link-icon-${item.is_favorite} link-active-${hid !== item.id}`}
-                />
-              </Link>
-            );
-          })}
+        {items.map((item) => {
+          const isActive = hid === `${item.id}`;
+          return (
+            <NavLink
+              key={item.id}
+              to={`${to}/${item.id}`}
+              className={({ isActive }) => `mb-1 first:mt-2 focus:outline-hidden bg-transparent border rounded-md border-transparent hover:ring-slate-700/20 hover:to-mirage-700/10 shadow hover:bg-gradient-to-tl from-10% hover:translate-x-px z-0 transition-transform hover:from-mirage-700/20 w-full flex items-center -translate-x-px relative duration-100 ease-out overflow-hidden ${isActive && 'hover:-translate-x-px shadow -translate-x-px ring-slate-600/10 ring-1 ring-inset from-mirage-600/20 to-mirage-600/10 bg-gradient-to-tl from-10% hover:from-mirage-600/20 hover:to-mirage-600/10 hover:bg-gradient-to-tl '} ${isSuccess && showEntities ? "translate-y-0 scale-y-100" : "-translate-y-full  scale-y-0 "}`}
+            >
+              <div class="flex w-full p-2.5 pr-0 text-sm flex-col items-start mb-0.5 text-slate-400 hover:text-slate-300 ">
+                <p class={`subpanel-label-${isActive} text-sm leading-4 font-display font-medium line-clamp-1 pb-0.5`}>
+                  {item.label}
+                </p>
+                <p class="max-h-8 line-clamp-2 leading-4 w-full pr-2 h-full ">{item.description}</p>
+                <p class="mt-1 !font-sans text-xs font-light leading-none text-left">
+                  Created {formatPGDate(item.ctime)}
+                </p>
+              </div>
+              <Icon icon='star'
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  await onClick(item.id);
+                }}
+                className={`bg-mirage-900/20 border-transparent text-slate-600 border ml-auto rounded p-1 h-8 w-8 transition-colors duration-150 hover:text-primary-300 hover:border-mirage-300/20 ${isFavorite ? '!text-primary-350' : ''} link-active-${hid !== item.id}`}
+              />
+            </NavLink>
+          );
+        })}
       </div>
     </div>
   );
