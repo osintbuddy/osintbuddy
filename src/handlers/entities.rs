@@ -20,7 +20,7 @@ use actix_web::{
     web::{Data, Path},
 };
 
-#[post("/entities/")]
+#[post("/entities")]
 async fn create_entity_handler(
     body: CreateEntity,
     pool: db::Database,
@@ -47,7 +47,7 @@ async fn create_entity_handler(
     })
 }
 
-#[patch("/entities/")]
+#[patch("/entities")]
 async fn update_entity_handler(
     body: UpdateEntity,
     pool: db::Database,
@@ -73,7 +73,7 @@ async fn update_entity_handler(
   }})
 }
 
-#[delete("/entities/")]
+#[delete("/entities")]
 async fn delete_entity_handler(
     body: DeleteEntity,
     pool: db::Database,
@@ -94,7 +94,7 @@ async fn delete_entity_handler(
         })
 }
 
-#[get("/entities/")]
+#[get("/entities")]
 async fn list_entities_handler(
     pool: db::Database,
     auth: AuthMiddleware,

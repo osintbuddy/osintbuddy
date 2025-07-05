@@ -80,7 +80,7 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
   const { setIsOpen: setIsTourOpen, steps, setCurrentStep: setCurrentTourStep } = useTour();
 
   useEffect(() => {
-    if (location.state?.showGraphGuide) {
+    if (location.state?.showGuide) {
       setCurrentTourStep(0)
       setIsTourOpen(true)
     }

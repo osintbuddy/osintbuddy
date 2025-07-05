@@ -1,5 +1,6 @@
 import { toast } from 'react-toastify';
 import { BASE_URL } from './baseApi';
+import { useAuthStore } from './store';
 
 // Base API middleware for authenticated requests
 interface ApiOptions {
@@ -37,24 +38,56 @@ export const request = async <T>(
   const { method = 'GET', headers = { 'Content-Type': 'application/json' } } = options;
   let { body } = options;
   if (typeof body !== "string") body = JSON.stringify(body);
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    body,
-    method,
-    headers: { 'Authorization': `Bearer ${token}`, ...headers },
-  });
+  
+  const appRequest = async (authToken: string) => {
+    return fetch(`${BASE_URL}${endpoint}`, {
+      body,
+      method,
+      headers: { 'Authorization': `Bearer ${authToken}`, ...headers },
+    });
+  };
 
-  const code = response.status
-  if (code !== 200 && code !== 201 && code !== 202) {
+  let response = await appRequest(token);
+    // TODO: Test me
+  if (response.status > 300 || response.status < 200) {
     const error = await response.json() as ApiError;
-    // TODO: handle refresh logic
+    // Handle expiration with refresh logic
     if (error.message.toLowerCase().includes("token")) {
-      // TODO: attempt refresh logic
-      
+      try {
+        const refreshToken = useAuthStore.getState().refresh_token;
+        
+        if (refreshToken) {
+          const newTokens = await authApi.refresh(refreshToken);
+          const { access_token, refresh_token } = newTokens;
+          useAuthStore.setState({
+            access_token,
+            refresh_token,
+          });
+          // Retry original request with new token
+          const { status, json } = await appRequest(access_token);
+          if (status >= 200 && status < 300) return await json();
+        }
+      } catch {
+        // Refresh failed
+        useAuthStore.setState({
+          user: null,
+          access_token: null,
+          refresh_token: null,
+          isAuthenticated: false,
+        });
+        
+        toast.error("Session expired. Please login again.");
+        if (onExp) onExp();
+        throw error;
+      }
+
+    } else {
+      if (onExp) onExp();
+      toast.error(error.message);
+      throw error;
     }
-    toast.warn(error.message);
-    if (onExp) onExp();
-    throw error;
   }
+  
   const data = await response.json();
   return data;
 };
@@ -174,7 +207,7 @@ export const entitiesApi = {
     token: Tokens['access_token'],
     onExp?: OnExp
   ): Promise<Entity> => {
-    return request<Entity>('/entities/', token, {
+    return request<Entity>('/entities', token, {
       method: 'POST',
       body: payload
     }, onExp);
@@ -185,21 +218,21 @@ export const entitiesApi = {
     onExp?: OnExp
   ): Promise<ListEntitiesResponse> => {
     const { skip, limit } = payload;
-    return request<ListEntitiesResponse>(`/entities/?skip=${skip}&limit=${limit}`, token, {}, onExp);
+    return request<ListEntitiesResponse>(`/entities?skip=${skip}&limit=${limit}`, token, {}, onExp);
   },
   getById: async (
     id: string, 
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<Entity> => {
-    return request<Entity>(`/entities/${id}`, token, {}, onExp);
+    return request<Entity>(`/entities${id}`, token, {}, onExp);
   },
   update: async (
     payload: UpdateEntityPayload, 
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<Entity> => {
-    return request<Entity>('/entities/', token, {
+    return request<Entity>('/entities', token, {
       method: 'PATCH',
       body: payload
     }, onExp);
@@ -209,7 +242,7 @@ export const entitiesApi = {
     token:  Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<void> => {
-    return request<void>('/entities/', token, {
+    return request<void>('/entities', token, {
       method: 'DELETE',
       body: payload
     }, onExp);
@@ -272,7 +305,7 @@ export const graphsApi = {
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<Graph> => {
-    return request<Graph>('/graphs/', token, {
+    return request<Graph>('/graphs', token, {
       method: 'POST',
       body: payload
     }, onExp);
@@ -283,7 +316,7 @@ export const graphsApi = {
     onExp?: OnExp
   ): Promise<ListGraphsResponse> => {
     const { skip, limit } = payload;
-    return request<ListGraphsResponse>(`/graphs/?skip=${skip}&limit=${limit}`, token, {}, onExp);
+    return request<ListGraphsResponse>(`/graphs?skip=${skip}&limit=${limit}`, token, {}, onExp);
   },
   getById: async (
     id: string, 
@@ -297,7 +330,7 @@ export const graphsApi = {
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<Graph> => {
-    return request<Graph>('/graphs/', token, {
+    return request<Graph>('/graphs', token, {
       method: 'PATCH',
       body: payload
     }, onExp);
@@ -307,7 +340,7 @@ export const graphsApi = {
     token: Tokens['access_token'], 
     onExp?: OnExp
   ): Promise<void> => {
-    return request<void>('/graphs/', token, {
+    return request<void>('/graphs', token, {
       method: 'DELETE',
       body: payload
     }, onExp);

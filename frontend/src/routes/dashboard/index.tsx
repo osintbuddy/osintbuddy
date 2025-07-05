@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { EntitiesPanel, GraphPanel, MarketPanel } from "./_components/panels";
@@ -232,14 +232,11 @@ function CreateEntityModal({
     };
 
     createEntity(payload)
-      .then((data) => {
-        console.log(data)
+      .then(() => {
         closeModal();
         toast.success('Entity created successfully!');
       })
-      .catch((error: any) => {
-        toast.error(`Failed to create entity: ${error.message}`);
-      });
+      .catch((error: any) => toast.error(error.message));
   };
 
   return (
@@ -293,28 +290,24 @@ export function CreateGraphModal({
   createGraph,
   isCreatingGraph
 }: CreateGraphModalProps) {
+  const navigate = useNavigate();
 
   const onSubmitHandler: JSX.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget);
-    const enableGuide = formData.get("guide") === 'on';
+    const showGuide = formData.get("guide") === 'on';
     createGraph({
       label: formData.get('label') as string,
       description: (formData.get('description') as string) ?? ''
     })
-      .then(() => {
+      .then((graph) => {
         closeModal();
         toast.success('Graph created successfully!');
-        // we only navigate to the graph when the guide is enabled
-        if (enableGuide) {
-          // navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
-        } else {
-          // navigate(`/dashboard/graph/${newGraph.id}`, replace)
+        if (showGuide) {
+          navigate(`/graph/${graph.id}`, { state: { showGuide } })
         }
       })
-      .catch((error: any) => {
-        toast.error(`Failed to create graph: ${error.message}`);
-      });
+      .catch((error: any) => toast.error(error.message));
   };
 
   return (

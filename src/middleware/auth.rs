@@ -86,7 +86,7 @@ impl FromRequest for AuthMiddleware {
         let sqids = req.app_data::<Data<Sqids>>();
         let Some(sqids) = sqids else {
             return ready(Err(ErrorUnauthorized(AppError {
-                message: "An error has occured on our side, please try again later.",
+                message: "An error has occured on our side. Invalid token.",
                 kind: ErrorKind::Critical,
             })));
         };

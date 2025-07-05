@@ -20,7 +20,7 @@ use log::{error, info};
 use sqids::Sqids;
 use std::string::String;
 
-#[post("/graphs/")]
+#[post("/graphs")]
 async fn create_graph_handler(
     body: CreateGraph,
     pool: db::Database,
@@ -79,7 +79,7 @@ async fn create_graph_handler(
     })
 }
 
-#[patch("/graphs/")]
+#[patch("/graphs")]
 async fn update_graph_handler(
     body: UpdateGraph,
     pool: db::Database,
@@ -113,7 +113,7 @@ async fn update_graph_handler(
     }})
 }
 
-#[delete("/graphs/")]
+#[delete("/graphs")]
 async fn delete_graph_handler(
     body: DeleteGraph,
     pool: db::Database,
@@ -134,7 +134,7 @@ async fn delete_graph_handler(
         })
 }
 
-#[get("/graphs/")]
+#[get("/graphs")]
 async fn list_graph_handler(
     pool: db::Database,
     auth: AuthMiddleware,
