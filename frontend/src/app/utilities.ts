@@ -24,24 +24,12 @@ export function capitalize(value: string) {
 
 export const isString = (value: any): boolean => typeof value === 'string';
 
-export function lStorage(
-  key: string,
-  value?: JSONObject | string
-) {
-  if (value) {
-    // console.debug('useLocalStorage: ', key, value)
-    if (isString(value)) {
-      localStorage.setItem(key, value as string)
-    } else {
-      localStorage.setItem(key, JSON.stringify(value))
-    }
-    return value
-  }
-  const rawData = localStorage.getItem(key)
-  try {
-    if (rawData) return JSON.parse(rawData)
-  } catch (error) {
-    console.error(error)
-  }
-  return rawData
+export function jwtParse(token: string) {
+  var base64Url = token.split('.')[1];
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+
+  return JSON.parse(jsonPayload);
 }

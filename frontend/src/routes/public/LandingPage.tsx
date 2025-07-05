@@ -1,108 +1,113 @@
-import React, { useRef } from 'react';
-import Earth from '@tarii/3d-earth'
-
-import { useEffectOnce } from '@src/app/hooks';
-import { FingerPrintIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import type { JSX } from 'preact'
+import { HeroBackground } from '@/components/docs/HeroBackground'
+import Button from '@/components/buttons'
+import { useNavigate } from 'react-router-dom'
+import { Icon } from '@/components/icons'
+import { Callout } from '@/components/docs/Callout'
+import { useAuthStore } from '@/app/store'
 
 const QUOTES = [
-  "Vision is the art of seeing insight in the invisible",
-  "Find the connections that matter to you",
-  "Vision is the art of seeing insight in the invisible",
-  "Unlock the potential of public data",
-  "Vision is the art of seeing insight in the invisible",
-  "Transform data into connected knowledge",
-  "Unraveling mysteries for insights",
-  "All truths are easy to understand once they are discovered"
+  'Find the connections that matter to you',
+  ...Array(2).fill('Unlock the potential of public data'),
+  'Vision is the art of seeing insight in the invisible',
+  'Transform data into connected knowledge',
+  'Unraveling mysteries for insights',
+  ...Array(2).fill(
+    'All truths are easy to understand once they are discovered'
+  ),
 ]
 
-export default function LandingPage(): React.ReactElement {
-  const earthRef = useRef<HTMLDivElement>(null)
+export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
-  useEffectOnce(() => {
-    if (earthRef?.current) {
-      const earth = new Earth({
-        parent: earthRef.current as HTMLDivElement,
-        rotateSpeed: 0.0005,
-        pointColor: 0x242E4D,
-        pointHighlight: 0x394778,
-        fogColor: 0x1144ed,
-        lineHighlightSize: 10,
-        minLineSpacing: 30,
-        maxLineSpacing: 1000,
-        coords: [
-          39.804935, 114.973428,
-          10.106263, 39.144935,
-          41.997906, -1.405880,
-          39.897687, -122.714527,
-          9.171568, -66.633754,
-          -35.15, 149.08,
-          -6.09, 106.49
-        ],
-        pointFlashSpeed: 0.0001,
-        pointRadius: 0.5,
-        pointSegments: 5,
-      })
+  const navigate = useNavigate()
+  const { isAuthenticated, logout } = useAuthStore()
 
-      earth.randomLinkAnimator()
-      earth.start()
-    }
-
-  })
   return (
-    <>
-      <div className='h-full min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
-        <div className='lg:pt-32 pt-3 lg:top-8 px-4 relative'>
-          <div className='mx-auto  grid max-w-2xl grid-cols-1 items-center gap-y-16 lg:max-w-8xl lg:grid-cols-2 '>
-            <div className='relative px- sm:px-3 z-10 md:text-center lg:text-left'>
-              <div className='relative pb-12'>
-                <p className='inline bg-gradient-to-r from-primary-200/90 via-primary-300/90 to-primary-200/95 bg-clip-text text-4xl font-display font-medium tracking-tight text-transparent'>
-                  Elevate your Research with<br /> Strategic Insights from Public Data
-                </p>
-                <p className='pt-1 text-lg tracking-tight  text-slate-400'>
-                  Reveal the connections that shape our world and stay informed with targeted insights from public data. From defending against cyber threats and fraud to beyond, visualize the invisible with OSINTBuddy.
-                </p>
-                <div className='mt-5 lg:mt-4 flex gap-4 md:justify-center lg:justify-start'>
-                  <button
-                    onClick={() => {
-                      window.location.href = window.sdk.getSigninUrl();
-                    }}
-                    className='btn-primary-solid '
-                  >
-                    Sign in
-                    <FingerPrintIcon />
-                  </button>
-                  <button
-                    onClick={() => {
-                      window.location.href = window.sdk.getSignupUrl();
-                    }}
-                    className='btn-primary   '
-                  >
-                    Create account
-                    <UserPlusIcon />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div ref={earthRef} className='z-0 absolute w-[20rem]  md:w-[40rem] lg:w-[54rem] md:h-[100%] h-[30rem] lg:h-[75rem] lg:mt-10 -mt-28 md:-mt-10 sm:ml-20 [mask-image:linear-gradient(transparent,white,white)] dark:[mask-image:linear-gradient(transparent,#000000AF,#00000009)] lg:-top-full top-0 right-0' />
-        </div>
-        <div className='relative mt-auto bottom-0 mx-4 sm:px-0 mb-0 flex items-center justify-between'>
-          <div className='mx-auto grid  max-w-2xl grid-cols-1 mt-auto mb-0 items-center lg:max-w-8xl flex-grow'>
-            <div className='relative z-10 md:text-center lg:text-left '>
-              <header className='space-y-1 mt-24 md:mt-0'>
-                <p className='font-display text-sm font-medium tracker-tighter text-primary-200'>Welcome to OSINTBuddy</p>
-                <h1 className='font-display text-3xl tracking-tight text-slate-300 dark:text-slate-300'>
-                  {atfQuote}
-                </h1>
-              </header>
+    <div class='items-between relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between'>
+      <div class='mx-auto mt-36 items-center md:mt-52'>
+        <div class='relative text-center'>
+          <section class='relative flex flex-col items-center pb-12'>
+            <h2 class='from-primary-200 to-primary-200 font-display inline max-w-[50rem] bg-gradient-to-br via-blue-500 bg-clip-text px-2 text-center text-2xl font-medium tracking-tight text-transparent md:text-5xl md:leading-14'>
+              Elevate your Research with
+              <br /> Strategic Insights from Public Data
+            </h2>
+            <p class='text-md max-w-2xl px-3 pt-1 text-slate-300 md:px-0 md:text-lg'>
+              Hi, I'm jerlendds and I created OSINTBuddy, an open source tool
+              for collecting, processing, and visualizing connections between
+              entities through a Python plugin system. You can identify
+              relationships like what links to a given domain.
+            </p>
 
-              <div className='docs max-w-4xl text-slate-400 py-2'>Please email <a href='mailto:oss@osintbuddy.com' className='text-primary-200 hover:text-primary-200/80 transition-colors duration-100 font-sans ease-in-out'>oss@osintbuddy.com</a> to share ideas, bugs, or security concerns
-              </div>.
+            <div class='mt-4 flex justify-center gap-4'>
+              {isAuthenticated ? (
+                <Button.Solid
+                  variant='primary'
+                  onClick={() => navigate('/dashboard/graph')}
+                >
+                  Open OSINTBuddy
+                  <Icon icon='folder-open' className='btn-icon' />
+                </Button.Solid>
+              ) : (
+                <Button.Solid
+                  variant='primary'
+                  onClick={() => navigate('/login')}
+                >
+                  Sign in
+                  <Icon icon='fingerprint' className='btn-icon' />
+                </Button.Solid>
+              )}
+              {isAuthenticated ? (
+                <Button.Ghost variant='primary' onClick={() => logout()}>
+                  Sign out
+                  <Icon icon='lock' className='btn-icon' />
+                </Button.Ghost>
+              ) : (
+                <Button.Ghost
+                  variant='primary'
+                  onClick={() => navigate('/register')}
+                >
+                  Create account
+                  <Icon icon='user-plus' className='btn-icon' />
+                </Button.Ghost>
+              )}
             </div>
+          </section>
+          <div className='fixed right-5/11 bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] select-none md:right-1/11'>
+            <HeroBackground className='absolute translate-y-[-60%] -rotate-90 lg:right-[40%]' />
           </div>
-
         </div>
       </div>
-    </>
-  );
+      <div className='absolute top-0 left-4.5 *:mx-0 *:my-2 *:mr-4 lg:top-auto lg:bottom-3 lg:max-w-lg'>
+        <Callout type='warning' title='Experimental Software (Alpha)'>
+          <p>
+            Please note that OSINTBuddy is currently experimental software. We
+            do not recommend using this project for anything serious!
+          </p>
+        </Callout>
+      </div>
+      <section class='relative bottom-0 mt-auto flex flex-col justify-center px-4 md:mx-auto md:items-center md:px-0'>
+        <section className='flex flex-col items-center'>
+          <h1 class='font-display text-2xl tracking-tight text-slate-300'>
+            {atfQuote}
+          </h1>
+          <p class='mb-2 text-slate-300'>
+            Email me at
+            <a
+              href='mailto:oss@osintbuddy.com'
+              class='hover:text-primary-50 active:text-primary-50 text-primary-100 font-sans transition-all duration-100 ease-in-out'
+            >
+              &nbsp;oss@osintbuddy.com&nbsp;
+            </a>
+            to share ideas or{' '}
+            <a
+              href='#todo-redirect-to-security.mdx-page'
+              class='mx-px border-b-2 border-b-transparent font-sans transition-all duration-100 ease-in-out hover:border-b-red-600/40'
+            >
+              security concerns.
+            </a>
+          </p>
+        </section>
+      </section>
+    </div>
+  )
 }

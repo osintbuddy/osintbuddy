@@ -1,4 +1,3 @@
-import { Position, internalsSymbol } from 'reactflow';
 
 // returns the position (top,right,bottom or right) passed node compared to
 function getParams(nodeA: any, nodeB: any) {

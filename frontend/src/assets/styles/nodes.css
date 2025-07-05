@@ -4,7 +4,7 @@
 }
 
 .node .side-header {
-  @apply px-0 py-2 flex-shrink-0 flex flex-col items-center justify-center w-10 text-slate-50 text-sm font-medium rounded-l-sm;
+  @apply px-0 py-2 shrink-0 flex flex-col items-center justify-center w-10 text-slate-50 text-sm font-medium rounded-l-sm;
 }
 
 .node .side-header svg {
@@ -65,7 +65,7 @@
 }
 
 .node-field input {
-  @apply placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-none pl-[1.15rem] w-full;
+  @apply placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-hidden pl-[1.15rem] w-full;
 }
 
 .node-field.dropdown input {
@@ -107,10 +107,6 @@ p.node-label {
 .elements > div:nth-child(even) {
   @apply mr-0;
 }
-
-.elements:nth-child(even) {
-}
-
 
 .node-details-popup .arrow {
   color: #797979;
