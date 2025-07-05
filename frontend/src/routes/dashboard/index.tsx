@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import Button from "@/components/buttons";
 import Input from "@/components/inputs";
 import { EntitiesPanel, GraphPanel, MarketPanel } from "./_components/panels";
@@ -7,8 +7,8 @@ import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModa
 import { Icon } from '@/components/icons';
 import { toast } from "react-toastify";
 import { JSX } from "preact/jsx-runtime";
-import { Entity, Graph, CreateEntityPayload, CreateGraphPayload } from "@/app/api";
-import { useEntitiesStore, useGraphsStore, useAuthStore } from "@/app/store";
+import { Entity, Graph, CreateEntityPayload } from "@/app/api";
+import { useEntitiesStore, useGraphsStore } from "@/app/store";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -35,11 +35,7 @@ export default function DashboardPage() {
     if (location.pathname.includes("/market")) return 2;
     return 0; // default to graphs
   };
-
   const currentPanelTab = getCurrentTab();
-
-  // Get authentication token
-  const { access_token } = useAuthStore();
 
   // Integration with useGraphs hook
   const {

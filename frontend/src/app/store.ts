@@ -292,7 +292,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const token = useAuthStore.getState().access_token as string;
-      const response = await entitiesApi.list(token, payload)
+      const response = await entitiesApi.list(payload, token)
       set({ entities: response.entities, favorites: response.favorites, isLoading: false })
     } catch (error) {
       set({ 

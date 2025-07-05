@@ -44,7 +44,8 @@ export const request = async <T>(
     const error = await response.json() as ApiError;
     // TODO: handle refresh logic
     if (error.message.toLowerCase().includes("token")) {
-      toast.error("Includes token!! REFRESHING")
+      // TODO: attempt refresh logic
+      
     }
     toast.warn(error.message);
     if (onExp) onExp();
@@ -132,7 +133,7 @@ export interface CreateEntityPayload {
 }
 
 export interface UpdateEntityPayload {
-  id: number
+  id: string
   label: string
   description: string
   author: string
@@ -140,7 +141,7 @@ export interface UpdateEntityPayload {
 }
 
 export interface DeleteEntityPayload {
-  id: number
+  id: string
 }
 
 export interface FavoriteEntityPayload {
@@ -175,8 +176,8 @@ export const entitiesApi = {
     }, onExp);
   },
   list: async (
-    token: Tokens['access_token'], 
     payload: Paginate,
+    token: Tokens['access_token'], 
     onExp?: () => void
   ): Promise<ListEntitiesResponse> => {
     const { skip, limit } = payload;
@@ -196,7 +197,7 @@ export const entitiesApi = {
   ): Promise<Entity> => {
     return request<Entity>('/entities/', token, {
       method: 'PATCH',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   delete: async (
@@ -206,7 +207,7 @@ export const entitiesApi = {
   ): Promise<void> => {
     return request<void>('/entities/', token, {
       method: 'DELETE',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   favorite: async (
@@ -216,7 +217,7 @@ export const entitiesApi = {
   ): Promise<void> => {
     return request<void>('/entities/favorite', token, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
 }
@@ -275,7 +276,7 @@ export const graphsApi = {
   ): Promise<Graph> => {
     return request<Graph>('/graphs', token, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   list: async (
@@ -300,7 +301,7 @@ export const graphsApi = {
   ): Promise<Graph> => {
     return request<Graph>('/graphs/', token, {
       method: 'PATCH',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   delete: async (
@@ -310,7 +311,7 @@ export const graphsApi = {
   ): Promise<void> => {
     return request<void>('/graphs/', token, {
       method: 'DELETE',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   favorite: async (
@@ -320,8 +321,7 @@ export const graphsApi = {
   ): Promise<void> => {
     return request<void>('/graphs/favorite', token, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
-
 }
