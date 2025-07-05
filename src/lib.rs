@@ -22,7 +22,6 @@ use crate::config::CONFIG;
 use crate::db::DB;
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
-    pub id: Sqids,
     pub cfg: AppConfig,
 }
 
@@ -50,6 +49,11 @@ pub async fn run() -> std::io::Result<()> {
     info!("Listening on: http://{web_addr}:{web_port}");
 
     HttpServer::new(move || {
+        let sqids = Sqids::builder()
+            .alphabet(config.sqids_alphabet.chars().collect())
+            .build()
+            .map_err(|err| std::io::Error::new(io::ErrorKind::Other, err))
+            .expect("Fatal error building Sqids!");
         let app = App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(AppState {
@@ -58,12 +62,8 @@ pub async fn run() -> std::io::Result<()> {
                     .max_capacity(64_000)
                     .time_to_live(Duration::from_secs(config.jwt_maxage * 60))
                     .build(),
-                id: Sqids::builder()
-                    .alphabet(config.sqids_alphabet.chars().collect())
-                    .build()
-                    .map_err(|err| std::io::Error::new(io::ErrorKind::Other, err))
-                    .expect("Fatal error building Sqids!"),
             }))
+            .app_data(web::Data::new(sqids))
             .app_data(web::Data::new(pool.clone()))
             .wrap(
                 Cors::default()

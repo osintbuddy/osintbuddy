@@ -1,4 +1,4 @@
-import { useAuth } from "@/app/hooks";
+import { useAuthStore } from "@/app/store";
 import Button from "@/components/buttons";
 import { HeroBackground } from "@/components/docs/HeroBackground";
 import { Icon } from "@/components/icons";
@@ -9,12 +9,9 @@ import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function RegisterPage(): JSX.Element {
-  const { register, registerError, registerData } = useAuth();
+  const { register, isRegistering, error: registerError } = useAuthStore();
 
-  const resetForm = () => {
-    const form = document.getElementById("register") as HTMLFormElement;
-    form.reset();
-  }
+
   const onSubmit = (e: any) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -33,30 +30,24 @@ export default function RegisterPage(): JSX.Element {
     if (invalidPassword)
       toast.error("Passwords must have a minimum of 8 characters.");
     if (password !== confirm)
-      toast.error("Passwords do not match.")
+      toast.error("Passwords do not match.");
     if (invalidUsername)
-      toast.error("A username is required and must be 3 or more characters.")
+      toast.error("A username is required and must be 3 or more characters.");
     if (!tos)
-      toast.error("Please agree to the terms and conditions to sign up.")
+      toast.error("Please agree to the terms and conditions to sign up.");
 
     // attempt register when valid
     if (!invalidEmail && !invalidPassword && !invalidUsername && password === confirm && tos) {
+      e.currentTarget.reset();
       register({ email, password, name })
+        .then((registeredUser) => {
+          toast.success(`Welcome to OSINTBuddy ${registeredUser.name}! Your account has been created! You can try signing in now.`)
+        })
+        .catch((err) => {
+          toast.error(err.message)
+        });
     }
   };
-
-  useEffect(() => {
-    if (registerError) toast.error(registerError.message)
-  }, [registerError])
-
-
-  useEffect(() => {
-    if (registerData) {
-      toast.success(`Welcome to OSINTBuddy ${registerData.name}! Your account has has been created! You can try signing in now.`)
-      resetForm()
-    }
-  }, [registerData])
-
 
   return (
     <div class="flex flex-col items-center justify-center my-20 py-20">
@@ -108,9 +99,9 @@ export default function RegisterPage(): JSX.Element {
               className="mt-2 mb-4 "
               required
             />
-            <Button.Solid type="submit" variant="primary" className="w-full">
-              Sign up
-              <Icon icon='user-plus' className="btn-icon " />
+            <Button.Solid disabled={isRegistering} type="submit" variant="primary" className="w-full">
+              {isRegistering ? <>Creating account... <div class="dot-flashing !top-[3px] ml-2.5" /></> : 'Sign up'}
+              {!isRegistering && <Icon icon='user-plus' className="btn-icon " />}
             </Button.Solid>
           </form>
 

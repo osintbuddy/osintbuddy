@@ -5,33 +5,52 @@ import { BASE_URL } from './baseApi';
 interface ApiOptions {
   method?: string;
   headers?: Record<string, string>;
-  body?: string;
+  body?: any;
 }
 
-export const appRequest = async <T>(
+export interface ApiError {
+  kind: string
+  message: string
+}
+
+export interface Paginate {
+  skip: number
+  limit: number
+}
+
+type TokenTypes =  'bearer'
+
+export interface Tokens {
+  access_token: string
+  refresh_token: string
+  token_type: TokenTypes
+}
+
+export const request = async <T>(
   endpoint: string,
   token: string,
-  options: ApiOptions = {}
+  options: ApiOptions = {},
+  onExp?: () => void
 ): Promise<T> => {
-  const { method = 'GET', headers = {}, body } = options;
+  const { method = 'GET', headers = { 'Content-Type': 'application/json' } } = options;
+  let { body } = options;
+  if (typeof body !== "string") body = JSON.stringify(body);
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...headers,
-    },
     body,
+    method,
+    headers: { 'Authorization': `Bearer ${token}`, ...headers },
   });
-
-  const data = await response.json();
-  
   if (!response.ok) {
-    const errorMsg = data.message ?? `Your request failed! ${response.status}`
-    toast.warn(errorMsg)
-    throw new Error(errorMsg);
+    const error = await response.json() as ApiError;
+    // TODO: handle refresh logic
+    if (error.message.toLowerCase().includes("token")) {
+      toast.error("Includes token!! REFRESHING")
+    }
+    toast.warn(error.message);
+    if (onExp) onExp();
+    throw error;
   }
-  
+  const data = await response.json();
   return data;
 };
 
@@ -46,7 +65,7 @@ export interface RegisterCredentials {
   password: string
 }
 
-export interface RegisterResponse {
+export interface Registered {
   name: string
   email: string
   verified: boolean
@@ -54,86 +73,55 @@ export interface RegisterResponse {
   mtime: string
 }
 
+
 export const authApi = {
-  login: async (user: LoginCredentials) => {
+  login: async (user: LoginCredentials): Promise<Tokens> => {
     const response = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       body: JSON.stringify(user),
-      headers: {
-      'Content-Type': 'application/json',
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    const data = await response.json()
-    if (!data?.token || !response.ok) {
-      throw new Error(data.message)
+    if (!response.ok) {
+      throw await response.json() as ApiError;
     }
+    const data = await response.json()
     return data
   },
-  register: async (user: RegisterCredentials): Promise<RegisterResponse> => {
+  register: async (user: RegisterCredentials): Promise<Registered> => {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
       body: JSON.stringify(user),
-      headers: {
-      'Content-Type': 'application/json',
-      }
+      headers: { 'Content-Type': 'application/json' }
     });
-    const data = await response.json()
     if (!response.ok) {
-      throw new Error(data.message ?? 'Registration failed!')
+      throw await response.json() as ApiError;
     }
+    const data = await response.json()
     return data
   },
-  logout: async (token: string) => {
-    const response: { message: string } = await appRequest('/auth/logout', token, {
-      method: 'GET',
+  logout: async (tokens: Tokens) => {
+    const response: { message: string } = await request('/auth/logout', tokens.access_token, {
+      method: 'POST',
+      body: JSON.stringify(tokens)
     });
     toast.success(response.message)
   },
-}
+  refresh: async (refreshToken: string): Promise<Tokens> => {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${refreshToken}`,
+        'Content-Type': 'application/json' 
+      }
+    });
 
-export interface CreateGraphPayload {
-  label: string
-  description: string
-}
-
-export interface UpdateGraphPayload {
-  id: number
-  label: string
-  description: string
-}
-
-export interface UpdateGraphResponse {
-  id: number
-  label: string
-  description: string
-  ctime: string
-  mtime: string
-}
-
-export interface DeleteGraphPayload {
-  id: number
-}
-
-export interface GraphResponse {
-  id: string
-  label: string
-  description: string
-  ctime: string
-  mtime: string
-}
-
-export interface GraphDetailsResponse {
-  graph: {
-    id: number
-    label: string
-    description: string
-    ctime: string
-    mtime: string
-  }
-  vertices_count: number
-  edges_count: number
-  degree2_count: number
+    if (!response.ok) {
+      throw await response.json() as ApiError;
+    }
+    const data = await response.json()
+    return data as Tokens
+  },
 }
 
 export interface CreateEntityPayload {
@@ -155,8 +143,13 @@ export interface DeleteEntityPayload {
   id: number
 }
 
-export interface EntityResponse {
-  id: number
+export interface FavoriteEntityPayload {
+  entity_id: string
+  is_favorite: boolean
+}
+
+export interface Entity {
+  id: string
   label: string
   description: string
   author: string
@@ -165,56 +158,170 @@ export interface EntityResponse {
   mtime: string
 }
 
+export interface ListEntitiesResponse {
+  entities: Entity[]
+  favorites: string[]
+}
+
 export const entitiesApi = {
-  create: async (payload: CreateEntityPayload, token: string): Promise<EntityResponse> => {
-    return appRequest<EntityResponse>('/entities/', token, {
+  create: async (
+    payload: CreateEntityPayload,
+    token: Tokens['access_token'],
+    onExp?: () => void
+  ): Promise<Entity> => {
+    return request<Entity>('/entities/', token, {
       method: 'POST',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
   },
-  list: async (token: string, skip: number = 0, limit: number = 50): Promise<EntityResponse[]> => {
-    return appRequest<EntityResponse[]>(`/entities/?skip=${skip}&limit=${limit}`, token);
+  list: async (
+    token: Tokens['access_token'], 
+    payload: Paginate,
+    onExp?: () => void
+  ): Promise<ListEntitiesResponse> => {
+    const { skip, limit } = payload;
+    return request<ListEntitiesResponse>(`/entities/?skip=${skip}&limit=${limit}`, token, {}, onExp);
   },
-  getById: async (id: number, token: string): Promise<EntityResponse> => {
-    return appRequest<EntityResponse>(`/entities/${id}`, token);
+  getById: async (
+    id: string, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<Entity> => {
+    return request<Entity>(`/entities/${id}`, token, {}, onExp);
   },
-  update: async (payload: UpdateEntityPayload, token: string): Promise<EntityResponse> => {
-    return appRequest<EntityResponse>('/entities/', token, {
+  update: async (
+    payload: UpdateEntityPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<Entity> => {
+    return request<Entity>('/entities/', token, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
   },
-  delete: async (payload: DeleteEntityPayload, token: string): Promise<void> => {
-    return appRequest<void>('/entities/', token, {
+  delete: async (
+    payload: DeleteEntityPayload, 
+    token:  Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<void> => {
+    return request<void>('/entities/', token, {
       method: 'DELETE',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
+  },
+  favorite: async (
+    payload: FavoriteEntityPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<void> => {
+    return request<void>('/entities/favorite', token, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, onExp);
   },
 }
 
+export interface CreateGraphPayload {
+  label: string
+  description: string
+}
+
+export interface UpdateGraphPayload {
+  id: number
+  label: string
+  description: string
+}
+
+export interface DeleteGraphPayload {
+  id: number
+}
+
+export interface FavoriteGraphPayload {
+  graph_id: string
+  is_favorite: boolean
+}
+
+export interface Graph {
+  id: string
+  label: string
+  description: string
+  ctime: string
+  mtime: string
+}
+
+export interface ListGraphsResponse {
+  graphs: Graph[]
+  favorites: string[]
+}
+
+export interface GraphDetails {
+  graph: {
+    id: number
+    label: string
+    description: string
+    ctime: string
+    mtime: string
+  }
+  vertices_count: number
+  edges_count: number
+  degree2_count: number
+}
+
 export const graphsApi = {
-  create: async (payload: CreateGraphPayload, token: string): Promise<GraphResponse> => {
-    return appRequest<GraphResponse>('/graphs', token, {
+  create: async (
+    payload: CreateGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<Graph> => {
+    return request<Graph>('/graphs', token, {
       method: 'POST',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
   },
-  list: async (token: string, skip: number = 0, limit: number = 50): Promise<GraphResponse[]> => {
-    return appRequest<GraphResponse[]>(`/graphs/?skip=${skip}&limit=${limit}`, token);
+  list: async (
+    payload: Paginate,
+    token: Tokens['access_token'],
+    onExp?: () => void
+  ): Promise<ListGraphsResponse> => {
+    const { skip, limit } = payload;
+    return request<ListGraphsResponse>(`/graphs/?skip=${skip}&limit=${limit}`, token, {}, onExp);
   },
-  getById: async (id: string, token: string): Promise<GraphDetailsResponse> => {
-    return appRequest<GraphDetailsResponse>(`/graphs/${id}`, token);
+  getById: async (
+    id: string, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<GraphDetails> => {
+    return request<GraphDetails>(`/graphs/${id}`, token, {}, onExp);
   },
-  update: async (payload: UpdateGraphPayload, token: string): Promise<UpdateGraphResponse> => {
-    return appRequest<UpdateGraphResponse>('/graphs/', token, {
+  update: async (
+    payload: UpdateGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<Graph> => {
+    return request<Graph>('/graphs/', token, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
   },
-  delete: async (payload: DeleteGraphPayload, token: string): Promise<void> => {
-    return appRequest<void>('/graphs/', token, {
+  delete: async (
+    payload: DeleteGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<void> => {
+    return request<void>('/graphs/', token, {
       method: 'DELETE',
       body: JSON.stringify(payload)
-    });
+    }, onExp);
   },
+  favorite: async (
+    payload: FavoriteGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: () => void
+  ): Promise<void> => {
+    return request<void>('/graphs/favorite', token, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, onExp);
+  },
+
 }

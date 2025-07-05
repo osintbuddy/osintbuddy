@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Graph {
+pub struct DbGraph {
+    #[serde(skip_serializing)]
     pub id: i64,
     #[serde(skip_serializing)]
     pub uuid: Option<Uuid>,
@@ -22,7 +23,33 @@ pub struct Graph {
     pub mtime: Option<DateTime<Utc>>,
 }
 
-impl Responder for Graph {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Graph {
+    pub id: String,
+    #[serde(skip_serializing)]
+    pub uuid: Option<Uuid>,
+    pub label: String,
+    pub description: String,
+    #[serde(skip_serializing)]
+    pub owner_id: i64,
+    pub ctime: Option<DateTime<Utc>>,
+    pub mtime: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FavoriteGraph {
+    pub graph_id: i64,
+    pub owner_id: i64,
+}
+
+#[derive(Deserialize)]
+pub struct FavoriteGraphSchema {
+    pub graph_id: String,
+    pub is_favorite: bool,
+}
+pub type FavoriteGraphRequest = Json<FavoriteGraphSchema>;
+
+impl Responder for DbGraph {
     type Body = BoxBody;
     fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
         let body = serde_json::to_string(&self).unwrap();
@@ -36,7 +63,7 @@ impl Responder for Graph {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GraphStats {
-    pub graph: Graph,
+    pub graph: DbGraph,
     pub vertices_count: usize,
     pub edges_count: usize,
     pub degree2_count: usize,
@@ -82,4 +109,21 @@ pub struct UpdateGraphSchema {
 }
 pub type UpdateGraph = Json<UpdateGraphSchema>;
 
-pub type ListGraphs = Json<Vec<Graph>>;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListGraphsResponse {
+    pub graphs: Vec<Graph>,
+    pub favorites: Vec<String>,
+}
+
+impl Responder for ListGraphsResponse {
+    type Body = BoxBody;
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
+pub type ListGraphs = Json<Vec<DbGraph>>;

@@ -107,7 +107,11 @@ export default function Subpanel({
                   </p>
                 </div>
                 <Icon icon='star'
-                  onClick={async () => await onClick(item.id)}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await onClick(item.id);
+                  }}
                   class={`link-icon link-icon-${item.is_favorite} link-active-${hid !== item.id}`}
                 />
               </Link>

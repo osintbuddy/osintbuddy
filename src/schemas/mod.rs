@@ -1,4 +1,6 @@
-use actix_web::web::Query;
+use actix_web::{
+    HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType, web::Query,
+};
 use serde::{Deserialize, Serialize};
 
 pub mod entities;
@@ -9,6 +11,18 @@ pub mod user;
 #[derive(Deserialize, Serialize)]
 pub struct Notification {
     pub message: &'static str,
+}
+
+impl Responder for Notification {
+    type Body = BoxBody;
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create response and set content type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
 }
 
 #[derive(Deserialize, Serialize)]

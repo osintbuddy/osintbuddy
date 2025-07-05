@@ -2,21 +2,22 @@ use std::time::Duration;
 
 use crate::{
     AppData, db,
-    middleware::auth::{AuthMiddleware, extract_authorization},
+    middleware::auth::{AuthMiddleware, get_header_auth},
     schemas::{
         Notification,
         errors::{AppError, ErrorKind},
-        user::{LoginUser, RegisterUser, Token, TokenClaims, User},
+        user::{LoginUser, LogoutUser, RefreshClaims, RegisterUser, Token, TokenClaims, User},
     },
 };
-use actix_web::{HttpRequest, HttpResponse, Responder, Result, get, post};
+use actix_web::{HttpRequest, Responder, Result, get, post, web::Data};
 use argon2::{
     Argon2, PasswordHash, PasswordVerifier,
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::prelude::*;
-use jsonwebtoken::{EncodingKey, Header, encode};
-use log::error;
+use jsonwebtoken::{EncodingKey, Header, encode, DecodingKey, Validation};
+use log::{error, info};
+use sqids::Sqids;
 use sqlx::Row;
 
 #[post("/auth/register")]
@@ -76,6 +77,7 @@ async fn login_user_handler(
     body: LoginUser,
     app: AppData,
     pool: db::Database,
+    sqids: Data<Sqids>,
 ) -> Result<Token, AppError> {
     let body = body.into_inner().validate()?;
     let user: User = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
@@ -84,18 +86,18 @@ async fn login_user_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                message: "Invalid email or password",
+                message: "Invalid email or password.",
                 kind: ErrorKind::Invalid,
             }
         })?
         .ok_or(AppError {
-            message: "We ran into an error fetching your account.",
+            message: "We ran into an error authenticating you. Please try again later.",
             kind: ErrorKind::Invalid,
         })?;
     let parsed_hash = PasswordHash::new(&user.password).map_err(|err| {
         error!("{err}");
         AppError {
-            message: "Invalid email or password",
+            message: "Invalid email or password.",
             kind: ErrorKind::Invalid,
         }
     })?;
@@ -104,47 +106,83 @@ async fn login_user_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                message: "Invalid email or password",
+                message: "Invalid email or password.",
                 kind: ErrorKind::Invalid,
             }
         })?;
     let now = Utc::now();
     let iat = now.timestamp() as usize;
-    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage)).timestamp() as usize;
-    let sub = user.id.to_string();
+    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60)).timestamp() as usize;
+    // default maxage of  15s * 60 * 24 = 21600 or 6hour exp for refresh
+    let rexp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60 * 24)).timestamp() as usize;
+    let token_type = String::from("bearer");
+    let sub = sqids.encode(&[user.id as u64]).map_err(|err| {
+        error!("Error encoding sub with sqids: {err}");
+        AppError {
+            kind: ErrorKind::Critical,
+            message: "Invalid login.",
+        }
+    })?;
 
+    let refresh_claims = RefreshClaims {
+        iat,
+        sub: sub.clone(),
+        exp: rexp,
+    };
     let claims = TokenClaims {
         sub,
         exp,
         iat,
         email: user.email,
         name: user.name,
-        ctime: user.ctime.unwrap(), // valid users always have a ctime
+        // TODO: grab actual roles from db
         roles: vec![String::from("user")],
+        // valid users will always have ctime and mtime
+        ctime: user.ctime.unwrap(),
+        mtime: user.mtime.unwrap(),
     };
+    info!("{:?} ", refresh_claims);
+    info!("{:?} ", claims);
+    let refresh_token = encode(
+        &Header::default(),
+        &refresh_claims,
+        &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
+    )
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Invalid login.",
+            kind: ErrorKind::Invalid,
+        }
+    })?;
 
     encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
     )
-    .map(|token| Token { token })
+    .map(|access_token| Token {
+        access_token,
+        refresh_token,
+        token_type,
+    })
     .map_err(|err| {
         error!("{err}");
         AppError {
-            message: "Invalid email or password.",
+            message: "Invalid login.",
             kind: ErrorKind::Invalid,
         }
     })
 }
 
-#[get("/auth/logout")]
-async fn logout_handler(req: HttpRequest, app: AppData) -> impl Responder {
-    let token = extract_authorization(&req).to_string();
-    app.blacklist.insert(token, true);
-    HttpResponse::Ok().json(Notification {
+#[post("/auth/logout")]
+async fn logout_handler(body: LogoutUser, app: AppData) -> impl Responder {
+    app.blacklist.insert(body.access_token.to_string(), true);
+    app.blacklist.insert(body.refresh_token.to_string(), true);
+
+    Notification {
         message: "You have successfully signed out.",
-    })
+    }
 }
 
 #[get("/users/me")]
@@ -159,4 +197,124 @@ async fn get_me_handler(auth: AuthMiddleware, pool: db::Database) -> Result<User
                 kind: ErrorKind::Database,
             }
         })
+}
+
+#[post("/auth/refresh")]
+async fn refresh_handler(
+    req: HttpRequest,
+    app: AppData,
+    pool: db::Database,
+    sqids: Data<Sqids>,
+) -> Result<Token, AppError> {
+    let refresh_token = get_header_auth(&req).map_err(|_| AppError {
+        message: "Missing refresh token",
+        kind: ErrorKind::Invalid,
+    })?;
+
+    if app.blacklist.contains_key(refresh_token) {
+        return Err(AppError {
+            message: "Invalid refresh token",
+            kind: ErrorKind::Invalid,
+        });
+    }
+
+    let claims = jsonwebtoken::decode::<RefreshClaims>(
+        &refresh_token,
+        &DecodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
+        &Validation::default(),
+    )
+    .map_err(|_| AppError {
+        message: "Invalid refresh token",
+        kind: ErrorKind::Invalid,
+    })?
+    .claims;
+
+    let user_ids = sqids.decode(&claims.sub);
+    if user_ids.is_empty() {
+        return Err(AppError {
+            message: "Invalid refresh token",
+            kind: ErrorKind::Invalid,
+        });
+    }
+
+    let user_id = user_ids.first().ok_or(AppError {
+        message: "Invalid refresh token",
+        kind: ErrorKind::Invalid,
+    })?;
+
+    let user: User = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", *user_id as i64)
+        .fetch_optional(pool.as_ref())
+        .await
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "Invalid refresh token",
+                kind: ErrorKind::Invalid,
+            }
+        })?
+        .ok_or(AppError {
+            message: "Invalid refresh token",
+            kind: ErrorKind::Invalid,
+        })?;
+
+    let now = Utc::now();
+    let iat = now.timestamp() as usize;
+    let exp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60)).timestamp() as usize;
+    let rexp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60 * 24)).timestamp() as usize;
+    let token_type = String::from("bearer");
+    let sub = sqids.encode(&[user.id as u64]).map_err(|err| {
+        error!("Error encoding sub with sqids: {err}");
+        AppError {
+            kind: ErrorKind::Critical,
+            message: "Invalid refresh token.",
+        }
+    })?;
+
+    let refresh_claims = RefreshClaims {
+        iat,
+        sub: sub.clone(),
+        exp: rexp,
+    };
+
+    let token_claims = TokenClaims {
+        sub,
+        exp,
+        iat,
+        email: user.email,
+        name: user.name,
+        roles: vec![String::from("user")],
+        ctime: user.ctime.unwrap(),
+        mtime: user.mtime.unwrap(),
+    };
+
+    let new_refresh_token = encode(
+        &Header::default(),
+        &refresh_claims,
+        &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
+    )
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Error generating refresh token",
+            kind: ErrorKind::Critical,
+        }
+    })?;
+
+    encode(
+        &Header::default(),
+        &token_claims,
+        &EncodingKey::from_secret(app.cfg.jwt_secret.as_ref()),
+    )
+    .map(|access_token| Token {
+        access_token,
+        refresh_token: new_refresh_token,
+        token_type,
+    })
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Error generating access token",
+            kind: ErrorKind::Critical,
+        }
+    })
 }

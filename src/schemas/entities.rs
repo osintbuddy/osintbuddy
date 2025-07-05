@@ -24,6 +24,17 @@ pub struct Entity {
     pub mtime: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EntityWithSqid {
+    pub id: String,
+    pub label: String,
+    pub description: String,
+    pub author: String,
+    pub source: String,
+    pub ctime: Option<DateTime<Utc>>,
+    pub mtime: Option<DateTime<Utc>>,
+}
+
 impl Responder for Entity {
     type Body = BoxBody;
     fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
@@ -68,5 +79,35 @@ pub struct UpdateEntitySchema {
     pub source: String,
 }
 pub type UpdateEntity = Json<UpdateEntitySchema>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FavoriteEntity {
+    pub entity_id: i64,
+    pub owner_id: i64,
+}
+
+#[derive(Deserialize)]
+pub struct FavoriteEntitySchema {
+    pub entity_id: String,
+    pub is_favorite: bool,
+}
+pub type FavoriteEntityRequest = Json<FavoriteEntitySchema>;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListEntitiesResponse {
+    pub entities: Vec<EntityWithSqid>,
+    pub favorites: Vec<String>,
+}
+
+impl Responder for ListEntitiesResponse {
+    type Body = BoxBody;
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
 
 pub type ListEntities = Json<Vec<Entity>>;

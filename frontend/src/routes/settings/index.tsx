@@ -1,4 +1,4 @@
-import { Header } from "@/components/Headers";
+import { Header } from "@/components/headers";
 
 const secondaryNavigation = [
   { name: "Account", href: "#", current: true },

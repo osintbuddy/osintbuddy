@@ -32,7 +32,7 @@ impl Responder for User {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub roles: Vec<String>,
     pub sub: String,
@@ -41,12 +41,23 @@ pub struct TokenClaims {
     pub email: String,
     pub name: String,
     pub ctime: DateTime<Utc>,
+    pub mtime: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
-pub struct Token {
-    pub token: String,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefreshClaims {
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Token {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub token_type: String,
+}
+pub type LogoutUser = Json<Token>;
 
 impl Responder for Token {
     type Body = BoxBody;
@@ -82,7 +93,7 @@ impl RegisterUserSchema {
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
-                message: "The minimum password length is 8 characters.",
+                message: "Passwords must be a minimum of 8 characters.",
                 kind: ErrorKind::Invalid,
             });
         }
@@ -108,7 +119,7 @@ impl LoginUserSchema {
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
-                message: "The minimum password length is 8 characters.",
+                message: "Passwords must be a minimum of 8 characters.",
                 kind: ErrorKind::Invalid,
             });
         }

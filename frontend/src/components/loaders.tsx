@@ -1,4 +1,4 @@
-import { Header } from './Headers';
+import { Header } from './headers';
 
 interface RoundLoaderProps {
   className?: string;

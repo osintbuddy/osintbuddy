@@ -7,7 +7,8 @@ import OverlayModal, { OverlayModalProps } from '@/components/modals/OverlayModa
 import { Icon } from '@/components/icons';
 import { toast } from "react-toastify";
 import { JSX } from "preact/jsx-runtime";
-import { useGraphs, useEntities } from "@/app/hooks";
+import { Entity, Graph, CreateEntityPayload, CreateGraphPayload } from "@/app/api";
+import { useEntitiesStore, useGraphsStore, useAuthStore } from "@/app/store";
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -17,10 +18,12 @@ export interface ScrollGraphs {
 }
 
 export type DashboardContextType = {
-  entitiesData: any[]
-  graphsData: any
-  isLoadingGraphs: boolean
-  isGraphsError: boolean
+  graphs: Graph[]
+  favoriteGraphs: string[]
+  loadingGraphs: boolean
+  entities: Entity[]
+  favorite_entities: string[]
+  loadingEntities: boolean
 };
 
 export default function DashboardPage() {
@@ -33,42 +36,42 @@ export default function DashboardPage() {
     return 0; // default to graphs
   };
 
-  const currentTab = getCurrentTab();
+  const currentPanelTab = getCurrentTab();
+
+  // Get authentication token
+  const { access_token } = useAuthStore();
 
   // Integration with useGraphs hook
   const {
     graphs,
-    isLoadingGraphs,
-    graphsError,
-    refetchGraphs,
+    favorites: graphFavorites,
+    isLoading: loadingGraphs,
+    error: graphsError,
+    isCreating: isCreatingGraph,
+    fetchGraphs,
     createGraph,
-    isCreatingGraph,
-    createGraphError
-  } = useGraphs();
+    favoriteGraph,
+    unfavoriteGraph
+  } = useGraphsStore();
 
   // Integration with useEntities hook
   const {
     entities,
-    isLoadingEntities,
-    entitiesError,
-    refetchEntities,
+    favorites: entityFavorites,
+    isLoading: loadingEntities,
+    error: entitiesError,
+    isCreating: isCreatingEntity,
+    fetchEntities,
     createEntity,
-    isCreatingEntity,
-    createEntityError
-  } = useEntities();
+    favoriteEntity,
+    unfavoriteEntity
+  } = useEntitiesStore();
 
-  // Error handling - wrapped in useEffect to prevent infinite re-renders
+  // Load data on component mount
   useEffect(() => {
-    if (createGraphError) {
-      toast.error(`Graph creation failed: ${createGraphError.message}`);
-    }
-  }, [createGraphError]);
-  
-  useEffect(() => {
-    if (createEntityError) {
-      toast.error(`Entity creation failed: ${createEntityError.message}`);
-    }
-  }, [createEntityError]);
+    fetchGraphs({ skip: 0, limit: 50 })
+    fetchEntities({ skip: 0, limit: 50 })
+  }, []);
 
   const [showCreateEntityModal, setShowCreateEntityModal] = useState<boolean>(false);
   const cancelCreateEntityRef = useRef<HTMLElement>(null);
@@ -92,54 +95,55 @@ export default function DashboardPage() {
               <Link
                 to='graph'
                 class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
-                aria-selected={currentTab === 0}
+                aria-selected={currentPanelTab === 0}
               >
                 Graphs
               </Link>
               <Link
                 to='entity'
                 class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
-                aria-selected={currentTab === 1}
+                aria-selected={currentPanelTab === 1}
               >
                 Entities
               </Link>
               <Link
                 to='market'
                 class='flex items-center justify-center rounded min-w-[6.5rem] text-sm leading-none z-[1]  cursor-pointer h-8.5 text-inherit outline-hidden focus:outline-hidden focus:text-slate-500'
-                aria-selected={currentTab === 2}
+                aria-selected={currentPanelTab === 2}
               >
                 Market
               </Link>
-              <div class={`${currentTab === 1 ? '!translate-x-[111px]' : currentTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} min-h-[35px] mr-auto min-w-[95px] left-0 absolute z-[0] top-0  transition-all duration-200 ease-out rounded from-primary-350 to-primary-400 border border-mirage-400/60 bg-gradient-to-br cursor-pointer`} />
+              <div class={`${currentPanelTab === 1 ? '!translate-x-[111px]' : currentPanelTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} min-h-[35px] mr-auto min-w-[95px] left-0 absolute z-[0] top-0  transition-all duration-200 ease-out rounded from-primary-350 to-primary-400 border border-mirage-400/60 bg-gradient-to-br cursor-pointer`} />
             </section>
             <div class="h-full overflow-y-scroll ">
               <div class="w-full relative px-2.5">
-                {currentTab === 0 && (
+                {currentPanelTab === 0 && (
                   <GraphPanel
-                    refetchGraphs={refetchGraphs}
-                    graphsData={{ favorite_graphs: [], graphs: graphs || [] }}
-                    isLoadingGraphs={isLoadingGraphs}
-                    isGraphsError={!!graphsError}
-                    isGraphsSuccess={!!graphs}
+                    graphsData={{ favorites: graphFavorites, graphs }}
+                    isLoading={loadingGraphs}
+                    isError={!!graphsError}
+                    isSuccess={!loadingGraphs && !graphsError}
+                    favoriteGraph={async (graph_id: string) => await favoriteGraph({ graph_id, is_favorite: true })}
+                    unfavoriteGraph={async (graph_id: string) => await unfavoriteGraph({ graph_id, is_favorite: false })}
                   />
                 )}
-                {currentTab === 1 && (
+                {currentPanelTab === 1 && (
                   <EntitiesPanel
-                    entitiesData={entities || []}
-                    isLoading={isLoadingEntities}
+                    entitiesData={{ entities: entities || [], favorites: entityFavorites || [] }}
+                    isLoading={loadingEntities}
                     isError={!!entitiesError}
-                    isSuccess={!!entities}
-                    refetchEntities={refetchEntities} />
+                    isSuccess={!loadingEntities && !entitiesError}
+                    favoriteEntity={async (entity_id: string) => await favoriteEntity({ entity_id, is_favorite: true })}
+                    unfavoriteEntity={async (entity_id: string) => await unfavoriteEntity({ entity_id, is_favorite: false })}
+                  />
                 )}
-
-                {currentTab === 2 && (<MarketPanel />)}
+                {currentPanelTab === 2 && (<MarketPanel />)}
               </div>
-
             </div>
           </div>
-          {currentTab !== 2 ? (
+          {currentPanelTab !== 2 && (
             <>
-              {currentTab === 0 && (
+              {currentPanelTab === 0 && (
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateGraphModal(true)}
@@ -149,7 +153,7 @@ export default function DashboardPage() {
                   <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
                 </Button.Ghost>
               )}
-              {currentTab === 1 && (
+              {currentPanelTab === 1 && (
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateEntityModal(true)}
@@ -160,7 +164,8 @@ export default function DashboardPage() {
                 </Button.Ghost>
               )}
             </>
-          ) : (
+          )}
+          {currentPanelTab === 2 && (
             <Button.Ghost
               variant='primary'
               className='mx-4 mr-6 mt-auto mb-4'
@@ -172,26 +177,28 @@ export default function DashboardPage() {
           )}
         </aside >
         <Outlet context={{
-          graphsData: { favorite_graphs: [], graphs: graphs || [] },
-          entitiesData: entities || [],
-          isLoadingGraphs,
-          isGraphsError: !!graphsError,
+          graphs: graphs,
+          favoriteGraphs: graphFavorites,
+          entities: entities,
+          favorite_entities: entityFavorites,
+          loadingGraphs: loadingGraphs,
+          loadingEntities: loadingEntities,
         } satisfies DashboardContextType} />
       </div >
       <CreateGraphModal
         cancelCreateRef={cancelCreateGraphRef}
         isOpen={showCreateGraphModal}
         closeModal={() => setShowCreateGraphModal(false)}
-        refreshAllGraphs={refetchGraphs}
+        refreshAllGraphs={() => fetchGraphs({ skip: 0, limit: 50 })}
         createGraph={createGraph}
         isCreatingGraph={isCreatingGraph}
       />
       <CreateEntityModal
-        refreshAllEntities={refetchEntities}
+        refreshAllEntities={() => fetchEntities({ skip: 0, limit: 50 })}
         cancelRef={cancelCreateEntityRef}
         isOpen={showCreateEntityModal}
         closeModal={() => setShowCreateEntityModal(false)}
-        createEntity={createEntity}
+        createEntity={(payload: CreateEntityPayload) => createEntity(payload)}
         isCreatingEntity={isCreatingEntity}
       />
     </>
@@ -201,11 +208,11 @@ export default function DashboardPage() {
 
 
 interface CreateEntityModalProps extends OverlayModalProps {
-  refreshAllEntities: any
-  closeModal: any
+  refreshAllEntities: () => void
+  closeModal: () => void
   isOpen: boolean
   cancelRef: any
-  createEntity: Function
+  createEntity: (payload: CreateEntityPayload) => Promise<any>
   isCreatingEntity: boolean
 }
 
@@ -213,7 +220,6 @@ function CreateEntityModal({
   closeModal,
   isOpen,
   cancelRef: cancelCreateRef,
-  refreshAllEntities,
   createEntity,
   isCreatingEntity
 }: CreateEntityModalProps) {
@@ -227,15 +233,15 @@ function CreateEntityModal({
       source: "import osintbuddy as ob" // Default source as per API examples
     };
 
-    createEntity(payload, {
-      onSuccess: () => {
+    createEntity(payload)
+      .then((data) => {
+        console.log(data)
         closeModal();
         toast.success('Entity created successfully!');
-      },
-      onError: (error: any) => {
+      })
+      .catch((error: any) => {
         toast.error(`Failed to create entity: ${error.message}`);
-      }
-    });
+      });
   };
 
   return (
@@ -258,9 +264,9 @@ function CreateEntityModal({
             Cancel
             <Icon icon='cancel' className="btn-icon !text-danger-500" />
           </Button.Ghost>
-          <Button.Solid 
-            className={`ml-4 ${isCreatingEntity ? 'opacity-50' : ''}`} 
-            variant="primary" 
+          <Button.Solid
+            className={`ml-4 ${isCreatingEntity ? 'opacity-50' : ''}`}
+            variant="primary"
             type='submit'
             disabled={isCreatingEntity}
           >
@@ -273,19 +279,12 @@ function CreateEntityModal({
   );
 }
 
-
-type GraphFormData = {
-  label: string
-  description: string
-  enableGraphGuide?: boolean | undefined
-}
-
 interface CreateGraphModalProps {
-  refreshAllGraphs: Function
-  closeModal: Function
+  refreshAllGraphs: () => void
+  closeModal: () => void
   isOpen: boolean
   cancelCreateRef: any
-  createGraph: Function
+  createGraph: (payload: { label: string; description: string }) => Promise<any>
   isCreatingGraph: boolean
 }
 
@@ -297,44 +296,28 @@ export function CreateGraphModal({
   createGraph,
   isCreatingGraph
 }: CreateGraphModalProps) {
-  const navigate = useNavigate()
-  const [showGraphGuide, setShowGraphGuide] = useState(false);
-
-  useEffect(() => {
-    if (!false) return
-    if (false) {
-      closeModal()
-      const replace = { replace: true }
-      // we only navigate to the graph when the guide is enabled
-      refreshAllGraphs()
-      if (showGraphGuide) {
-        // navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
-      } else {
-        // navigate(`/dashboard/graph/${newGraph.id}`, replace)
-      }
-    } else {
-      console.error("error")
-      toast.error("We ran into an error creating your graph. Please try again")
-    }
-  }, [showGraphGuide])
 
   const onSubmitHandler: JSX.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget);
-    const payload = {
+    const enableGuide = formData.get("guide") === 'on';
+    createGraph({
       label: formData.get('label') as string,
-      description: formData.get('description') as string
-    };
-
-    createGraph(payload, {
-      onSuccess: () => {
+      description: formData.get('description') ?? ''
+    })
+      .then(() => {
         closeModal();
         toast.success('Graph created successfully!');
-      },
-      onError: (error: any) => {
+        // we only navigate to the graph when the guide is enabled
+        if (enableGuide) {
+          // navigate(`/graph/${newGraph.id}`, { ...replace, state: { showGraphGuide, } })
+        } else {
+          // navigate(`/dashboard/graph/${newGraph.id}`, replace)
+        }
+      })
+      .catch((error: any) => {
         toast.error(`Failed to create graph: ${error.message}`);
-      }
-    });
+      });
   };
 
   return (
@@ -349,7 +332,7 @@ export function CreateGraphModal({
         <div class="w-full grid gap-y-2 mt-3 grid-cols-1 ">
           <Input.Transparent name="label" label="Label" placeholder="Enter a name for your graph..." className="w-full" />
           <Input.Textarea rows={3} name="description" className="w-full" label="Description" placeholder="Additional details about your graph..." />
-          <Input.ToggleSwitch className='pb-6 pt-1' label="Enable Guide" name="enableGraphGuide" description="Get a step-by-step guide on how to perform investigations" />
+          <Input.ToggleSwitch className='pb-6 pt-1' label="Enable Guide" name="guide" description="Get a step-by-step guide on how to perform investigations" />
         </div>
 
         <div class="flex justify-end mb-6">

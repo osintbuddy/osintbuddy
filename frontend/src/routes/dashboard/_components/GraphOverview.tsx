@@ -3,26 +3,25 @@ import { useOutletContext } from "react-router-dom";
 import { DashboardContextType } from "..";
 
 export default function GraphOverview() {
-  const { graphsData } = useOutletContext<DashboardContextType>();
-
-  const graphs = useMemo(() => {
-    const sortedGraphs = graphsData?.graphs.slice() ?? [];
-    sortedGraphs.sort((a: any, b: any) => b.created.localeCompare(a.created));
+  const { graphs, favorite_graphs } = useOutletContext<DashboardContextType>();
+  const sortedGraphs = useMemo(() => {
+    const sortedGraphs = graphs?.slice().sort((a: any, b: any) => b.ctime.localeCompare(a.ctime));
     return sortedGraphs ?? [];
-  }, [graphsData]);
+  }, [graphs]);
 
-  const favoriteGraphs = useMemo(() => {
-    const sortedGraphs = graphsData?.favorite_graphs.slice() ?? [];
-    sortedGraphs.sort((a: any, b: any) => b.created.localeCompare(a.created));
-    return sortedGraphs ?? [];
-  }, [graphsData]);
+  const sortedFavorites = useMemo(() => {
+    if (!favorite_graphs || !graphs) return [];
+    const filteredGraphs = graphs.filter(graph => favorite_graphs.includes(graph.id));
+    filteredGraphs.sort((a: any, b: any) => b.ctime.localeCompare(a.ctime));
+    return filteredGraphs;
+  }, [graphs]);
 
   return (
     <>
       <div className="w-full items-center justify-center my-auto relative -top-16">
         <div className="flex flex-col items-center justify-center text-slate-400">
           <div className="max-w-2xl w-full backdrop-blur-xl from-mirage-300/20 bg-gradient-to-br from-40% to-mirage-500/20 border-mirage-300/20 border rounded-md grid place-items-start px-24 py-14">
-            {favoriteGraphs.length === 0 && graphs.length === 0 && (
+            {sortedFavorites.length === 0 && sortedGraphs.length === 0 && (
               <>
                 <h1 className="text-slate-300/80 text-3xl leading-4 lg:text-4xl font-semibold pr-2 font-display">
                   Oh no!
@@ -33,11 +32,11 @@ export default function GraphOverview() {
                 </p>
               </>
             )}
-            {(graphs.length > 0 || favoriteGraphs.length > 0) && (
+            {(sortedGraphs.length > 0 || sortedFavorites.length > 0) && (
               <>
                 <h1 className="text-slate-300/80 text-3xl lg:text-4xl font-semibold pr-2">
-                  {graphs.length + favoriteGraphs.length}{" "}
-                  {favoriteGraphs.length + graphs.length > 1
+                  {sortedGraphs.length + sortedFavorites.length}{" "}
+                  {sortedFavorites.length + sortedGraphs.length > 1
                     ? "graphs"
                     : "graph"}&nbsp;
                   available

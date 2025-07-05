@@ -3,17 +3,21 @@ use crate::{
     middleware::auth::AuthMiddleware,
     schemas::{
         Paginate,
-        entities::{CreateEntity, DeleteEntity, Entity, ListEntities, UpdateEntity},
+        entities::{
+            CreateEntity, DeleteEntity, Entity, FavoriteEntityRequest, ListEntitiesResponse,
+            UpdateEntity,
+        },
         errors::{AppError, ErrorKind},
     },
 };
 use log::error;
+use sqids::Sqids;
 
 use actix_web::{
     HttpResponse, Result, delete, get,
     http::StatusCode,
     patch, post,
-    web::{Json, Path},
+    web::{Data, Path},
 };
 
 #[post("/entities/")]
@@ -75,7 +79,7 @@ async fn delete_entity_handler(
     pool: db::Database,
     auth: AuthMiddleware,
 ) -> Result<HttpResponse, AppError> {
-    sqlx::query("DELETE FROM graphs WHERE id = $1 AND owner_id = $2 RETURNING *")
+    sqlx::query("DELETE FROM entities WHERE id = $1 AND owner_id = $2 RETURNING *")
         .bind(body.id)
         .bind(auth.account_id)
         .execute(pool.as_ref())
@@ -95,8 +99,9 @@ async fn list_entities_handler(
     pool: db::Database,
     auth: AuthMiddleware,
     page: Paginate,
-) -> Result<ListEntities, AppError> {
-    sqlx::query_as!(
+    sqids: Data<Sqids>,
+) -> Result<ListEntitiesResponse, AppError> {
+    let entities = sqlx::query_as!(
         Entity,
         "SELECT * FROM entities WHERE owner_id = $1 OFFSET $2 LIMIT $3",
         auth.account_id,
@@ -105,13 +110,65 @@ async fn list_entities_handler(
     )
     .fetch_all(pool.as_ref())
     .await
-    .map(|entities| Json(entities))
     .map_err(|err| {
         error!("{err}");
         AppError {
             kind: ErrorKind::Database,
             message: "We ran into an error listing your entities.",
         }
+    })?;
+
+    let favorites = sqlx::query_scalar!(
+        "SELECT entity_id FROM favorite_entities WHERE owner_id = $1",
+        auth.account_id
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error listing your favorite entities.",
+        }
+    })?;
+
+    // Convert favorite IDs to sqids strings
+    let mut entity_favorites = Vec::new();
+    for favorite_id in favorites {
+        let sqid = sqids.encode(&[favorite_id as u64]).map_err(|err| {
+            error!("Error encoding favorite sqid: {err}");
+            AppError {
+                kind: ErrorKind::Critical,
+                message: "We ran into an error encoding favorite ID.",
+            }
+        })?;
+        entity_favorites.push(sqid);
+    }
+
+    // Convert entity IDs to sqids strings
+    let mut entities_with_sqids: Vec<crate::schemas::entities::EntityWithSqid> = Vec::new();
+    for entity in entities {
+        let sqid = sqids.encode(&[entity.id as u64]).map_err(|err| {
+            error!("Error encoding entity sqid: {err}");
+            AppError {
+                kind: ErrorKind::Critical,
+                message: "We ran into an error encoding entity ID.",
+            }
+        })?;
+        entities_with_sqids.push(crate::schemas::entities::EntityWithSqid {
+            id: sqid,
+            label: entity.label,
+            description: entity.description,
+            author: entity.author,
+            source: entity.source,
+            ctime: entity.ctime,
+            mtime: entity.mtime,
+        });
+    }
+
+    Ok(ListEntitiesResponse {
+        entities: entities_with_sqids,
+        favorites: entity_favorites,
     })
 }
 
@@ -119,12 +176,23 @@ async fn list_entities_handler(
 async fn get_entity_handler(
     pool: db::Database,
     auth: AuthMiddleware,
-    entity_id: Path<i64>,
+    entity_id: Path<String>,
+    sqids: Data<Sqids>,
 ) -> Result<Entity, AppError> {
+    // Decode sqid to i64
+    let entity_ids = sqids.decode(&entity_id);
+    let decoded_id = entity_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", entity_id);
+        AppError {
+            kind: ErrorKind::Invalid,
+            message: "Invalid entity ID.",
+        }
+    })? as &u64;
+
     sqlx::query_as!(
         Entity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
-        entity_id.into_inner(),
+        *decoded_id as i64,
         auth.account_id
     )
     .fetch_one(pool.as_ref())
@@ -136,4 +204,74 @@ async fn get_entity_handler(
             message: "We ran into an error getting this entity.",
         }
     })
+}
+
+#[post("/entities/favorite")]
+async fn favorite_entity_handler(
+    body: FavoriteEntityRequest,
+    pool: db::Database,
+    auth: AuthMiddleware,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    // Decode sqid to i64
+    let entity_ids = sqids.decode(&body.entity_id);
+    let entity_id = entity_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.entity_id);
+        AppError {
+            kind: ErrorKind::Invalid,
+            message: "Invalid entity ID.",
+        }
+    })? as &u64;
+
+    let entity = sqlx::query_as!(
+        Entity,
+        "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
+        *entity_id as i64,
+        auth.account_id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error getting this entity.",
+        }
+    })?;
+
+    if body.is_favorite {
+        // Add to favorites
+        sqlx::query!(
+            "INSERT INTO favorite_entities (owner_id, entity_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            auth.account_id,
+            *entity_id as i64
+        )
+        .execute(pool.as_ref())
+        .await
+        .map(|_| HttpResponse::Ok().json(entity))
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                kind: ErrorKind::Database,
+                message: "We ran into an error favoriting this entity.",
+            }
+        })
+    } else {
+        // Remove from favorites
+        sqlx::query!(
+            "DELETE FROM favorite_entities WHERE owner_id = $1 AND entity_id = $2",
+            auth.account_id,
+            *entity_id as i64
+        )
+        .execute(pool.as_ref())
+        .await
+        .map(|_| HttpResponse::Ok().json(entity))
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                kind: ErrorKind::Database,
+                message: "We ran into an error unfavoriting this entity.",
+            }
+        })
+    }
 }

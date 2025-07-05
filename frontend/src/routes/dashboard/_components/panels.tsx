@@ -37,54 +37,73 @@ export function MarketPanel() {
   )
 }
 
-interface GraphPanel {
-  graphsData: any
-  isLoadingGraphs: boolean | undefined
-  isGraphsError: any
-  refetchGraphs: () => void
-  isGraphsSuccess: boolean | undefined
+interface GraphPanelProps {
+  graphsData: {
+    graphs: any[]
+    favorites: string[]
+  }
+  isLoading: boolean
+  isError: boolean
+  isSuccess: boolean
+  favoriteGraph: (graphId: string) => void
+  unfavoriteGraph: (graphId: string) => void
 }
 
 export function GraphPanel({
   graphsData,
-  isLoadingGraphs,
-  isGraphsError,
-  refetchGraphs,
-  isGraphsSuccess
-}: GraphPanel) {
+  isLoading,
+  isError,
+  isSuccess,
+  favoriteGraph,
+  unfavoriteGraph
+}: GraphPanelProps) {
   const [showAllGraphs, setShowAllGraphs] = useState(true);
   const [showFavoriteGraphs, setShowFavoriteGraphs] = useState(true);
 
   const favoriteGraphs = useMemo(() => {
-    const sortedGraphs = graphsData.favorite_graphs.slice()
-    sortedGraphs.sort((a, b) => b.created.localeCompare(a.created))
-    return sortedGraphs
-  }, [graphsData.favorite_graphs])
+    if (!graphsData?.favorites || !graphsData?.graphs) return [];
+    const favoriteIds = new Set(graphsData.favorites);
+    const filteredGraphs = graphsData.graphs.filter(graph => favoriteIds.has(graph.id));
+    filteredGraphs.sort((a, b) => b.ctime.localeCompare(a.ctime));
+    return filteredGraphs.map(graph => ({ ...graph, is_favorite: true }));
+  }, [graphsData?.favorites, graphsData?.graphs])
 
   const graphs = useMemo(() => {
-    if (graphsData) {
-      const sortedGraphs = graphsData.graphs.slice()
-      sortedGraphs.sort((a, b) => b.created.localeCompare(a.created))
-      return sortedGraphs
+    if (graphsData?.graphs) {
+      const favoriteIds = new Set(graphsData?.favorites || []);
+      // Filter out favorited graphs from "All Graphs" section
+      const nonFavoriteGraphs = graphsData.graphs.filter(graph => !favoriteIds.has(graph.id));
+      nonFavoriteGraphs.sort((a, b) => b.ctime.localeCompare(a.ctime))
+      return nonFavoriteGraphs.map(graph => ({
+        ...graph,
+        is_favorite: false
+      }));
     }
-  }, [graphsData.graphs])
+    return []
+  }, [graphsData?.graphs, graphsData?.favorites])
 
-  const MAX_DESCRIPTION_LENGTH = 63
-
-  const updateFavorites = async (hid: string) => {
-    // await updateFavoriteEntity({ hid })
-    await refetchGraphs()
+  const updateFavorites = async (graphId: string) => {
+    try {
+      const isFavorited = graphsData?.favorites?.includes(graphId)
+      if (isFavorited) {
+        await unfavoriteGraph(graphId)
+      } else {
+        await favoriteGraph(graphId)
+      }
+    } catch (error) {
+      console.error('Error updating favorite status:', error)
+    }
   }
 
   return (
     <section class="flex flex-col justify-between relative shrink overflow-clip">
       <Subpanel
         label="Favorites"
-        showError={isGraphsError}
+        showError={isError}
         showEntities={showFavoriteGraphs}
         setShowEntities={() => setShowFavoriteGraphs(!showFavoriteGraphs)}
-        isLoading={isLoadingGraphs}
-        isSuccess={isGraphsSuccess}
+        isLoading={isLoading}
+        isSuccess={isSuccess}
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to="/dashboard/graph"
@@ -93,11 +112,11 @@ export function GraphPanel({
       />
       <Subpanel
         label="All graphs"
-        showError={isGraphsError}
+        showError={isError}
         showEntities={showAllGraphs}
         setShowEntities={() => setShowAllGraphs(!showAllGraphs)}
-        isLoading={isLoadingGraphs}
-        isSuccess={isGraphsSuccess}
+        isLoading={isLoading}
+        isSuccess={isSuccess}
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to="/dashboard/graph"
@@ -110,36 +129,67 @@ export function GraphPanel({
 
 
 
+interface EntitiesPanelProps {
+  entitiesData: {
+    entities: any[]
+    favorites: string[]
+  }
+  isLoading: boolean
+  isError: boolean
+  isSuccess: boolean
+  favoriteEntity: (entityId: string) => void
+  unfavoriteEntity: (entityId: string) => void
+}
+
 export function EntitiesPanel({
-  entitiesData: entities,
+  entitiesData,
   isLoading,
   isError,
   isSuccess,
-  refetchEntities,
-}: JSONObject) {
+  favoriteEntity,
+  unfavoriteEntity
+}: EntitiesPanelProps) {
   const [showFavoriteEntities, setShowFavoriteEntities] = useState<boolean>(true);
   const [showEntities, setShowEntities] = useState(true);
 
+  const favoriteEntities = useMemo(() => {
+    if (!entitiesData?.favorites || !entitiesData?.entities) return [];
+    const favoriteIds = new Set(entitiesData.favorites);
+    const filteredEntities = entitiesData.entities.filter(entity => favoriteIds.has(entity.id));
+    filteredEntities.sort((a, b) => b.ctime.localeCompare(a.ctime));
+    return filteredEntities.map(entity => ({ ...entity, is_favorite: true }));
+  }, [entitiesData?.favorites, entitiesData?.entities])
+
   const sortedEntities = useMemo(() => {
-    const sortedEntities = entities.slice()
-    sortedEntities.sort((a: any, b: any) => {
-      let c = new Date(b.last_edit)
-      let d = new Date(a.last_edit)
-      // @ts-ignore
-      return c - d
-    })
-    return sortedEntities
-  }, [entities])
+    if (entitiesData?.entities) {
+      const favoriteIds = new Set(entitiesData?.favorites || []);
+      // Filter out favorited entities from "All Entities" section
+      const nonFavoriteEntities = entitiesData.entities.filter(entity => !favoriteIds.has(entity.id));
+      nonFavoriteEntities.sort((a, b) => b.ctime.localeCompare(a.ctime));
+      return nonFavoriteEntities.map(entity => ({
+        ...entity,
+        is_favorite: false
+      }));
+    }
+    return []
+  }, [entitiesData?.entities, entitiesData?.favorites])
 
-
-  const updateEntityOnFavorite = (hid: string) => {
-    // updateEntityIsFavorite({ hid })
-    refetchEntities()
+  const updateEntityFavorites = async (entityId: string) => {
+    try {
+      const isFavorited = entitiesData?.favorites?.includes(entityId)
+      if (isFavorited) {
+        await unfavoriteEntity(entityId)
+      } else {
+        await favoriteEntity(entityId)
+      }
+    } catch (error) {
+      console.error('Error updating favorite status:', error)
+    }
   }
+
 
   return (
     <section className="flex flex-col justify-between relative shrink overflow-clip">
-      {/* TODO add to db entitiy favs table and enforce labels unique for pointer to entity */}
       <Subpanel
         label="Favorites"
         showError={isError}
@@ -147,9 +197,11 @@ export function EntitiesPanel({
         setShowEntities={() => setShowFavoriteEntities(!showFavoriteEntities)}
         isLoading={isLoading}
         isSuccess={isSuccess}
-        items={[]}
-        onClick={(hid) => updateEntityOnFavorite(hid)}
+        items={favoriteEntities}
+        onClick={async (hid) => await updateEntityFavorites(hid)}
         to="/dashboard/entity"
+        dateLabel="Created"
+        dateKey="ctime"
       />
       <Subpanel
         label="All entities"
@@ -159,8 +211,10 @@ export function EntitiesPanel({
         isLoading={isLoading}
         isSuccess={isSuccess}
         items={sortedEntities}
-        onClick={(hid) => updateEntityOnFavorite(hid)}
+        onClick={async (hid) => await updateEntityFavorites(hid)}
         to="/dashboard/entity"
+        dateLabel="Created"
+        dateKey="ctime"
       />
     </section >
   )

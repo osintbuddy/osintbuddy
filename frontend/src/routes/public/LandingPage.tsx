@@ -2,9 +2,9 @@ import type { JSX } from 'preact';
 import { HeroBackground } from '@/components/docs/HeroBackground'
 import Button from '@/components/buttons';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/app/hooks';
 import { Icon } from '@/components/icons';
 import { Callout } from '@/components/docs/Callout';
+import { useAuthStore } from '@/app/store';
 
 const QUOTES = [
   "Find the connections that matter to you",
@@ -18,7 +18,7 @@ const QUOTES = [
 export default function LandingPage(): JSX.Element {
   const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout } = useAuthStore()
 
   return (
     <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>

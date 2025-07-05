@@ -1,29 +1,28 @@
 import { useParams, useOutletContext } from "react-router-dom"
 import { Icon } from "@/components/icons";
 import { formatPGDate } from "@/app/utilities";
-import { useEntity } from "@/app/hooks";
+import { useAuthStore, useEntitiesStore } from "@/app/store";
+import { Entity, entitiesApi } from "@/app/api";
 import type { DashboardContextType } from "../index";
+import Button from "@/components/buttons";
 
 export default function EntityDetailsPage() {
   const { hid = "" } = useParams()
   const context = useOutletContext<DashboardContextType>();
-  
+
   // Convert hid to number for API call
   const entityId = parseInt(hid);
   const isValidId = !isNaN(entityId) && entityId > 0;
-  
+
   // Use the useEntity hook to fetch specific entity data (only if valid ID)
-  const { 
-    entity: activeEntity, 
-    isLoadingEntity: isLoading, 
+  const {
+    entity: activeEntity,
+    isLoadingEntity: isLoading,
     entityError,
-    refetchEntity 
+    refetchEntity
   } = useEntity(isValidId ? entityId : 0);
-  
-  // Fallback to context data if direct fetch is not available
-  const fallbackEntity = context.entitiesData?.find((e: any) => e.id.toString() === hid);
-  const entity = activeEntity || fallbackEntity;
-  
+
+
   // Handle invalid ID case
   if (!isValidId) {
     return (
@@ -51,7 +50,7 @@ export default function EntityDetailsPage() {
               </div>
             ) : entityError ? (
               <div className="max-w-6xl min-w-full from-mirage-300/30 bg-gradient-to-tr from-40% to-mirage-100/20 border-mirage-400 border rounded-md grid place-items-center py-6 px-12 mx-auto">
-                <p className="text-red-400">Error loading entity: {entityError.message}</p>
+                <p className="text-red-400">Error loading entity: {entityError}</p>
               </div>
             ) : !entity ? (
               <div className="max-w-6xl min-w-full from-mirage-300/30 bg-gradient-to-tr from-40% to-mirage-100/20 border-mirage-400 border rounded-md grid place-items-center py-6 px-12 mx-auto">

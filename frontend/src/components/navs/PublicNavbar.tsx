@@ -4,13 +4,13 @@ import { useEffect, useState } from 'preact/hooks';
 import { Icon } from '../icons';
 import Logo from '@/assets/images/logo.svg';
 import Button from '../buttons';
-import { useAuth } from '@/app/hooks';
+import { useAuthStore } from '@/app/store';
 
 export default function PublicNavbar(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const isDocsPage = location.pathname.includes('/docs');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuthStore();
 
   // controls the header styles
   let [isScrolled, setIsScrolled] = useState(false)

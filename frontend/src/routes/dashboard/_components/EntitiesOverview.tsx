@@ -1,9 +1,8 @@
-import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { DashboardContextType } from "..";
 
 export default function EntitiesOverview() {
-  const { entitiesData } = useOutletContext<DashboardContextType>();
+  const { entities: entitiesData } = useOutletContext<DashboardContextType>();
   return (
     <>
       <div className="w-full items-center justify-center my-auto relative -top-16">
