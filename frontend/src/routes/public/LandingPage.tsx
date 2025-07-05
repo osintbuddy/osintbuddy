@@ -23,22 +23,22 @@ export default function LandingPage(): JSX.Element {
   const { isAuthenticated, logout } = useAuthStore()
 
   return (
-    <div class='min-h-[calc(100vh-3.5rem)] relative flex flex-col justify-between items-between'>
-      <div class='mx-auto md:mt-52 mt-36 items-center'>
-        <div class='relative text-center '>
-          <section class='relative pb-12 flex flex-col items-center'>
-            <h2 class='inline text-center bg-gradient-to-br from-primary-200 via-blue-500 to-primary-200 bg-clip-text text-2xl md:text-5xl font-display font-medium tracking-tight text-transparent md:leading-14 max-w-[50rem] px-2'>
+    <div class='items-between relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between'>
+      <div class='mx-auto mt-36 items-center md:mt-52'>
+        <div class='relative text-center'>
+          <section class='relative flex flex-col items-center pb-12'>
+            <h2 class='from-primary-200 to-primary-200 font-display inline max-w-[50rem] bg-gradient-to-br via-blue-500 bg-clip-text px-2 text-center text-2xl font-medium tracking-tight text-transparent md:text-5xl md:leading-14'>
               Elevate your Research with
               <br /> Strategic Insights from Public Data
             </h2>
-            <p class='pt-1 text-md px-3 md:px-0 md:text-lg text-slate-300 max-w-2xl'>
+            <p class='text-md max-w-2xl px-3 pt-1 text-slate-300 md:px-0 md:text-lg'>
               Hi, I'm jerlendds and I created OSINTBuddy, an open source tool
               for collecting, processing, and visualizing connections between
               entities through a Python plugin system. You can identify
               relationships like what links to a given domain.
             </p>
 
-            <div class='mt-4 flex gap-4 justify-center'>
+            <div class='mt-4 flex justify-center gap-4'>
               {isAuthenticated ? (
                 <Button.Solid
                   variant='primary'
@@ -72,12 +72,12 @@ export default function LandingPage(): JSX.Element {
               )}
             </div>
           </section>
-          <div className='select-none fixed bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-5/11 md:right-1/11'>
-            <HeroBackground className='absolute  -rotate-90 lg:right-[40%]  translate-y-[-60%]' />
+          <div className='fixed right-5/11 bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] select-none md:right-1/11'>
+            <HeroBackground className='absolute translate-y-[-60%] -rotate-90 lg:right-[40%]' />
           </div>
         </div>
       </div>
-      <div className='lg:max-w-lg absolute top-0 lg:top-auto lg:bottom-3 left-4.5 *:my-2 *:mx-0 *:mr-4'>
+      <div className='absolute top-0 left-4.5 *:mx-0 *:my-2 *:mr-4 lg:top-auto lg:bottom-3 lg:max-w-lg'>
         <Callout type='warning' title='Experimental Software (Alpha)'>
           <p>
             Please note that OSINTBuddy is currently experimental software. We
@@ -85,23 +85,23 @@ export default function LandingPage(): JSX.Element {
           </p>
         </Callout>
       </div>
-      <section class='relative px-4 md:px-0 flex flex-col md:items-center justify-center mt-auto bottom-0 md:mx-auto'>
+      <section class='relative bottom-0 mt-auto flex flex-col justify-center px-4 md:mx-auto md:items-center md:px-0'>
         <section className='flex flex-col items-center'>
           <h1 class='font-display text-2xl tracking-tight text-slate-300'>
             {atfQuote}
           </h1>
-          <p class='text-slate-300 mb-2 '>
+          <p class='mb-2 text-slate-300'>
             Email me at
             <a
               href='mailto:oss@osintbuddy.com'
-              class='hover:text-primary-50 active:text-primary-50 text-primary-100 transition-all duration-100 font-sans ease-in-out'
+              class='hover:text-primary-50 active:text-primary-50 text-primary-100 font-sans transition-all duration-100 ease-in-out'
             >
               &nbsp;oss@osintbuddy.com&nbsp;
             </a>
             to share ideas or{' '}
             <a
               href='#todo-redirect-to-security.mdx-page'
-              class='border-b-2 border-b-transparent hover:border-b-red-600/40 transition-all duration-100 font-sans ease-in-out mx-px'
+              class='mx-px border-b-2 border-b-transparent font-sans transition-all duration-100 ease-in-out hover:border-b-red-600/40'
             >
               security concerns.
             </a>

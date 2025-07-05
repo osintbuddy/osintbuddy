@@ -54,28 +54,28 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
     <>
       <li
         key={entity.label}
-        className='flex items-center w-full justify-between pb-2.5'
+        className='flex w-full items-center justify-between pb-2.5'
       >
         <div
           draggable
           onDragStart={(event) => onDragStart(event, entity.label)}
-          className='flex min-w-[12rem] p-2 justify-between overflow-x-hidden from-mirage-400/50 to-mirage-400/40 hover:from-mirage-500/40 hover:to-mirage-400/60 bg-gradient-to-br  hover:from-40%  border-mirage-300/20 border max-h-[160px] border-l-primary-300/50 hover:border-primary-400 transition-colors duration-100 ease-out border-l-[6px] hover:border-l-[6px] rounded-md w-full backdrop-blur-md'
+          className='from-mirage-400/50 to-mirage-400/40 hover:from-mirage-500/40 hover:to-mirage-400/60 border-mirage-300/20 border-l-primary-300/50 hover:border-primary-400 flex max-h-[160px] w-full min-w-[12rem] justify-between overflow-x-hidden rounded-md border border-l-[6px] bg-gradient-to-br p-2 backdrop-blur-md transition-colors duration-100 ease-out hover:border-l-[6px] hover:from-40%'
         >
-          <div className='flex flex-col w-full select-none'>
-            <div className='flex items-start justify-between gap-x-3 w-full relative'>
-              <p className='text-sm font-semibold leading-6 text-slate-300/80 whitespace-nowrap'>
+          <div className='flex w-full flex-col select-none'>
+            <div className='relative flex w-full items-start justify-between gap-x-3'>
+              <p className='text-sm leading-6 font-semibold whitespace-nowrap text-slate-300/80'>
                 {entity.label}
               </p>
             </div>
             <div className='flex flex-wrap items-center gap-x-2 text-xs leading-5 text-slate-500'>
-              <p className='truncate whitespace-normal leading-5 line-clamp-2 text-slate-500'>
+              <p className='line-clamp-2 truncate leading-5 whitespace-normal text-slate-500'>
                 {entity.description}
               </p>
               <br />
-              <p className='truncate flex items-center leading-5 text-slate-500 text-xs'>
+              <p className='flex items-center truncate text-xs leading-5 text-slate-500'>
                 <svg
                   viewBox='0 0 2 2'
-                  className='h-0.5 w-0.5 fill-current mr-1.5 ml-0'
+                  className='mr-1.5 ml-0 h-0.5 w-0.5 fill-current'
                 >
                   <circle cx={1} cy={1} r={1} />
                 </svg>
@@ -172,7 +172,7 @@ export default function EntityOptions({
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='z-50 absolute'
+      className='absolute z-50'
       rowHeight={4}
       resizeHandles={['ne']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -198,25 +198,25 @@ export default function EntityOptions({
         })
       }}
     >
-      <div key='positions' className='flex flex-col w-full'>
-        <section className='flex shadow-md relative rounded-lg border  backdrop-blur-md border-mirage-800/40 from-mirage-800/40 to-mirage-800/50 bg-gradient-to-r h-min rounded-b-sm justify-between'>
+      <div key='positions' className='flex w-full flex-col'>
+        <section className='border-mirage-800/40 from-mirage-800/40 to-mirage-800/50 relative flex h-min justify-between rounded-lg rounded-b-sm border bg-gradient-to-r shadow-md backdrop-blur-md'>
           <div className='flex items-center'>
             <button
-              className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10'
+              className='from-mirage-400/30 to-mirage-400/40 hover:from-mirage-500/20 hover:to-mirage-500/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10'
               onClick={() => navigate('/dashboard', { replace: true })}
             >
               <Icon icon='home' className='h-6' />
             </button>
             <h5
               title={activeGraph?.description ?? ''}
-              className='w-72 pl-3 whitespace-nowrap truncate justify-between text-slate-600 text-inherit font-sans font-bold'
+              className='w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap text-inherit text-slate-600'
             >
               <span className='text-slate-400'>{activeGraph?.label}</span>
             </h5>
             <ul className='isolate inline-flex shadow-sm'>
               <div className='flex items-center'>
                 <button
-                  className='justify-center grow rounded-sm from-mirage-400/30 to-mirage-400/40 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-500/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800  focus:z-10'
+                  className='from-mirage-400/30 to-mirage-400/40 hover:from-mirage-500/20 hover:to-mirage-500/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10'
                   onClick={() => fitView({ duration: 300 })}
                 >
                   <Icon icon='viewfinder' className='h-6' />
@@ -225,7 +225,7 @@ export default function EntityOptions({
             </ul>
           </div>
 
-          <ul className='isolate inline-flex shadow-sm '>
+          <ul className='isolate inline-flex shadow-sm'>
             <button
               onClick={() => {
                 setIsForceActive(false)
@@ -237,15 +237,15 @@ export default function EntityOptions({
               }}
               type='button'
               className={classNames(
-                'justify-center grow rounded-sm border  from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/60 relative 2 inline-flex items-center transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/60 2 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
                 positionMode === 'manual' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
               )}
             >
               <Icon
                 icon='hand-three-fingers'
                 className={classNames(
-                  'h-6 w-6 ',
+                  'h-6 w-6',
                   positionMode === 'manual' && 'text-primary-300'
                 )}
                 aria-hidden='true'
@@ -259,9 +259,9 @@ export default function EntityOptions({
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
                 positionMode === 'force' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
               )}
             >
               <Icon
@@ -294,15 +294,15 @@ export default function EntityOptions({
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
                 positionMode === 'right tree' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
               )}
             >
               <Icon
                 icon='binary-tree-2'
                 className={classNames(
-                  'h-6 w-6 -rotate-90 origin-center text-inherit',
+                  'h-6 w-6 origin-center -rotate-90 text-inherit',
                   positionMode === 'right tree' && 'text-primary-300'
                 )}
               />
@@ -322,9 +322,9 @@ export default function EntityOptions({
               }}
               type='button'
               className={classNames(
-                'justify-center rounded-sm grow from-mirage-300/10 to-mirage-300/20 bg-gradient-to-br hover:from-mirage-500/20 hover:from-40% hover:to-mirage-300/30  border-mirage-300/20 relative py-2 inline-flex items-center  border transition-colors duration-100 ease-in-out hover:border-primary-400/50 outline-hidden px-2 text-slate-500 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 focus:z-10',
+                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
                 positionMode === 'tree' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50 '
+                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
               )}
             >
               <Icon
@@ -340,13 +340,13 @@ export default function EntityOptions({
       </div>
 
       <div
-        className=' overflow-hidden rounded-md z-10 border border-mirage-800/40  from-mirage-800/30 to-mirage-800/60 bg-gradient-to-br flex flex-col h-min'
+        className='border-mirage-800/40 from-mirage-800/30 to-mirage-800/60 z-10 flex h-min flex-col overflow-hidden rounded-md border bg-gradient-to-br'
         key='entities'
         id='node-options-tour'
       >
-        <ol className='text-sm flex select-none relative px-4 pt-2'>
-          <li className='flex mr-auto'>
-            <h5 className='flex whitespace-nowrap truncate justify-between items-center w-full  text-inherit font-display '>
+        <ol className='relative flex px-4 pt-2 text-sm select-none'>
+          <li className='mr-auto flex'>
+            <h5 className='font-display flex w-full items-center justify-between truncate whitespace-nowrap text-inherit'>
               <Link
                 title='View all graphs'
                 className='text-slate-500'
@@ -358,17 +358,17 @@ export default function EntityOptions({
             </h5>
           </li>
           <li className='flex'>
-            <div className='flex justify-between items-center w-full '>
+            <div className='flex w-full items-center justify-between'>
               <button
                 onClick={() => setIsEntitiesDraggable(!isEntitiesDraggable)}
-                className='text-slate-600 hover:text-alert-700 text-inherit whitespace-nowrap font-display'
+                className='hover:text-alert-700 font-display whitespace-nowrap text-inherit text-slate-600'
                 title={activeGraph.name}
                 aria-current={activeGraph.description}
               >
                 {isEntitiesDraggable ? (
-                  <LockOpenIcon className='w-5 h-5 text-inherit' />
+                  <LockOpenIcon className='h-5 w-5 text-inherit' />
                 ) : (
-                  <LockClosedIcon className='w-5 h-5 text-inherit' />
+                  <LockClosedIcon className='h-5 w-5 text-inherit' />
                 )}
               </button>
             </div>
@@ -376,14 +376,14 @@ export default function EntityOptions({
         </ol>
         {showEntities && (
           <>
-            <div className='mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/70 from-mirage-300/60 bg-gradient-to-br rounded border mb-2 mx-4 focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l'>
+            <div className='hover:border-mirage-200/40 to-mirage-400/70 from-mirage-300/60 focus-within:!border-primary/40 border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 mx-4 mt-2.5 mb-2 block items-center justify-between rounded border bg-gradient-to-br px-3.5 py-1 text-slate-100 shadow-sm transition-colors duration-200 ease-in-out focus-within:bg-gradient-to-l'>
               <input
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className='block backdrop-blur-md w-full placeholder:text-slate-700 bg-transparent outline-hidden  sm:text-sm'
+                className='block w-full bg-transparent outline-hidden backdrop-blur-md placeholder:text-slate-700 sm:text-sm'
                 placeholder='Search entities...'
               />
             </div>
-            <ul className='overflow-y-scroll ml-4 pr-4 h-full relative'>
+            <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
               {entities.map((entity) => (
                 <EntityOption
                   onDragStart={onDragStart}

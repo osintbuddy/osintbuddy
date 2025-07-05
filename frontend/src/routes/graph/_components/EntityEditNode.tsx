@@ -134,7 +134,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           />
         )
       case 'empty':
-        return <input className='h-0 bg-transparent pointer-events-none' />
+        return <input className='pointer-events-none h-0 bg-transparent' />
     }
   }
 
@@ -208,24 +208,24 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             backgroundColor:
               node?.color?.length === 7 ? `${node.color}99` : node?.color,
           }}
-          className='header '
+          className='header'
         >
           <GripIcon />
-          <div className='text-container '>
-            <p className='text-[0.4rem] flex font-black  text-mirage-900  whitespace-wrap font-display'>
-              <span className='mr-1 text-[0.5rem] text-mirage-900 font-extralight max-w-xl whitespace-wrap '>
+          <div className='text-container'>
+            <p className='text-mirage-900 whitespace-wrap font-display flex text-[0.4rem] font-black'>
+              <span className='text-mirage-900 whitespace-wrap mr-1 max-w-xl text-[0.5rem] font-extralight'>
                 {' '}
                 ID:{' '}
               </span>
               {ctx.id}
             </p>
-            <p className='text-xs text-slate-200 max-w-xl whitespace-wrap font-display font-bold'>
+            <p className='whitespace-wrap font-display max-w-xl text-xs font-bold text-slate-200'>
               {ctx.data.label}
             </p>
           </div>
           <Icon
             icon={ctx.data.icon}
-            className='h-5 w-5 mr-2 cursor-grab focus:cursor-grabbing'
+            className='mr-2 h-5 w-5 cursor-grab focus:cursor-grabbing'
           />
         </div>
         <form
@@ -281,13 +281,13 @@ export function CopyText({
         navigator.clipboard.writeText(value)
         toast.success(`Copied ${label} to clipboard!`)
       }}
-      className='flex items-center max-w-xs text-info-300'
+      className='text-info-300 flex max-w-xs items-center'
     >
-      <Icon icon='paperclip' className='w-4 h-4' />
+      <Icon icon='paperclip' className='h-4 w-4' />
       <p
         title='Click to copy'
         data-type='link'
-        className='ml-2 text-xs text-inherit break-keep whitespace-nowrap  truncate'
+        className='ml-2 truncate text-xs break-keep whitespace-nowrap text-inherit'
       >
         {value}
       </p>
@@ -318,10 +318,10 @@ export function TextArea({
   const [showMonospace, setShowMonospace] = useState(true)
 
   return (
-    <div className='flex flex-col w-full'>
+    <div className='flex w-full flex-col'>
       <label
         onClick={() => setShowMonospace(!showMonospace)}
-        className='flex justify-between items-center font-semibold leading-5 font-display text-slate-400'
+        className='font-display flex items-center justify-between leading-5 font-semibold text-slate-400'
       >
         {label}
         <Icon
@@ -332,7 +332,7 @@ export function TextArea({
       <div className='node-field !w-full !min-w-2xl'>
         <textarea
           rows={16}
-          className={`block w-full placeholder:text-slate-700 bg-transparent focus:outline-hidden outline-hidden  sm:text-sm  min-w-[16rem] text-xs text-slate-400 nodrag nowheel whitespace-wrap px-1 py-1.5 ${showMonospace && '!font-code'}`}
+          className={`nodrag nowheel whitespace-wrap block w-full min-w-[16rem] bg-transparent px-1 py-1.5 text-xs text-slate-400 outline-hidden placeholder:text-slate-700 focus:outline-hidden sm:text-sm ${showMonospace && '!font-code'}`}
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {
@@ -362,9 +362,9 @@ export function Text({
   icon?: any
 }) {
   return (
-    <div className=' w-full flex  pb-1 relative text-slate-400'>
+    <div className='relative flex w-full pb-1 text-slate-400'>
       {icon && <Icon icon={icon} className='h-6 w-6' />}
-      <p className='text-xs text-slate-400 transition-colors duration-500 ease-out pr-2.5'>
+      <p className='pr-2.5 text-xs text-slate-400 transition-colors duration-500 ease-out'>
         {value}{' '}
       </p>
     </div>
@@ -381,7 +381,7 @@ export function Title({
   value: string
 }) {
   return (
-    <div className='node-display !py-0 !my-0'>
+    <div className='node-display !my-0 !py-0'>
       {value && <h1 className='my-0'>{value}</h1>}
     </div>
   )
@@ -415,10 +415,10 @@ export function UploadFileInput({
 
   return (
     <>
-      <p className='text-[0.5rem] ml-1 text-slate-400 whitespace-wrap font-semibold font-display mt-1'>
+      <p className='whitespace-wrap font-display mt-1 ml-1 text-[0.5rem] font-semibold text-slate-400'>
         {label}
       </p>
-      <div className='flex items-center mb-1'>
+      <div className='mb-1 flex items-center'>
         <div className='node-field'>
           <Icon icon={icon} className='h-6 w-6' />
           <label
@@ -455,7 +455,7 @@ export function TextInput({
   return (
     <>
       <div className='flex flex-col'>
-        <label className='text-[0.5rem] mt-1 text-slate-400 whitespace-wrap font-semibold font-display '>
+        <label className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
           {label}
         </label>
         <div className='nodrag node-field'>
@@ -542,7 +542,7 @@ export function DropdownInput({
         </span>
         {filteredOptions[index]?.value && (
           <span
-            className='flex truncate leading-3 text-[0.5rem]'
+            className='flex truncate text-[0.5rem] leading-3'
             title={
               filteredOptions[index].tooltip !== filteredOptions[index].label
                 ? filteredOptions[index].tooltip
@@ -560,7 +560,7 @@ export function DropdownInput({
   return (
     <>
       <div
-        className='w-full dropdown-input'
+        className='dropdown-input w-full'
         as='div'
         value={activeOption}
         onChange={(option) => {
@@ -581,25 +581,25 @@ export function DropdownInput({
         }}
       >
         <label>
-          <p className='text-[0.5rem] text-slate-400 whitespace-wrap font-semibold font-display mt-1'>
+          <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
             {label}
           </p>
         </label>
-        <div className='relative node-field dropdown !px-0'>
+        <div className='node-field dropdown relative !px-0'>
           <input
             ref={dropdownRef}
             onChange={(event) => setQuery(event.target.value)}
             displayValue={(option: DropdownOption) => option.label}
-            className='nodrag focus:ring-info-400 mr-4 outline-hidden px-2'
+            className='nodrag focus:ring-info-400 mr-4 px-2 outline-hidden'
           />
-          <button className='absolute z-[99] -top-px inset-y-0 h-6 w-4 right-0 focus:outline-hidden'>
+          <button className='absolute inset-y-0 -top-px right-0 z-[99] h-6 w-4 focus:outline-hidden'>
             <Icon
               icon='chevron-down'
-              className='h-7 w-7 !text-slate-600 '
+              className='h-7 w-7 !text-slate-600'
               aria-hidden='true'
             />
           </button>
-          <div className='absolute nodrag nowheel mr-1 z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg  focus:outline-hidden sm:text-sm'>
+          <div className='nodrag nowheel from-mirage-700/90 to-mirage-800/80 absolute z-10 mr-1 max-h-80 w-full overflow-hidden rounded-b-md bg-gradient-to-br from-30% py-1 text-[0.6rem] shadow-lg focus:outline-hidden sm:text-sm'>
             <List
               rowCount={filteredOptions.length}
               width={dropdownRef?.current?.clientWidth}

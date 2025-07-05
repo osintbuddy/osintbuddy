@@ -10,7 +10,7 @@ export default function RoundLoader({
   return (
     <div className='flex items-center'>
       <div
-        className={`w-3 h-3 rounded-full animate-spin border-2 border-solid border-dark-200 border-t-transparent ${className ?? ''}`}
+        className={`border-dark-200 h-3 w-3 animate-spin rounded-full border-2 border-solid border-t-transparent ${className ?? ''}`}
       >
         <span className='sr-only'>Loading...</span>
       </div>
@@ -25,24 +25,24 @@ export function UnderConstruction({
 }: any) {
   return (
     <div className={className}>
-      <div className='bg-mirage-800/30 w-full block shadow rounded-b-lg '>
-        <div className='border-b border-mirage-300 mx-4 py-5 sm:px-6'>
-          <div className='-ml-6 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap'>
-            <section className='ml-4 mt-2 w-full'>
-              <h1 className='text-2xl  w-full flex items-center justify-between'>
-                <span className='mr-2.5 opacity-30 right-0'>🚧</span>
-                <p className='font-display font-semibold text-slate-350 mr-auto'>
+      <div className='bg-mirage-800/30 block w-full rounded-b-lg shadow'>
+        <div className='border-mirage-300 mx-4 border-b py-5 sm:px-6'>
+          <div className='-mt-2 -ml-6 flex flex-wrap items-center justify-between sm:flex-nowrap'>
+            <section className='mt-2 ml-4 w-full'>
+              <h1 className='flex w-full items-center justify-between text-2xl'>
+                <span className='right-0 mr-2.5 opacity-30'>🚧</span>
+                <p className='font-display text-slate-350 mr-auto font-semibold'>
                   &nbsp;Under Construction&nbsp;
                 </p>
-                <span className='opacity-30 right-0 ml-auto'>🚧</span>
+                <span className='right-0 ml-auto opacity-30'>🚧</span>
               </h1>
             </section>
           </div>
         </div>
 
-        <section className='flex flex-col  px-3  mb-6'>
+        <section className='mb-6 flex flex-col px-3'>
           <Header title='New Feature' header={header} />
-          <p className='my-3 ml-6 text-slate-400 max-w-xl'>
+          <p className='my-3 ml-6 max-w-xl text-slate-400'>
             {description}&nbsp;
             <a
               className='hover:text-primary-100 text-primary-200'

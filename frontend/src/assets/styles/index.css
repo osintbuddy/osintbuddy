@@ -182,55 +182,52 @@ button {
   @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
 }
 
-::-moz-selection {
-  @apply text-slate-200 bg-radiance-500/50
-}
-
+::-moz-selection,
 ::selection {
-  @apply text-slate-200 bg-radiance-500/50
+  color: var(--color-slate-200);
+  background-color: var(--color-radiance-700);
+  opacity: .1
 }
 
 #app {
-  @apply flex flex-col h-full min-h-screen relative justify-between
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  position: relative;
+  justify-content: space-between;
 }
-
 svg.icon {
-  @apply flex items-center justify-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
 p {
   font-family: var(--font-sans);
 }
 
 /* 
   Custom Scrollbar Style 
-  Works on Chrome, Edge, and Safari 
+  Works on Chrome, Firefox, Edge, and Safari 
 */
-*::-webkit-scrollbar {
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track {
   width: 12px;
   border-radius: none;
 
 }
-
 *::-webkit-scrollbar-track {
   background: #19233433;
-  width: 12px;
-  border-radius: none;
-
 }
-
 *::-webkit-scrollbar-thumb {
   background-color: #1a1f2793;
   border-radius: none;
   border-right: 10px solid #1b243a84;
 }
-
 * {
   scrollbar-width: 12px;
   scrollbar-color: #36497962 #202d4333;
-
 }
-
 /* end Custom Scrollbar Style */
 
 /* start Animated CSS Hamburger Menu */
@@ -321,7 +318,6 @@ input[type='number'] {
   appearance: textfield;
   margin: 0;
 }
-
 /* end hide number inputs */
 
 /* start react flow style overrides */
@@ -408,26 +404,9 @@ input[type='file'] {
 
 /* start react-grid-layout and codemirror */
 .react-resizable-handle::after {
-  @apply !border-slate-600 !w-2 !h-2
+  border-color: var(--color-slate-600);
+  height: 8px;
+  width: 8px;
 }
 /* end react-grid-layout and codemirror */
-
-/* start... TODO: refactor me */
-
-.subpanel-link div:hover .subpanel-label {
-  @apply !text-slate-400/95
-}
-
-.subpanel-label-true {
-  @apply text-slate-400/95;
-}
-
-.subpanel-desc {
-  @apply ;
-}
-
-.subpanel-desc-true {
-  @apply !text-slate-400/80
-}
-/* end */
 

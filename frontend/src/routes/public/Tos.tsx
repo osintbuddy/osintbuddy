@@ -8,10 +8,10 @@ export default function TermsOfService() {
 
   // TODO: Update ToS
   return (
-    <div class='relative flex flex-col items-between from-black/50 to-black/30 bg-gradient-to-tr md:mx-40 rounded-r-md border-l-3 border-primary/80   overflow-y-scroll max-h-[calc(100vh-6.5rem)] mb-10'>
-      <section className='flex flex-col items-center justify-between w-full mx-auto '>
-        <div className='flex justify-between items-center w-full sticky py-3 top-0 bg-[#07072b]'>
-          <h2 class='inline lg:text-center text-slate-400 font-semibold md:text-3xl font-display tracking-tight md:leading-14 ml-[6%] '>
+    <div class='items-between border-primary/80 relative mb-10 flex max-h-[calc(100vh-6.5rem)] flex-col overflow-y-scroll rounded-r-md border-l-3 bg-gradient-to-tr from-black/50 to-black/30 md:mx-40'>
+      <section className='mx-auto flex w-full flex-col items-center justify-between'>
+        <div className='sticky top-0 flex w-full items-center justify-between bg-[#07072b] py-3'>
+          <h2 class='font-display ml-[6%] inline font-semibold tracking-tight text-slate-400 md:text-3xl md:leading-14 lg:text-center'>
             GNU Affero General Public License
           </h2>
           <Button.Ghost
@@ -24,12 +24,12 @@ export default function TermsOfService() {
           </Button.Ghost>
         </div>
         <Prose>
-          <p class='pt-1 max-w-7/8 text-md whitespace-pre-line text-xs py-2 md:text-lg text-slate-350 text-start h-full mx-auto whitespace-break-wrap rounded '>
+          <p class='text-md text-slate-350 whitespace-break-wrap mx-auto h-full max-w-7/8 rounded py-2 pt-1 text-start text-xs whitespace-pre-line md:text-lg'>
             GNU AFFERO GENERAL PUBLIC LICENSE <br />
             Version 3, 19 November 2007 <br />
             Copyright &copy; 2007 Free Software Foundation, Inc. &lt;
             <a
-              class='hover:text-slate-200 !text-slate-350 border-b-2 border-transparent hover:border-primary-300'
+              class='!text-slate-350 hover:border-primary-300 border-b-2 border-transparent hover:text-slate-200'
               href='https://fsf.org/'
               target='_blank'
             >
@@ -753,7 +753,7 @@ export default function TermsOfService() {
             You should have received a copy of the GNU Affero General Public
             License along with this program. If not, see &lt;
             <a
-              class='hover:text-slate-200 !text-slate-350 border-b-2 border-transparent hover:border-primary-300'
+              class='!text-slate-350 hover:border-primary-300 border-b-2 border-transparent hover:text-slate-200'
               href='https://www.gnu.org/licenses/'
               target='_blank'
             >
@@ -765,15 +765,15 @@ export default function TermsOfService() {
             For more information on this, and how to apply and follow the GNU
             AGPL, see &lt;
             <a
-              class='hover:text-slate-200 !text-slate-350 border-b-2 border-transparent hover:border-primary-300'
+              class='!text-slate-350 hover:border-primary-300 border-b-2 border-transparent hover:text-slate-200'
               href='https://www.gnu.org/licenses/'
               target='_blank'
             >
               https://www.gnu.org/licenses/
             </a>
             &gt;.
-            <div className='flex justify-between items-center w-full my-4'>
-              <h2 class='inline text-center  text-slate-400  text-3xl md:text-3xl font-display font-medium tracking-tight md:leading-14  px-2 md:px-0'></h2>
+            <div className='my-4 flex w-full items-center justify-between'>
+              <h2 class='font-display inline px-2 text-center text-3xl font-medium tracking-tight text-slate-400 md:px-0 md:text-3xl md:leading-14'></h2>
               <Button.Solid variant='primary' onClick={() => navigate('/')}>
                 Go home
                 <Icon icon='home' className='btn-icon' />

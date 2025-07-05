@@ -179,14 +179,14 @@ export default function AppRoutes(): JSX.Element {
       prevButton={({ currentStep, setCurrentStep, steps }: JSONObject) => (
         <Button.Ghost
           variant='primary'
-          className={`!justify-between ${currentStep === 0 && '!opacity-0 hidden'}`}
+          className={`!justify-between ${currentStep === 0 && 'hidden !opacity-0'}`}
           onClick={() =>
             currentStep === 0
               ? setCurrentStep(() => steps.length - 1)
               : setCurrentStep((s: number) => s - 1)
           }
         >
-          <Icon icon='chevron-left' className='w-5 h-5 !ml-0 mr-5' />
+          <Icon icon='chevron-left' className='mr-5 !ml-0 h-5 w-5' />
           <span>Back</span>
         </Button.Ghost>
       )}
@@ -208,7 +208,7 @@ export default function AppRoutes(): JSX.Element {
           variant='primary'
         >
           {!(currentStep === stepsLength - 1) ? 'Next' : 'Close guide'}
-          <Icon icon='chevron-right' className='w-5 h-5 !ml-0 mr-5' />
+          <Icon icon='chevron-right' className='mr-5 !ml-0 h-5 w-5' />
         </Button.Ghost>
       )}
       styles={{

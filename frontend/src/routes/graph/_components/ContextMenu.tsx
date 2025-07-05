@@ -35,14 +35,14 @@ export default function ContextMenu({
     : (transforms ?? [])
   return (
     <>
-      <div id='context-menu' className='z-[999] absolute' style={ctxPosition}>
+      <div id='context-menu' className='absolute z-[999]' style={ctxPosition}>
         {showMenu && (
           <div className='relative z-50 inline-block text-left'>
-            <div className='absolute  right-0 z-10 mt-2 w-56 origin-top-right divide-y border border-mirage-400/70 divide-mirage-400/70 rounded-md to-mirage-700/95 from-mirage-600/95 bg-gradient-to-br shadow-lg ring-1 ring-black/5 focus:outline-hidden'>
+            <div className='border-mirage-400/70 divide-mirage-400/70 to-mirage-700/95 from-mirage-600/95 absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y rounded-md border bg-gradient-to-br shadow-lg ring-1 ring-black/5 focus:outline-hidden'>
               <div className='py-1'>
                 <div>
-                  <div className='text-slate-400 group flex items-center py-2 text-sm font-display'>
-                    <span className='pl-2 text-slate-600 font-semibold font-display mr-3'>
+                  <div className='group font-display flex items-center py-2 text-sm text-slate-400'>
+                    <span className='font-display mr-3 pl-2 font-semibold text-slate-600'>
                       ID:{' '}
                     </span>
                     {ctxSelection?.id ? ctxSelection.id : 'No node selected'}
@@ -57,18 +57,18 @@ export default function ContextMenu({
                         <div className='sm:col-span-2'>
                           <label
                             htmlFor='message'
-                            className='sr-only block font-semibold leading-6 mt-4 text-slate-200 pl-8'
+                            className='sr-only mt-4 block pl-8 leading-6 font-semibold text-slate-200'
                           >
                             Search through the installed transforms for the{' '}
                             {ctxSelection?.label} plugin
                           </label>
-                          <div className='mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br rounded border mb-2 mx-4 focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l'>
+                          <div className='hover:border-mirage-200/40 to-mirage-400/50 from-mirage-300/20 focus-within:!border-primary/40 border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 mx-4 mt-2.5 mb-2 block items-center justify-between rounded border bg-gradient-to-br px-3.5 py-1 text-slate-100 shadow-sm transition-colors duration-200 ease-in-out focus-within:bg-gradient-to-l'>
                             <input
                               value={query}
                               onChange={(e) => setQuery(e.currentTarget.value)}
                               name='message'
                               id='message'
-                              className='block w-full placeholder:text-slate-700 bg-transparent outline-hidden  sm:text-sm'
+                              className='block w-full bg-transparent outline-hidden placeholder:text-slate-700 sm:text-sm'
                               placeholder='Search transforms...'
                             />
                           </div>

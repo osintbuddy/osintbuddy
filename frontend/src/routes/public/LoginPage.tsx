@@ -49,24 +49,24 @@ export default function LoginPage(): JSX.Element {
   }
 
   return (
-    <div class='flex flex-col items-center justify-center my-20 py-20'>
-      <div className='select-none fixed bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] right-5/11 md:right-1/11'>
-        <HeroBackground className='absolute  -rotate-90 lg:right-[40%]  translate-y-[-60%]' />
+    <div class='my-20 flex flex-col items-center justify-center py-20'>
+      <div className='fixed right-5/11 bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] select-none md:right-1/11'>
+        <HeroBackground className='absolute translate-y-[-60%] -rotate-90 lg:right-[40%]' />
       </div>
-      <div class='shadow-2xl shadow-black/35 -mt-30 py-6 from-black/50 to-black/30 bg-gradient-to-tr backdrop-blur-sm border-l-3 border-primary/80 transition-all duration-100 rounded-r-lg flex flex-col items-center w-11/12 md:w-auto'>
-        <h2 class='text-slate-350 mb-4 md:-ml-7 font-semibold font-display text-2xl relative'>
+      <div class='border-primary/80 -mt-30 flex w-11/12 flex-col items-center rounded-r-lg border-l-3 bg-gradient-to-tr from-black/50 to-black/30 py-6 shadow-2xl shadow-black/35 backdrop-blur-sm transition-all duration-100 md:w-auto'>
+        <h2 class='text-slate-350 font-display relative mb-4 text-2xl font-semibold md:-ml-7'>
           Sign into OSINTBuddy
         </h2>
 
         <div class='font-display flex flex-col items-center md:px-5'>
           <form
             onSubmit={onLoginSubmit}
-            class='grid gap-y-2 max-w-2xs w-full px-2 md:px-0'
+            class='grid w-full max-w-2xs gap-y-2 px-2 md:px-0'
           >
             <Input.Transparent
               label='Email'
               type='email'
-              className='w-full '
+              className='w-full'
               name='email'
               placeholder='you@provider.com'
               defaultValue={rememberedEmail as string}
@@ -91,7 +91,7 @@ export default function LoginPage(): JSX.Element {
               disabled={isLoading}
               type='submit'
               variant='primary'
-              className='w-full '
+              className='w-full'
             >
               {isLoading ? (
                 <>
@@ -101,16 +101,16 @@ export default function LoginPage(): JSX.Element {
               ) : (
                 'Sign in'
               )}
-              {!isLoading && <Icon icon='fingerprint' className='btn-icon ' />}
+              {!isLoading && <Icon icon='fingerprint' className='btn-icon' />}
             </Button.Solid>
           </form>
 
-          <hr class='w-xs md:w-sm text-mirage-700 mt-6 mb-4' />
-          <section class='text-sm flex flex-col items-center text-slate-400'>
+          <hr class='text-mirage-700 mt-6 mb-4 w-xs md:w-sm' />
+          <section class='flex flex-col items-center text-sm text-slate-400'>
             <p>Don't have an account yet?</p>
             <NavLink
               to='/register'
-              class='border-b-2 border-transparent hover:text-slate-200 hover:border-primary active:border-primary'
+              class='hover:border-primary active:border-primary border-b-2 border-transparent font-sans hover:text-slate-200'
             >
               Sign up here
             </NavLink>

@@ -95,11 +95,11 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
         >
           <Icon
             icon={node.icon}
-            className='!h-14 !w-14 text-slate-300/95 cursor-grab focus:cursor-grabbing'
+            className='!h-14 !w-14 cursor-grab text-slate-300/95 focus:cursor-grabbing'
           />
         </div>
         <h2
-          className={`absolute -left-28 -right-28 max-w-xl pointer-events-none text-center text-slate-500 text-xl top-full -bottom-10 h-auto`}
+          className={`pointer-events-none absolute top-full -right-28 -bottom-10 -left-28 h-auto max-w-xl text-center text-xl text-slate-500`}
         >
           {displayValue?.length >= 90
             ? `${displayValue.slice(0, 90)}...`

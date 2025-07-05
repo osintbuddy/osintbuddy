@@ -27,12 +27,12 @@ export default function PublicNavbar(): JSX.Element {
 
   return (
     <header
-      class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-16 ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}
+      class={`sticky top-0 z-50 flex w-full flex-nowrap items-center justify-between px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 sm:flex-wrap sm:px-6 lg:px-16 dark:shadow-none ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}
     >
       <div class='flex lg:hidden'>
         <NavLink to='/'>
           <img
-            class=' h-7 w-auto fill-slate-700 dark:fill-sky-100 block'
+            class='block h-7 w-auto fill-slate-700 dark:fill-sky-100'
             src={Logo}
           />
         </NavLink>
@@ -40,7 +40,7 @@ export default function PublicNavbar(): JSX.Element {
       <div class='relative flex grow basis-0 items-center'>
         <Link to='/'>
           <img
-            class='hidden h-8  fill-slate-700 dark:fill-sky-100 lg:block'
+            class='hidden h-8 fill-slate-700 lg:block dark:fill-sky-100'
             src={Logo}
           />
         </Link>
@@ -53,7 +53,7 @@ export default function PublicNavbar(): JSX.Element {
       >
         <Icon
           icon='brand-discord'
-          className='h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300'
+          className='h-6 w-6 text-slate-500 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
         />
       </a>
       <a
@@ -64,7 +64,7 @@ export default function PublicNavbar(): JSX.Element {
       >
         <Icon
           icon='brand-github'
-          className='h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300'
+          className='h-6 w-6 text-slate-500 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
         />
       </a>
       {!isDocsPage && (
@@ -74,7 +74,7 @@ export default function PublicNavbar(): JSX.Element {
           onClick={() => navigate('/docs/overview')}
         >
           OSIB://BOOK
-          <Icon icon='eye-search' className='ml-3 btn-icon' />
+          <Icon icon='eye-search' className='btn-icon ml-3' />
         </Button.Solid>
       )}
       {isAuthenticated && isDocsPage && (
@@ -94,7 +94,7 @@ export default function PublicNavbar(): JSX.Element {
           onClick={() => navigate('/login')}
         >
           OSIB://LOGIN
-          <Icon icon='key' className='ml-3 btn-icon' />
+          <Icon icon='key' className='btn-icon ml-3' />
         </Button.Solid>
       )}
     </header>

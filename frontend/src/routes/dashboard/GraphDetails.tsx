@@ -13,28 +13,28 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
   const navigate = useNavigate()
 
   return (
-    <div className='flex flex-col w-full px-4 '>
-      <div className='flex w-full  border-2 rounded-b-md bg-mirage-800/50 border-mirage-800/40 relative shadow'>
-        <div className=' w-full mx-auto'>
-          <section className='flex flex-col items-start justify-between  lg:items-center py-4 px-6 lg:flex-row md:flex-row md:items-center  relative'>
-            <div className='flex flex-col w-full '>
-              <h3 className='text-lg font-semibold whitespace-nowrap leading-normal text-slate-300'>
+    <div className='flex w-full flex-col px-4'>
+      <div className='bg-mirage-800/50 border-mirage-800/40 relative flex w-full rounded-b-md border-2 shadow'>
+        <div className='mx-auto w-full'>
+          <section className='relative flex flex-col items-start justify-between px-6 py-4 md:flex-row md:items-center lg:flex-row lg:items-center'>
+            <div className='flex w-full flex-col'>
+              <h3 className='text-lg leading-normal font-semibold whitespace-nowrap text-slate-300'>
                 {graph?.label}
               </h3>
-              <p className='text-sm leading-normal whitespace-normal truncate max-w-6xl text-slate-400'>
+              <p className='max-w-6xl truncate text-sm leading-normal whitespace-normal text-slate-400'>
                 {graph?.description}
               </p>
             </div>
-            <div className='flex w-full gap-x-4 mt-auto relative items-center'>
+            <div className='relative mt-auto flex w-full items-center gap-x-4'>
               <Button.Ghost
                 onClick={() => {
                   refetchGraphs()
                 }}
-                className=' ml-auto'
+                className='ml-auto'
                 variant='danger'
               >
                 Delete graph
-                <Icon icon='trash' className='text-inherit h-5 w-5 ml-2' />
+                <Icon icon='trash' className='ml-2 h-5 w-5 text-inherit' />
               </Button.Ghost>
               <Button.Ghost
                 variant='primary'
@@ -60,37 +60,37 @@ export default function GraphDetails() {
   useEffect(() => getGraph(hid), [hid])
 
   return (
-    <div class='flex flex-col h-screen w-full '>
+    <div class='flex h-screen w-full flex-col'>
       <header class='flex w-full'>
         <GraphHeader refetchGraphs={() => null} graph={graph} />
       </header>
-      <section class='relative flex z-10 w-full p-4'>
-        <div class='w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mr-4 py-3'>
-          <h2 class='text-slate-300/80 flex items-end'>
+      <section class='relative z-10 flex w-full p-4'>
+        <div class='bg-mirage-300/40 border-mirage-800/50 relative mr-4 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
+          <h2 class='flex items-end text-slate-300/80'>
             Total Entities{' '}
-            <span class='text-6xl ml-auto font-sans font-semibold'>
+            <span class='ml-auto font-sans text-6xl font-semibold'>
               {vertices_count ?? 0}
             </span>
           </h2>
         </div>
-        <div class='w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mx-2 py-3'>
-          <h2 class='text-slate-300/80 flex items-end'>
+        <div class='bg-mirage-300/40 border-mirage-800/50 relative mx-2 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
+          <h2 class='flex items-end text-slate-300/80'>
             Total Relationships
-            <span class='text-6xl ml-auto font-sans font-semibold'>
+            <span class='ml-auto font-sans text-6xl font-semibold'>
               {edges_count ?? 0}
             </span>
           </h2>
         </div>
-        <div class='w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 ml-4 py-3'>
-          <h2 class='text-slate-300/80 flex items-end'>
+        <div class='bg-mirage-300/40 border-mirage-800/50 relative ml-4 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
+          <h2 class='flex items-end text-slate-300/80'>
             2nd Degree Entities
-            <span class='text-6xl ml-auto font-sans font-semibold'>
+            <span class='ml-auto font-sans text-6xl font-semibold'>
               {degree2_count ?? 0}
             </span>
           </h2>
         </div>
       </section>
-      <h2 class='text-slate-600 px-4'>
+      <h2 class='px-4 text-slate-600'>
         TODO: Add notes here{' '}
         <a
           class='text-radiance-900'

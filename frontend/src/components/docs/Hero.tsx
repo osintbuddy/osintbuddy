@@ -46,15 +46,15 @@ export function Hero() {
   const navigate = useNavigate()
 
   return (
-    <div className='z-10 overflow-hidden bg-gradient-to-b pt-6 lg:mt-[-4.75rem] lg:pt-[4.75rem] pb-12'>
-      <div className=' lg:relative lg:py-10 pb-40 lg:pb-36 lg:px-0'>
-        <div className='mx-auto grid grid-cols-1 md:px-0 px-4 md:max-w-5/6 gap-y-16 lg:grid-cols-2 '>
+    <div className='z-10 overflow-hidden bg-gradient-to-b pt-6 pb-12 lg:mt-[-4.75rem] lg:pt-[4.75rem]'>
+      <div className='pb-40 lg:relative lg:px-0 lg:py-10 lg:pb-36'>
+        <div className='mx-auto grid grid-cols-1 gap-y-16 px-4 md:max-w-5/6 md:px-0 lg:grid-cols-2'>
           <div className='relative z-10 lg:mt-28'>
-            <h2 className='inline bg-gradient-to-br from-primary-100 via-blue-500 to-primary-200 bg-clip-text text-3xl md:text-3xl font-display font-medium tracking-tight text-transparent md:leading-11 max-w-md md:px-0 whitespace-pre-line'>
+            <h2 className='from-primary-100 to-primary-200 font-display inline max-w-md bg-gradient-to-br via-blue-500 bg-clip-text text-3xl font-medium tracking-tight whitespace-pre-line text-transparent md:px-0 md:text-3xl md:leading-11'>
               Leverage the power of public data to fuel
               <br /> your research and uncover hidden connections
             </h2>
-            <div className='pt-1 text-slate-300 max-w-2xl'>
+            <div className='max-w-2xl pt-1 text-slate-300'>
               <p>
                 Reveal the insights that shape our world and stay informed
                 through the power of public data. See the connections,
@@ -62,7 +62,7 @@ export function Hero() {
                 uncovering scientific misconduct, visualize the invisible with
                 OSINTBuddy.
               </p>
-              <div className='mt-5 lg:mt-4 flex-wrap flex gap-4 '>
+              <div className='mt-5 flex flex-wrap gap-4 lg:mt-4'>
                 <Button.Solid
                   variant='primary'
                   disabled
@@ -83,9 +83,9 @@ export function Hero() {
               </div>
             </div>
           </div>
-          <div className='relative lg:static '>
-            <div className='select-none absolute inset-x-[-50vw] -top-32 -bottom-48 [mask-image:linear-gradient(transparent,white,white)] dark:[mask-image:linear-gradient(transparent,black,transparent)] lg:left-[calc(50%+14rem)] lg:right-0 lg:-top-32 lg:-bottom-32 lg:[mask-image:none] lg:dark:[mask-image:linear-gradient(white,white,transparent)]'>
-              <HeroBackground className='absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 lg:translate-y-[-60%]' />
+          <div className='relative lg:static'>
+            <div className='absolute inset-x-[-50vw] -top-32 -bottom-48 [mask-image:linear-gradient(transparent,white,white)] select-none lg:-top-32 lg:right-0 lg:-bottom-32 lg:left-[calc(50%+14rem)] lg:[mask-image:none] dark:[mask-image:linear-gradient(transparent,black,transparent)] lg:dark:[mask-image:linear-gradient(white,white,transparent)]'>
+              <HeroBackground className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-0 lg:translate-x-0 lg:translate-y-[-60%]' />
             </div>
             <div className='relative'>
               <img
@@ -96,35 +96,35 @@ export function Hero() {
                 height={530}
               />
               <img
-                className='absolute -bottom-40 -right-44 select-none'
+                className='absolute -right-44 -bottom-40 select-none'
                 src={blurIndigoImage}
                 alt=''
                 width={567}
                 height={567}
               />
-              <div className='absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10 blur-lg' />
-              <div className='absolute inset-0 rounded-2xl bg-gradient-to-tr from-mirage-800/40 via-primary-300/70 to-primary-600/20 opacity-10' />
-              <div className='relative rounded-2xl from-black/60 to-black/50 bg-gradient-to-br ring-1 ring-slate-400/10 backdrop-blur-xs'>
-                <div className='absolute -top-px left-20  h-px bg-gradient-to-r from-primary-300/10 via-primary-300/70 to-primary-300/0' />
-                <div className='absolute -bottom-px left-11 right-20 h-px bg-gradient-to-r from-blue-400/0 via-primary-400 to-blue-400/0' />
-                <div className='pl-4 pt-4  overflow-y-scroll'>
-                  <div className='gap-x-2 grid grid-cols-3 w-10 mb-4'>
+              <div className='from-mirage-800/40 via-primary-300/70 to-primary-600/20 absolute inset-0 rounded-2xl bg-gradient-to-tr opacity-10 blur-lg' />
+              <div className='from-mirage-800/40 via-primary-300/70 to-primary-600/20 absolute inset-0 rounded-2xl bg-gradient-to-tr opacity-10' />
+              <div className='relative rounded-2xl bg-gradient-to-br from-black/60 to-black/50 ring-1 ring-slate-400/10 backdrop-blur-xs'>
+                <div className='from-primary-300/10 via-primary-300/70 to-primary-300/0 absolute -top-px left-20 h-px bg-gradient-to-r' />
+                <div className='via-primary-400 absolute right-20 -bottom-px left-11 h-px bg-gradient-to-r from-blue-400/0 to-blue-400/0' />
+                <div className='overflow-y-scroll pt-4 pl-4'>
+                  <div className='mb-4 grid w-10 grid-cols-3 gap-x-2'>
                     <Icon icon='circle' className='!h-3 text-slate-600/30' />
                     <Icon icon='circle' className='!h-3 text-slate-600/30' />
                     <Icon icon='circle' className='!h-3 text-slate-600/30' />
                   </div>
-                  <div className=' flex text-sm'>
+                  <div className='flex text-sm'>
                     {tabs.map((tab) => (
                       <div
                         key={tab.name}
-                        className={`flex px-2 h-8 rounded-full ${
+                        className={`flex h-8 rounded-full px-2 ${
                           tab.isActive
-                            ? 'bg-black font-medium text-primary-200'
+                            ? 'text-primary-200 bg-black font-medium'
                             : 'text-slate-600'
                         }`}
                       >
                         <p
-                          className={`flex items-center rounded-full py-0.5 px-2.5 select-none`}
+                          className={`flex items-center rounded-full px-2.5 py-0.5 select-none`}
                         >
                           {tab.name}
                         </p>
@@ -134,7 +134,7 @@ export function Hero() {
                   <div className='mt-6 flex items-start px-1 text-sm'>
                     <div
                       aria-hidden='true'
-                      className='select-none  border-r border-slate-500/10 pr-4 font-mono text-slate-700/70'
+                      className='border-r border-slate-500/10 pr-4 font-mono text-slate-700/70 select-none'
                     >
                       {Array.from({
                         length: code.split('\n').length,

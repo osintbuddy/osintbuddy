@@ -1,6 +1,14 @@
 import { Icon } from '@/components/icons'
 import type { JSX } from 'preact/jsx-runtime'
 
+export type CalloutType = 'info' | 'warning' | 'danger'
+
+interface CalloutProps {
+  type: CalloutType
+  title: string
+  children: string | JSX.Element | undefined
+}
+
 const styles = {
   info: {
     container:
@@ -25,27 +33,19 @@ const styles = {
   },
 }
 
-export type CalloutType = 'info' | 'warning' | 'danger'
-
-interface CalloutProps {
-  type: CalloutType
-  title: string
-  children: string | JSX.Element | undefined
-}
-
 export function Callout({ type = 'info', title, children }: CalloutProps) {
   return (
     // styles[type].container
     <div
-      className={`my-6 py-4 border-[1px] border-l-3 flex px-6 from-black/30 to-black/40 bg-gradient-to-tr rounded-r-lg mx-2 ${styles[type].container}}`}
+      className={`mx-2 my-6 flex rounded-r-lg border-[1px] border-l-3 bg-gradient-to-tr from-black/30 to-black/40 px-6 py-4 ${styles[type].container}}`}
     >
       <section>
         <h5
-          className={`!font-medium !mt-0 flex items-center font-display opacity-85 ${styles[type].title}`}
+          className={`font-display !mt-0 flex items-center !font-medium opacity-85 ${styles[type].title}`}
         >
           <Icon
             icon={styles[type].icon}
-            className='h-6 w-6 mr-2 flex-none text-inherit'
+            className='mr-2 h-6 w-6 flex-none text-inherit'
           />
           <span>{title}</span>
         </h5>

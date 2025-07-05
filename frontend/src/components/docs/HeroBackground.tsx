@@ -1,11 +1,8 @@
-import { useId } from 'preact/compat'
 import type { JSX } from 'preact'
 
 interface SvgProps extends JSX.InputHTMLAttributes<SVGSVGElement> {}
 
 export function HeroBackground(props: SvgProps) {
-  let id = useId()
-
   return (
     <svg
       aria-hidden='true'
@@ -127,7 +124,7 @@ export function HeroBackground(props: SvgProps) {
           <animateMotion
             dur='26s'
             repeatCount='indefinite'
-            path='M580 720 Q 780 660, 980 720 Q 1180 780, 1380 720'
+            d='M580 720 Q 780 660, 980 720 Q 1180 780, 1380 720'
           />
         </circle>
 
@@ -135,7 +132,7 @@ export function HeroBackground(props: SvgProps) {
           <animateMotion
             dur='10s'
             repeatCount='indefinite'
-            path='M620 890 Q 820 830, 1020 890 Q 1220 950, 1420 890'
+            d='M620 890 Q 820 830, 1020 890 Q 1220 950, 1420 890'
           />
         </circle>
 
@@ -143,7 +140,7 @@ export function HeroBackground(props: SvgProps) {
           <animateMotion
             dur='12s'
             repeatCount='indefinite'
-            path='M600 50 Q 580 200, 620 350 Q 640 500, 600 650 Q 560 800, 620 950'
+            d='M600 50 Q 580 200, 620 350 Q 640 500, 600 650 Q 560 800, 620 950'
           />
         </circle>
 
@@ -151,7 +148,7 @@ export function HeroBackground(props: SvgProps) {
           <animateMotion
             dur='15s'
             repeatCount='indefinite'
-            path='M1000 0 Q 1020 150, 980 300 Q 960 450, 1000 600 Q 1040 750, 980 900 Q 960 1050, 1000 1080'
+            d='M1000 0 Q 1020 150, 980 300 Q 960 450, 1000 600 Q 1040 750, 980 900 Q 960 1050, 1000 1080'
           />
         </circle>
 
@@ -159,7 +156,7 @@ export function HeroBackground(props: SvgProps) {
           <animateMotion
             dur='11s'
             repeatCount='indefinite'
-            path='M1400 50 Q 1380 200, 1420 350 Q 1440 500, 1400 650 Q 1360 800, 1420 950'
+            d='M1400 50 Q 1380 200, 1420 350 Q 1440 500, 1400 650 Q 1360 800, 1420 950'
           />
         </circle>
 

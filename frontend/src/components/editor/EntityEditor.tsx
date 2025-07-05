@@ -131,7 +131,7 @@ export default function EntityEditor({
     <>
       <ResponsiveGridLayout
         compactType={null}
-        className='w-full h-full absolute'
+        className='absolute h-full w-full'
         rowHeight={20}
         maxRows={150}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}

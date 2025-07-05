@@ -441,7 +441,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
       {isSuccess && (
         <HotKeys keyMap={keyMap} handlers={handlers}>
-          <div className='h-screen flex flex-col w-full'>
+          <div className='flex h-screen w-full flex-col'>
             <EntityOptions
               positionMode={positionMode}
               toggleForceLayout={toggleForceLayout}
@@ -449,7 +449,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
               setElkLayout={setElkLayout}
               fitView={fitView}
             />
-            <div className='h-full w-full justify-between  bg-mirage-400/20'>
+            <div className='bg-mirage-400/20 h-full w-full justify-between'>
               <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>
                 <Graph
                   onSelectionCtxMenu={onSelectionCtxMenu}
@@ -474,7 +474,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             isOpen={showCommandPalette}
             setOpen={setShowCommandPalette}
           />
-          <div className='absolute top-[3.5rem] w-52 bg-red -z-10 h-20  text-slate-900' />
+          <div className='bg-red absolute top-[3.5rem] -z-10 h-20 w-52 text-slate-900' />
           <ContextMenu
             activeTransformLabel={activeTransformLabel}
             sendJsonMessage={sendJsonMessage}

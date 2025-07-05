@@ -8,9 +8,9 @@ export default function GraphLayout() {
 
   return (
     <>
-      <div className='flex flex-col max-w-screen'>
-        <div className='w-full transition-all overflow-hidden duration-100 relative'>
-          <main id='main' className='flex-1 overflow-hidden h-screen '>
+      <div className='flex max-w-screen flex-col'>
+        <div className='relative w-full overflow-hidden transition-all duration-100'>
+          <main id='main' className='h-screen flex-1 overflow-hidden'>
             <Outlet />
           </main>
         </div>

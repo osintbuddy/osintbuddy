@@ -11,20 +11,20 @@ export function TransparentFile(props: FileInputProps) {
   const { onBtnClick } = props
 
   return (
-    <div className='flex relative w-full '>
+    <div className='relative flex w-full'>
       <input
         {...props}
         type='text'
-        class='font-sans hover:border-primary border border-slate-900 from-mirage-950/30 to-mirage-900/35 bg-linear-to-br w-full transition-colors duration-75 ease-in-out px-2 rounded-l border-r-0  outline-1 outline-mirage-500 hover:outline-mirage-400 focus:outline-2 focus:outline-primary py-1 -mr-0.5 focus:bg-mirage-400 text-slate-300/90'
+        class='hover:border-primary from-mirage-950/30 to-mirage-900/35 outline-mirage-500 hover:outline-mirage-400 focus:outline-primary focus:bg-mirage-400 -mr-0.5 w-full rounded-l border border-r-0 border-slate-900 bg-linear-to-br px-2 py-1 font-sans text-slate-300/90 outline-1 transition-colors duration-75 ease-in-out focus:outline-2'
       />
       <button
         onClick={() => onBtnClick()}
         title='Select a folder'
-        className='inset-ring-1 inset-ring-primary-400/95 whitespace-nowrap focus:ring-primary-350 hover:inset-ring-primary-400 text-left text-sm font-medium tracking-wide scale-100 hover:scale-[99%]  flex items-center border-1 border-primary-400/95 focus:border-primary-350 hover:border-primary-400 px-5 font-display  hover:shadow justify-center transition-all duration-100 ease-linear  rounded-xs text-slate-400 hover:text-slate-300/70 hover:scale-105 group'
+        className='inset-ring-primary-400/95 focus:ring-primary-350 hover:inset-ring-primary-400 border-primary-400/95 focus:border-primary-350 hover:border-primary-400 font-display group flex scale-100 items-center justify-center rounded-xs border-1 px-5 text-left text-sm font-medium tracking-wide whitespace-nowrap text-slate-400 inset-ring-1 transition-all duration-100 ease-linear hover:scale-105 hover:scale-[99%] hover:text-slate-300/70 hover:shadow'
       >
         <Icon
           icon='folder'
-          className='h-5 text-slate-400/80 group-hover:text-slate-300/70 group-hover:rotate-5 rotate-0 absolute left-2.5 top-1.5'
+          className='absolute top-1.5 left-2.5 h-5 rotate-0 text-slate-400/80 group-hover:rotate-5 group-hover:text-slate-300/70'
         />
       </button>
     </div>
@@ -42,39 +42,39 @@ export function TransparentPassword(props: PasswordInputProps) {
   const { type: _, className, label } = props
 
   return (
-    <div className='flex relative flex-col w-full mt-7'>
+    <div className='relative mt-7 flex w-full flex-col'>
       {label && (
         <label
           for={label}
-          class='text-sm text-slate-350 rounded-t absolute font-display -top-6 px-2 -left-1'
+          class='text-slate-350 font-display absolute -top-6 -left-1 rounded-t px-2 text-sm'
         >
           {label}
         </label>
       )}
-      <div className='flex relative w-full '>
+      <div className='relative flex w-full'>
         <input
           {...props}
           type={hidePassword}
-          className={`font-sans hover:outline-mirage-400 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-500 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
         />
         <button
           type='button'
           onClick={() =>
             setHidePassword(hidePassword === 'password' ? 'text' : 'password')
           }
-          className='text-slate-800 absolute right-1 top-1  p-1 rounded outline-hidden focus:outline-hidden focus:text-slate-600'
+          className='absolute top-1 right-1 rounded p-1 text-slate-800 outline-hidden focus:text-slate-600 focus:outline-hidden'
         >
           {hidePassword === 'password' ? (
             <Icon
               icon='eye'
               title='Show Password'
-              className='h-6 w-6 relative right-0 -top-0.5  scale-100 rotate-0 hover:rotate-5 hover:scale-110 '
+              className='relative -top-0.5 right-0 h-6 w-6 scale-100 rotate-0 hover:scale-110 hover:rotate-5'
             />
           ) : (
             <Icon
               icon='eye-off'
               title='Hide Password'
-              className='h-6 w-6 relative right-0 -top-0.5 rotate-0 hover:rotate-5 scale-100 hover:scale-110 !text-primary-350'
+              className='!text-primary-350 relative -top-0.5 right-0 h-6 w-6 scale-100 rotate-0 hover:scale-110 hover:rotate-5'
             />
           )}
         </button>
@@ -90,15 +90,15 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 export function Transparent(props: InputProps) {
   const { className, label } = props
   return (
-    <div className='flex flex-col relative w-full mt-7'>
+    <div className='relative mt-7 flex w-full flex-col'>
       {label && (
-        <label class='text-sm font-medium text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 '>
+        <label class='text-slate-350/90 font-display absolute -top-6 -left-1 rounded-t px-2 text-sm font-medium'>
           {label}
         </label>
       )}
       <input
         {...props}
-        className={`font-sans hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out px-2 rounded outline-1 outline-mirage-500 focus:outline-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`hover:outline-mirage-400 outline-mirage-500 focus:outline-primary focus:border-primary text-slate-350 w-64 rounded border border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-colors duration-100 ease-in-out placeholder:text-slate-800 hover:from-black/35 hover:to-black/30 focus:bg-black/60 ${className ?? ''}`}
       />
     </div>
   )
@@ -112,11 +112,11 @@ interface TextareaProps
 export function Textarea(props: TextareaProps) {
   const { className, label } = props
   return (
-    <div className='flex flex-col relative w-full mt-7'>
+    <div className='relative mt-7 flex w-full flex-col'>
       {label && (
         <label
           for={label}
-          class='text-sm font-medium text-slate-350/90 font-display rounded-t absolute -top-6 px-2 -left-1 '
+          class='text-slate-350/90 font-display absolute -top-6 -left-1 rounded-t px-2 text-sm font-medium'
         >
           {label}
         </label>
@@ -124,7 +124,7 @@ export function Textarea(props: TextareaProps) {
 
       <textarea
         {...props}
-        className={`font-sans p-2 hover:outline-mirage-400 border border-transparent focus:bg-black/60 from-black/35 to-black/10 outline-mirage-500 hover:from-black/35 hover:to-black/30 bg-linear-to-br transition-colors duration-100 ease-in-out rounded outline-1  focus:outline-primary focus:ring-primary focus:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+        className={`hover:outline-mirage-400 outline-mirage-500 focus:outline-primary focus:ring-primary focus:border-primary text-slate-350 w-64 rounded border border-transparent bg-linear-to-br from-black/35 to-black/10 p-2 py-1 font-sans outline-1 transition-colors duration-100 ease-in-out placeholder:text-slate-800 hover:from-black/35 hover:to-black/30 focus:bg-black/60 ${className ?? ''}`}
       />
     </div>
   )
@@ -138,21 +138,21 @@ export function TransparentIcon(props: IconInputProps) {
   const { className, label, icon, onBtnClick } = props
 
   return (
-    <div className='flex relative flex-col w-full'>
+    <div className='relative flex w-full flex-col'>
       {label && (
-        <label class='text-sm text-slate-350 font-medium  font-display rounded-t absolute -top-6 px-2 -left-1 mt-7'>
+        <label class='text-slate-350 font-display absolute -top-6 -left-1 mt-7 rounded-t px-2 text-sm font-medium'>
           {label}
         </label>
       )}
-      <div className='flex relative w-full'>
+      <div className='relative flex w-full'>
         <input
           {...props}
-          className={`font-sans hover:outline-mirage-400 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in px-2 rounded outline-1 outline-mirage-500 focus-visible:outline-transparent focus:border-2 focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 ${className ?? ''}`}
+          className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
         />
         <button
           type='button'
           onClick={onBtnClick}
-          className='text-slate-800 h-6 w-6 focus:text-primary hover:text-primary-350 absolute top-1 p-0.5 rounded focus:outline-primary-400 focus:outline-hidden right-4'
+          className='focus:text-primary hover:text-primary-350 focus:outline-primary-400 absolute top-1 right-4 h-6 w-6 rounded p-0.5 text-slate-800 focus:outline-hidden'
         >
           {icon}
         </button>
@@ -183,17 +183,17 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
     <div class={`${className ?? ''}`}>
       <label
         htmlFor={props.name}
-        class='text-sm font-display font-medium leading-3 text-slate-350'
+        class='font-display text-slate-350 text-sm leading-3 font-medium'
       >
         {label ?? ''}
       </label>
       <div class='sm:flex sm:items-start sm:justify-between'>
         {description && (
-          <div class='max-w-xl text-sm text-slate-350'>
+          <div class='text-slate-350 max-w-xl text-sm'>
             <p>{description}</p>
           </div>
         )}
-        <div class='mt-5 sm:ml-6 sm:-mt-3 sm:flex sm:shrink-0 sm:items-center'>
+        <div class='mt-5 sm:-mt-3 sm:ml-6 sm:flex sm:shrink-0 sm:items-center'>
           {/* Hidden checkbox for form submission and accessibility */}
           <input
             type='checkbox'
@@ -210,7 +210,7 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
             onClick={handleToggle}
             class={`${
               isChecked ? 'bg-primary-400' : 'bg-cod-600/50'
-            } relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-primary transition-colors duration-200 ease-in-out focus:ring-1 hover:ring-1 hover:ring-primary-400 focus:appearance-none outline-hidden`}
+            } border-primary hover:ring-primary-400 relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 outline-hidden transition-colors duration-200 ease-in-out hover:ring-1 focus:appearance-none focus:ring-1`}
             role='switch'
             aria-checked={isChecked}
             aria-labelledby={props.name}
@@ -222,7 +222,7 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
                 isChecked
                   ? 'translate-x-7 bg-slate-200'
                   : 'translate-x-0 bg-slate-300'
-              } inline-block h-5 w-5 transform rounded-full shadow transition duration-200 ease-in-out mt-0.5`}
+              } mt-0.5 inline-block h-5 w-5 transform rounded-full shadow transition duration-200 ease-in-out`}
             />
           </button>
         </div>
@@ -235,7 +235,7 @@ export function Checkbox(props: InputProps) {
   const { label, className } = props
   return (
     <div
-      className={`flex items-center justify-between text-slate-350 relative ${className ?? ''}`}
+      className={`text-slate-350 relative flex items-center justify-between ${className ?? ''}`}
     >
       <label for={label?.toString()} class='text-sm hover:text-slate-300'>
         {label}
@@ -244,7 +244,7 @@ export function Checkbox(props: InputProps) {
         {...props}
         type='checkbox'
         id={label?.toString()}
-        className="ms-2 text-sm font-sans checked:accent-primary-350/95 h-4.5 w-4.5 text-mirage-500 bg-black/40 hover:text-mirage-400 appearance-none border p-2 rounded checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 checked:before:content-['\2713\0020'] checked:before:-top-2.5 checked:before:right-[0.3rem] checked:before:relative checked:before:text-slate-200 peer"
+        className="checked:accent-primary-350/95 text-mirage-500 hover:text-mirage-400 checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 peer ms-2 h-4.5 w-4.5 appearance-none rounded border bg-black/40 p-2 font-sans text-sm checked:before:relative checked:before:-top-2.5 checked:before:right-[0.3rem] checked:before:text-slate-200 checked:before:content-['\2713\0020']"
       />
     </div>
   )

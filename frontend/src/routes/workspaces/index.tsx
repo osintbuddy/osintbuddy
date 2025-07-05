@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'preact/hooks'
-import EntityEditor from '@/components/EntityEditor/EntityEditor'
+import EntityEditor from '@/components/editor/EntityEditor'
 import { Icon } from '@/components/icons'
 import Button from '@/components/buttons'
 import { NavLink } from 'react-router-dom'
@@ -122,11 +122,11 @@ export default function WorkspacePage() {
 
   return (
     <>
-      <div class='flex flex-col w-full pt-2.5 px-3'>
-        <section class='flex items-center relative rounded-lg  h-min justify-between z-[99]'>
+      <div class='flex w-full flex-col px-3 pt-2.5'>
+        <section class='relative z-[99] flex h-min items-center justify-between rounded-lg'>
           {/* Custom Combobox */}
-          <div class='relative  max-w-xs border-b shadow-2xl shadow-black/15 from-black/10 to-black/40 r backdrop-blur-sm bg-gradient-to-br border-mirage-700/20 '>
-            <div class='px-2 w-full relative sm:text-sm sm:leading-6 hover:border-slate-700/20 justify-between items-center bg-gradient-to-br focus-within:!border-primary/70 focus-within:ring-1 ring-mirage-400/20 text-slate-350 font-display shadow-sm focus-within:bg-gradient-to-l dropdown hover:outline-slate-900/30 border-2 border-transparent focus:bg-black/60 from-black/35 to-black/10 hover:from-black/35 hover:to-black/20 bg-linear-to-br transition-all duration-100 ease-in rounded outline-1 outline-slate-900 focus-visible:outline-transparent focus:border-2'>
+          <div class='r border-mirage-700/20 relative max-w-xs border-b bg-gradient-to-br from-black/10 to-black/40 shadow-2xl shadow-black/15 backdrop-blur-sm'>
+            <div class='focus-within:!border-primary/70 ring-mirage-400/20 text-slate-350 font-display dropdown relative w-full items-center justify-between rounded border-2 border-transparent bg-linear-to-br bg-gradient-to-br from-black/35 to-black/10 px-2 shadow-sm outline-1 outline-slate-900 transition-all duration-100 ease-in focus-within:bg-gradient-to-l focus-within:ring-1 hover:border-slate-700/20 hover:from-black/35 hover:to-black/20 hover:outline-slate-900/30 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent sm:text-sm sm:leading-6'>
               <input
                 ref={dropdownRef}
                 type='text'
@@ -135,7 +135,7 @@ export default function WorkspacePage() {
                 onInput={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsOpen(true)}
-                class='focus-visible:border-primary py-1 w-64 text-slate-350 placeholder:text-slate-800 outline-hidden bg-transparent'
+                class='focus-visible:border-primary text-slate-350 w-64 bg-transparent py-1 outline-hidden placeholder:text-slate-800'
                 placeholder='Select entity...'
                 autocomplete='off'
                 role='combobox'
@@ -145,7 +145,7 @@ export default function WorkspacePage() {
               <button
                 type='button'
                 onClick={toggleDropdown}
-                class='absolute z-[99] inset-y-0 h-8 right-0 focus:outline-hidden flex items-center pr-2'
+                class='absolute inset-y-0 right-0 z-[99] flex h-8 items-center pr-2 focus:outline-hidden'
                 aria-label='Toggle dropdown'
               >
                 <Icon
@@ -160,7 +160,7 @@ export default function WorkspacePage() {
             {isOpen && (
               <div
                 ref={optionsRef}
-                class='left-px top-11 absolute nodrag nowheel z-10 max-h-80 w-full overflow-y-scroll rounded-b-md from-black/35 to-black/10 from-30% border-2 border-mirage-900/80 bg-gradient-to-br text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-hidden sm:text-sm'
+                class='nodrag nowheel border-mirage-900/80 absolute top-11 left-px z-10 max-h-80 w-full overflow-y-scroll rounded-b-md border-2 bg-gradient-to-br from-black/35 from-30% to-black/10 text-[0.6rem] shadow-lg backdrop-blur-sm focus:outline-hidden sm:text-sm'
                 role='listbox'
               >
                 {entities?.length !== 0 ? (
@@ -169,26 +169,26 @@ export default function WorkspacePage() {
                       key={entity.label || index}
                       onClick={() => handleSelect(entity)}
                       onMouseEnter={() => setFocusedIndex(index)}
-                      class={`text-nowrap px-4 flex-col hover:bg-black border-l-2 border-transparent hover:border-primary-400 flex py-1.5 nowheel nodrag cursor-default select-none transition-colors ${
+                      class={`hover:border-primary-400 nowheel nodrag flex cursor-default flex-col border-l-2 border-transparent px-4 py-1.5 text-nowrap transition-colors select-none hover:bg-black ${
                         focusedIndex === index
-                          ? 'bg-black/50 text-slate-350 border-primary-400'
+                          ? 'text-slate-350 border-primary-400 bg-black/50'
                           : 'text-slate-400'
                       }`}
                       role='option'
                       aria-selected={focusedIndex === index}
                     >
-                      <span class='block truncate text-md'>{entity.label}</span>
-                      <span class='flex truncate leading-3 text-[0.6rem]'>
+                      <span class='text-md block truncate'>{entity.label}</span>
+                      <span class='flex truncate text-[0.6rem] leading-3'>
                         {entity.author}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <section class='text-nowrap px-4 my-4 flex-col hover:bg-black/20 flex nowheel nodrag cursor-default select-none text-slate-400 pb-2'>
-                    <h5 class='border-b-danger-600/80 border-b-2 font-display text-lg w-min pr-1 leading-5'>
+                  <section class='nowheel nodrag my-4 flex cursor-default flex-col px-4 pb-2 text-nowrap text-slate-400 select-none hover:bg-black/20'>
+                    <h5 class='border-b-danger-600/80 font-display w-min border-b-2 pr-1 text-lg leading-5'>
                       No entities found!
                     </h5>
-                    <p class='w-min my-1'>
+                    <p class='my-1 w-min'>
                       Read{' '}
                       <NavLink to='/docs/overview' class='text-primary-200'>
                         the OSIB book

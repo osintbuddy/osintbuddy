@@ -53,18 +53,18 @@ export default function OverlayModal({
     <div className='fixed z-10 w-screen' ref={cancelRef}>
       {/* Backdrop overlay with fade animation */}
       <div
-        className={`${isVisible ? 'opacity-100' : 'opacity-0'} fixed inset-0 bg-black/70 backdrop-blur-md h-screen w-screen cursor-pointer transition-opacity duration-200 ease-out`}
+        className={`${isVisible ? 'opacity-100' : 'opacity-0'} fixed inset-0 h-screen w-screen cursor-pointer bg-black/70 backdrop-blur-md transition-opacity duration-200 ease-out`}
         onClick={handleBackdropClick}
       />
 
-      <div className='fixed inset-0 z-20 overflow-y-auto pointer-events-none'>
+      <div className='pointer-events-none fixed inset-0 z-20 overflow-y-auto'>
         <div className='flex min-h-full items-end justify-center text-center sm:items-center sm:p-0'>
           {/* Modal with scale and fade animation */}
           <div
-            className={`top-0 relative max-w-2xl w-full transform overflow-hidden rounded-r-xl text-left pointer-events-auto transition-all duration-200 ease-out ${
+            className={`pointer-events-auto relative top-0 w-full max-w-2xl transform overflow-hidden rounded-r-xl text-left transition-all duration-200 ease-out ${
               isVisible
-                ? 'opacity-100 translate-y-0 sm:scale-100'
-                : 'opacity-0 translate-y-4 sm:scale-90'
+                ? 'translate-y-0 opacity-100 sm:scale-100'
+                : 'translate-y-4 opacity-0 sm:scale-90'
             }`}
           >
             {children}

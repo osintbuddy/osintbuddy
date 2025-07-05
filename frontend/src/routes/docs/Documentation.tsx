@@ -120,24 +120,24 @@ function useTableOfContents(tableOfContents: any) {
 function Navigation({ navigation }: any) {
   const location = useLocation()
   return (
-    <nav className='text-base lg:text-sm px-6'>
+    <nav className='px-6 text-base lg:text-sm'>
       <ul role='list' className='space-y-9'>
         {navigation.map((section: any) => (
           <li key={section.title}>
-            <h2 className='font-display font-semibold text-slate-350'>
+            <h2 className='font-display text-slate-350 font-semibold'>
               {section.title}
             </h2>
             <ul
               role='list'
-              className='mt-2 space-y-2 border-l-2 border-slate-100 dark:border-mirage-300 lg:mt-4 lg:space-y-4 lg:border-slate-200'
+              className='dark:border-mirage-300 mt-2 space-y-2 border-l-2 border-slate-100 lg:mt-4 lg:space-y-4 lg:border-slate-200'
             >
               {section.links.map((link: any) => (
                 <li key={link.href} className='relative'>
                   <NavLink
                     to={link.href}
-                    className={`block w-full pl-3.5 before:pointer-events-none before:absolute before:-left-1 before:top-1/2 before:h-1.5 before:w-1.5  border-b-0 before:-translate-y-1/2 before:rounded-sm ${
+                    className={`block w-full border-b-0 pl-3.5 before:pointer-events-none before:absolute before:top-1/2 before:-left-1 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-sm ${
                       link.href === location.pathname
-                        ? 'font-semibold text-primary-200 before:bg-primary-200'
+                        ? 'text-primary-200 before:bg-primary-200 font-semibold'
                         : 'text-slate-500 before:hidden before:bg-slate-300 hover:text-slate-600 hover:before:block dark:text-slate-400 dark:before:bg-slate-700 dark:hover:text-slate-300'
                     }`}
                   >
@@ -253,22 +253,22 @@ export default function Documentation() {
   return (
     <>
       {isHomePage && <Hero />}
-      <div className='relative self-center border rounded-t-2xl flex md:max-w-5/6 justify-center  lg:px-10 border-slate-700/10 shadow-black/50 shadow-2xl backdrop-blur-sm from-black/60 to-black/30 bg-gradient-to-tr ring-1 ring-slate-700/10 w-full'>
-        <div className='absolute -left-px h-2/3 top-11 bottom-20 w-px bg-gradient-to-b from-blue-400/0 via-primary-700 to-blue-400/0' />
+      <div className='relative flex w-full justify-center self-center rounded-t-2xl border border-slate-700/10 bg-gradient-to-tr from-black/60 to-black/30 shadow-2xl ring-1 shadow-black/50 ring-slate-700/10 backdrop-blur-sm md:max-w-5/6 lg:px-10'>
+        <div className='via-primary-700 absolute top-11 bottom-20 -left-px h-2/3 w-px bg-gradient-to-b from-blue-400/0 to-blue-400/0' />
         <div className='hidden lg:relative lg:block lg:flex-none'>
-          <div className='sticky top-[4.5rem] h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 '>
+          <div className='sticky top-[4.5rem] h-[calc(100vh-4.5rem)] overflow-x-hidden overflow-y-auto py-16'>
             <Navigation
               navigation={navigation}
               className='w-72 pr-8 xl:w-72 xl:pr-16'
             />
           </div>
         </div>
-        <div className='min-w-0 max-w-5/6 flex-auto md:px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16 '>
+        <div className='max-w-5/6 min-w-0 flex-auto py-16 md:px-4 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16'>
           <article>
             {(attrs.title || section) && (
               <header className='mb-3 space-y-1'>
                 {section && (
-                  <p className='font-display text-md font-medium text-primary-200'>
+                  <p className='font-display text-md text-primary-200 font-medium'>
                     {section.title}
                   </p>
                 )}
@@ -281,7 +281,7 @@ export default function Documentation() {
             )}
             <Prose>{Markdoc.renderers.react(content, React)}</Prose>
           </article>
-          <dl className='mt-12 flex border-t pt-6 border-slate-800'>
+          <dl className='mt-12 flex border-t border-slate-800 pt-6'>
             {previousPage && (
               <div>
                 <dt className='font-display text-sm font-medium text-slate-900 dark:text-slate-300/90'>

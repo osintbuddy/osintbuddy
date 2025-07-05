@@ -21,7 +21,7 @@ export function Solid(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={`group ring-1 whitespace-nowrap text-left text-sm tracking-wide font-semibold flex scale-100 hover:scale-[99%] items-center hover:ring-inset py-2 px-5 font-display rounded-md justify-center transition-all duration-75 ease-in text-slate-200/99 hover:text-slate-200 ${solid[variant]} ${className ?? ''} `}
+      class={`group font-display flex scale-100 items-center justify-center rounded-md px-5 py-2 text-left text-sm font-semibold tracking-wide whitespace-nowrap text-slate-200/99 ring-1 transition-all duration-75 ease-in hover:scale-[99%] hover:text-slate-200 hover:ring-inset ${solid[variant]} ${className ?? ''} `}
     >
       {children}
     </button>
@@ -41,7 +41,7 @@ export function Ghost(props: ButtonProps): JSX.Element {
   return (
     <button
       {...btnProps}
-      class={` group ring-1 whitespace-nowrap text-left text-sm flex items-center justify-center tracking-wide font-semibold scale-100 hover:scale-[99%] border hover:ring-inset py-2 px-5 font-display rounded-md transition-all duration-75 ease-in text-slate-300/99 hover:text-slate-300 ${ghost[variant]} ${className ?? ''}`}
+      class={`group font-display flex scale-100 items-center justify-center rounded-md border px-5 py-2 text-left text-sm font-semibold tracking-wide whitespace-nowrap text-slate-300/99 ring-1 transition-all duration-75 ease-in hover:scale-[99%] hover:text-slate-300 hover:ring-inset ${ghost[variant]} ${className ?? ''}`}
     >
       {children}
     </button>

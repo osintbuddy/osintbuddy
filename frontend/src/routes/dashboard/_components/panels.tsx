@@ -7,7 +7,7 @@ export function MarketPanel() {
 
   return (
     <>
-      <section class='flex flex-col justify-between relative shrink overflow-clip'>
+      <section class='relative flex shrink flex-col justify-between overflow-clip'>
         <Subpanel
           label='Community'
           showError={true}
@@ -103,7 +103,7 @@ export function GraphPanel({
   }
 
   return (
-    <section class='flex flex-col justify-between relative shrink overflow-clip'>
+    <section class='relative flex shrink flex-col justify-between overflow-clip'>
       <Subpanel
         label='Favorites'
         showError={isError}
@@ -198,7 +198,7 @@ export function EntitiesPanel({
   }
 
   return (
-    <section className='flex flex-col justify-between relative shrink overflow-clip'>
+    <section className='relative flex shrink flex-col justify-between overflow-clip'>
       <Subpanel
         label='Favorites'
         showError={isError}

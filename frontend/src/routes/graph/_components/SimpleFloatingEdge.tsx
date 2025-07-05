@@ -10,13 +10,13 @@ function EdgeLabel({ transform, label }: { transform: string; label: string }) {
       {label && (
         <div
           style={{ transform }}
-          className='absolute border-2 bg-slate-800/5 pointer-events-auto cursor-grab font-semibold border-slate-700 p-1 px-3  rounded-md text-[0.6rem] leading-none capitalize text-slate-500 hover:text-slate-400/80 backdrop-blur-md flex items-center justify-between  font-display'
+          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-md border-2 border-slate-700 bg-slate-800/5 p-1 px-3 text-[0.6rem] leading-none font-semibold text-slate-500 capitalize backdrop-blur-md hover:text-slate-400/80'
         >
-          <p className='flex items-center justify-between cursor-pointer'>
+          <p className='flex cursor-pointer items-center justify-between'>
             {label}{' '}
             <Icon
               icon='chevron-down'
-              className='h-4 w-4 ml-2 origin-center hover:rotate-3'
+              className='ml-2 h-4 w-4 origin-center hover:rotate-3'
             />
           </p>
         </div>
