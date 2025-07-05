@@ -98,7 +98,7 @@ export function Transparent(props: InputProps) {
       )}
       <input
         {...props}
-        className={`hover:outline-mirage-400 outline-mirage-500 focus:outline-primary focus:border-primary text-slate-350 w-64 rounded border border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-colors duration-100 ease-in-out placeholder:text-slate-800 hover:from-black/35 hover:to-black/30 focus:bg-black/60 ${className ?? ''}`}
+        className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
       />
     </div>
   )

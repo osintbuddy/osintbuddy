@@ -206,27 +206,27 @@ p {
   font-family: var(--font-sans);
 }
 
+/* fix autofill bg for the shittiest browser in the world (chrome) */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+input[data-autocompleted] {
+    background-color: transparent !important;
+}
 /* 
   Custom Scrollbar Style 
-  Works on Chrome, Firefox, Edge, and Safari 
+  Works on Chrome and Firefox
 */
-*::-webkit-scrollbar,
-*::-webkit-scrollbar-track {
-  width: 12px;
-  border-radius: none;
-
-}
-*::-webkit-scrollbar-track {
-  background: #19233433;
-}
-*::-webkit-scrollbar-thumb {
-  background-color: #1a1f2793;
-  border-radius: none;
-  border-right: 10px solid #1b243a84;
-}
 * {
   scrollbar-width: 12px;
-  scrollbar-color: #36497962 #202d4333;
+  scrollbar-color: #0c0927 #040511;
+}
+@supports (not (-moz-appearance:button)) and (contain:paint) and (-webkit-appearance:none){
+  /* ugh,  failed web standards, this targets the shitty chrome browser - https://stackoverflow.com/a/73264364 */
+  * {
+    scrollbar-width: thin;
+  }
 }
 /* end Custom Scrollbar Style */
 

@@ -99,7 +99,7 @@ export default function Subpanel({
               key={item.id}
               to={`${to}/${item.id}`}
               className={({ isActive }) =>
-                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-slate-500 shadow-2xs transition-transform duration-300 ease-out *:text-slate-500 first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive && '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl'}`
+                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive ? '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl' : '*:text-slate-500'}`
               }
             >
               <div class='mb-0.5 flex w-full flex-col items-start p-2.5 pr-0 text-sm text-inherit'>
@@ -120,7 +120,7 @@ export default function Subpanel({
                   e.stopPropagation()
                   await onClick(item.id)
                 }}
-                className={`hover:!text-primary-350 ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
+                className={`hover:!text-primary-350 text- ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
               />
             </NavLink>
           )

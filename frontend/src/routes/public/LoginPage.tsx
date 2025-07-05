@@ -69,7 +69,7 @@ export default function LoginPage(): JSX.Element {
               className='w-full'
               name='email'
               placeholder='you@provider.com'
-              defaultValue={rememberedEmail as string}
+              defaultValue={rememberedEmail}
               required
             />
             <Input.TransparentPassword

@@ -119,7 +119,7 @@ export default function DashboardPage() {
               />
             </section>
             <div class='h-full overflow-y-scroll'>
-              <div class='relative w-full '>
+              <div class='relative w-full'>
                 {currentPanelTab === 0 && (
                   <GraphPanel
                     graphsData={{ favorites: graphFavorites, graphs }}
