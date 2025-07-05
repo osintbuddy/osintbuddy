@@ -1771,6 +1771,7 @@ dependencies = [
  "log",
  "moka",
  "rand_core 0.9.3",
+ "regex",
  "serde",
  "serde_json",
  "sqids",

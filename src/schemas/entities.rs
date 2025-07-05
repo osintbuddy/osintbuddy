@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Entity {
+pub struct DbEntity {
     pub id: i64,
     #[serde(skip_serializing)]
     pub uuid: Option<Uuid>,
@@ -20,6 +20,17 @@ pub struct Entity {
     pub source: String,
     #[serde(skip_serializing)]
     pub owner_id: i64,
+    pub ctime: Option<DateTime<Utc>>,
+    pub mtime: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Entity {
+    pub id: String,
+    pub label: String,
+    pub description: String,
+    pub author: String,
+    pub source: String,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }
@@ -35,7 +46,7 @@ pub struct EntityWithSqid {
     pub mtime: Option<DateTime<Utc>>,
 }
 
-impl Responder for Entity {
+impl Responder for DbEntity {
     type Body = BoxBody;
     fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
         let body = serde_json::to_string(&self).unwrap();
@@ -110,4 +121,4 @@ impl Responder for ListEntitiesResponse {
     }
 }
 
-pub type ListEntities = Json<Vec<Entity>>;
+pub type ListEntities = Json<Vec<DbEntity>>;

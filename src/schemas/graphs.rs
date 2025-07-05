@@ -26,12 +26,8 @@ pub struct DbGraph {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Graph {
     pub id: String,
-    #[serde(skip_serializing)]
-    pub uuid: Option<Uuid>,
     pub label: String,
     pub description: String,
-    #[serde(skip_serializing)]
-    pub owner_id: i64,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }
@@ -49,7 +45,7 @@ pub struct FavoriteGraphSchema {
 }
 pub type FavoriteGraphRequest = Json<FavoriteGraphSchema>;
 
-impl Responder for DbGraph {
+impl Responder for Graph {
     type Body = BoxBody;
     fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
         let body = serde_json::to_string(&self).unwrap();
@@ -66,7 +62,7 @@ pub struct GraphStats {
     pub graph: DbGraph,
     pub vertices_count: usize,
     pub edges_count: usize,
-    pub degree2_count: usize,
+    pub second_degrees: usize,
 }
 impl Responder for GraphStats {
     type Body = BoxBody;

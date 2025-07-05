@@ -26,11 +26,13 @@ export interface Tokens {
   token_type: TokenTypes
 }
 
+type OnExp = () => void;
+
 export const request = async <T>(
   endpoint: string,
   token: string,
   options: ApiOptions = {},
-  onExp?: () => void
+  onExp?: OnExp
 ): Promise<T> => {
   const { method = 'GET', headers = { 'Content-Type': 'application/json' } } = options;
   let { body } = options;
@@ -40,7 +42,9 @@ export const request = async <T>(
     method,
     headers: { 'Authorization': `Bearer ${token}`, ...headers },
   });
-  if (!response.ok) {
+
+  const code = response.status
+  if (code !== 200 && code !== 201 && code !== 202) {
     const error = await response.json() as ApiError;
     // TODO: handle refresh logic
     if (error.message.toLowerCase().includes("token")) {
@@ -168,17 +172,17 @@ export const entitiesApi = {
   create: async (
     payload: CreateEntityPayload,
     token: Tokens['access_token'],
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<Entity> => {
     return request<Entity>('/entities/', token, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: payload
     }, onExp);
   },
   list: async (
     payload: Paginate,
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<ListEntitiesResponse> => {
     const { skip, limit } = payload;
     return request<ListEntitiesResponse>(`/entities/?skip=${skip}&limit=${limit}`, token, {}, onExp);
@@ -186,14 +190,14 @@ export const entitiesApi = {
   getById: async (
     id: string, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<Entity> => {
     return request<Entity>(`/entities/${id}`, token, {}, onExp);
   },
   update: async (
     payload: UpdateEntityPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<Entity> => {
     return request<Entity>('/entities/', token, {
       method: 'PATCH',
@@ -203,7 +207,7 @@ export const entitiesApi = {
   delete: async (
     payload: DeleteEntityPayload, 
     token:  Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<void> => {
     return request<void>('/entities/', token, {
       method: 'DELETE',
@@ -213,7 +217,7 @@ export const entitiesApi = {
   favorite: async (
     payload: FavoriteEntityPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<void> => {
     return request<void>('/entities/favorite', token, {
       method: 'POST',
@@ -228,13 +232,13 @@ export interface CreateGraphPayload {
 }
 
 export interface UpdateGraphPayload {
-  id: number
+  id: string
   label: string
   description: string
 }
 
 export interface DeleteGraphPayload {
-  id: number
+  id: string
 }
 
 export interface FavoriteGraphPayload {
@@ -256,13 +260,7 @@ export interface ListGraphsResponse {
 }
 
 export interface GraphDetails {
-  graph: {
-    id: number
-    label: string
-    description: string
-    ctime: string
-    mtime: string
-  }
+  graph: Graph
   vertices_count: number
   edges_count: number
   degree2_count: number
@@ -272,9 +270,9 @@ export const graphsApi = {
   create: async (
     payload: CreateGraphPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<Graph> => {
-    return request<Graph>('/graphs', token, {
+    return request<Graph>('/graphs/', token, {
       method: 'POST',
       body: payload
     }, onExp);
@@ -282,7 +280,7 @@ export const graphsApi = {
   list: async (
     payload: Paginate,
     token: Tokens['access_token'],
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<ListGraphsResponse> => {
     const { skip, limit } = payload;
     return request<ListGraphsResponse>(`/graphs/?skip=${skip}&limit=${limit}`, token, {}, onExp);
@@ -290,14 +288,14 @@ export const graphsApi = {
   getById: async (
     id: string, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<GraphDetails> => {
     return request<GraphDetails>(`/graphs/${id}`, token, {}, onExp);
   },
   update: async (
     payload: UpdateGraphPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<Graph> => {
     return request<Graph>('/graphs/', token, {
       method: 'PATCH',
@@ -307,7 +305,7 @@ export const graphsApi = {
   delete: async (
     payload: DeleteGraphPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<void> => {
     return request<void>('/graphs/', token, {
       method: 'DELETE',
@@ -317,7 +315,7 @@ export const graphsApi = {
   favorite: async (
     payload: FavoriteGraphPayload, 
     token: Tokens['access_token'], 
-    onExp?: () => void
+    onExp?: OnExp
   ): Promise<void> => {
     return request<void>('/graphs/favorite', token, {
       method: 'POST',

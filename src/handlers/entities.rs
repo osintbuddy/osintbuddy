@@ -4,7 +4,7 @@ use crate::{
     schemas::{
         Paginate,
         entities::{
-            CreateEntity, DeleteEntity, Entity, FavoriteEntityRequest, ListEntitiesResponse,
+            CreateEntity, DbEntity, DeleteEntity, FavoriteEntityRequest, ListEntitiesResponse,
             UpdateEntity,
         },
         errors::{AppError, ErrorKind},
@@ -25,10 +25,10 @@ async fn create_entity_handler(
     body: CreateEntity,
     pool: db::Database,
     auth: AuthMiddleware,
-) -> Result<Entity, AppError> {
+) -> Result<DbEntity, AppError> {
     let body = body.into_inner().validate()?;
     sqlx::query_as!(
-        Entity,
+        DbEntity,
         "INSERT INTO entities (label,description,author,source,owner_id) VALUES ($1, $2, $3,$4,$5) RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
@@ -52,9 +52,9 @@ async fn update_entity_handler(
     body: UpdateEntity,
     pool: db::Database,
     auth: AuthMiddleware,
-) -> Result<Entity, AppError> {
+) -> Result<DbEntity, AppError> {
     sqlx::query_as!(
-      Entity,
+      DbEntity,
       "UPDATE entities SET label = $1, description = $2, author = $3, source = $4 WHERE  id = $5 AND owner_id = $6 RETURNING *",
       body.label.to_string(),
       body.description.to_string(),
@@ -102,7 +102,7 @@ async fn list_entities_handler(
     sqids: Data<Sqids>,
 ) -> Result<ListEntitiesResponse, AppError> {
     let entities = sqlx::query_as!(
-        Entity,
+        DbEntity,
         "SELECT * FROM entities WHERE owner_id = $1 OFFSET $2 LIMIT $3",
         auth.account_id,
         page.skip,
@@ -178,7 +178,7 @@ async fn get_entity_handler(
     auth: AuthMiddleware,
     entity_id: Path<String>,
     sqids: Data<Sqids>,
-) -> Result<Entity, AppError> {
+) -> Result<DbEntity, AppError> {
     // Decode sqid to i64
     let entity_ids = sqids.decode(&entity_id);
     let decoded_id = entity_ids.first().ok_or_else(|| {
@@ -190,7 +190,7 @@ async fn get_entity_handler(
     })? as &u64;
 
     sqlx::query_as!(
-        Entity,
+        DbEntity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
         *decoded_id as i64,
         auth.account_id
@@ -224,7 +224,7 @@ async fn favorite_entity_handler(
     })? as &u64;
 
     let entity = sqlx::query_as!(
-        Entity,
+        DbEntity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
         *entity_id as i64,
         auth.account_id

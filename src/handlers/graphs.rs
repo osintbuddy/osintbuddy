@@ -25,7 +25,8 @@ async fn create_graph_handler(
     body: CreateGraph,
     pool: db::Database,
     auth: AuthMiddleware,
-) -> Result<DbGraph, AppError> {
+    sqids: Data<Sqids>,
+) -> Result<Graph, AppError> {
     let body = body.into_inner().validate()?;
     let graph = sqlx::query_as!(
         DbGraph,
@@ -60,7 +61,15 @@ async fn create_graph_handler(
     )
     .execute(tx.as_mut())
     .await
-    .map(|_| graph)
+    .map(|_| Graph {
+        id: sqids
+            .encode(&[graph.id as u64])
+            .expect("Error encoding sqids!"),
+        label: graph.label,
+        description: graph.description,
+        mtime: graph.mtime,
+        ctime: graph.ctime,
+    })
     .map_err(|err| {
         error!("Error creating age graph: {err}");
         AppError {
@@ -75,7 +84,8 @@ async fn update_graph_handler(
     body: UpdateGraph,
     pool: db::Database,
     auth: AuthMiddleware,
-) -> Result<DbGraph, AppError> {
+    sqids: Data<Sqids>,
+) -> Result<Graph, AppError> {
     sqlx::query_as!(
         DbGraph,
         "UPDATE graphs SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
@@ -86,6 +96,15 @@ async fn update_graph_handler(
     )
     .fetch_one(pool.as_ref())
     .await
+    .map(|g| Graph {
+        id: sqids
+            .encode(&[g.id as u64])
+            .expect("Error encoding sqids!"),
+        label: g.label,
+        description: g.description,
+        mtime: g.mtime,
+        ctime: g.ctime
+    })
     .map_err(|err| {
         error!("{err}");
         AppError {
@@ -169,8 +188,6 @@ async fn list_graph_handler(
             description: graph.description,
             ctime: graph.ctime,
             mtime: graph.mtime,
-            uuid: graph.uuid,
-            owner_id: graph.owner_id,
         });
     }
 
@@ -197,12 +214,22 @@ async fn list_graph_handler(
 async fn get_graph_handler(
     pool: db::Database,
     auth: AuthMiddleware,
-    graph_id: Path<i64>,
+    graph_id: Path<String>,
+    sqids: Data<Sqids>,
 ) -> Result<GraphStats, AppError> {
+    let graph_ids = sqids.decode(&graph_id);
+    let decoded_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", graph_id);
+        AppError {
+            kind: ErrorKind::Invalid,
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
     let graph = sqlx::query_as!(
         DbGraph,
         "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
-        graph_id.into_inner(),
+        *decoded_id as i64,
         auth.account_id
     )
     .fetch_one(pool.as_ref())
@@ -224,24 +251,27 @@ async fn get_graph_handler(
         })?;
     let mut tx = age_tx(pool.as_ref()).await?;
     let vertices = with_cypher(
-        &graph_name,
+        format!(
+            "SELECT * FROM cypher('{}', $$ MATCH (v) RETURN v $$) as (v agtype)",
+            graph_name
+        ),
         tx.as_mut(),
-        "MATCH (v) WITH {id: id(v)} AS v RETURN v",
-        "v agtype",
     )
     .await?;
     let edges = with_cypher(
-        &graph_name,
+        format!(
+            "SELECT * FROM cypher('{}', $$ MATCH (v)-[e]->() RETURN e $$) as (e agtype)",
+            graph_name
+        ),
         tx.as_mut(),
-        "MATCH (v)-[e]->() WITH {id: id(e)} AS e RETURN e",
-        "e agtype",
     )
     .await?;
     let second_degrees = with_cypher(
-        &graph_name,
+        format!(
+            "SELECT * FROM cypher('{}', $$ MATCH ()-[]->(a)-[]->(v) RETURN v $$) as (v agtype)",
+            graph_name
+        ),
         tx.as_mut(),
-        "MATCH ()-[]->(a)-[]->(v) WITH {id: id(v)} AS v RETURN v",
-        "v agtype",
     )
     .await?;
     tx.commit().await.map_err(|err| {
@@ -256,7 +286,7 @@ async fn get_graph_handler(
         graph,
         vertices_count: vertices.len(),
         edges_count: edges.len(),
-        degree2_count: second_degrees.len(),
+        second_degrees: second_degrees.len(),
     })
 }
 

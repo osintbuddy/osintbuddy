@@ -17,18 +17,18 @@ import TermsOfService from './routes/public/Tos';
 // Doc routes
 import Documentation from './routes/docs/Documentation';
 import { Icon } from './components/icons';
-
+import { GraphOverview, EntitiesOverview } from '@/routes/dashboard/_components/overviews';
 
 // Auth routes
 const DashboardPage = lazy(() => import("@/routes/dashboard"));
-const Market = lazy(() => import("@/routes/dashboard/_components/Market"))
+const Market = lazy(() => import("@/routes/dashboard/Market"))
 
-const GraphOverview = lazy(() => import("@/routes/dashboard/_components/GraphOverview"))
-const GraphDetails = lazy(() => import("@/routes/dashboard/_components/GraphDetails"))
+// const GraphOverview = lazy(() => import("@/routes/dashboard/_components/overviews"))
+const GraphDetails = lazy(() => import("@/routes/dashboard/GraphDetails"))
 const GraphInquiry = lazy(() => import("@/routes/graph/index"));
 
-const EntitiesOverview = lazy(() => import("@/routes/dashboard/_components/EntitiesOverview"))
-const EntityDetails = lazy(() => import("@/routes/dashboard/_components/EntityDetails"))
+// const EntitiesOverview = lazy(() => import("@/routes/dashboard/EntitiesOverview"))
+const EntityDetails = lazy(() => import("@/routes/dashboard/EntityDetails"))
 
 const Settings = lazy(() => import("@/routes/settings"));
 const Workspaces = lazy(() => import("@/routes/workspaces"));

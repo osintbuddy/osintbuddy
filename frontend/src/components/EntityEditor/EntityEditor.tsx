@@ -47,17 +47,15 @@ export function CodeEditor({ code, setCode, editable = true }: JSONObject) {
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface EntityEditorProps {
-  transforms: any
-  activeEntity?: any
-  refetchEntity: () => void
+  entity?: any
   showTaskbar?: boolean
 }
 
-export default function EntityEditor({ transforms, activeEntity, refetchEntity, showTaskbar = true }: EntityEditorProps) {
-  const [code, setCode] = useState(activeEntity?.source)
+export default function EntityEditor({ entity, showTaskbar = true }: EntityEditorProps) {
+  const [code, setCode] = useState(entity?.source)
   useEffect(() => {
-    if (activeEntity?.source) setCode(activeEntity.source)
-  }, [activeEntity?.source])
+    if (entity?.source) setCode(entity.source)
+  }, [entity?.source])
   // const [updateEntityById] = useUpdateEntityByIdMutation()
 
   const [isEntityDraggable, setEntityDraggable] = useState<boolean>(false);
@@ -66,15 +64,16 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
   const dropdownRef: any = useRef(200)
   const [query, setQuery] = useState('');
 
+  const transforms: any = [];
   useEffect(() => {
     setActiveOption({ label: 'Select transform...', icon: 'edit' })
   }, [transforms])
 
-  const filteredTransforms = query === '' || query?.includes('Select transform') || query === null
-    ? transforms
-    : transforms.filter((transform: any) => {
-      return transform.label.toLowerCase().includes(query?.toLowerCase())
-    })
+  // const filteredTransforms = query === '' || query?.includes('Select transform') || query === null
+  //   ? transforms
+  //   : transforms.filter((transform: any) => {
+  //     return transform.label.toLowerCase().includes(query?.toLowerCase())
+  //   })
 
   return (
     <>
@@ -90,7 +89,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
         isResizable={true}
         allowOverlap={true}
       >
-        <div data-grid={{
+        {/* <div data-grid={{
           x: 38,
           y: 0,
           w: 14,
@@ -103,8 +102,8 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
           <div className="  border-mirage-800/10 border overflow-y-scroll h-full ">
             <h2 className="text-slate-350 px-3 py-3 font-display text-lg">Migrations</h2>
           </div>
-        </div>
-        <div
+        </div> */}
+        {/* <div
           className="border border-mirage-950 z-10 backdrop-blur-sm shadow-md  from-70% flex flex-col h-full"
           key="editor"
           data-grid={{
@@ -132,7 +131,7 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                       title="Run transform"
                     >
                       <Icon icon='terminal-2' className="h-6 mx-2 text-success-500" />
-                      <span class="text-nowrap mr-4 ">{!activeEntity?.label?.includes('Select entity') && (activeEntity?.label ?? '')} Console</span>
+                      <span class="text-nowrap mr-4 ">{!entity?.label?.includes('Select entity') && (entity?.label ?? '')} Console</span>
                     </div>
                   </div>
                 </li>
@@ -163,20 +162,9 @@ export default function EntityEditor({ transforms, activeEntity, refetchEntity, 
                   </div>
                 </li>
               </ol>
-              {/* <ResizableBox axis={'y'} className="rounded-sm shadow-lg  backdrop-blur-sm from-70% from-black/30 to-black/25  bg-gradient-to-bl flex flex-col " height={150} minConstraints={[Infinity, 50]} maxConstraints={[Infinity, 2000]}
-                handle={
-                  <div class=" react-grid-item h-5 absolute right-0 top-0 hover:cursor-ns-resize">
-                    <span class=" react-resizable-handle react-resizable-handle-ne" />
-                  </div>
-                }
-                resizeHandles={['ne']}>
-                <textarea disabled={true} readOnly={true} class={`${textWrap} text-slate-300/80 text-sm h-full overflow-y-scroll backdrop-blur-sm from-cod-800/10 bg-transparent to-cod-800/10  bg-gradient-to-br from-50% border-mirage-100/0 px-2 pt-1.5`} value={`No output, try running a transform`}>
-
-                </textarea>
-              </ResizableBox> */}
             </>
           )}
-        </div>
+        </div> */}
 
       </ResponsiveGridLayout >
     </>

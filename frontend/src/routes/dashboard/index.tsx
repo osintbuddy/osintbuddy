@@ -24,6 +24,7 @@ export type DashboardContextType = {
   entities: Entity[]
   favorite_entities: string[]
   loadingEntities: boolean
+  activeEntity: Entity | null
 };
 
 export default function DashboardPage() {
@@ -179,6 +180,7 @@ export default function DashboardPage() {
           favorite_entities: entityFavorites,
           loadingGraphs: loadingGraphs,
           loadingEntities: loadingEntities,
+          activeEntity: null, // Will be set by individual entity pages
         } satisfies DashboardContextType} />
       </div >
       <CreateGraphModal
@@ -288,7 +290,6 @@ export function CreateGraphModal({
   closeModal,
   isOpen,
   cancelCreateRef,
-  refreshAllGraphs,
   createGraph,
   isCreatingGraph
 }: CreateGraphModalProps) {
@@ -299,7 +300,7 @@ export function CreateGraphModal({
     const enableGuide = formData.get("guide") === 'on';
     createGraph({
       label: formData.get('label') as string,
-      description: formData.get('description') ?? ''
+      description: (formData.get('description') as string) ?? ''
     })
       .then(() => {
         closeModal();

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
-import { graphsApi, Graph, GraphDetails, UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload } from './api';
+import { useEffect, useState } from 'preact/hooks';
+import { graphsApi, Graph, GraphDetails, UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError } from './api';
 import { jwtParse } from './utilities';
 
 // Auth store 
@@ -67,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
           return registeredUser
         } catch (error) {
           set({ 
-            error: error instanceof Error ? error.message : 'Registration failed',
+            error: error.message,
             isRegistering: false 
           })
           throw error
@@ -112,6 +113,38 @@ export const useAuthStore = create<AuthState>()(
 )
 
 
+interface GraphState {
+  graph: Graph | null
+  vertices_count: number | null
+  edges_count: number | null
+  degree2_count:number | null
+  isLoading: boolean
+  isError: boolean
+  error: string | null
+  getGraph: (id: string) => void
+}
+
+export const useGraphStore = create<GraphState>()((set, get) => ({
+  graph: null,
+  vertices_count: null,
+  edges_count: null,
+  degree2_count:null,
+  isLoading: true,
+  isError: false,
+  error: null,
+  getGraph: async (id: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      const token = useAuthStore.getState().access_token as string;
+      const data = await graphsApi.getById(id, token)
+      set({ ...data, isLoading: false, isError: false, error: null })
+    } catch (error) {
+      set({  error: error.message, isLoading: false, graph: null })
+    }
+  },
+}))
+
+
 // Graphs store
 interface GraphsState {
   graphs: Graph[]
@@ -143,15 +176,13 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const token = useAuthStore.getState().access_token as string;
-      const response = await graphsApi.list(payload, token)
-      set({ graphs: response.graphs, favorites: response.favorites, isLoading: false })
+      const { graphs, favorites } = await graphsApi.list(payload, token)
+      set({ graphs, favorites, isLoading: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch graphs',
-        isLoading: false 
-      })
+      set({ error: error.message, isLoading: false })
     }
   },
+
   createGraph: async (payload: CreateGraphPayload) => {
     set({ isCreating: true, error: null })
     try {
@@ -160,17 +191,10 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       
       // Add the new graph to the graphs list
       const currentGraphs = get().graphs
-      set({ 
-        graphs: [...currentGraphs, newGraph],
-        isCreating: false 
-      })
-      
+      set({ graphs: [...currentGraphs, newGraph], isCreating: false })
       return newGraph
     } catch (error) {
-      set({ 
-        error: error.message,
-        isCreating: false 
-      })
+      set({ error: error.message, isCreating: false })
       throw error
     }
   },
@@ -188,17 +212,11 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
           : graph
       )
       
-      set({ 
-        graphs: updatedGraphs,
-        isUpdating: false 
-      })
+      set({ graphs: updatedGraphs, isUpdating: false })
       
       return updatedGraph
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update graph',
-        isUpdating: false 
-      })
+      set({ error: error.message, isUpdating: false })
       throw error
     }
   },
@@ -215,19 +233,12 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       )
       
       // Clear currentGraph if it's the one being deleted
-      const currentGraph = get().currentGraph
+      const currentGraph = get().currentGraph 
       const updatedCurrentGraph = currentGraph?.graph.id === payload.id ? null : currentGraph
       
-      set({ 
-        graphs: filteredGraphs,
-        currentGraph: updatedCurrentGraph,
-        isDeleting: false 
-      })
+      set({ graphs: filteredGraphs, currentGraph: updatedCurrentGraph, isDeleting: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete graph',
-        isDeleting: false 
-      })
+      set({ error: error.message, isDeleting: false })
       throw error
     }
   },
@@ -240,9 +251,7 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
         set({ favorites: [...currentFavorites, payload.graph_id] })
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to favorite graph'
-      })
+      set({ error: error.message })
       throw error
     }
   },
@@ -253,12 +262,34 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       const currentFavorites = get().favorites
       set({ favorites: currentFavorites.filter(id => id !== payload.graph_id) })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to unfavorite graph'
-      })
+      set({ error: error.message })
       throw error
     }
   },
+}))
+
+
+interface EntityState {
+  entity: Entity | null
+  isLoading: boolean
+  error: string | null
+  getEntity: (id: string) => void
+}
+
+export const useEntityStore = create<EntityState>()((set, get) => ({
+  entity: null,
+  isLoading: true,
+  error: null,
+  getEntity: async (id: string) => {
+    set({ isLoading: true })
+    try {
+      const token = useAuthStore.getState().access_token as string;
+      const entity = await entitiesApi.getById(id, token)
+      set({ entity, isLoading: false })
+    } catch (error) {
+      set({ error: error.message, isLoading: false, entity: null })
+    }
+  }
 }))
 
 // Entities store
@@ -267,10 +298,12 @@ interface EntitiesState {
   favorites: string[]
   currentEntity: Entity | null
   isLoading: boolean
+  isLoadingEntity: boolean
   isCreating: boolean
   isUpdating: boolean
   isDeleting: boolean
   error: string | null
+  entityError: string | null
   fetchEntities: (payload: Paginate) => Promise<void>
   createEntity: (payload: CreateEntityPayload) => Promise<Entity>
   updateEntity: (payload: UpdateEntityPayload) => Promise<Entity>
@@ -284,10 +317,12 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   favorites: [],
   currentEntity: null,
   isLoading: false,
+  isLoadingEntity: false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
   error: null,
+  entityError: null,
   fetchEntities: async (payload: Paginate) => {
     set({ isLoading: true, error: null })
     try {
@@ -295,10 +330,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       const response = await entitiesApi.list(payload, token)
       set({ entities: response.entities, favorites: response.favorites, isLoading: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch entities',
-        isLoading: false 
-      })
+      set({ error: error.message, isLoading: false })
     }
   },
   createEntity: async (payload: CreateEntityPayload) => {
@@ -309,17 +341,10 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       
       // Add the new entity to the entities list
       const currentEntities = get().entities
-      set({ 
-        entities: [...currentEntities, newEntity],
-        isCreating: false 
-      })
-      
+      set({ entities: [...currentEntities, newEntity], isCreating: false })
       return newEntity
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create entity',
-        isCreating: false 
-      })
+      set({  error: error.message, isCreating: false })
       throw error
     }
   },
@@ -336,19 +361,10 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
           ? updatedEntity
           : entity
       )
-      
-      set({ 
-        entities: updatedEntities,
-        currentEntity: updatedEntity,
-        isUpdating: false 
-      })
-      
+      set({ entities: updatedEntities, currentEntity: updatedEntity, isUpdating: false })
       return updatedEntity
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update entity',
-        isUpdating: false 
-      })
+      set({  error: error.message, isUpdating: false })
       throw error
     }
   },
@@ -363,21 +379,12 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       const filteredEntities = currentEntities.filter(entity => 
         entity.id !== payload.id
       )
-      
       // Clear currentEntity if it's the one being deleted
       const currentEntity = get().currentEntity
       const updatedCurrentEntity = currentEntity?.id === payload.id ? null : currentEntity
-      
-      set({ 
-        entities: filteredEntities,
-        currentEntity: updatedCurrentEntity,
-        isDeleting: false 
-      })
+      set({ entities: filteredEntities, currentEntity: updatedCurrentEntity, isDeleting: false })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete entity',
-        isDeleting: false 
-      })
+      set({  error: error.message, isDeleting: false })
       throw error
     }
   },
@@ -390,9 +397,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
         set({ favorites: [...currentFavorites, payload.entity_id] })
       }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to favorite entity'
-      })
+      set({ error: error.message })
       throw error
     }
   },
@@ -403,9 +408,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       const currentFavorites = get().favorites
       set({ favorites: currentFavorites.filter(id => id !== payload.entity_id) })
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to unfavorite entity'
-      })
+      set({ error: error.message })
       throw error
     }
   },
@@ -437,6 +440,8 @@ export interface SettingsState {
   toggleSidebar: () => void
   setSidebar: (value?: boolean) => void
 }
+
+
 
 export const useAppStore = create<SettingsState>()(
   persist(

@@ -1,6 +1,8 @@
+import { useGraphStore } from "@/app/store";
 import Button from "@/components/buttons";
 import { Icon } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "preact/hooks";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface GraphHeaderProps {
   graph: any;
@@ -49,31 +51,40 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
   );
 }
 export default function GraphDetails() {
-  const graphStats: any = {};
+  const { hid = "" } = useParams()
+  const {
+    getGraph,
+    graph,
+    vertices_count,
+    edges_count,
+    degree2_count
+  } = useGraphStore();
+
+  useEffect(() => getGraph(hid), [hid])
 
   return (
     <div class="flex flex-col h-screen w-full ">
       <header class="flex w-full">
-        <GraphHeader refetchGraphs={() => null} graph={{}} />
+        <GraphHeader refetchGraphs={() => null} graph={graph} />
       </header>
       <section class="relative flex z-10 w-full p-4">
         <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mr-4 py-3">
           <h2 class="text-slate-300/80 flex items-end">
-            Total Entities <span class="text-6xl ml-auto font-sans font-semibold">{graphStats?.entities_count ?? 0}</span>
+            Total Entities <span class="text-6xl ml-auto font-sans font-semibold">{vertices_count ?? 0}</span>
           </h2>
         </div>
         <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 mx-2 py-3">
           <h2 class="text-slate-300/80 flex items-end">
             Total Relationships
             <span class="text-6xl ml-auto font-sans font-semibold">
-              {graphStats?.edges_count ?? 0}
+              {edges_count ?? 0}
             </span>
           </h2>
         </div>
         <div class="w-full border-2 rounded-md bg-mirage-300/40 border-mirage-800/50 relative shadow-sm px-6 ml-4 py-3">
           <h2 class="text-slate-300/80 flex items-end">2nd Degree Entities
             <span class="text-6xl ml-auto font-sans font-semibold">
-              {graphStats?.second_degree_count ?? 0}
+              {degree2_count ?? 0}
             </span>
           </h2>
         </div>
