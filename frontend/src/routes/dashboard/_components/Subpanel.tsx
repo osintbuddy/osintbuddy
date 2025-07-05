@@ -85,7 +85,7 @@ export default function Subpanel({
         </>
       )}
       <div
-        class={` transition-transform duration-150 ease-out ${showEntities ? "translate-y-0" : "-translate-y-[45%] first-child:mt-2 -scale-y-0 !h-0"}`}
+        class={` transition-transform duration-200  ${showEntities ? "translate-y-0" : "-translate-y-[45%] first-child:mt-2 -scale-y-0 !h-0"}`}
       >
         {items.map((item) => {
           const isActive = hid === `${item.id}`;
@@ -93,14 +93,14 @@ export default function Subpanel({
             <NavLink
               key={item.id}
               to={`${to}/${item.id}`}
-              className={({ isActive }) => `mb-1 first:mt-2 focus:outline-hidden bg-transparent border rounded-md border-transparent hover:ring-slate-700/20 hover:to-mirage-700/10 shadow hover:bg-gradient-to-tl from-10% hover:translate-x-px z-0 transition-transform hover:from-mirage-700/20 w-full flex items-center -translate-x-px relative duration-100 ease-out overflow-hidden ${isActive && 'hover:-translate-x-px shadow -translate-x-px ring-slate-600/10 ring-1 ring-inset from-mirage-600/20 to-mirage-600/10 bg-gradient-to-tl from-10% hover:from-mirage-600/20 hover:to-mirage-600/10 hover:bg-gradient-to-tl '} ${isSuccess && showEntities ? "translate-y-0 scale-y-100" : "-translate-y-full  scale-y-0 "}`}
+              className={({ isActive }) => `mb-1 first:mt-2 focus:outline-hidden bg-transparent border rounded-md border-transparent hover:ring-slate-700/20 hover:to-mirage-700/10 shadow hover:bg-gradient-to-tl from-10% hover:translate-x-px z-0 transition-transform hover:from-mirage-700/20 w-full flex items-center -translate-x-px relative duration-100 ease-out overflow-hidden text-slate-500 ${isActive && '*:text-slate-350 hover:-translate-x-px shadow -translate-x-px ring-slate-600/10 ring-1 ring-inset from-mirage-600/20 to-mirage-600/10 bg-gradient-to-tl from-10% hover:from-mirage-600/20 hover:to-mirage-600/10 hover:bg-gradient-to-tl '} ${isSuccess && showEntities ? "translate-y-0 scale-y-100" : "-translate-y-full scale-y-0 "}`}
             >
-              <div class="flex w-full p-2.5 pr-0 text-sm flex-col items-start mb-0.5 text-slate-400 hover:text-slate-300 ">
-                <p class={`subpanel-label-${isActive} text-sm leading-4 font-display font-medium line-clamp-1 pb-0.5`}>
+              <div class="flex w-full p-2.5 pr-0 text-sm flex-col items-start mb-0.5    text-inherit">
+                <p class={` text-sm leading-4 font-display font-medium line-clamp-1 pb-0.5`}>
                   {item.label}
                 </p>
                 <p class="max-h-8 line-clamp-2 leading-4 w-full pr-2 h-full ">{item.description}</p>
-                <p class="mt-1 !font-sans text-xs font-light leading-none text-left">
+                <p class="mt-1 font-sans text-xs font-light leading-none text-left">
                   Created {formatPGDate(item.ctime)}
                 </p>
               </div>
@@ -110,7 +110,7 @@ export default function Subpanel({
                   e.stopPropagation();
                   await onClick(item.id);
                 }}
-                className={`bg-mirage-900/20 border-transparent text-slate-600 border ml-auto rounded p-1 h-8 w-8 transition-colors duration-150 hover:text-primary-300 hover:border-mirage-300/20 ${isFavorite ? '!text-primary-350' : ''} link-active-${hid !== item.id}`}
+                className={`bg-mirage-900/20 border-transparent text-slate-600 border ml-auto rounded p-1 h-8 w-8 transition-colors duration-200 hover:text-primary-300 hover:border-mirage-300/20 ${isFavorite ? '!text-primary-350' : '!text-slate-700'} link-active-${hid !== item.id}`}
               />
             </NavLink>
           );
