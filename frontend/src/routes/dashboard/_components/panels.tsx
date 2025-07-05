@@ -209,8 +209,7 @@ export function EntitiesPanel({
         items={favoriteEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
         to='/dashboard/entity'
-        dateLabel='Created'
-        dateKey='ctime'
+        isFavorite={true}
       />
       <Subpanel
         label='All entities'
@@ -222,8 +221,6 @@ export function EntitiesPanel({
         items={sortedEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
         to='/dashboard/entity'
-        dateLabel='Created'
-        dateKey='ctime'
       />
     </section>
   )

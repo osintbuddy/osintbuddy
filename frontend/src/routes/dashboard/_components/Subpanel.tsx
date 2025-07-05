@@ -52,10 +52,10 @@ export default function Subpanel({
   return (
     <div class='subpanel'>
       <header
-        class='hover:border-primary-400 z-50 flex items-center border-b border-slate-500/30 py-0.5 pb-1 text-slate-600 transition-colors duration-300 ease-in-out hover:text-slate-500'
+        class='hover:border-primary-300 z-50 flex cursor-pointer items-center border-b border-slate-500/30 py-0.5 pb-1 text-slate-600 transition-colors duration-500 ease-in-out hover:text-slate-500'
         onClick={setShowEntities}
       >
-        <h2 class='font-display cursor-pointer px-1 text-sm leading-3 font-semibold text-inherit select-none focus:outline-hidden'>
+        <h2 class='font-display px-1 text-sm leading-3 font-semibold text-inherit select-none focus:outline-hidden'>
           {label}
         </h2>
         <Icon
@@ -91,25 +91,22 @@ export default function Subpanel({
         </>
       )}
       <div
-        class={`transition-transform duration-300 ${showEntities ? 'translate-y-0' : 'first-child:mt-2 !h-0 -translate-y-[45%] -scale-y-0'}`}
+        class={`-translate-y-4 px-1 transition-transform duration-100 ${showEntities ? '!translate-y-0' : 'first-child:mt-2 !h-0 -scale-y-0'}`}
       >
         {items.map((item) => {
-          const isActive = hid === `${item.id}`
           return (
             <NavLink
               key={item.id}
               to={`${to}/${item.id}`}
               className={({ isActive }) =>
-                `hover:to-mirage-900/10 hover:from-mirage-900/20 relative z-0 mb-1 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-transparent bg-transparent from-10% text-slate-500 shadow transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:bg-gradient-to-tl hover:ring-slate-700/20 focus:outline-hidden ${isActive && '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:from-mirage-600/20 hover:to-mirage-600/10 -translate-x-px bg-gradient-to-tl from-10% shadow ring-1 ring-slate-600/10 ring-inset hover:-translate-x-px hover:bg-gradient-to-tl'} ${isSuccess && showEntities ? 'translate-y-0 scale-y-100' : '-translate-y-full scale-y-0'}`
+                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-slate-500 shadow-2xs transition-transform duration-300 ease-out *:text-slate-500 first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive && '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl'}`
               }
             >
               <div class='mb-0.5 flex w-full flex-col items-start p-2.5 pr-0 text-sm text-inherit'>
-                <p
-                  class={`font-display line-clamp-1 pb-0.5 text-sm leading-4 font-medium`}
-                >
+                <p class={`line-clamp-1 pb-0.5 text-sm leading-4 font-medium`}>
                   {item.label}
                 </p>
-                <p class='line-clamp-2 h-full max-h-8 w-full pr-2 leading-4'>
+                <p class='line-clamp-2 h-full max-h-8 w-full pr-2 !text-xs leading-4'>
                   {item.description}
                 </p>
                 <p class='mt-1 text-left font-sans text-xs leading-none font-light'>
@@ -123,7 +120,7 @@ export default function Subpanel({
                   e.stopPropagation()
                   await onClick(item.id)
                 }}
-                className={`bg-mirage-900/20 hover:text-primary-300 hover:border-mirage-300/20 ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-600 transition-colors duration-300 ${isFavorite ? '!text-primary-350' : '!text-slate-700'} link-active-${hid !== item.id}`}
+                className={`hover:!text-primary-350 ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
               />
             </NavLink>
           )
