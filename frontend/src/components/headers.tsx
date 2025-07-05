@@ -1,5 +1,5 @@
 import { MouseEventHandler } from 'preact/compat'
-import { Icon } from './icons';
+import { Icon } from './icons'
 
 interface PageHeaderProps {
   title?: string
@@ -34,8 +34,7 @@ export function Header({ title, header, btnTxt, btnAction }: PageHeaderProps) {
           {btnTxt}
           <Icon icon='plus' className='ml-2 w-5 h-5 ' />
         </button>
-      )
-      }
+      )}
     </div>
-  );
-};
+  )
+}

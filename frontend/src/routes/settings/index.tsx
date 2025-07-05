@@ -1,16 +1,16 @@
-import { Header } from "@/components/headers";
+import { Header } from '@/components/headers'
 
 const secondaryNavigation = [
-  { name: "Account", href: "#", current: true },
-  { name: "Plugins", href: "#", current: false },
-];
+  { name: 'Account', href: '#', current: true },
+  { name: 'Plugins', href: '#', current: false },
+]
 
 export default function SettingsPage() {
   return (
     <>
-      <header class="border-b from-black/50 backdrop-blur-md to-black/40 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10">
-        <nav class="flex overflow-x-auto py-4">
-          <ul class="flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-gray-400 sm:px-6 lg:px-8">
+      <header class='border-b from-black/50 backdrop-blur-md to-black/40 bg-gradient-to-br shadow-xl border-mirage-700/20 from-10% z-10'>
+        <nav class='flex overflow-x-auto py-4'>
+          <ul class='flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-gray-400 sm:px-6 lg:px-8'>
             {secondaryNavigation.map((item) => (
               <li key={item.name}>
                 <a
@@ -24,12 +24,13 @@ export default function SettingsPage() {
           </ul>
         </nav>
       </header>
-      <Header title="Account Settings" header="Your Account Details" />
-      <div class="flex flex-col sm:px-2 lg:px-6 my-2 relative mx-auto w-full justify-center">
-        <p class="text-slate-350">
-          Take control of the OSINTBuddy app theme, your account information,<br /> and permissions for any shared workspaces or graphs.
+      <Header title='Account Settings' header='Your Account Details' />
+      <div class='flex flex-col sm:px-2 lg:px-6 my-2 relative mx-auto w-full justify-center'>
+        <p class='text-slate-350'>
+          Take control of the OSINTBuddy app theme, your account information,
+          <br /> and permissions for any shared workspaces or graphs.
         </p>
       </div>
     </>
-  );
+  )
 }

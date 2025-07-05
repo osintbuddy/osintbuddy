@@ -49,5 +49,12 @@
     "typescript": "~5.7.2",
     "vite": "^6.3.1",
     "vite-tsconfig-paths": "^5.1.4"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true,
+    "jsxSingleQuote": true
   }
 }

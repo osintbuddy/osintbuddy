@@ -1,16 +1,16 @@
 import type { JSX } from 'preact/jsx-runtime'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'preact/hooks';
-import { Icon } from '../icons';
-import Logo from '@/assets/images/logo.svg';
-import Button from '../buttons';
-import { useAuthStore } from '@/app/store';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'preact/hooks'
+import { Icon } from '../icons'
+import Logo from '@/assets/images/logo.svg'
+import Button from '../buttons'
+import { useAuthStore } from '@/app/store'
 
 export default function PublicNavbar(): JSX.Element {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isDocsPage = location.pathname.includes('/docs');
-  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isDocsPage = location.pathname.includes('/docs')
+  const { isAuthenticated } = useAuthStore()
 
   // controls the header styles
   let [isScrolled, setIsScrolled] = useState(false)
@@ -26,54 +26,77 @@ export default function PublicNavbar(): JSX.Element {
   }, [])
 
   return (
-    <header class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-16 ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}>
-      <div class="flex lg:hidden">
-        <NavLink to="/">
-          <img class=" h-7 w-auto fill-slate-700 dark:fill-sky-100 block" src={Logo} />
+    <header
+      class={`sticky w-full  top-0 z-50 flex sm:flex-wrap items-center justify-between flex-nowrap px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:px-6 lg:px-16 ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}
+    >
+      <div class='flex lg:hidden'>
+        <NavLink to='/'>
+          <img
+            class=' h-7 w-auto fill-slate-700 dark:fill-sky-100 block'
+            src={Logo}
+          />
         </NavLink>
       </div>
-      <div class="relative flex grow basis-0 items-center">
-        <Link to="/">
-          <img class="hidden h-8  fill-slate-700 dark:fill-sky-100 lg:block" src={Logo} />
+      <div class='relative flex grow basis-0 items-center'>
+        <Link to='/'>
+          <img
+            class='hidden h-8  fill-slate-700 dark:fill-sky-100 lg:block'
+            src={Logo}
+          />
         </Link>
       </div>
 
-      <a target='_blank' href="https://discord.gg/gsbbYHA3K3" aria-label="Discord">
-        <Icon icon="brand-discord" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
+      <a
+        target='_blank'
+        href='https://discord.gg/gsbbYHA3K3'
+        aria-label='Discord'
+      >
+        <Icon
+          icon='brand-discord'
+          className='h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300'
+        />
       </a>
-      <a target='_blank' href="https://github.com/jerlendds/osintbuddy" class="mx-4" aria-label="GitHub">
-        <Icon icon="brand-github" className="h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300" />
+      <a
+        target='_blank'
+        href='https://github.com/jerlendds/osintbuddy'
+        class='mx-4'
+        aria-label='GitHub'
+      >
+        <Icon
+          icon='brand-github'
+          className='h-6 w-6 transition-colors duration-150 ease-in-out text-slate-500 hover:text-slate-300 focus:text-slate-300'
+        />
       </a>
       {!isDocsPage && (
         <Button.Solid
           variant='primary'
-          className="!font-code !font-bold"
-          onClick={() => navigate("/docs/overview")}
+          className='!font-code !font-bold'
+          onClick={() => navigate('/docs/overview')}
         >
           OSIB://BOOK
-          <Icon icon="eye-search" className="ml-3 btn-icon" />
+          <Icon icon='eye-search' className='ml-3 btn-icon' />
         </Button.Solid>
       )}
       {isAuthenticated && isDocsPage && (
         <Button.Solid
           variant='primary'
-          className="!font-code !font-bold"
-          onClick={() => navigate("/dashboard/graph")}
+          className='!font-code !font-bold'
+          onClick={() => navigate('/dashboard/graph')}
         >
           OSIB://ACCESS
-          <Icon icon="folder-open" className="btn-icon" />
+          <Icon icon='folder-open' className='btn-icon' />
         </Button.Solid>
       )}
       {!isAuthenticated && isDocsPage && (
         <Button.Solid
           variant='primary'
-          className="!font-code !font-bold"
-          onClick={() => navigate("/login")}
+          className='!font-code !font-bold'
+          onClick={() => navigate('/login')}
         >
           OSIB://LOGIN
-          <Icon icon="key" className="ml-3 btn-icon" />
+          <Icon icon='key' className='ml-3 btn-icon' />
         </Button.Solid>
       )}
     </header>
-  );
+  )
 }

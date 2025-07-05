@@ -1,6 +1,6 @@
-import { Icon } from '@/components/icons';
-import ContextAction from './ContextAction';
-import { useState } from 'react';
+import { Icon } from '@/components/icons'
+import ContextAction from './ContextAction'
+import { useState } from 'react'
 
 export default function ContextMenu({
   closeMenu,
@@ -10,20 +10,29 @@ export default function ContextMenu({
   sendJsonMessage,
   activeTransformLabel,
 }: JSONObject) {
-  const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch()
 
   const ctxPosition = {
     top: position.y,
     left: position.x,
-  };
+  }
 
-  const { data: transforms = [], isLoading: isLoadingTransforms, isError: isTransformsError, isSuccess: isTransformsSuccess } = useGetEntityTransformsQuery({ label: activeTransformLabel as string }, { skip: activeTransformLabel === null })
+  const {
+    data: transforms = [],
+    isLoading: isLoadingTransforms,
+    isError: isTransformsError,
+    isSuccess: isTransformsSuccess,
+  } = useGetEntityTransformsQuery(
+    { label: activeTransformLabel as string },
+    { skip: activeTransformLabel === null }
+  )
 
-
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState('')
   const filteredTransforms = query
-    ? transforms.filter((transform: any) => transform.label.toLowerCase().includes(query.toLowerCase()))
-    : transforms ?? [];
+    ? transforms.filter((transform: any) =>
+        transform.label.toLowerCase().includes(query.toLowerCase())
+      )
+    : (transforms ?? [])
   return (
     <>
       <div id='context-menu' className='z-[999] absolute' style={ctxPosition}>
@@ -32,12 +41,11 @@ export default function ContextMenu({
             <div className='absolute  right-0 z-10 mt-2 w-56 origin-top-right divide-y border border-mirage-400/70 divide-mirage-400/70 rounded-md to-mirage-700/95 from-mirage-600/95 bg-gradient-to-br shadow-lg ring-1 ring-black/5 focus:outline-hidden'>
               <div className='py-1'>
                 <div>
-                  <div
-                    className='text-slate-400 group flex items-center py-2 text-sm font-display'
-                  >
-                    <span className='pl-2 text-slate-600 font-semibold font-display mr-3'>ID: </span>
+                  <div className='text-slate-400 group flex items-center py-2 text-sm font-display'>
+                    <span className='pl-2 text-slate-600 font-semibold font-display mr-3'>
+                      ID:{' '}
+                    </span>
                     {ctxSelection?.id ? ctxSelection.id : 'No node selected'}
-
                   </div>
                 </div>
               </div>
@@ -51,7 +59,8 @@ export default function ContextMenu({
                             htmlFor='message'
                             className='sr-only block font-semibold leading-6 mt-4 text-slate-200 pl-8'
                           >
-                            Search through the installed transforms for the {ctxSelection?.label} plugin
+                            Search through the installed transforms for the{' '}
+                            {ctxSelection?.label} plugin
                           </label>
                           <div className='mt-2.5 hover:border-mirage-200/40 transition-colors duration-200 ease-in-out block justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br rounded border mb-2 mx-4 focus-within:!border-primary/40  px-3.5 py-1 text-slate-100 shadow-sm border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l'>
                             <input
@@ -81,12 +90,12 @@ export default function ContextMenu({
                   <div>
                     <button
                       onClick={() => {
-                        closeMenu();
+                        closeMenu()
                         sendJsonMessage({
                           action: 'delete:node',
                           node: { id: ctxSelection.id },
-                        });
-                        dispatch(deleteNode(ctxSelection.id));
+                        })
+                        dispatch(deleteNode(ctxSelection.id))
                         // dispatch(setEditState({ editId: ctxSelection.id, editLabel: 'deleteNode' }))
                       }}
                       type='button'
@@ -102,5 +111,5 @@ export default function ContextMenu({
         )}
       </div>
     </>
-  );
+  )
 }

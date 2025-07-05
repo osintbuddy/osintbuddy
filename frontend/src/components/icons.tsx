@@ -1,5 +1,5 @@
-import { HTMLAttributes } from 'preact/compat';
-import Sprite from '../assets/images/tabler-sprite.svg';
+import { HTMLAttributes } from 'preact/compat'
+import Sprite from '../assets/images/tabler-sprite.svg'
 
 interface TablerIconProps extends HTMLAttributes<SVGSVGElement> {
   icon: string
@@ -7,19 +7,24 @@ interface TablerIconProps extends HTMLAttributes<SVGSVGElement> {
 }
 
 interface IconProps {
-  className?: string;
+  className?: string
 }
 
 export function Icon(props: TablerIconProps) {
-  const { icon, className } = props;
+  const { icon, className } = props
   return (
     <>
-      <svg {...props} className={` ${className ?? 'h-5 w-5 text-inherit'}`} fill="none" stroke="currentColor">
+      <svg
+        {...props}
+        className={` ${className ?? 'h-5 w-5 text-inherit'}`}
+        fill='none'
+        stroke='currentColor'
+      >
         <use href={`${Sprite}#tabler-${icon}`} />
       </svg>
     </>
-  );
-};
+  )
+}
 
 export function GripIcon({ className }: IconProps) {
   return (
@@ -43,5 +48,5 @@ export function GripIcon({ className }: IconProps) {
       <path d='M15 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0'></path>
       <path d='M15 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0'></path>
     </svg>
-  );
+  )
 }

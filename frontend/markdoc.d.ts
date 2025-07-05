@@ -11,10 +11,6 @@ declare module '*.md' {
   // When "Mode.RAW" is requested
   const raw: string
 
-  // When "Mode.React" is requested. VFC could take a generic like React.VFC<{ MyComponent: TypeOfMyComponent }>
-  import React from 'preact/compat'
-  const ReactComponent: React.VFC;
-  
   // Modify below per your usage
-  export { attributes, toc, html, ReactComponent };
+  export { attributes, toc, html };
 }

@@ -1,16 +1,16 @@
-import { auraInit } from "@uiw/codemirror-theme-aura";
-import CodeMirror from "@uiw/react-codemirror";
-import { tags as t } from "@lezer/highlight";
-import { python } from "@codemirror/lang-python";
-import { useEffect, useRef, useState } from "preact/hooks";
-import { Responsive, WidthProvider } from "react-grid-layout";
-import "react-grid-layout/css/styles.css";
-import { Icon } from "../icons";
-import { EditorView } from "@codemirror/view"
+import { auraInit } from '@uiw/codemirror-theme-aura'
+import CodeMirror from '@uiw/react-codemirror'
+import { tags as t } from '@lezer/highlight'
+import { python } from '@codemirror/lang-python'
+import { useEffect, useRef, useState } from 'preact/hooks'
+import { Responsive, WidthProvider } from 'react-grid-layout'
+import 'react-grid-layout/css/styles.css'
+import { Icon } from '../icons'
+import { EditorView } from '@codemirror/view'
 
 export const auraTheme = auraInit({
   settings: {
-    caret: "#cbd5ef",
+    caret: '#cbd5ef',
     background: 'rgba(0 0 0 0)',
     fontFamily: 'Fira Code',
     gutterBackground: 'rgba(36, 46, 107, .17)',
@@ -18,15 +18,62 @@ export const auraTheme = auraInit({
     lineHighlight: 'rgba(36, 46, 77, .20)',
   },
   styles: [
-    { tag: [t.definitionOperator, t.bool, t.logicOperator, t.bitwiseOperator, t.controlOperator,], color: "#ec4899" },
-    { tag: [t.processingInstruction, t.string, t.inserted, t.special(t.string), t.function(t.propertyName,), t.function(t.variableName),], color: "#2dd4bf" },
-    { tag: [t.keyword, t.definitionKeyword, t.special(t.keyword), t.attributeValue, t.changed, t.annotation, t.modifier, t.self, t.namespace], color: "#a855f7" },
-    { tag: [t.variableName, t.deleted, t.character, t.name, t.special(t.variableName)], color: "#cbd5efEF" },
-    { tag: [t.docString, t.docComment, t.className, t.punctuation,], color: "#49B6FE" },
-    { tag: [t.propertyName,], color: "#34d399" },
-    { tag: [t.string], color: "#4ade80" },
-    { tag: [t.number,], color: "#D8454A" },
-    { tag: [t.comment, t.lineComment, t.blockComment, t.punctuation], color: "#5a6fbc" },
+    {
+      tag: [
+        t.definitionOperator,
+        t.bool,
+        t.logicOperator,
+        t.bitwiseOperator,
+        t.controlOperator,
+      ],
+      color: '#ec4899',
+    },
+    {
+      tag: [
+        t.processingInstruction,
+        t.string,
+        t.inserted,
+        t.special(t.string),
+        t.function(t.propertyName),
+        t.function(t.variableName),
+      ],
+      color: '#2dd4bf',
+    },
+    {
+      tag: [
+        t.keyword,
+        t.definitionKeyword,
+        t.special(t.keyword),
+        t.attributeValue,
+        t.changed,
+        t.annotation,
+        t.modifier,
+        t.self,
+        t.namespace,
+      ],
+      color: '#a855f7',
+    },
+    {
+      tag: [
+        t.variableName,
+        t.deleted,
+        t.character,
+        t.name,
+        t.special(t.variableName),
+      ],
+      color: '#cbd5efEF',
+    },
+    {
+      tag: [t.docString, t.docComment, t.className, t.punctuation],
+      color: '#49B6FE',
+    },
+    { tag: [t.propertyName], color: '#34d399' },
+    { tag: [t.string], color: '#4ade80' },
+    { tag: [t.number], color: '#D8454A' },
+    {
+      tag: [t.comment, t.lineComment, t.blockComment, t.punctuation],
+      color: '#5a6fbc',
+    },
   ],
 })
 
@@ -38,33 +85,38 @@ export function CodeEditor({ code, setCode, editable = true }: JSONObject) {
       value={code}
       onChange={(value) => setCode(value)}
       extensions={[python(), EditorView.lineWrapping]}
-      className="text-sm font-semibold"
+      className='text-sm font-semibold'
     />
   )
 }
 
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const ResponsiveGridLayout = WidthProvider(Responsive)
 
 interface EntityEditorProps {
   entity?: any
   showTaskbar?: boolean
 }
 
-export default function EntityEditor({ entity, showTaskbar = true }: EntityEditorProps) {
+export default function EntityEditor({
+  entity,
+  showTaskbar = true,
+}: EntityEditorProps) {
   const [code, setCode] = useState(entity?.source)
   useEffect(() => {
     if (entity?.source) setCode(entity.source)
   }, [entity?.source])
   // const [updateEntityById] = useUpdateEntityByIdMutation()
 
-  const [isEntityDraggable, setEntityDraggable] = useState<boolean>(false);
+  const [isEntityDraggable, setEntityDraggable] = useState<boolean>(false)
   const [textWrap, setTextWrap] = useState<string>('whitespace-pre-line')
-  const [activeOption, setActiveOption] = useState<any>({ label: 'Select transform...', icon: 'edit' });
+  const [activeOption, setActiveOption] = useState<any>({
+    label: 'Select transform...',
+    icon: 'edit',
+  })
   const dropdownRef: any = useRef(200)
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState('')
 
-  const transforms: any = [];
+  const transforms: any = []
   useEffect(() => {
     setActiveOption({ label: 'Select transform...', icon: 'edit' })
   }, [transforms])
@@ -79,7 +131,7 @@ export default function EntityEditor({ entity, showTaskbar = true }: EntityEdito
     <>
       <ResponsiveGridLayout
         compactType={null}
-        className="w-full h-full absolute"
+        className='w-full h-full absolute'
         rowHeight={20}
         maxRows={150}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -165,8 +217,7 @@ export default function EntityEditor({ entity, showTaskbar = true }: EntityEdito
             </>
           )}
         </div> */}
-
-      </ResponsiveGridLayout >
+      </ResponsiveGridLayout>
     </>
-  );
+  )
 }

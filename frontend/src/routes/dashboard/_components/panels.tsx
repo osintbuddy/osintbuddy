@@ -3,13 +3,13 @@ import Subpanel from './Subpanel'
 
 export function MarketPanel() {
   const [showProviders, setShowProviders] = useState(false)
-  const [showCommunityPlugins, setShowCommunityPlugins] = useState(false);
+  const [showCommunityPlugins, setShowCommunityPlugins] = useState(false)
 
   return (
     <>
-      <section class="flex flex-col justify-between relative shrink overflow-clip">
+      <section class='flex flex-col justify-between relative shrink overflow-clip'>
         <Subpanel
-          label="Community"
+          label='Community'
           showError={true}
           showEntities={showCommunityPlugins}
           setShowEntities={() => setShowCommunityPlugins(!showCommunityPlugins)}
@@ -17,12 +17,14 @@ export function MarketPanel() {
           isSuccess={false}
           items={[]}
           onClick={async (hid: string) => null}
-          to="/dashboard/graph"
+          to='/dashboard/graph'
           isFavorite={true}
-          errorMessage={"The market will be here one day... Follow the project on the forum or on discord to get the latest updates"}
+          errorMessage={
+            'The market will be here one day... Follow the project on the forum or on discord to get the latest updates'
+          }
         />
         <Subpanel
-          label="Providers"
+          label='Providers'
           showError={true}
           showEntities={showProviders}
           setShowEntities={() => setShowProviders(!showProviders)}
@@ -30,8 +32,8 @@ export function MarketPanel() {
           isSuccess={false}
           items={[]}
           onClick={async (hid: string) => null}
-          to="/dashboard/graph"
-          errorMessage={"Coming eventually... Stay tuned!"}
+          to='/dashboard/graph'
+          errorMessage={'Coming eventually... Stay tuned!'}
         />
       </section>
     </>
@@ -56,29 +58,33 @@ export function GraphPanel({
   isError,
   isSuccess,
   favoriteGraph,
-  unfavoriteGraph
+  unfavoriteGraph,
 }: GraphPanelProps) {
-  const [showAllGraphs, setShowAllGraphs] = useState(true);
-  const [showFavoriteGraphs, setShowFavoriteGraphs] = useState(true);
+  const [showAllGraphs, setShowAllGraphs] = useState(true)
+  const [showFavoriteGraphs, setShowFavoriteGraphs] = useState(true)
 
   const favoriteGraphs = useMemo(() => {
-    if (!graphsData?.favorites || !graphsData?.graphs) return [];
-    const favoriteIds = new Set(graphsData.favorites);
-    const filteredGraphs = graphsData.graphs.filter(graph => favoriteIds.has(graph.id));
-    filteredGraphs.sort((a, b) => b.ctime.localeCompare(a.ctime));
-    return filteredGraphs.map(graph => ({ ...graph, is_favorite: true }));
+    if (!graphsData?.favorites || !graphsData?.graphs) return []
+    const favoriteIds = new Set(graphsData.favorites)
+    const filteredGraphs = graphsData.graphs.filter((graph) =>
+      favoriteIds.has(graph.id)
+    )
+    filteredGraphs.sort((a, b) => b.ctime.localeCompare(a.ctime))
+    return filteredGraphs.map((graph) => ({ ...graph, is_favorite: true }))
   }, [graphsData?.favorites, graphsData?.graphs])
 
   const graphs = useMemo(() => {
     if (graphsData?.graphs) {
-      const favoriteIds = new Set(graphsData?.favorites || []);
+      const favoriteIds = new Set(graphsData?.favorites || [])
       // Filter out favorited graphs from "All Graphs" section
-      const nonFavoriteGraphs = graphsData.graphs.filter(graph => !favoriteIds.has(graph.id));
+      const nonFavoriteGraphs = graphsData.graphs.filter(
+        (graph) => !favoriteIds.has(graph.id)
+      )
       nonFavoriteGraphs.sort((a, b) => b.ctime.localeCompare(a.ctime))
-      return nonFavoriteGraphs.map(graph => ({
+      return nonFavoriteGraphs.map((graph) => ({
         ...graph,
-        is_favorite: false
-      }));
+        is_favorite: false,
+      }))
     }
     return []
   }, [graphsData?.graphs, graphsData?.favorites])
@@ -97,9 +103,9 @@ export function GraphPanel({
   }
 
   return (
-    <section class="flex flex-col justify-between relative shrink overflow-clip">
+    <section class='flex flex-col justify-between relative shrink overflow-clip'>
       <Subpanel
-        label="Favorites"
+        label='Favorites'
         showError={isError}
         showEntities={showFavoriteGraphs}
         setShowEntities={() => setShowFavoriteGraphs(!showFavoriteGraphs)}
@@ -108,10 +114,10 @@ export function GraphPanel({
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
         isFavorite={true}
-        to="/dashboard/graph"
+        to='/dashboard/graph'
       />
       <Subpanel
-        label="All graphs"
+        label='All graphs'
         showError={isError}
         showEntities={showAllGraphs}
         setShowEntities={() => setShowAllGraphs(!showAllGraphs)}
@@ -119,13 +125,11 @@ export function GraphPanel({
         isSuccess={isSuccess}
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
-        to="/dashboard/graph"
+        to='/dashboard/graph'
       />
     </section>
   )
 }
-
-
 
 interface EntitiesPanelProps {
   entitiesData: {
@@ -145,29 +149,37 @@ export function EntitiesPanel({
   isError,
   isSuccess,
   favoriteEntity,
-  unfavoriteEntity
+  unfavoriteEntity,
 }: EntitiesPanelProps) {
-  const [showFavoriteEntities, setShowFavoriteEntities] = useState<boolean>(true);
-  const [showEntities, setShowEntities] = useState(true);
+  const [showFavoriteEntities, setShowFavoriteEntities] =
+    useState<boolean>(true)
+  const [showEntities, setShowEntities] = useState(true)
 
   const favoriteEntities = useMemo(() => {
-    if (!entitiesData?.favorites || !entitiesData?.entities) return [];
-    const favoriteIds = new Set(entitiesData.favorites);
-    const filteredEntities = entitiesData.entities.filter(entity => favoriteIds.has(entity.id));
-    filteredEntities.sort((a, b) => b.ctime.localeCompare(a.ctime));
-    return filteredEntities.map(entity => ({ ...entity, is_favorite: true }));
+    if (!entitiesData?.favorites || !entitiesData?.entities) return []
+    const favoriteIds = new Set(entitiesData.favorites)
+    const filteredEntities = entitiesData.entities.filter((entity) =>
+      favoriteIds.has(entity.id)
+    )
+    filteredEntities.sort((a, b) => b.ctime.localeCompare(a.ctime))
+    return filteredEntities.map((entity) => ({
+      ...entity,
+      is_favorite: true,
+    }))
   }, [entitiesData?.favorites, entitiesData?.entities])
 
   const sortedEntities = useMemo(() => {
     if (entitiesData?.entities) {
-      const favoriteIds = new Set(entitiesData?.favorites || []);
+      const favoriteIds = new Set(entitiesData?.favorites || [])
       // Filter out favorited entities from "All Entities" section
-      const nonFavoriteEntities = entitiesData.entities.filter(entity => !favoriteIds.has(entity.id));
-      nonFavoriteEntities.sort((a, b) => b.ctime.localeCompare(a.ctime));
-      return nonFavoriteEntities.map(entity => ({
+      const nonFavoriteEntities = entitiesData.entities.filter(
+        (entity) => !favoriteIds.has(entity.id)
+      )
+      nonFavoriteEntities.sort((a, b) => b.ctime.localeCompare(a.ctime))
+      return nonFavoriteEntities.map((entity) => ({
         ...entity,
-        is_favorite: false
-      }));
+        is_favorite: false,
+      }))
     }
     return []
   }, [entitiesData?.entities, entitiesData?.favorites])
@@ -185,11 +197,10 @@ export function EntitiesPanel({
     }
   }
 
-
   return (
-    <section className="flex flex-col justify-between relative shrink overflow-clip">
+    <section className='flex flex-col justify-between relative shrink overflow-clip'>
       <Subpanel
-        label="Favorites"
+        label='Favorites'
         showError={isError}
         showEntities={showFavoriteEntities}
         setShowEntities={() => setShowFavoriteEntities(!showFavoriteEntities)}
@@ -197,12 +208,12 @@ export function EntitiesPanel({
         isSuccess={isSuccess}
         items={favoriteEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
-        to="/dashboard/entity"
-        dateLabel="Created"
-        dateKey="ctime"
+        to='/dashboard/entity'
+        dateLabel='Created'
+        dateKey='ctime'
       />
       <Subpanel
-        label="All entities"
+        label='All entities'
         showError={isError}
         showEntities={showEntities}
         setShowEntities={() => setShowEntities(!showEntities)}
@@ -210,10 +221,10 @@ export function EntitiesPanel({
         isSuccess={isSuccess}
         items={sortedEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
-        to="/dashboard/entity"
-        dateLabel="Created"
-        dateKey="ctime"
+        to='/dashboard/entity'
+        dateLabel='Created'
+        dateKey='ctime'
       />
-    </section >
+    </section>
   )
 }
