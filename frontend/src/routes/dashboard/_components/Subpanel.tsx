@@ -21,52 +21,50 @@ export function GraphLoaderCard() {
 
 interface SubpanelProps {
   showError: any
-  showEntities: boolean
+  show: boolean
   isLoading: boolean | undefined
-  setShowEntities: () => void
-  isSuccess: boolean | undefined
+  setShow: () => void
+  isFavorite?: boolean
   label: string
   onClick: (hid: string) => void
   items: Entity[] | Graph[]
   to: '/dashboard/entity' | '/dashboard/graph'
   errorMessage?: string | null
-  dateLabel?: string
-  dateKey?: string
-  isFavorite?: boolean
 }
 
 export default function Subpanel({
   showError,
-  showEntities,
+  show,
   isLoading,
-  setShowEntities,
-  isSuccess,
+  setShow,
   label,
   onClick,
   items,
   to,
   errorMessage,
-  isFavorite,
+  isFavorite = false,
 }: SubpanelProps) {
   const { hid } = useParams()
   return (
-    <div class='subpanel'>
+    <>
       <header
-        class='hover:border-primary-300 z-50 flex cursor-pointer items-center border-b border-slate-500/30 py-0.5 pb-1 text-slate-600 transition-colors duration-500 ease-in-out hover:text-slate-500'
-        onClick={setShowEntities}
+        class={`hover:border-primary-300 z-50 flex cursor-pointer items-center border-b border-slate-700 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
+        onClick={setShow}
       >
-        <h2 class='font-display px-1 text-sm leading-3 font-semibold text-inherit select-none focus:outline-hidden'>
+        <h2
+          class={`font-display ${show && '!text-slate-350'} px-1 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
+        >
           {label}
         </h2>
         <Icon
           icon='chevron-down'
           className={
-            `hover:border-primary-300/40 mr-1 ml-auto h-5 w-5 origin-center transform cursor-pointer text-slate-600 hover:rotate-3 focus:outline-hidden show-header-icon-${showEntities}` +
+            `hover:text-primary-300 mr-1 ml-auto h-5 w-5 origin-center transform cursor-pointer text-slate-600 hover:rotate-3 focus:outline-hidden ${!show && 'rotate-180'}` +
             ' transition-transform duration-300'
           }
         />
       </header>
-      {showError && showEntities && !isLoading && (
+      {showError && show && !isLoading && (
         <>
           <p>
             {errorMessage?.length ? (
@@ -84,14 +82,14 @@ export default function Subpanel({
           </p>
         </>
       )}
-      {showEntities && isLoading && !showError && (
+      {show && isLoading && !showError && (
         <>
           <GraphLoaderCard />
           <GraphLoaderCard />
         </>
       )}
       <div
-        class={`-translate-y-4 px-1 transition-transform duration-100 ${showEntities ? '!translate-y-0' : 'first-child:mt-2 !h-0 -scale-y-0'}`}
+        class={`overflow-y-scroll pr-2.5 pl-0.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
       >
         {items.map((item) => {
           return (
@@ -99,33 +97,39 @@ export default function Subpanel({
               key={item.id}
               to={`${to}/${item.id}`}
               className={({ isActive }) =>
-                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive ? '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl' : '*:text-slate-500'}`
+                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-sm shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive ? '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl' : '*:text-slate-500'}`
               }
             >
-              <div class='mb-0.5 flex w-full flex-col items-start p-2.5 pr-0 text-sm text-inherit'>
-                <p class={`line-clamp-1 pb-0.5 text-sm leading-4 font-medium`}>
-                  {item.label}
-                </p>
-                <p class='line-clamp-2 h-full max-h-8 w-full pr-2 !text-xs leading-4'>
-                  {item.description}
-                </p>
-                <p class='mt-1 text-left font-sans text-xs leading-none font-light'>
-                  Created {formatPGDate(item.ctime)}
-                </p>
-              </div>
-              <Icon
-                icon='star'
-                onClick={async (e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  await onClick(item.id)
-                }}
-                className={`hover:!text-primary-350 text- ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
-              />
+              {({ isActive }) => (
+                <>
+                  <div class='group mb-0.5 flex w-full flex-col items-start p-2.5 pr-0 text-inherit'>
+                    <p
+                      class={`line-clamp-1 pb-0.5 text-base leading-4 ${isActive ? 'group-hover:text-slate-350' : 'group-hover:text-slate-400'}`}
+                    >
+                      {item.label}
+                    </p>
+                    <p class='mb-0.5 line-clamp-3 h-full max-h-8 w-full overflow-clip pr-6 leading-4 wrap-break-word'>
+                      {item.description}
+                    </p>
+                    <p class='mt-1 text-left text-xs leading-none font-light'>
+                      Created {formatPGDate(item.ctime)}
+                    </p>
+                  </div>
+                  <Icon
+                    icon='star'
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      await onClick(item.id)
+                    }}
+                    className={`hover:!text-primary-350 text- absolute right-0 ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
+                  />
+                </>
+              )}
             </NavLink>
           )
         })}
       </div>
-    </div>
+    </>
   )
 }

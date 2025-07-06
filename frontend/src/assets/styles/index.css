@@ -206,6 +206,10 @@ p {
   font-family: var(--font-sans);
 }
 
+.transition-opacity-transform {
+  transition: transform 200s, opacity 5s;
+}
+
 /* fix autofill bg for the shittiest browser in the world (chrome) */
 input:-webkit-autofill,
 input:-webkit-autofill:focus {

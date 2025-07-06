@@ -83,7 +83,7 @@ export default function DashboardPage() {
   return (
     <>
       <div class='flex'>
-        <aside class='relative flex h-screen w-full max-w-[20rem] !min-w-[20rem] flex-col justify-between rounded border-r-[3px] border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-3.5 shadow-2xl shadow-black/25 backdrop-blur-md'>
+        <aside class='relative flex h-screen max-w-80 min-w-80 flex-col items-start overflow-y-clip rounded border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-3.5 shadow-2xl shadow-black/25 backdrop-blur-md'>
           <Input.TransparentIcon
             icon={<Icon icon='search' className='relative h-6 w-6' />}
             onBtnClick={() => console.log('Todo search')}
@@ -91,8 +91,8 @@ export default function DashboardPage() {
             className='mx-2 mb-1.5 w-full'
             placeholder={`Search...`}
           />
-          <div class='relative my-1 mt-[5px] flex grow flex-col items-stretch overflow-y-hidden'>
-            <section class='font-display flex items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
+          <div className='relative my-1'>
+            <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
                 class='z-[1] flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden focus:text-slate-500 focus:outline-hidden'
@@ -118,50 +118,49 @@ export default function DashboardPage() {
                 class={`${currentPanelTab === 1 ? '!translate-x-[111px]' : currentPanelTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} from-primary-350 to-primary-400 border-mirage-400/60 absolute top-0 left-0 z-[0] mr-auto min-h-[35px] min-w-[95px] cursor-pointer rounded border bg-gradient-to-br transition-all duration-200 ease-out`}
               />
             </section>
-            <div class='h-full overflow-y-scroll'>
-              <div class='relative w-full'>
-                {currentPanelTab === 0 && (
-                  <GraphPanel
-                    graphsData={{ favorites: graphFavorites, graphs }}
-                    isLoading={loadingGraphs}
-                    isError={!!graphsError}
-                    isSuccess={!loadingGraphs && !graphsError}
-                    favoriteGraph={async (graph_id: string) =>
-                      await favoriteGraph({ graph_id, is_favorite: true })
-                    }
-                    unfavoriteGraph={async (graph_id: string) =>
-                      await unfavoriteGraph({ graph_id, is_favorite: false })
-                    }
-                  />
-                )}
-                {currentPanelTab === 1 && (
-                  <EntitiesPanel
-                    entitiesData={{
-                      entities: entities || [],
-                      favorites: entityFavorites || [],
-                    }}
-                    isLoading={loadingEntities}
-                    isError={!!entitiesError}
-                    isSuccess={!loadingEntities && !entitiesError}
-                    favoriteEntity={async (entity_id: string) =>
-                      await favoriteEntity({ entity_id, is_favorite: true })
-                    }
-                    unfavoriteEntity={async (entity_id: string) =>
-                      await unfavoriteEntity({ entity_id, is_favorite: false })
-                    }
-                  />
-                )}
-                {currentPanelTab === 2 && <MarketPanel />}
-              </div>
-            </div>
           </div>
+          <div class='relative my-1 flex h-[calc(90%-80px)] w-full flex-col'>
+            {currentPanelTab === 0 && (
+              <GraphPanel
+                graphsData={{ favorites: graphFavorites, graphs }}
+                isLoading={loadingGraphs}
+                isError={!!graphsError}
+                isSuccess={!loadingGraphs && !graphsError}
+                favoriteGraph={async (graph_id: string) =>
+                  await favoriteGraph({ graph_id, is_favorite: true })
+                }
+                unfavoriteGraph={async (graph_id: string) =>
+                  await unfavoriteGraph({ graph_id, is_favorite: false })
+                }
+              />
+            )}
+            {currentPanelTab === 1 && (
+              <EntitiesPanel
+                entitiesData={{
+                  entities: entities || [],
+                  favorites: entityFavorites || [],
+                }}
+                isLoading={loadingEntities}
+                isError={!!entitiesError}
+                isSuccess={!loadingEntities && !entitiesError}
+                favoriteEntity={async (entity_id: string) =>
+                  await favoriteEntity({ entity_id, is_favorite: true })
+                }
+                unfavoriteEntity={async (entity_id: string) =>
+                  await unfavoriteEntity({ entity_id, is_favorite: false })
+                }
+              />
+            )}
+            {currentPanelTab === 2 && <MarketPanel />}
+          </div>
+
           {currentPanelTab !== 2 && (
             <>
               {currentPanelTab === 0 && (
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateGraphModal(true)}
-                  className='mx-4 mt-auto mr-6 mb-4'
+                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create graph
                   <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
@@ -171,7 +170,7 @@ export default function DashboardPage() {
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateEntityModal(true)}
-                  className='mx-4 mt-auto mr-6 mb-4'
+                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create entity
                   <Icon icon='ghost-3' className='btn-icon !ml-7' />
@@ -182,7 +181,7 @@ export default function DashboardPage() {
           {currentPanelTab === 2 && (
             <Button.Ghost
               variant='primary'
-              className='mx-4 mt-auto mr-6 mb-4'
+              className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
               title='Connect third-party servers providing plugin access'
             >
               Connect server plugins
@@ -190,6 +189,7 @@ export default function DashboardPage() {
             </Button.Ghost>
           )}
         </aside>
+
         <Outlet
           context={
             {

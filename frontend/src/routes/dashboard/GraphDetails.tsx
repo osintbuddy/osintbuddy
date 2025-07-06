@@ -34,7 +34,7 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
                 variant='danger'
               >
                 Delete graph
-                <Icon icon='trash' className='ml-2 h-5 w-5 text-inherit' />
+                <Icon icon='trash' className='!text-danger-500 ml-2 h-5 w-5' />
               </Button.Ghost>
               <Button.Ghost
                 variant='primary'

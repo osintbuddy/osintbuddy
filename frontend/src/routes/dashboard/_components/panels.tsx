@@ -7,35 +7,31 @@ export function MarketPanel() {
 
   return (
     <>
-      <section class='relative flex shrink flex-col justify-between overflow-clip'>
-        <Subpanel
-          label='Community'
-          showError={true}
-          showEntities={showCommunityPlugins}
-          setShowEntities={() => setShowCommunityPlugins(!showCommunityPlugins)}
-          isLoading={false}
-          isSuccess={false}
-          items={[]}
-          onClick={async (hid: string) => null}
-          to='/dashboard/graph'
-          isFavorite={true}
-          errorMessage={
-            'The market will be here one day... Follow the project on the forum or on discord to get the latest updates'
-          }
-        />
-        <Subpanel
-          label='Providers'
-          showError={true}
-          showEntities={showProviders}
-          setShowEntities={() => setShowProviders(!showProviders)}
-          isLoading={false}
-          isSuccess={false}
-          items={[]}
-          onClick={async (hid: string) => null}
-          to='/dashboard/graph'
-          errorMessage={'Coming eventually... Stay tuned!'}
-        />
-      </section>
+      <Subpanel
+        label='Community'
+        showError={true}
+        show={showCommunityPlugins}
+        setShow={() => setShowCommunityPlugins(!showCommunityPlugins)}
+        isLoading={false}
+        items={[]}
+        onClick={async (hid: string) => null}
+        to='/dashboard/graph'
+        isFavorite={true}
+        errorMessage={
+          'The market will be here one day... Follow the project on the forum or on discord to get the latest updates'
+        }
+      />
+      <Subpanel
+        label='Providers'
+        showError={true}
+        show={showProviders}
+        setShow={() => setShowProviders(!showProviders)}
+        isLoading={false}
+        items={[]}
+        onClick={async (hid: string) => null}
+        to='/dashboard/graph'
+        errorMessage={'Coming eventually... Stay tuned!'}
+      />
     </>
   )
 }
@@ -56,7 +52,6 @@ export function GraphPanel({
   graphsData,
   isLoading,
   isError,
-  isSuccess,
   favoriteGraph,
   unfavoriteGraph,
 }: GraphPanelProps) {
@@ -103,14 +98,13 @@ export function GraphPanel({
   }
 
   return (
-    <section class='relative flex shrink flex-col justify-between overflow-clip'>
+    <>
       <Subpanel
         label='Favorites'
         showError={isError}
-        showEntities={showFavoriteGraphs}
-        setShowEntities={() => setShowFavoriteGraphs(!showFavoriteGraphs)}
+        show={showFavoriteGraphs}
+        setShow={() => setShowFavoriteGraphs(!showFavoriteGraphs)}
         isLoading={isLoading}
-        isSuccess={isSuccess}
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
         isFavorite={true}
@@ -119,15 +113,14 @@ export function GraphPanel({
       <Subpanel
         label='All graphs'
         showError={isError}
-        showEntities={showAllGraphs}
-        setShowEntities={() => setShowAllGraphs(!showAllGraphs)}
+        show={showAllGraphs}
+        setShow={() => setShowAllGraphs(!showAllGraphs)}
         isLoading={isLoading}
-        isSuccess={isSuccess}
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
         to='/dashboard/graph'
       />
-    </section>
+    </>
   )
 }
 
@@ -147,7 +140,6 @@ export function EntitiesPanel({
   entitiesData,
   isLoading,
   isError,
-  isSuccess,
   favoriteEntity,
   unfavoriteEntity,
 }: EntitiesPanelProps) {
@@ -198,14 +190,13 @@ export function EntitiesPanel({
   }
 
   return (
-    <section className='relative flex shrink flex-col justify-between overflow-clip'>
+    <>
       <Subpanel
         label='Favorites'
         showError={isError}
-        showEntities={showFavoriteEntities}
-        setShowEntities={() => setShowFavoriteEntities(!showFavoriteEntities)}
+        show={showFavoriteEntities}
+        setShow={() => setShowFavoriteEntities(!showFavoriteEntities)}
         isLoading={isLoading}
-        isSuccess={isSuccess}
         items={favoriteEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
         to='/dashboard/entity'
@@ -214,14 +205,13 @@ export function EntitiesPanel({
       <Subpanel
         label='All entities'
         showError={isError}
-        showEntities={showEntities}
-        setShowEntities={() => setShowEntities(!showEntities)}
+        show={showEntities}
+        setShow={() => setShowEntities(!showEntities)}
         isLoading={isLoading}
-        isSuccess={isSuccess}
         items={sortedEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
         to='/dashboard/entity'
       />
-    </section>
+    </>
   )
 }
