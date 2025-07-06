@@ -2,12 +2,12 @@
 import {
   ChangeEvent,
   Dispatch,
-  Fragment,
   useEffect,
   useMemo,
   useRef,
   useState,
-} from 'react'
+} from 'preact/hooks'
+import { Fragment } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 

@@ -7,6 +7,8 @@ import {
   FitViewOptions,
   Connection,
   ReactFlowInstance,
+  ReactFlow,
+  NodeDragHandler,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -14,6 +16,7 @@ import ViewEntityNode from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
+import { useGraphVisualizationStore } from '@/app/store'
 
 const viewOptions: FitViewOptions = {
   padding: 50,
@@ -39,14 +42,19 @@ export default function Graph({
   positionMode,
   editState,
 }: ProjectGraphProps) {
-  const dispatch = useAppDispatch()
+  const { setEditState } = useGraphVisualizationStore()
   const onEdgeUpdate = useCallback(
-    (oldEdge: Edge, newConnection: Connection) =>
-      dispatch(updateEdgeEvent({ oldEdge, newConnection })),
-    []
+    (oldEdge: Edge, newConnection: Connection) => {
+      // Handle edge update through websocket or API call
+      sendJsonMessage({
+        action: 'update:edge',
+        oldEdge,
+        newConnection
+      })
+    },
+    [sendJsonMessage]
   )
   const { hid } = useParams()
-  useRefreshEntityPluginsQuery()
 
   const onDragOver: DragEventHandler<HTMLDivElement> = useCallback((event) => {
     event.preventDefault()
@@ -57,10 +65,23 @@ export default function Graph({
     label: null,
     position: null,
   })
-  const [
-    createGraphEntity,
-    { isError: isCreateEntityError, isLoading: isLoadingCreateEntity },
-  ] = useCreateEntityOnDropMutation(blankNode)
+  const [isCreateEntityError, setIsCreateEntityError] = useState(false)
+  const [isLoadingCreateEntity, setIsLoadingCreateEntity] = useState(false)
+  
+  const createGraphEntity = useCallback(async (entityData: any) => {
+    setIsLoadingCreateEntity(true)
+    setIsCreateEntityError(false)
+    try {
+      sendJsonMessage({
+        action: 'create:entity',
+        entity: entityData
+      })
+      setIsLoadingCreateEntity(false)
+    } catch (error) {
+      setIsCreateEntityError(true)
+      setIsLoadingCreateEntity(false)
+    }
+  }, [sendJsonMessage])
 
   const onDrop: DragEventHandler<HTMLDivElement> = useCallback(
     async (event) => {
@@ -101,7 +122,7 @@ export default function Graph({
         <EditEntityNode ctx={data} sendJsonMessage={sendJsonMessage} />
       ),
       view: (data: JSONObject) => (
-        <ViewEntityNode ctx={data} dispatch={dispatch} />
+        <ViewEntityNode ctx={data} />
       ),
     }),
     []
@@ -135,8 +156,8 @@ export default function Graph({
       })
       setEntityPosition({ x: node.position.x, y: node.position.y })
     }
-    if (editState !== 'dragEntity' && !isDoubleClick) {
-      dispatch(setEditState({ editId: node.id, editLabel: 'dragEntity' }))
+    if (editState.editLabel !== 'dragEntity' && !isDoubleClick) {
+      setEditState('dragEntity', node.id)
     }
   }
 
@@ -152,20 +173,35 @@ export default function Graph({
 
   useEffect(() => {
     graphInstance?.setViewport({ x: 0, y: 0, zoom: 0.22 })
-    handleGraphRead('initial_read')
+    handleGraphRead('initial')
   }, [graphInstance?.getViewport])
 
   const onConnect = useCallback(
-    (connection: any) => dispatch(createEdge(connection)),
-    []
+    (connection: any) => {
+      sendJsonMessage({
+        action: 'create:edge',
+        connection
+      })
+    },
+    [sendJsonMessage]
   )
   const onEdgeChange = useCallback(
-    (changes: any) => dispatch(onEdgesChange(changes)),
-    []
+    (changes: any) => {
+      sendJsonMessage({
+        action: 'update:edges',
+        changes
+      })
+    },
+    [sendJsonMessage]
   )
   const onNodesChange = useCallback(
-    (changes: any) => dispatch(updateNodeFlow(changes)),
-    []
+    (changes: any) => {
+      sendJsonMessage({
+        action: 'update:nodes',
+        changes
+      })
+    },
+    [sendJsonMessage]
   )
 
   const onMoveStart = useCallback(() => !isDragging && setIsDragging(true), [])
@@ -191,8 +227,11 @@ export default function Graph({
         const newDelta = new Date().getTime()
         const isDouble = newDelta - clickDelta < doubleClickThreshold
         if (isDouble) {
-          if (node.type === 'view') dispatch(enableEntityEdit(node.id))
-          else dispatch(disableEntityEdit(node.id))
+          if (node.type === 'view') {
+            setEditState('enableEditMode', node.id)
+          } else {
+            setEditState('disableEditMode', node.id)
+          }
         }
         setClickDelta(newDelta)
         setIsDoubleClick(isDouble)

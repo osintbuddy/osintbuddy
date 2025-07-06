@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
+import { useGraphVisualizationStore } from '@/app/store'
 
 type UseResizeProps = {
   minWidth: number
@@ -101,12 +102,11 @@ export default function EntityOptions({
   fitView,
 }: JSONObject) {
   const { hid = '' } = useParams()
-  const {
-    data: entitiesData = { plugins: [] },
-    isLoading,
-    isSuccess,
-    isError,
-  } = useRefreshEntityPluginsQuery()
+  // TODO: Replace with proper API call using Zustand store
+  const entitiesData = { plugins: [] }
+  const isLoading = false
+  const isSuccess = true
+  const isError = false
 
   const [showEntities, setShowEntities] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
@@ -161,7 +161,7 @@ export default function EntityOptions({
     isBounded: true,
   })
 
-  const dispatch = useAppDispatch()
+  const { setPositionMode, setEditState } = useGraphVisualizationStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
 
@@ -230,39 +230,34 @@ export default function EntityOptions({
               onClick={() => {
                 setIsForceActive(false)
                 toggleForceLayout && toggleForceLayout(false)
-                dispatch(setPositionMode('manual'))
-                dispatch(
-                  setEditState({ editId: '', editLabel: 'layoutChangeM' })
-                )
+                setPositionMode('manual')
+                setEditState('layoutChangeM', '')
               }}
               type='button'
-              className={classNames(
-                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/60 2 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
-                positionMode === 'manual' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-              )}
+              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/60 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
+                positionMode === 'manual'
+                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                  : ''
+              }`}
             >
               <Icon
                 icon='hand-three-fingers'
-                className={classNames(
-                  'h-6 w-6',
-                  positionMode === 'manual' && 'text-primary-300'
-                )}
+                className={`h-6 w-6 ${positionMode === 'manual' ? 'text-primary-300' : ''}`}
                 aria-hidden='true'
               />
             </button>
             <button
               onClick={() => {
-                dispatch(setPositionMode('force'))
+                setPositionMode('force')
                 toggleForceLayout && toggleForceLayout(!isForceActive)
                 setIsForceActive(!isForceActive)
               }}
               type='button'
-              className={classNames(
-                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
-                positionMode === 'force' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-              )}
+              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
+                positionMode === 'force'
+                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                  : ''
+              }`}
             >
               <Icon
                 icon={
@@ -270,10 +265,7 @@ export default function EntityOptions({
                     ? 'cube-3d-sphere'
                     : 'cube-3d-sphere-off'
                 }
-                className={classNames(
-                  'h-6 w-6 text-inherit',
-                  positionMode === 'force' && 'text-primary-300'
-                )}
+                className={`h-6 w-6 text-inherit ${positionMode === 'force' ? 'text-primary-300' : ''}`}
               />
             </button>
             <button
@@ -283,56 +275,46 @@ export default function EntityOptions({
                 // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
                 // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
                 setIsForceActive(false)
-                dispatch(setPositionMode('right tree'))
+                setPositionMode('elk')
                 setElkLayout({
                   'elk.algorithm': 'layered',
                   'elk.direction': 'RIGHT',
                 })
-                dispatch(
-                  setEditState({ editId: '', editLabel: 'layoutChangeRT' })
-                )
+                setEditState('layoutChangeRT', '')
               }}
               type='button'
-              className={classNames(
-                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
-                positionMode === 'right tree' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-              )}
+              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
+                positionMode === 'right tree'
+                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                  : ''
+              }`}
             >
               <Icon
                 icon='binary-tree-2'
-                className={classNames(
-                  'h-6 w-6 origin-center -rotate-90 text-inherit',
-                  positionMode === 'right tree' && 'text-primary-300'
-                )}
+                className={`h-6 w-6 origin-center -rotate-90 text-inherit ${positionMode === 'right tree' ? 'text-primary-300' : ''}`}
               />
             </button>
             <button
               onClick={() => {
                 setIsForceActive(false)
                 toggleForceLayout && toggleForceLayout(false)
-                dispatch(setPositionMode('tree'))
+                setPositionMode('elk')
                 setElkLayout({
                   'elk.algorithm': 'layered',
                   'elk.direction': 'DOWN',
                 })
-                dispatch(
-                  setEditState({ editId: '', editLabel: 'layoutChangeDT' })
-                )
+                setEditState('layoutChangeDT', '')
               }}
               type='button'
-              className={classNames(
-                'from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10',
-                positionMode === 'tree' &&
-                  'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-              )}
+              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
+                positionMode === 'tree'
+                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                  : ''
+              }`}
             >
               <Icon
                 icon='binary-tree'
-                className={classNames(
-                  'h-6 w-6 text-inherit',
-                  positionMode === 'tree' && 'text-primary-300'
-                )}
+                className={`h-6 w-6 text-inherit ${positionMode === 'tree' ? 'text-primary-300' : ''}`}
               />
             </button>
           </ul>
@@ -366,9 +348,9 @@ export default function EntityOptions({
                 aria-current={activeGraph.description}
               >
                 {isEntitiesDraggable ? (
-                  <LockOpenIcon className='h-5 w-5 text-inherit' />
+                  <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
                 ) : (
-                  <LockClosedIcon className='h-5 w-5 text-inherit' />
+                  <Icon icon='lock' className='h-5 w-5 text-inherit' />
                 )}
               </button>
             </div>
@@ -378,7 +360,7 @@ export default function EntityOptions({
           <>
             <div className='hover:border-mirage-200/40 to-mirage-400/70 from-mirage-300/60 focus-within:!border-primary/40 border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 mx-4 mt-2.5 mb-2 block items-center justify-between rounded border bg-gradient-to-br px-3.5 py-1 text-slate-100 shadow-sm transition-colors duration-200 ease-in-out focus-within:bg-gradient-to-l'>
               <input
-                onChange={(e) => setSearchFilter(e.target.value)}
+                onChange={(e) => setSearchFilter(e.currentTarget.value)}
                 className='block w-full bg-transparent outline-hidden backdrop-blur-md placeholder:text-slate-700 sm:text-sm'
                 placeholder='Search entities...'
               />

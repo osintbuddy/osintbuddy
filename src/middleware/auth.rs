@@ -11,6 +11,19 @@ use jsonwebtoken::{DecodingKey, Validation, decode};
 use log::error;
 use sqids::Sqids;
 
+pub fn verify_jwt_token(token: &str, secret: &str) -> Result<TokenClaims, AppError> {
+    decode::<TokenClaims>(
+        token,
+        &DecodingKey::from_secret(secret.as_ref()),
+        &Validation::default(),
+    )
+    .map(|token_data| token_data.claims)
+    .map_err(|_| AppError {
+        message: "Invalid token. Please sign in again.",
+        kind: ErrorKind::Invalid,
+    })
+}
+
 #[derive(Debug)]
 pub struct AuthMiddleware {
     pub account_id: i64,

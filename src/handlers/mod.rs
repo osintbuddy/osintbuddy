@@ -3,8 +3,8 @@ use actix_web::{HttpResponse, Responder, get, web};
 use crate::schemas::Notification;
 
 mod entities;
-mod graphs;
 mod graphing;
+mod graphs;
 mod organization;
 mod user;
 
@@ -36,7 +36,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(organization::get_my_organization_handler)
         .service(organization::update_my_organization_handler)
         .service(organization::delete_my_organization_handler)
-        .route("/graphs/{id}/ws", web::get().to(graphing::websocket_handler));
+        .route("/graph/{id}/ws", web::get().to(graphing::websocket_handler));
 
     conf.service(scope);
 }

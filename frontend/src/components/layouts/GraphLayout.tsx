@@ -1,11 +1,11 @@
+import { useAuthStore } from '@/app/store'
 import { Navigate, Outlet } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 
 export default function GraphLayout() {
-  const token = ''
-
-  if (!token) return <Navigate to='/' replace />
-
+  const { isAuthenticated } = useAuthStore()
+  if (!isAuthenticated)
+    return <Navigate to='/login' state={{ from: location.pathname }} replace />
   return (
     <>
       <div className='flex max-w-screen flex-col'>

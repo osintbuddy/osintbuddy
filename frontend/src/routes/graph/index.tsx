@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
 import {
   XYPosition,
   Node,
@@ -25,9 +25,12 @@ import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
 import RoundLoader from '@/components/loaders'
 import { useTour } from '@reactour/tour'
+import { useGraphStore, useGraphVisualizationStore, useAuthStore } from '@/app/store'
 
-const keyMap = {
-  TOGGLE_PALETTE: ['shift+p'],
+declare global {
+  interface JSONObject {
+    [key: string]: any
+  }
 }
 
 interface UseWebsocket {
@@ -82,7 +85,6 @@ export const useEffectOnce = (effect: () => void | (() => void)) => {
 const loadingToastId = 'loadingToast'
 
 export default function GraphInquiry({}: GraphInquiryProps) {
-  const dispatch = useAppDispatch()
   const { hid } = useParams()
   const location = useLocation()
   const {
@@ -91,6 +93,19 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     setCurrentStep: setCurrentTourStep,
   } = useTour()
 
+  const { graph: activeGraph, getGraph, isLoading, isError } = useGraphStore()
+  const {
+    setPositionMode,
+    resetGraph,
+    setAllNodes,
+    setAllEdges,
+    nodes: initialNodes,
+    edges: initialEdges,
+    editState: changeState,
+    positionMode,
+  } = useGraphVisualizationStore()
+  const { access_token } = useAuthStore()
+
   useEffect(() => {
     if (location.state?.showGuide) {
       setCurrentTourStep(0)
@@ -98,23 +113,22 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     }
   }, [])
 
-  const WS_GRAPH_INQUIRE = `ws://${WS_URL}/node/graph/${hid}`
+  useEffect(() => {
+    if (hid) {
+      getGraph(hid)
+    }
+  }, [hid])
 
-  const {
-    data: activeGraph,
-    isSuccess,
-    isLoading,
-    isError,
-  } = useGetGraphQuery({ hid: hid as string })
+  const WS_GRAPH_INQUIRE = `ws://${WS_URL}/graph/${hid}/ws`
+
+  const isSuccess = !isLoading && !isError && activeGraph
 
   useEffect(() => {
-    dispatch(setPositionMode('manual'))
+    setPositionMode('manual')
   }, [activeGraph?.id])
 
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
-
-  const [showCommandPalette, setShowCommandPalette] = useState<boolean>(false)
 
   const [messageHistory, setMessageHistory] = useState<JSONObject[]>([])
   const [socketUrl, setSocketUrl] = useState(`${WS_GRAPH_INQUIRE}`)
@@ -123,8 +137,17 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   const { lastJsonMessage, readyState, sendJsonMessage }: UseWebsocket =
     useWebSocket(socketUrl, {
       shouldReconnect: () => shouldConnect,
+      onOpen: () => {
+        // Send authentication token as first message
+        if (access_token) {
+          sendJsonMessage({
+            action: 'auth',
+            token: access_token
+          })
+        }
+      },
       onClose: () => {
-        dispatch(resetGraph())
+        resetGraph()
         toast.update(loadingToastId, {
           render: `The connection was lost! ${shouldConnect ? 'Attempting to reconnect...' : ''}`,
           type: 'warning',
@@ -140,7 +163,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       isLoading: true,
       toastId: loadingToastId,
     })
-    dispatch(resetGraph())
+    resetGraph()
   })
   const socketStatus = {
     [ReadyState.CONNECTING]: 'connecting',
@@ -152,27 +175,28 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   useEffect(() => {
     if (activeGraph && !socketUrl.includes(activeGraph?.id)) {
-      dispatch(resetGraph())
+      resetGraph()
       setSocketUrl(`${WS_GRAPH_INQUIRE}/${activeGraph.id}`)
       setShouldConnect(true)
     }
   }, [activeGraph?.id, socketStatus[readyState]])
 
-  const togglePalette = () => setShowCommandPalette(!showCommandPalette)
-
-  const handlers = {
-    TOGGLE_PALETTE: togglePalette,
-  }
-
   // Handle any actions the websocket sends from backend
   const wsActionPlayer: any = {
+    authenticated: () => {
+      // Authentication successful, now load the graph
+      sendJsonMessage({
+        action: 'initial:graph',
+        viewport: null
+      })
+    },
     isInitialRead: () => {
-      dispatch(setAllNodes(lastJsonMessage.nodes))
-      dispatch(setAllEdges(lastJsonMessage.edges))
+      setAllNodes(lastJsonMessage.nodes)
+      setAllEdges(lastJsonMessage.edges)
     },
     read: () => {
-      dispatch(setAllNodes(lastJsonMessage.nodes))
-      dispatch(setAllEdges(lastJsonMessage.edges))
+      setAllNodes(lastJsonMessage.nodes)
+      setAllEdges(lastJsonMessage.edges)
     },
     removeEntity: () => {},
     isLoading: () => {
@@ -200,11 +224,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       ? setMessageHistory([lastJsonMessage])
       : setMessageHistory((prev) => prev.concat(lastJsonMessage))
   }, [lastJsonMessage, setMessageHistory])
-
-  const initialNodes = useAppSelector((state) => graphNodes(state))
-  const initialEdges = useAppSelector((state) => graphEdges(state))
-  const changeState = useAppSelector((state) => selectEditState(state))
-  const positionMode = useAppSelector((state) => selectPositionMode(state))
 
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(initialNodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(initialEdges)
@@ -262,8 +281,8 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   useEffect(() => {
     if (positionMode === 'manual') {
-      dispatch(setAllNodes(nodesBeforeLayout))
-      dispatch(setAllEdges(edgesBeforeLayout))
+      setAllNodes(nodesBeforeLayout)
+      setAllEdges(edgesBeforeLayout)
     }
   }, [positionMode])
 
@@ -291,9 +310,9 @@ export default function GraphInquiry({}: GraphInquiryProps) {
           children.forEach((node: any) => {
             node.position = { x: node.x, y: node.y }
           })
-          dispatch(resetGraph())
-          dispatch(setAllNodes(children))
-          dispatch(setAllEdges(edges))
+          resetGraph()
+          setAllNodes(children)
+          setAllEdges(edges)
           window.requestAnimationFrame(() => {
             fitView && fitView({ padding: 0.25 })
           })
@@ -348,13 +367,11 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         // running and progresses the simulation one step forward each time.
         const tick = () => {
           simulation.tick()
-          dispatch(
-            setAllNodes(
-              forceNodes.map((node: any) => ({
-                ...node,
-                position: { x: node.x, y: node.y },
-              }))
-            )
+          setAllNodes(
+            forceNodes.map((node: any) => ({
+              ...node,
+              position: { x: node.x, y: node.y },
+            }))
           )
           window.requestAnimationFrame(() => {
             if (running) {
@@ -440,40 +457,33 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       {isLoading && <RoundLoader />}
 
       {isSuccess && (
-        <HotKeys keyMap={keyMap} handlers={handlers}>
-          <div className='flex h-screen w-full flex-col'>
-            <EntityOptions
-              positionMode={positionMode}
-              toggleForceLayout={toggleForceLayout}
-              activeGraph={activeGraph}
-              setElkLayout={setElkLayout}
-              fitView={fitView}
-            />
-            <div className='bg-mirage-400/20 h-full w-full justify-between'>
-              <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>
-                <Graph
-                  onSelectionCtxMenu={onSelectionCtxMenu}
-                  onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
-                  onPaneCtxMenu={onPaneCtxMenu}
-                  onPaneClick={onPaneClick}
-                  graphRef={graphRef}
-                  nodes={initialNodes}
-                  edges={initialEdges}
-                  graphInstance={graphInstance}
-                  setGraphInstance={setGraphInstance}
-                  sendJsonMessage={sendJsonMessage}
-                  fitView={fitView}
-                  positionMode={positionMode}
-                  editState={changeState}
-                />
-              </div>
+        <div className='flex h-screen w-full flex-col'>
+          <EntityOptions
+            positionMode={positionMode}
+            toggleForceLayout={toggleForceLayout}
+            activeGraph={activeGraph}
+            setElkLayout={setElkLayout}
+            fitView={fitView}
+          />
+          <div className='bg-mirage-400/20 h-full w-full justify-between'>
+            <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>
+              <Graph
+                onSelectionCtxMenu={onSelectionCtxMenu}
+                onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
+                onPaneCtxMenu={onPaneCtxMenu}
+                onPaneClick={onPaneClick}
+                graphRef={graphRef}
+                nodes={initialNodes}
+                edges={initialEdges}
+                graphInstance={graphInstance}
+                setGraphInstance={setGraphInstance}
+                sendJsonMessage={sendJsonMessage}
+                fitView={fitView}
+                positionMode={positionMode}
+                editState={changeState}
+              />
             </div>
           </div>
-
-          <CommandPallet
-            isOpen={showCommandPalette}
-            setOpen={setShowCommandPalette}
-          />
           <div className='bg-red absolute top-[3.5rem] -z-10 h-20 w-52 text-slate-900' />
           <ContextMenu
             activeTransformLabel={activeTransformLabel}
@@ -483,7 +493,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             ctxPosition={ctxPosition}
             closeMenu={() => setShowMenu(false)}
           />
-        </HotKeys>
+        </div>
       )}
     </>
   )

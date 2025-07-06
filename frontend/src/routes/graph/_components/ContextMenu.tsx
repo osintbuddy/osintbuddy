@@ -1,6 +1,6 @@
 import { Icon } from '@/components/icons'
 import ContextAction from './ContextAction'
-import { useState } from 'react'
+import { useState } from 'preact/hooks'
 
 export default function ContextMenu({
   closeMenu,
@@ -10,22 +10,16 @@ export default function ContextMenu({
   sendJsonMessage,
   activeTransformLabel,
 }: JSONObject) {
-  const dispatch = useAppDispatch()
-
   const ctxPosition = {
     top: position.y,
     left: position.x,
   }
 
-  const {
-    data: transforms = [],
-    isLoading: isLoadingTransforms,
-    isError: isTransformsError,
-    isSuccess: isTransformsSuccess,
-  } = useGetEntityTransformsQuery(
-    { label: activeTransformLabel as string },
-    { skip: activeTransformLabel === null }
-  )
+  // TODO: Replace with proper API call using Zustand store
+  const transforms = []
+  const isLoadingTransforms = false
+  const isTransformsError = false
+  const isTransformsSuccess = true
 
   const [query, setQuery] = useState('')
   const filteredTransforms = query
@@ -95,8 +89,6 @@ export default function ContextMenu({
                           action: 'delete:node',
                           node: { id: ctxSelection.id },
                         })
-                        dispatch(deleteNode(ctxSelection.id))
-                        // dispatch(setEditState({ editId: ctxSelection.id, editLabel: 'deleteNode' }))
                       }}
                       type='button'
                     >

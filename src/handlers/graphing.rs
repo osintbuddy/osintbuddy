@@ -30,6 +30,7 @@ pub struct WebSocketMessage {
     pub action: String,
     pub node: Option<Value>,
     pub viewport: Option<Value>,
+    pub token: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -316,41 +317,89 @@ pub async fn websocket_handler(
     stream: web::Payload,
     pool: Database,
     _graph_users: web::Data<GraphUsers>,
-    auth: AuthMiddleware,
     graph_id: web::Path<String>,
     sqids: web::Data<Sqids>,
+    app_data: crate::AppData,
 ) -> Result<HttpResponse, Error> {
     let (response, mut session, mut msg_stream) = actix_ws::handle(&req, stream)?;
 
-    // Extract user ID from auth middleware
-    let _user_id = auth.account_id.to_string();
+    // We'll authenticate when we receive the first message
+    let mut authenticated = false;
+    let mut user_id: Option<i64> = None;
+    let mut graph_uuid: Option<sqlx::types::Uuid> = None;
 
     // Extract and decode graph UUID from path parameters
     let graph_ids = sqids.decode(&graph_id);
-    let decoded_id = graph_ids
+    let decoded_id = *graph_ids
         .first()
-        .ok_or_else(|| actix_web::error::ErrorBadRequest("Invalid graph ID"))?
-        as &u64;
-
-    // Get the graph from database to validate access and get UUID
-    let graph = sqlx::query!(
-        "SELECT uuid FROM graphs WHERE id = $1 AND owner_id = $2",
-        *decoded_id as i64,
-        auth.account_id
-    )
-    .fetch_one(pool.as_ref())
-    .await
-    .map_err(|_| actix_web::error::ErrorNotFound("Graph not found or access denied"))?;
-
-    let graph_uuid = graph
-        .uuid
-        .ok_or_else(|| actix_web::error::ErrorInternalServerError("Graph UUID not found"))?;
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("Invalid graph ID"))?;
 
     actix_web::rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
                 Message::Text(text) => {
                     if let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) {
+                        // Handle authentication on first message
+                        if !authenticated {
+                            if let Some(token) = &event.token {
+                                match crate::middleware::auth::verify_jwt_token(token, &app_data.cfg.jwt_secret) {
+                                    Ok(claims) => {
+                                        // Decode the user ID from sqids
+                                        let user_ids = sqids.decode(&claims.sub);
+                                        if let Some(decoded_user_id) = user_ids.first() {
+                                            let user_id_i64 = *decoded_user_id as i64;
+                                            
+                                            // Get the graph from database to validate access and get UUID
+                                            if let Ok(graph) = sqlx::query!(
+                                                "SELECT uuid FROM graphs WHERE id = $1 AND owner_id = $2",
+                                                decoded_id as i64,
+                                                user_id_i64
+                                            )
+                                            .fetch_one(pool.as_ref())
+                                            .await {
+                                                if let Some(uuid) = graph.uuid {
+                                                    authenticated = true;
+                                                    user_id = Some(user_id_i64);
+                                                    graph_uuid = Some(uuid);
+                                                
+                                                    // Send authentication success response
+                                                    let auth_response = WebSocketResponse {
+                                                        action: "authenticated".to_string(),
+                                                        nodes: None,
+                                                        edges: None,
+                                                        detail: None,
+                                                        message: Some("Authentication successful".to_string()),
+                                                        node: None,
+                                                    };
+                                                    if let Ok(message) = serde_json::to_string(&auth_response) {
+                                                        let _ = session.text(message).await;
+                                                    }
+                                                }
+                                            } else {
+                                                // Graph not found or access denied
+                                                let _ = session.close(Some(actix_ws::CloseCode::Policy.into())).await;
+                                                break;
+                                            }
+                                        } else {
+                                            // Invalid user ID in token
+                                            let _ = session.close(Some(actix_ws::CloseCode::Policy.into())).await;
+                                            break;
+                                        }
+                                    }
+                                    Err(_) => {
+                                        // Send authentication error and close connection
+                                        let _ = session.close(Some(actix_ws::CloseCode::Policy.into())).await;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                // No token provided, close connection
+                                let _ = session.close(Some(actix_ws::CloseCode::Policy.into())).await;
+                                break;
+                            }
+                            continue;
+                        }
+
                         let action_parts: Vec<&str> = event.action.split(':').collect();
                         if action_parts.len() < 2 {
                             continue;
@@ -358,6 +407,7 @@ pub async fn websocket_handler(
 
                         let action = action_parts[0];
                         let target = action_parts[1];
+                        let graph_uuid = graph_uuid.unwrap();
 
                         match (action, target) {
                             ("update", "node") => {

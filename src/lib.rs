@@ -16,11 +16,18 @@ use config::AppConfig;
 use log::info;
 use moka::sync::Cache;
 use sqids::Sqids;
+use std::collections::HashMap;
 use std::io;
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::RwLock;
+use actix_ws::Session;
 
 use crate::config::CONFIG;
 use crate::db::DB;
+
+type GraphUsers = Arc<RwLock<HashMap<String, Arc<RwLock<Session>>>>>;
+
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
     pub cfg: AppConfig,
@@ -55,6 +62,10 @@ pub async fn run() -> std::io::Result<()> {
             .build()
             .map_err(|err| std::io::Error::new(io::ErrorKind::Other, err))
             .expect("Fatal error building Sqids!");
+        
+        // Initialize the websocket sessions store
+        let graph_users: GraphUsers = Arc::new(RwLock::new(HashMap::new()));
+        
         let app = App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(AppState {
@@ -66,6 +77,7 @@ pub async fn run() -> std::io::Result<()> {
             }))
             .app_data(web::Data::new(sqids))
             .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(graph_users))
             .wrap(
                 Cors::default()
                     .allowed_origin(&config.backend_cors)

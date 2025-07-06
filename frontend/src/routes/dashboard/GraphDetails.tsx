@@ -45,9 +45,10 @@ function GraphHeader({ graph }: GraphHeaderProps) {
               </Button.Ghost>
               <Button.Ghost
                 variant='primary'
-                onClick={() =>
-                  navigate(`/graph/${graph?.id}`, { replace: true })
-                }
+                onClick={() => {
+                  console.log(`nav to: /graph/${graph?.id}`)
+                  navigate(`/graph/${graph?.id}`)
+                }}
               >
                 Open graph
                 <Icon icon='eye' className='btn-icon' />

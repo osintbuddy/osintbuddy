@@ -451,3 +451,38 @@ export const useAppStore = create<SettingsState>()(
     }
   )
 )
+
+// Graph visualization store
+interface GraphVisualizationState {
+  nodes: any[]
+  edges: any[]
+  positionMode: 'manual' | 'force' | 'elk'
+  editState: {
+    editLabel: string | null
+    editId: string | null
+  }
+  setAllNodes: (nodes: any[]) => void
+  setAllEdges: (edges: any[]) => void
+  setPositionMode: (mode: 'manual' | 'force' | 'elk') => void
+  setEditState: (editLabel: string | null, editId: string | null) => void
+  resetGraph: () => void
+}
+
+export const useGraphVisualizationStore = create<GraphVisualizationState>()((set) => ({
+  nodes: [],
+  edges: [],
+  positionMode: 'manual',
+  editState: {
+    editLabel: null,
+    editId: null
+  },
+  setAllNodes: (nodes) => set({ nodes }),
+  setAllEdges: (edges) => set({ edges }),
+  setPositionMode: (mode) => set({ positionMode: mode }),
+  setEditState: (editLabel, editId) => set({ editState: { editLabel, editId } }),
+  resetGraph: () => set({ 
+    nodes: [], 
+    edges: [], 
+    editState: { editLabel: null, editId: null } 
+  })
+}))
