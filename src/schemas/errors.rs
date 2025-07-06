@@ -16,6 +16,7 @@ pub enum ErrorKind {
     Database,
     Unauthorized,
     Forbidden,
+    Network,
 }
 
 #[derive(Debug, Serialize)]
@@ -39,6 +40,7 @@ impl error::ResponseError for AppError {
             ErrorKind::Database => StatusCode::SERVICE_UNAVAILABLE,
             ErrorKind::Unauthorized => StatusCode::UNAUTHORIZED,
             ErrorKind::Forbidden => StatusCode::FORBIDDEN,
+            ErrorKind::Network => StatusCode::BAD_GATEWAY,
         }
     }
 }

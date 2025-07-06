@@ -12,12 +12,13 @@ use crate::{
 };
 use log::error;
 use sqids::Sqids;
+use serde_json::Value;
 
 use actix_web::{
     HttpResponse, Result, delete, get,
     http::StatusCode,
     patch, post,
-    web::{Data, Path},
+    web::{Data, Path, Query},
 };
 
 #[post("/entities")]
@@ -286,4 +287,180 @@ async fn favorite_entity_handler(
             }
         })
     }
+}
+
+fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_char_was_uppercase = false;
+
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            if i > 0 && !prev_char_was_uppercase {
+                result.push('_');
+            }
+            result.push(c.to_lowercase().next().unwrap());
+            prev_char_was_uppercase = true;
+        } else {
+            result.push(c);
+            prev_char_was_uppercase = false;
+        }
+    }
+
+    result
+}
+
+async fn get_blueprint(label: &str) -> Result<Value, AppError> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&format!("http://127.0.0.1:42562/blueprint?label={}", to_snake_case(label)))
+        .send()
+        .await
+        .map_err(|err| {
+            error!("Error fetching blueprint: {}", err);
+            AppError {
+                kind: ErrorKind::Network,
+                message: "Failed to fetch blueprint from plugins service.",
+            }
+        })?;
+
+    let blueprint: Value = response.json().await.map_err(|err| {
+        error!("Error parsing blueprint response: {}", err);
+        AppError {
+            kind: ErrorKind::Network,
+            message: "Failed to parse blueprint response.",
+        }
+    })?;
+
+    Ok(blueprint)
+}
+
+#[derive(serde::Deserialize)]
+struct TransformQuery {
+    label: String,
+}
+
+#[get("/entity/plugins/transform/")]
+async fn get_entity_transforms(
+    _auth: AuthMiddleware,
+    query: Query<TransformQuery>,
+) -> Result<HttpResponse, AppError> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&format!(
+            "http://127.0.0.1:42562/transforms?label={}",
+            to_snake_case(&query.label)
+        ))
+        .send()
+        .await
+        .map_err(|err| {
+            error!("Error fetching transforms: {}", err);
+            AppError {
+                kind: ErrorKind::Network,
+                message: "Failed to fetch transforms from plugins service.",
+            }
+        })?;
+
+    let transforms: Value = response.json().await.map_err(|err| {
+        error!("Error parsing transforms response: {}", err);
+        AppError {
+            kind: ErrorKind::Network,
+            message: "Failed to parse transforms response.",
+        }
+    })?;
+
+    Ok(HttpResponse::Ok().json(transforms))
+}
+
+#[get("/entity/details/{hid}")]
+async fn get_entity_details(
+    _auth: AuthMiddleware,
+    hid: Path<String>,
+) -> Result<HttpResponse, AppError> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&format!("http://127.0.0.1:42562/entities/{}", hid.as_str()))
+        .send()
+        .await
+        .map_err(|err| {
+            error!("Error fetching entity details: {}", err);
+            AppError {
+                kind: ErrorKind::Network,
+                message: "Failed to fetch entity details from plugins service.",
+            }
+        })?;
+
+    let mut entity: Value = response.json().await.map_err(|err| {
+        error!("Error parsing entity response: {}", err);
+        AppError {
+            kind: ErrorKind::Network,
+            message: "Failed to parse entity response.",
+        }
+    })?;
+
+    if let Some(label) = entity.get("label").and_then(|l| l.as_str()) {
+        let label_str = label.to_string();
+        let blueprint = get_blueprint(&label_str).await?;
+        entity
+            .as_object_mut()
+            .unwrap()
+            .insert("blueprint".to_string(), blueprint);
+
+        let transforms_response = reqwest::Client::new()
+            .get(&format!(
+                "http://127.0.0.1:42562/transforms?label={}",
+                to_snake_case(&label_str)
+            ))
+            .send()
+            .await
+            .map_err(|err| {
+                error!("Error fetching transforms: {}", err);
+                AppError {
+                    kind: ErrorKind::Network,
+                    message: "Failed to fetch transforms from plugins service.",
+                }
+            })?;
+
+        let transforms: Value = transforms_response.json().await.map_err(|err| {
+            error!("Error parsing transforms response: {}", err);
+            AppError {
+                kind: ErrorKind::Network,
+                message: "Failed to parse transforms response.",
+            }
+        })?;
+
+        entity
+            .as_object_mut()
+            .unwrap()
+            .insert("transforms".to_string(), transforms);
+    }
+
+    Ok(HttpResponse::Ok().json(entity))
+}
+
+#[get("/entity")]
+async fn get_entities_from_plugins(
+    _auth: AuthMiddleware,
+) -> Result<HttpResponse, AppError> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get("http://127.0.0.1:42562/entities")
+        .send()
+        .await
+        .map_err(|err| {
+            error!("Error fetching entities: {}", err);
+            AppError {
+                kind: ErrorKind::Network,
+                message: "Failed to fetch entities from plugins service.",
+            }
+        })?;
+
+    let entities: Value = response.json().await.map_err(|err| {
+        error!("Error parsing entities response: {}", err);
+        AppError {
+            kind: ErrorKind::Network,
+            message: "Failed to parse entities response.",
+        }
+    })?;
+
+    Ok(HttpResponse::Ok().json(entities))
 }

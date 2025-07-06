@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
 import { useEffect, useState } from 'preact/hooks';
-import { graphsApi, Graph, GraphDetails, UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError } from './api';
+import { graphsApi, Graph, GraphDetails, UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError, PluginEntity } from './api';
 import { jwtParse } from './utilities';
 
 // Auth store 
@@ -289,16 +289,19 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
 // Entities store
 interface EntitiesState {
   entities: Entity[]
+  pluginEntities: PluginEntity[]
   favorites: string[]
   currentEntity: Entity | null
   isLoading: boolean
   isLoadingEntity: boolean
+  isLoadingPlugins: boolean
   isCreating: boolean
   isUpdating: boolean
   isDeleting: boolean
   error: string | null
   entityError: string | null
   fetchEntities: (payload: Paginate) => Promise<void>
+  fetchPluginEntities: () => Promise<void>
   createEntity: (payload: CreateEntityPayload) => Promise<Entity>
   updateEntity: (payload: UpdateEntityPayload) => Promise<Entity>
   deleteEntity: (payload: DeleteEntityPayload) => Promise<void>
@@ -308,10 +311,12 @@ interface EntitiesState {
 
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
+  pluginEntities: [],
   favorites: [],
   currentEntity: null,
   isLoading: false,
   isLoadingEntity: false,
+  isLoadingPlugins: false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
@@ -325,6 +330,17 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       set({ entities: response.entities, favorites: response.favorites, isLoading: false })
     } catch (error) {
       set({ error: error.message, isLoading: false })
+    }
+  },
+  fetchPluginEntities: async () => {
+    set({ isLoadingPlugins: true, error: null })
+    try {
+      const token = useAuthStore.getState().access_token as string;
+      const response = await entitiesApi.getPluginEntities(token)
+      console.log(response, 'WTF')
+      set({ pluginEntities: response, isLoadingPlugins: false })
+    } catch (error) {
+      set({ error: error.message, isLoadingPlugins: false })
     }
   },
   createEntity: async (payload: CreateEntityPayload) => {

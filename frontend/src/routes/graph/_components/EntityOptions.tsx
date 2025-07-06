@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { useGraphVisualizationStore } from '@/app/store'
+import { useGraphVisualizationStore, useEntitiesStore } from '@/app/store'
 
 type UseResizeProps = {
   minWidth: number
@@ -102,25 +102,27 @@ export default function EntityOptions({
   fitView,
 }: JSONObject) {
   const { hid = '' } = useParams()
-  // TODO: Replace with proper API call using Zustand store
-  const entitiesData = { plugins: [] }
-  const isLoading = false
-  const isSuccess = true
-  const isError = false
+
+  // Use the entities store to fetch plugin entities
+  const { pluginEntities, isLoadingPlugins, error, fetchPluginEntities } =
+    useEntitiesStore()
 
   const [showEntities, setShowEntities] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
 
+  // Fetch plugin entities on component mount
+  useEffect(() => {
+    fetchPluginEntities()
+  }, [])
+
   const entities = useMemo(
     () =>
       searchFilter
-        ? [
-            ...entitiesData?.plugins.filter((entity: JSONObject) =>
-              entity.label.toLowerCase().includes(searchFilter.toLowerCase())
-            ),
-          ]
-        : [...entitiesData?.plugins],
-    [searchFilter, entitiesData]
+        ? pluginEntities.filter((entity) =>
+            entity.label.toLowerCase().includes(searchFilter.toLowerCase())
+          )
+        : pluginEntities,
+    [searchFilter, pluginEntities]
   )
 
   const onDragStart = (event: DragEvent, nodeType: string) => {
@@ -165,7 +167,7 @@ export default function EntityOptions({
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
 
-  const [isGrayscale, setisGrayscale] = useState(false)
+  console.log('pluginEntities', pluginEntities)
 
   return (
     <ResponsiveGridLayout
@@ -366,13 +368,33 @@ export default function EntityOptions({
               />
             </div>
             <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
-              {entities.map((entity) => (
-                <EntityOption
-                  onDragStart={onDragStart}
-                  key={entity.label}
-                  entity={entity}
-                />
-              ))}
+              {isLoadingPlugins ? (
+                <li className='flex w-full items-center justify-center py-8'>
+                  <div className='text-sm text-slate-500'>
+                    Loading entities...
+                  </div>
+                </li>
+              ) : error ? (
+                <li className='flex w-full items-center justify-center py-8'>
+                  <div className='text-sm text-red-400'>
+                    Error loading entities: {error}
+                  </div>
+                </li>
+              ) : entities.length === 0 ? (
+                <li className='flex w-full items-center justify-center py-8'>
+                  <div className='text-sm text-slate-500'>
+                    No entities found
+                  </div>
+                </li>
+              ) : (
+                entities.map((entity) => (
+                  <EntityOption
+                    onDragStart={onDragStart}
+                    key={entity.label}
+                    entity={entity}
+                  />
+                ))
+              )}
             </ul>
           </>
         )}

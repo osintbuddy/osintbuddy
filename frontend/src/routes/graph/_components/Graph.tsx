@@ -92,28 +92,24 @@ export default function Graph({
       if (typeof label === 'undefined' || !label) return
 
       const graphBounds = graphRef.current.getBoundingClientRect()
-      const position = graphInstance?.project({
+      const position = graphInstance?.screenToFlowPosition({
         x: event.clientX - graphBounds.left,
         y: event.clientY - graphBounds.top,
       })
       if (label && position && hid) {
         const createNode = { label, position }
-        createGraphEntity({ createNode, hid })
-          .then(({ data }: CreateEntityOnDropApiResponse) => {
-            dispatch(addNodeUpdate({ position, label, ...data }))
-            dispatch(
-              setEditState({ editId: data.id, editLabel: 'createEntity' })
-            )
-          })
-          .catch((error: any) => {
-            console.error(error)
-            toast.error(
-              `We ran into a problem creating the ${label} entity. Please try again`
-            )
-          })
+        try {
+          createGraphEntity({ createNode, hid })
+          setEditState('createEntity', '')
+        } catch (error: any) {
+          console.error(error)
+          toast.error(
+            `We ran into a problem creating the ${label} entity. Please try again`
+          )
+        }
       }
     },
-    [graphInstance]
+    [graphInstance, createGraphEntity, hid, setEditState]
   )
 
   const nodeTypes = useMemo(

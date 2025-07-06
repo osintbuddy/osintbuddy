@@ -25,13 +25,11 @@ import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
 import RoundLoader from '@/components/loaders'
 import { useTour } from '@reactour/tour'
-import { useGraphStore, useGraphVisualizationStore, useAuthStore } from '@/app/store'
-
-declare global {
-  interface JSONObject {
-    [key: string]: any
-  }
-}
+import {
+  useGraphStore,
+  useGraphVisualizationStore,
+  useAuthStore,
+} from '@/app/store'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
@@ -81,8 +79,6 @@ export const useEffectOnce = (effect: () => void | (() => void)) => {
     }
   }, [])
 }
-
-const loadingToastId = 'loadingToast'
 
 export default function GraphInquiry({}: GraphInquiryProps) {
   const { hid } = useParams()
@@ -142,13 +138,13 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         if (access_token) {
           sendJsonMessage({
             action: 'auth',
-            token: access_token
+            token: access_token,
           })
         }
       },
       onClose: () => {
         resetGraph()
-        toast.update(loadingToastId, {
+        toast.update('loadingToast', {
           render: `The connection was lost! ${shouldConnect ? 'Attempting to reconnect...' : ''}`,
           type: 'warning',
           isLoading: false,
@@ -161,7 +157,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     toast.loading('Loading graph...', {
       closeButton: true,
       isLoading: true,
-      toastId: loadingToastId,
+      toastId: 'loadingToast',
     })
     resetGraph()
   })
@@ -187,7 +183,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       // Authentication successful, now load the graph
       sendJsonMessage({
         action: 'initial:graph',
-        viewport: null
+        viewport: null,
       })
     },
     isInitialRead: () => {
@@ -204,10 +200,10 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         toast.loading('Loading...', {
           closeButton: true,
           isLoading: true,
-          toastId: loadingToastId,
+          toastId: 'loadingToast',
         })
       else
-        toast.update(loadingToastId, {
+        toast.update('loadingToast', {
           render: `${lastJsonMessage?.message ? lastJsonMessage.message : 'Success!'}`,
           type: 'success',
           isLoading: false,

@@ -201,6 +201,22 @@ export interface ListEntitiesResponse {
   favorites: string[]
 }
 
+export interface PluginEntity {
+  label: string
+  description: string
+  author?: string
+  [key: string]: any
+}
+
+export interface EntityWithTransforms {
+  label: string
+  description: string
+  author?: string
+  blueprint?: any
+  transforms?: any[]
+  [key: string]: any
+}
+
 export const entitiesApi = {
   create: async (
     payload: CreateEntityPayload,
@@ -256,6 +272,27 @@ export const entitiesApi = {
       method: 'POST',
       body: payload
     }, onExp);
+  },
+  // New plugin-related endpoints
+  getPluginEntities: async (
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<PluginEntity[]> => {
+    return request<PluginEntity[]>('/entity', token, {}, onExp);
+  },
+  getEntityDetails: async (
+    hid: string,
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<EntityWithTransforms> => {
+    return request<EntityWithTransforms>(`/entity/details/${hid}`, token, {}, onExp);
+  },
+  getEntityTransforms: async (
+    label: string,
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<any[]> => {
+    return request<any[]>(`/entity/plugins/transform/?label=${encodeURIComponent(label)}`, token, {}, onExp);
   },
 }
 
