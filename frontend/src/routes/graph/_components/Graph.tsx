@@ -8,7 +8,8 @@ import {
   Connection,
   ReactFlowInstance,
   ReactFlow,
-  NodeDragHandler,
+  SelectionDragHandler,
+  OnNodeDrag,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -43,13 +44,13 @@ export default function Graph({
   editState,
 }: ProjectGraphProps) {
   const { setEditState } = useGraphVisualizationStore()
-  const onEdgeUpdate = useCallback(
+  const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       // Handle edge update through websocket or API call
       sendJsonMessage({
         action: 'update:edge',
         oldEdge,
-        newConnection
+        newConnection,
       })
     },
     [sendJsonMessage]
@@ -67,21 +68,24 @@ export default function Graph({
   })
   const [isCreateEntityError, setIsCreateEntityError] = useState(false)
   const [isLoadingCreateEntity, setIsLoadingCreateEntity] = useState(false)
-  
-  const createGraphEntity = useCallback(async (entityData: any) => {
-    setIsLoadingCreateEntity(true)
-    setIsCreateEntityError(false)
-    try {
-      sendJsonMessage({
-        action: 'create:entity',
-        entity: entityData
-      })
-      setIsLoadingCreateEntity(false)
-    } catch (error) {
-      setIsCreateEntityError(true)
-      setIsLoadingCreateEntity(false)
-    }
-  }, [sendJsonMessage])
+
+  const createGraphEntity = useCallback(
+    async (entityData: any) => {
+      setIsLoadingCreateEntity(true)
+      setIsCreateEntityError(false)
+      try {
+        sendJsonMessage({
+          action: 'create:entity',
+          entity: entityData,
+        })
+        setIsLoadingCreateEntity(false)
+      } catch (error) {
+        setIsCreateEntityError(true)
+        setIsLoadingCreateEntity(false)
+      }
+    },
+    [sendJsonMessage]
+  )
 
   const onDrop: DragEventHandler<HTMLDivElement> = useCallback(
     async (event) => {
@@ -117,9 +121,7 @@ export default function Graph({
       edit: (data: JSONObject) => (
         <EditEntityNode ctx={data} sendJsonMessage={sendJsonMessage} />
       ),
-      view: (data: JSONObject) => (
-        <ViewEntityNode ctx={data} />
-      ),
+      view: (data: JSONObject) => <ViewEntityNode ctx={data} />,
     }),
     []
   )
@@ -140,7 +142,7 @@ export default function Graph({
   })
   const [clickDelta, setClickDelta] = useState(0)
 
-  const onNodeDragStop: NodeDragHandler = (_, node) => {
+  const onNodeDragStop: OnNodeDrag = (_, node) => {
     if (
       positionMode === 'manual' &&
       (entityPosition.x !== node.position.x ||
@@ -176,7 +178,7 @@ export default function Graph({
     (connection: any) => {
       sendJsonMessage({
         action: 'create:edge',
-        connection
+        connection,
       })
     },
     [sendJsonMessage]
@@ -185,7 +187,7 @@ export default function Graph({
     (changes: any) => {
       sendJsonMessage({
         action: 'update:edges',
-        changes
+        changes,
       })
     },
     [sendJsonMessage]
@@ -194,7 +196,7 @@ export default function Graph({
     (changes: any) => {
       sendJsonMessage({
         action: 'update:nodes',
-        changes
+        changes,
       })
     },
     [sendJsonMessage]
@@ -216,7 +218,7 @@ export default function Graph({
       onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
-      onEdgeUpdate={onEdgeUpdate}
+      onReconnect={onReconnect}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
       onNodeClick={(_: any, node: any) => {
@@ -248,10 +250,9 @@ export default function Graph({
       elevateNodesOnSelect={true}
     >
       <Background
-        size={2.5}
+        color='#ccc'
+        className='-z-10'
         variant={BackgroundVariant.Dots}
-        className='bg-transparent'
-        color='#334155e6'
       />
     </ReactFlow>
   )

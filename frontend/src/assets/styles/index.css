@@ -2,6 +2,7 @@
 @plugin "@tailwindcss/typography";
 @import '../../../node_modules/react-grid-layout/css/styles.css';
 @import './fonts.css';
+@import './nodes.css';
 
 @custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
 @custom-variant theme-blueprint {  &:where([data-theme="blueprint"] *) {    @slot;  }}

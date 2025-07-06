@@ -76,7 +76,7 @@ pub async fn with_cypher(
                 let v = match serde_json::Value::from_str(result.as_str()) {
                     Ok(v) => v,
                     Err(err) => {
-                        error!("{err}");
+                        error!("WHAT THE FK!? {err}");
                         json!({})
                     }
                 };

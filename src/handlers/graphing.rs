@@ -3,14 +3,12 @@ use crate::schemas::errors::{AppError, ErrorKind};
 use actix_web::{Error, HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
 use futures_util::StreamExt;
-use log::{error, info};
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sqids::Sqids;
-use sqlx::{PgPool, Row, types::Uuid};
+use sqlx::PgPool;
 use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Position {
@@ -223,37 +221,36 @@ pub async fn read_graph(
     Ok(())
 }
 
-pub async fn update_node(
-    pool: &PgPool,
-    node: &Value,
-    graph_uuid: &Uuid,
-) -> Result<(), sqlx::Error> {
+pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Result<(), AppError> {
     if let Some(vertex_id) = node.get("id").and_then(|v| v.as_str()) {
         for (key, value) in node.as_object().unwrap() {
             if key == "id" {
                 continue;
             }
-
+            let mut tx = age_tx(pool).await?;
             let snake_key = to_snake_case(key);
             let query = if value.is_string() {
                 format!(
-                    "SELECT * FROM cypher('g_{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
-                    graph_uuid.simple(),
+                    "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
+                    graph_name,
                     vertex_id,
                     snake_key,
                     value.as_str().unwrap_or("")
                 )
             } else {
                 format!(
-                    "SELECT * FROM cypher('g_{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
-                    graph_uuid.simple(),
-                    vertex_id,
-                    snake_key,
-                    value
+                    "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
+                    graph_name, vertex_id, snake_key, value
                 )
             };
-
-            sqlx::query(&query).execute(pool).await?;
+            let _ = with_cypher(query, tx.as_mut()).await;
+            tx.commit().await.map_err(|err| {
+                error!("{err}");
+                AppError {
+                    message: "()",
+                    kind: ErrorKind::Database,
+                }
+            })?;
         }
     }
 
@@ -264,44 +261,57 @@ pub async fn remove_node(
     pool: &PgPool,
     session: &mut Session,
     node: &Value,
-    graph_uuid: &Uuid,
-) -> Result<(), Box<dyn std::error::Error>> {
+    graph_name: String,
+) -> Result<(), AppError> {
     if let Some(node_id) = node.get("id").and_then(|v| v.as_str()) {
         let check_edges_query = format!(
-            "SELECT * FROM cypher('g_{}', $$ MATCH (s)-[e]->() WHERE id(s)={} RETURN e $$) as (e agtype)",
-            graph_uuid.simple(),
-            node_id
+            "SELECT * FROM cypher('{}', $$ MATCH (s)-[e]->() WHERE id(s)={} RETURN e $$) as (e agtype)",
+            graph_name, node_id
         );
 
-        let edge_rows = sqlx::query(&check_edges_query).fetch_all(pool).await?;
+        let mut tx = age_tx(pool).await?;
+        let edge_rows = with_cypher(check_edges_query, tx.as_mut()).await?;
 
         let delete_query = if edge_rows.is_empty() {
             format!(
-                "SELECT * FROM cypher('g_{}', $$ MATCH (v) WHERE id(v)={} DELETE v $$) as (v agtype)",
-                graph_uuid.simple(),
-                node_id
+                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} DELETE v $$) as (v agtype)",
+                graph_name, node_id
             )
         } else {
             format!(
-                "SELECT * FROM cypher('g_{}', $$ MATCH (v) WHERE id(v)={} DETACH DELETE v $$) as (v agtype)",
-                graph_uuid.simple(),
-                node_id
+                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} DETACH DELETE v $$) as (v agtype)",
+                graph_name, node_id
             )
         };
+        let _ = with_cypher(delete_query, tx.as_mut()).await;
+        tx.commit().await.map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "()",
+                kind: ErrorKind::Database,
+            }
+        })?;
 
-        sqlx::query(&delete_query).execute(pool).await?;
-
-        let response = WebSocketResponse {
-            action: "removeEntity".to_string(),
-            nodes: None,
-            edges: None,
-            detail: None,
-            message: None,
-            node: Some(node.clone()),
-        };
-
-        let message = serde_json::to_string(&response)?;
-        session.text(message).await?;
+        session
+            .text(
+                json!({
+                    "action": "removeEntity".to_string(),
+                    "nodes": null,
+                    "edges": null,
+                    "detail": null,
+                    "message": null,
+                    "node": node,
+                })
+                .to_string(),
+            )
+            .await
+            .map_err(|err| {
+                error!("{err}");
+                AppError {
+                    message: "",
+                    kind: ErrorKind::Database,
+                }
+            })?;
     }
 
     Ok(())
@@ -311,39 +321,35 @@ pub async fn save_node_on_drop(
     pool: &PgPool,
     node_label: &str,
     blueprint: &Value,
-    graph_uuid: &Uuid,
-) -> Result<Value, Box<dyn std::error::Error>> {
+    graph_name: String,
+) -> Result<Value, AppError> {
     let default_position = serde_json::json!({"x": 0, "y": 0});
     let position = blueprint.get("position").unwrap_or(&default_position);
     let position_props = dict_to_opencypher(position);
-
-    let query = format!(
-        "SELECT * FROM cypher('g_{}', $$ CREATE (v:{} {}) RETURN v $$) as (v agtype)",
-        graph_uuid.simple(),
-        to_snake_case(node_label),
-        position_props
-    );
-
-    let row = sqlx::query(&query).fetch_one(pool).await?;
-    let vertex_str: String = row.get(0);
-    let cleaned = vertex_str.replace("::vertex", "");
-    let vertex_properties: Value = serde_json::from_str(&cleaned)?;
-
+    let mut tx = age_tx(pool).await?;
+    let Some(created_entity) = with_cypher(
+        format!(
+            "SELECT * FROM cypher('{}', $$ CREATE (v:{} {}) RETURN v $$) as (v agtype)",
+            graph_name,
+            to_snake_case(node_label),
+            position_props
+        ),
+        tx.as_mut(),
+    )
+    .await?
+    .into_iter()
+    .next() else {
+        error!("Entity drop failed!");
+        return Err(AppError {
+            message: "",
+            kind: ErrorKind::Database,
+        });
+    };
     let mut result = blueprint.clone();
-    result.as_object_mut().unwrap().insert(
-        "id".to_string(),
-        serde_json::Value::String(vertex_properties.get("id").unwrap().to_string()),
-    );
-    result.as_object_mut().unwrap().insert(
-        "type".to_string(),
-        serde_json::Value::String("edit".to_string()),
-    );
-
+    result["id"] = created_entity.as_object().unwrap()["id"].clone();
+    result["type"] = json!("edit");
     Ok(result)
 }
-
-// Websocket sessions store
-type GraphUsers = Arc<RwLock<HashMap<String, Arc<RwLock<Session>>>>>;
 
 pub async fn websocket_handler(
     req: HttpRequest,
@@ -376,7 +382,7 @@ pub async fn websocket_handler(
                                 let Ok(claims) =
                                     crate::middleware::auth::decode_jwt(token, &app.cfg.jwt_secret)
                                 else {
-                                    session
+                                    let _ = session
                                         .close(Some(actix_ws::CloseCode::Policy.into()))
                                         .await;
                                     break;
@@ -440,13 +446,13 @@ pub async fn websocket_handler(
                         match graph_action {
                             "update:node" => {
                                 if let Some(node) = &event.node {
-                                    let _ = update_node(pool.as_ref(), node, &graph_uuid).await;
+                                    let _ = update_node(pool.as_ref(), node, graph_name).await;
                                 }
                             }
                             "delete:node" => {
                                 if let Some(node) = &event.node {
                                     let _ =
-                                        remove_node(pool.as_ref(), &mut session, node, &graph_uuid)
+                                        remove_node(pool.as_ref(), &mut session, node, graph_name)
                                             .await;
                                 }
                             }
@@ -532,7 +538,7 @@ pub async fn websocket_handler(
                                                 pool.as_ref(),
                                                 &entity_data.create_node.label,
                                                 &blueprint_with_position,
-                                                &graph_uuid,
+                                                graph_name,
                                             )
                                             .await
                                             {

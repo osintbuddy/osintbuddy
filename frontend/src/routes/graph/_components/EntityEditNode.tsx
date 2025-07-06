@@ -53,6 +53,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
     element: NodeInput,
     key: string | null = getNodeKey()
   ) => {
+    console.log(element.type)
     switch (element.type) {
       case 'dropdown':
         return (

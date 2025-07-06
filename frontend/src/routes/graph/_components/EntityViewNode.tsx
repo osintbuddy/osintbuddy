@@ -84,7 +84,7 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
         type='target'
         style={handleStyle}
       />
-      <div className='node container !rounded-full'>
+      <div className='node container !h-16 !w-16 !rounded-full'>
         <div
           // 99 === 0.6 opacity
           style={{
