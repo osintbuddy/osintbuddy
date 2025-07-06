@@ -5,7 +5,7 @@ use actix_ws::{Message, Session};
 use futures_util::StreamExt;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, json};
 use sqids::Sqids;
 use sqlx::{PgPool, Row, types::Uuid};
 use std::collections::HashMap;
@@ -159,7 +159,6 @@ pub async fn read_graph(
     session: &mut Session,
     viewport_event: Option<&Value>,
     graph_name: String,
-    is_initial_read: bool,
 ) -> Result<(), AppError> {
     let blueprints = get_blueprints().await.map_err(|err| {
         error!("{err}");
@@ -174,6 +173,7 @@ pub async fn read_graph(
             kind: ErrorKind::Critical,
         });
     };
+
     let (vertices, edges) = graph_result;
     let mut processed_nodes = Vec::new();
     for vertex in vertices {
@@ -204,35 +204,22 @@ pub async fn read_graph(
         })
         .collect();
 
-    let response = WebSocketResponse {
-        action: if is_initial_read {
-            "isInitialRead"
-        } else {
-            "read"
-        }
-        .to_string(),
-        nodes: Some(processed_nodes),
-        edges: Some(processed_edges),
-        detail: None,
-        message: None,
-        node: None,
-    };
-
-    let message = serde_json::to_string(&response).map_err(|err| {
-        error!("{err}");
-        AppError {
-            message: "We ran into a cypher transaction error!",
-            kind: ErrorKind::Critical,
-        }
-    })?;
-    session.text(message).await.map_err(|err| {
+    let response = json!({
+        "action": "isInitialRead".to_string(),
+        "nodes": processed_nodes,
+        "edges": processed_edges,
+        "detail": null,
+        "message": null,
+        "node": null,
+    })
+    .to_string();
+    session.text(response).await.map_err(|err| {
         error!("{err}");
         AppError {
             message: "We ran into an error reading your graph!",
             kind: ErrorKind::Critical,
         }
     })?;
-
     Ok(())
 }
 
@@ -469,7 +456,6 @@ pub async fn websocket_handler(
                                     &mut session,
                                     event.viewport.as_ref(),
                                     graph_name,
-                                    false,
                                 )
                                 .await;
                                 let response = WebSocketResponse {
@@ -485,24 +471,11 @@ pub async fn websocket_handler(
                                 }
                             }
                             "initial:graph" => {
-                                let loading_response = WebSocketResponse {
-                                    action: "isLoading".to_string(),
-                                    nodes: None,
-                                    edges: None,
-                                    detail: Some(true),
-                                    message: None,
-                                    node: None,
-                                };
-                                if let Ok(message) = serde_json::to_string(&loading_response) {
-                                    let _ = session.text(message).await;
-                                }
-
                                 let _ = read_graph(
                                     pool.as_ref(),
                                     &mut session,
                                     event.viewport.as_ref(),
                                     graph_name,
-                                    true,
                                 )
                                 .await;
 
@@ -564,8 +537,9 @@ pub async fn websocket_handler(
                                             .await
                                             {
                                                 // Process the created node through vertex_to_entity to format it correctly for ReactFlow
-                                                let processed_node = vertex_to_entity(&raw_result, blueprint);
-                                                
+                                                let processed_node =
+                                                    vertex_to_entity(&raw_result, blueprint);
+
                                                 // Send the created node back to frontend
                                                 let response = WebSocketResponse {
                                                     action: "entityCreated".to_string(),

@@ -3,13 +3,14 @@ use crate::{
     schemas::errors::{AppError, ErrorKind},
 };
 use actix_web::web::Data;
-use log::error;
+use log::{error, info};
 use regex::Regex;
+use serde_json::json;
 use sqlx::Postgres;
 use sqlx::Row;
 use sqlx::postgres::{PgPoolOptions, PgRow};
 use sqlx::{PgConnection, PgPool, Transaction};
-use std::string::String;
+use std::{str::FromStr, string::String};
 use tokio::sync::OnceCell;
 
 pub type Database = Data<PgPool>;
@@ -64,20 +65,28 @@ pub async fn with_cypher(
                 kind: ErrorKind::Critical,
             }
         })?;
-    let re = Regex::new(r"(::vertex|::edge)").unwrap();
-    let json_results = objs
+    let re = Regex::new(r"(::vertex)|(::edge)").unwrap();
+    let json_results: Vec<serde_json::Value> = objs
         .iter()
         .map(|row| {
             let mut json_objs: Vec<serde_json::Value> = Vec::new();
             for (i, _) in row.columns().iter().enumerate() {
                 let value = row.get::<String, _>(i);
-                re.replace_all(&value, "");
-                let v = serde_json::Value::from(value);
+                let result = re.replace_all(&value, "").to_string();
+                let v = match serde_json::Value::from_str(result.as_str()) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        error!("{err}");
+                        json!({})
+                    }
+                };
+                info!("WHY THE FK IS IT A STRING?! {}", v);
                 json_objs.push(v);
             }
             return json_objs;
         })
         .flatten()
         .collect();
+    info!("RETURNING FROM WITH_CYPHER {:?}", json_results);
     Ok(json_results)
 }
