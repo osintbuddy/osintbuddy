@@ -4,6 +4,7 @@ use crate::schemas::Notification;
 
 mod entities;
 mod graphs;
+mod graphing;
 mod organization;
 mod user;
 
@@ -34,7 +35,8 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(entities::favorite_entity_handler)
         .service(organization::get_my_organization_handler)
         .service(organization::update_my_organization_handler)
-        .service(organization::delete_my_organization_handler);
+        .service(organization::delete_my_organization_handler)
+        .route("/graphs/{id}/ws", web::get().to(graphing::websocket_handler));
 
     conf.service(scope);
 }

@@ -28,3 +28,5 @@ actix-files = "0.6.6"
 env_logger = "0.11.8"
 log = "0.4.27"
 regex = "1.11.1"
+reqwest = { version = "0.11", features = ["json"] }
+futures-util = "0.3"
