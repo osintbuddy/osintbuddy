@@ -90,7 +90,7 @@ export default function RegisterPage(): JSX.Element {
               name='password'
               label='Password'
               className='w-full'
-              placeholder='Your password'
+              placeholder='*******'
               required
             />
             <Input.Transparent

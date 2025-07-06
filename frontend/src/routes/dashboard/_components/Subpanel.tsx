@@ -48,7 +48,7 @@ export default function Subpanel({
   return (
     <>
       <header
-        class={`hover:border-primary-300 z-50 flex cursor-pointer items-center border-b border-slate-700 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
+        class={`hover:border-primary-300 border-mirage-400 z-50 flex cursor-pointer items-center border-b-2 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
         onClick={setShow}
       >
         <h2

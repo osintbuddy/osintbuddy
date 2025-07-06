@@ -76,13 +76,13 @@ export default function LoginPage(): JSX.Element {
               label='Password'
               className='w-full'
               name='password'
-              placeholder='Your password'
+              placeholder='*******'
               required
             />
             <Input.Checkbox
               label='Remember me?'
               name='remember'
-              placeholder='Your password'
+              placeholder='*******'
               className='mt-2 mb-3'
               defaultChecked={rememberedEmail?.length > 0}
             />
