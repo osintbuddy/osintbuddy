@@ -14,7 +14,13 @@ use sqids::Sqids;
 #[derive(Debug)]
 pub struct AuthMiddleware {
     pub account_id: i64,
-    pub roles: Vec<String>,
+    pub user_type: String,
+    pub org_id: i64,
+    pub org_subscription_level: String,
+    pub org_max_graphs: i32,
+    pub org_max_entities: i32,
+    pub org_can_export: bool,
+    pub org_can_share: bool,
 }
 
 pub fn get_header_auth(req: &HttpRequest) -> Result<&str, AppError> {
@@ -107,7 +113,13 @@ impl FromRequest for AuthMiddleware {
         match user_id {
             Ok(id) => ready(Ok(AuthMiddleware {
                 account_id: *id as i64,
-                roles: claims.roles,
+                user_type: claims.user_type,
+                org_id: claims.org_id,
+                org_subscription_level: claims.org_subscription_level,
+                org_max_graphs: claims.org_max_graphs,
+                org_max_entities: claims.org_max_entities,
+                org_can_export: claims.org_can_export,
+                org_can_share: claims.org_can_share,
             })),
             Err(_) => ready(Err(ErrorUnauthorized(AppError {
                 message: "Invalid token.",

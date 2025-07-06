@@ -15,6 +15,7 @@ pub enum ErrorKind {
     #[serde(rename = "data")]
     Database,
     Unauthorized,
+    Forbidden,
 }
 
 #[derive(Debug, Serialize)]
@@ -37,6 +38,7 @@ impl error::ResponseError for AppError {
             ErrorKind::Critical => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorKind::Database => StatusCode::SERVICE_UNAVAILABLE,
             ErrorKind::Unauthorized => StatusCode::UNAUTHORIZED,
+            ErrorKind::Forbidden => StatusCode::FORBIDDEN,
         }
     }
 }

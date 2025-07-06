@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::errors::{AppError, ErrorKind};
 
-#[derive(Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     #[serde(skip_serializing)]
     pub id: i64,
@@ -15,6 +15,8 @@ pub struct User {
     #[serde(skip_serializing)]
     pub password: String,
     pub verified: bool,
+    pub user_type: String,
+    pub org_id: i64,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }
@@ -34,12 +36,18 @@ impl Responder for User {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
-    pub roles: Vec<String>,
     pub sub: String,
     pub iat: usize,
     pub exp: usize,
     pub email: String,
     pub name: String,
+    pub user_type: String,
+    pub org_id: i64,
+    pub org_subscription_level: String,
+    pub org_max_graphs: i32,
+    pub org_max_entities: i32,
+    pub org_can_export: bool,
+    pub org_can_share: bool,
     pub ctime: DateTime<Utc>,
     pub mtime: DateTime<Utc>,
 }

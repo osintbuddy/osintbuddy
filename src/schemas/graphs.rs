@@ -17,6 +17,8 @@ pub struct DbGraph {
     pub uuid: Option<Uuid>,
     pub label: String,
     pub description: String,
+    pub visibility: String,
+    pub org_id: Option<i64>,
     #[serde(skip_serializing)]
     pub owner_id: i64,
     pub ctime: Option<DateTime<Utc>>,
@@ -59,7 +61,7 @@ impl Responder for Graph {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GraphStats {
-    pub graph: DbGraph,
+    pub graph: Graph,
     pub vertices_count: usize,
     pub edges_count: usize,
     pub second_degrees: usize,

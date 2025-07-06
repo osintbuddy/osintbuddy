@@ -95,21 +95,21 @@ export default function DashboardPage() {
             <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
-                class='z-[1] flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden focus:text-slate-500 focus:outline-hidden'
+                class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 0}
               >
                 Graphs
               </Link>
               <Link
                 to='entity'
-                class='z-[1] flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden focus:text-slate-500 focus:outline-hidden'
+                class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 1}
               >
                 Entities
               </Link>
               <Link
                 to='market'
-                class='z-[1] flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden focus:text-slate-500 focus:outline-hidden'
+                class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 2}
               >
                 Market

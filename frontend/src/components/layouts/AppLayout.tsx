@@ -2,10 +2,29 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import { useAppStore, useAuthStore } from '@/app/store'
 
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import HamburgerMenu from '@/components/navs/HamburgerMenu'
+import { Link, NavLink } from 'react-router-dom'
 import Logo from '@/assets/images/logo.svg'
 import { Icon } from '../icons'
+import { MouseEventHandler } from 'preact/compat'
+
+interface HamburgerProps {
+  isOpen: boolean
+  onClick: MouseEventHandler<HTMLButtonElement>
+  className?: string
+}
+
+export function HamburgerMenu({ isOpen, onClick, className }: HamburgerProps) {
+  return (
+    <button
+      onClick={onClick}
+      class={`hamburger ${className ?? ''} ${isOpen && 'is-active'}`}
+    >
+      <span className='line' />
+      <span className='line' />
+      <span className='line' />
+    </button>
+  )
+}
 
 interface SidebarProps {
   showSidebar: boolean
@@ -55,7 +74,7 @@ function AppLayoutSidebar({
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `font-display z-50 my-1 flex items-center rounded-md border from-10% py-2.5 pr-1.5 pl-3 text-base font-medium transition-all duration-200 ease-in-out ${isActive ? 'ring-primary-400/80 border-primary-400/80 text-slate-350 from-cod-800/10 to-cod-800/20 translate-x-px bg-gradient-to-tl shadow ring-1 ring-inset hover:translate-x-px' : 'hover:from-mirage-600/20 hover:to-mirage-600/10 to-mirage-900/10 from-mirage-900/5 -translate-x-px border-slate-800/10 bg-gradient-to-br text-slate-600/50 shadow ring-2 ring-slate-950/10 ring-inset hover:translate-x-px hover:border-slate-700/10 hover:text-slate-300/60 hover:ring-transparent'} ${showSidebar ? 'mx-2.5' : 'mr-px ml-0'}`
+                  `font-display z-50 my-1 flex items-center rounded-md border from-10% py-2.5 pr-1.5 pl-3 text-base font-medium transition-all duration-200 ease-in-out select-none ${isActive ? 'ring-primary-400/80 border-primary-400/80 text-slate-350 from-cod-800/10 to-cod-800/20 translate-x-px bg-gradient-to-tl shadow ring-1 ring-inset hover:translate-x-px' : 'hover:from-mirage-600/20 hover:to-mirage-600/10 to-mirage-900/10 from-mirage-900/5 -translate-x-px border-slate-800/10 bg-gradient-to-br text-slate-600/50 shadow ring-2 ring-slate-950/10 ring-inset hover:translate-x-px hover:border-slate-700/10 hover:text-slate-300/60 hover:ring-transparent'} ${showSidebar ? 'mx-2.5' : 'mr-px ml-0'}`
                 }
               >
                 <Icon

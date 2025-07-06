@@ -4,6 +4,7 @@ use crate::schemas::Notification;
 
 mod entities;
 mod graphs;
+mod organization;
 mod user;
 
 #[get("/status")]
@@ -30,7 +31,10 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(entities::delete_entity_handler)
         .service(entities::list_entities_handler)
         .service(entities::get_entity_handler)
-        .service(entities::favorite_entity_handler);
+        .service(entities::favorite_entity_handler)
+        .service(organization::get_my_organization_handler)
+        .service(organization::update_my_organization_handler)
+        .service(organization::delete_my_organization_handler);
 
     conf.service(scope);
 }

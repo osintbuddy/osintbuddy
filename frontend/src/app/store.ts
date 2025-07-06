@@ -149,7 +149,6 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
 interface GraphsState {
   graphs: Graph[]
   favorites: string[]
-  currentGraph: GraphDetails | null
   isLoading: boolean
   isCreating: boolean
   isUpdating: boolean
@@ -166,7 +165,6 @@ interface GraphsState {
 export const useGraphsStore = create<GraphsState>()((set, get) => ({
   graphs: [],
   favorites: [],
-  currentGraph: null,
   isLoading: false,
   isCreating: false,
   isUpdating: false,
@@ -232,11 +230,7 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
         graph.id !== payload.id.toString()
       )
       
-      // Clear currentGraph if it's the one being deleted
-      const currentGraph = get().currentGraph 
-      const updatedCurrentGraph = currentGraph?.graph.id === payload.id ? null : currentGraph
-      
-      set({ graphs: filteredGraphs, currentGraph: updatedCurrentGraph, isDeleting: false })
+      set({ graphs: filteredGraphs, isDeleting: false })
     } catch (error) {
       set({ error: error.message, isDeleting: false })
       throw error

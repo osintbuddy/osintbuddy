@@ -30,10 +30,12 @@ async fn create_graph_handler(
     let body = body.into_inner().validate()?;
     let graph = sqlx::query_as!(
         DbGraph,
-        "INSERT INTO graphs (label,description,owner_id) VALUES ($1, $2, $3) RETURNING *",
+        "INSERT INTO graphs (label,description,visibility,owner_id,org_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
-        auth.account_id
+        "private",
+        auth.account_id,
+        auth.org_id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -61,7 +63,23 @@ async fn create_graph_handler(
     )
     .execute(tx.as_mut())
     .await
-    .map(|_| Graph {
+    .map_err(|err| {
+        error!("Error creating age graph: {err}");
+        AppError {
+            kind: ErrorKind::Critical,
+            message: "We ran into an error creating your Age graph.",
+        }
+    })?;
+
+    tx.commit().await.map_err(|err| {
+        error!("Error committing age graph transaction: {err}");
+        AppError {
+            kind: ErrorKind::Critical,
+            message: "We ran into an error committing the age graph transaction.",
+        }
+    })?;
+
+    Ok(Graph {
         id: sqids
             .encode(&[graph.id as u64])
             .expect("Error encoding sqids!"),
@@ -69,13 +87,6 @@ async fn create_graph_handler(
         description: graph.description,
         mtime: graph.mtime,
         ctime: graph.ctime,
-    })
-    .map_err(|err| {
-        error!("Error creating age graph: {err}");
-        AppError {
-            kind: ErrorKind::Critical,
-            message: "We ran into an error creating your Age graph.",
-        }
     })
 }
 
@@ -118,9 +129,20 @@ async fn delete_graph_handler(
     body: DeleteGraph,
     pool: db::Database,
     auth: AuthMiddleware,
+    sqids: Data<Sqids>,
 ) -> Result<HttpResponse, AppError> {
+    // Decode sqid to i64
+    let graph_ids = sqids.decode(&body.id);
+    let decoded_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.id);
+        AppError {
+            kind: ErrorKind::Invalid,
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
     sqlx::query("DELETE FROM graphs WHERE id = $1 AND owner_id = $2 RETURNING *")
-        .bind(body.id)
+        .bind(*decoded_id as i64)
         .bind(auth.account_id)
         .execute(pool.as_ref())
         .await
@@ -283,7 +305,13 @@ async fn get_graph_handler(
     })?;
 
     Ok(GraphStats {
-        graph,
+        graph: Graph {
+            id: graph_id.to_string(),
+            label: graph.label,
+            description: graph.description,
+            ctime: graph.ctime,
+            mtime: graph.mtime,
+        },
         vertices_count: vertices.len(),
         edges_count: edges.len(),
         second_degrees: second_degrees.len(),

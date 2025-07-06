@@ -6,6 +6,7 @@ use crate::{
     schemas::{
         Notification,
         errors::{AppError, ErrorKind},
+        organization::Organization,
         user::{LoginUser, LogoutUser, RefreshClaims, RegisterUser, Token, TokenClaims, User},
     },
 };
@@ -37,7 +38,7 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
         })?;
     if exists {
         return Err(AppError {
-            message: "We ran into an error registering your account.",
+            message: "We ran into an error registering your account. Please sign in or try again.",
             kind: ErrorKind::Database,
         });
     };
@@ -54,14 +55,44 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
             }
         })?;
 
-    sqlx::query_as!(
+    // Use a transaction to ensure atomicity of org + user creation
+    let mut tx = pool.begin().await.map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error starting the registration transaction.",
+        }
+    })?;
+
+    // Create organization with user's name (no unique constraint, so no conflicts)
+    let organization = sqlx::query_as!(
+        Organization,
+        "INSERT INTO organizations (name, description, subscription_level) VALUES ($1, $2, $3) RETURNING *",
+        body.name.to_string(),
+        format!("{}'s Organization", body.name),
+        "trial"
+    )
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error creating your organization.",
+        }
+    })?;
+
+    // Create user with the new organization ID
+    let user = sqlx::query_as!(
         User,
-        "INSERT INTO users (name,email,password) VALUES ($1, $2, $3) RETURNING *",
+        "INSERT INTO users (name,email,password,user_type,org_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
         body.name.to_string(),
         body.email.to_string().to_lowercase(),
         hashed_password,
+        "standard",
+        organization.id
     )
-    .fetch_one(pool.as_ref())
+    .fetch_one(&mut *tx)
     .await
     .map_err(|err| {
         error!("{err}");
@@ -69,7 +100,18 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
             kind: ErrorKind::Database,
             message: "We ran into an error creating this account.",
         }
-    })
+    })?;
+
+    // Commit the transaction
+    tx.commit().await.map_err(|err| {
+        error!("{err}");
+        AppError {
+            kind: ErrorKind::Database,
+            message: "We ran into an error completing your registration.",
+        }
+    })?;
+
+    Ok(user)
 }
 
 #[post("/auth/login")]
@@ -80,21 +122,33 @@ async fn login_user_handler(
     sqids: Data<Sqids>,
 ) -> Result<Token, AppError> {
     let body = body.into_inner().validate()?;
-    let user: User = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
-        .fetch_optional(pool.as_ref())
-        .await
-        .map_err(|err| {
-            error!("{err}");
-            AppError {
-                message: "Invalid email or password.",
-                kind: ErrorKind::Invalid,
-            }
-        })?
-        .ok_or(AppError {
-            message: "We ran into an error authenticating you. Please try again later.",
+    
+    // Fetch user and organization information in a single query
+    let user_org_info = sqlx::query!(
+        r#"
+        SELECT 
+            u.id, u.name, u.email, u.password, u.verified, u.user_type, u.org_id, u.ctime, u.mtime,
+            o.subscription_level, o.max_graphs, o.max_entities, o.can_export, o.can_share
+        FROM users u 
+        JOIN organizations o ON u.org_id = o.id 
+        WHERE u.email = $1
+        "#,
+        body.email
+    )
+    .fetch_optional(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "Invalid email or password.",
             kind: ErrorKind::Invalid,
-        })?;
-    let parsed_hash = PasswordHash::new(&user.password).map_err(|err| {
+        }
+    })?
+    .ok_or(AppError {
+        message: "We ran into an error authenticating you. Please try again later.",
+        kind: ErrorKind::Invalid,
+    })?;
+    let parsed_hash = PasswordHash::new(&user_org_info.password).map_err(|err| {
         error!("{err}");
         AppError {
             message: "Invalid email or password.",
@@ -116,7 +170,7 @@ async fn login_user_handler(
     // default maxage of  15s * 60 * 24 = 21600 or 6hour exp for refresh
     let rexp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60 * 24)).timestamp() as usize;
     let token_type = String::from("bearer");
-    let sub = sqids.encode(&[user.id as u64]).map_err(|err| {
+    let sub = sqids.encode(&[user_org_info.id as u64]).map_err(|err| {
         error!("Error encoding sub with sqids: {err}");
         AppError {
             kind: ErrorKind::Critical,
@@ -133,13 +187,18 @@ async fn login_user_handler(
         sub,
         exp,
         iat,
-        email: user.email,
-        name: user.name,
-        // TODO: grab actual roles from db
-        roles: vec![String::from("user")],
+        email: user_org_info.email,
+        name: user_org_info.name,
+        user_type: user_org_info.user_type,
+        org_id: user_org_info.org_id,
+        org_subscription_level: user_org_info.subscription_level,
+        org_max_graphs: user_org_info.max_graphs,
+        org_max_entities: user_org_info.max_entities,
+        org_can_export: user_org_info.can_export,
+        org_can_share: user_org_info.can_share,
         // valid users will always have ctime and mtime
-        ctime: user.ctime.unwrap(),
-        mtime: user.mtime.unwrap(),
+        ctime: user_org_info.ctime.unwrap(),
+        mtime: user_org_info.mtime.unwrap(),
     };
     info!("{:?} ", refresh_claims);
     info!("{:?} ", claims);
@@ -242,27 +301,38 @@ async fn refresh_handler(
         kind: ErrorKind::Invalid,
     })?;
 
-    let user: User = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", *user_id as i64)
-        .fetch_optional(pool.as_ref())
-        .await
-        .map_err(|err| {
-            error!("{err}");
-            AppError {
-                message: "Invalid refresh token",
-                kind: ErrorKind::Invalid,
-            }
-        })?
-        .ok_or(AppError {
+    // Fetch user and organization information for refresh
+    let user_org_info = sqlx::query!(
+        r#"
+        SELECT 
+            u.id, u.name, u.email, u.password, u.verified, u.user_type, u.org_id, u.ctime, u.mtime,
+            o.subscription_level, o.max_graphs, o.max_entities, o.can_export, o.can_share
+        FROM users u 
+        JOIN organizations o ON u.org_id = o.id 
+        WHERE u.id = $1
+        "#,
+        *user_id as i64
+    )
+    .fetch_optional(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
             message: "Invalid refresh token",
             kind: ErrorKind::Invalid,
-        })?;
+        }
+    })?
+    .ok_or(AppError {
+        message: "Invalid refresh token",
+        kind: ErrorKind::Invalid,
+    })?;
 
     let now = Utc::now();
     let iat = now.timestamp() as usize;
     let exp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60)).timestamp() as usize;
     let rexp = (now + Duration::from_secs(app.cfg.jwt_maxage * 60 * 24)).timestamp() as usize;
     let token_type = String::from("bearer");
-    let sub = sqids.encode(&[user.id as u64]).map_err(|err| {
+    let sub = sqids.encode(&[user_org_info.id as u64]).map_err(|err| {
         error!("Error encoding sub with sqids: {err}");
         AppError {
             kind: ErrorKind::Critical,
@@ -280,11 +350,17 @@ async fn refresh_handler(
         sub,
         exp,
         iat,
-        email: user.email,
-        name: user.name,
-        roles: vec![String::from("user")],
-        ctime: user.ctime.unwrap(),
-        mtime: user.mtime.unwrap(),
+        email: user_org_info.email,
+        name: user_org_info.name,
+        user_type: user_org_info.user_type,
+        org_id: user_org_info.org_id,
+        org_subscription_level: user_org_info.subscription_level,
+        org_max_graphs: user_org_info.max_graphs,
+        org_max_entities: user_org_info.max_entities,
+        org_can_export: user_org_info.can_export,
+        org_can_share: user_org_info.can_share,
+        ctime: user_org_info.ctime.unwrap(),
+        mtime: user_org_info.mtime.unwrap(),
     };
 
     let new_refresh_token = encode(

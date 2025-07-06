@@ -7,11 +7,11 @@ export function GraphLoaderCard() {
   return (
     <>
       <div class='mb-2'>
-        <div class='border-mirage-400/60 from-mirage-400/50 to-mirage-400/30 via-mirage-400/10 before:via-mirage-300/5 relative isolate w-full space-y-1 overflow-hidden rounded-md rounded-r-none border border-y border-l bg-gradient-to-tl from-10% px-4 py-6 shadow shadow-black/5 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:to-transparent'>
+        <div class='from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-sm shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden'>
           <div class='space-y-3'>
-            <div class='h-2 w-3/5 animate-pulse rounded-lg bg-slate-600/20'></div>
-            <div class='h-2 w-4/5 animate-pulse rounded-lg bg-slate-600/20'></div>
-            <div class='h-2 w-2/5 animate-pulse rounded-lg bg-slate-600/20'></div>
+            <div class='h-2 w-3/5 animate-pulse rounded-lg bg-slate-800/20'></div>
+            <div class='h-2 w-4/5 animate-pulse rounded-lg bg-slate-800/20'></div>
+            <div class='h-2 w-2/5 animate-pulse rounded-lg bg-slate-800/20'></div>
           </div>
         </div>
       </div>

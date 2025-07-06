@@ -5,11 +5,12 @@ import { Icon } from '@/components/icons'
 import Input from '@/components/inputs'
 import { useEffect } from 'preact/hooks'
 import { JSX } from 'preact/jsx-runtime'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 
 export default function RegisterPage(): JSX.Element {
   const { register, isRegistering, error: registerError } = useAuthStore()
+  const navigate = useNavigate()
 
   const onSubmit = (e: any) => {
     e.preventDefault()
@@ -47,6 +48,7 @@ export default function RegisterPage(): JSX.Element {
           toast.success(
             `Welcome to OSINTBuddy ${registeredUser.name}! Your account has been created! You can try signing in now.`
           )
+          navigate('/login')
         })
         .catch((err) => {
           toast.error(err.message)

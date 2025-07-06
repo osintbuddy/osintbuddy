@@ -29,11 +29,12 @@ async fn create_entity_handler(
     let body = body.into_inner().validate()?;
     sqlx::query_as!(
         DbEntity,
-        "INSERT INTO entities (label,description,author,source,owner_id) VALUES ($1, $2, $3,$4,$5) RETURNING *",
+        "INSERT INTO entities (label,description,author,source,visibility,owner_id) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
         body.author.to_string(),
         body.source.to_string(),
+        "private",
         auth.account_id
     )
     .fetch_one(pool.as_ref())
@@ -78,9 +79,20 @@ async fn delete_entity_handler(
     body: DeleteEntity,
     pool: db::Database,
     auth: AuthMiddleware,
+    sqids: Data<Sqids>,
 ) -> Result<HttpResponse, AppError> {
+    // Decode sqid to i64
+    let entity_ids = sqids.decode(&body.id);
+    let decoded_id = entity_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.id);
+        AppError {
+            kind: ErrorKind::Invalid,
+            message: "Invalid entity ID.",
+        }
+    })? as &u64;
+
     sqlx::query("DELETE FROM entities WHERE id = $1 AND owner_id = $2 RETURNING *")
-        .bind(body.id)
+        .bind(*decoded_id as i64)
         .bind(auth.account_id)
         .execute(pool.as_ref())
         .await

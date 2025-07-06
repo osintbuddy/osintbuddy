@@ -18,6 +18,8 @@ pub struct DbEntity {
     pub description: String,
     pub author: String,
     pub source: String,
+    pub visibility: String,
+    pub org_id: Option<i64>,
     #[serde(skip_serializing)]
     pub owner_id: i64,
     pub ctime: Option<DateTime<Utc>>,

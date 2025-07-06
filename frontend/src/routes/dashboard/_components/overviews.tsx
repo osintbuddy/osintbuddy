@@ -39,10 +39,8 @@ export function GraphOverview() {
             {(sortedGraphs.length > 0 || sortedFavorites.length > 0) && (
               <>
                 <h1 className='font-display border-b-primary-300 border-b-3 pr-2 text-3xl leading-9 font-semibold lg:text-4xl'>
-                  {sortedGraphs.length + sortedFavorites.length}{' '}
-                  {sortedFavorites.length + sortedGraphs.length > 1
-                    ? 'graphs'
-                    : 'graph'}
+                  {sortedGraphs.length}{' '}
+                  {sortedGraphs.length > 1 ? 'graphs' : 'graph'}
                   &nbsp;available
                 </h1>
                 <p className='max-w-xl md:pt-4'>

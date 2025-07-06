@@ -1,16 +1,24 @@
-import { useGraphStore } from '@/app/store'
+import { useGraphStore, useGraphsStore } from '@/app/store'
 import Button from '@/components/buttons'
 import { Icon } from '@/components/icons'
 import { useEffect } from 'preact/hooks'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 interface GraphHeaderProps {
   graph: any
-  refetchGraphs: any
 }
 
-function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
+function GraphHeader({ graph }: GraphHeaderProps) {
   const navigate = useNavigate()
+  const { deleteGraph, isDeleting } = useGraphsStore()
+
+  const handleDeleteGraph = async () => {
+    console.log(graph)
+    if (!graph?.id) return
+    await deleteGraph({ id: graph.id.toString() })
+    navigate('/dashboard/graph', { replace: true })
+  }
 
   return (
     <div className='flex w-full flex-col px-4'>
@@ -27,13 +35,12 @@ function GraphHeader({ graph, refetchGraphs }: GraphHeaderProps) {
             </div>
             <div className='relative mt-auto flex w-full items-center gap-x-4'>
               <Button.Ghost
-                onClick={() => {
-                  refetchGraphs()
-                }}
+                onClick={handleDeleteGraph}
                 className='ml-auto'
                 variant='danger'
+                disabled={isDeleting}
               >
-                Delete graph
+                {isDeleting ? 'Deleting...' : 'Delete graph'}
                 <Icon icon='trash' className='!text-danger-500 ml-2 h-5 w-5' />
               </Button.Ghost>
               <Button.Ghost
@@ -62,7 +69,7 @@ export default function GraphDetails() {
   return (
     <div class='flex h-screen w-full flex-col'>
       <header class='flex w-full'>
-        <GraphHeader refetchGraphs={() => null} graph={graph} />
+        <GraphHeader graph={graph} />
       </header>
       <section class='relative z-10 flex w-full p-4'>
         <div class='bg-mirage-300/40 border-mirage-800/50 relative mr-4 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
