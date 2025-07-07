@@ -28,7 +28,7 @@ const Market = lazy(() => import('@/routes/dashboard/Market'))
 
 // const GraphOverview = lazy(() => import("@/routes/dashboard/_components/overviews"))
 const GraphDetails = lazy(() => import('@/routes/dashboard/GraphDetails'))
-const GraphInquiry = lazy(() => import('@/routes/graph/index'))
+const Graphing = lazy(() => import('@/routes/graph/index'))
 
 // const EntitiesOverview = lazy(() => import("@/routes/dashboard/EntitiesOverview"))
 const EntityDetails = lazy(() => import('@/routes/dashboard/EntityDetails'))
@@ -151,7 +151,7 @@ const router = createBrowserRouter([
         path: ':hid',
         element: (
           <Suspense fallback={<RoundLoader />}>
-            <GraphInquiry />
+            <Graphing />
           </Suspense>
         ),
       },

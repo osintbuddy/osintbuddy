@@ -118,8 +118,6 @@ export default function WorkspacePage() {
     }
   }
 
-  console.log(focusedIndex)
-
   return (
     <>
       <div class='flex w-full flex-col px-3 pt-2.5'>

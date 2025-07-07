@@ -64,12 +64,12 @@ export default function ContextAction({
                       //       y,
                       //     };
                       //     return entity
-                      //     // sendJsonMessage({ action: 'update:node', node: { id: node.id, x, y } });
+                      //     // sendJsonMessage({ action: 'update:entity', node: { id: node.id, x, y } });
                       //   })
                       //   entities.forEach((entity: any) => {
                       //     createEntityAction(entity);
                       //     dispatch(setEditState({ id: entity.id, label: 'addNode' }))
-                      //     sendJsonMessage({ action: 'update:node', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
+                      //     sendJsonMessage({ action: 'update:entity', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
                       //   })
                       // }).catch(err => console.log(err))
                       // sendJsonMessage({

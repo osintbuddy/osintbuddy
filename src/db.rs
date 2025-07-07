@@ -87,6 +87,5 @@ pub async fn with_cypher(
         })
         .flatten()
         .collect();
-    info!("RETURNING FROM WITH_CYPHER {:?}", json_results);
     Ok(json_results)
 }

@@ -410,8 +410,8 @@ input[type='file'] {
 /* end hero codeblock */
 
 /* start react-grid-layout and codemirror */
-.react-resizable-handle::after {
-  border-color: var(--color-slate-600);
+.react-grid-item > .react-resizable-handle::after {
+  border-color: var(--color-slate-400);
   height: 8px;
   width: 8px;
 }

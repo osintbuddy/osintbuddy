@@ -14,7 +14,6 @@ function GraphHeader({ graph }: GraphHeaderProps) {
   const { deleteGraph, isDeleting } = useGraphsStore()
 
   const handleDeleteGraph = async () => {
-    console.log(graph)
     if (!graph?.id) return
     await deleteGraph({ id: graph.id.toString() })
     navigate('/dashboard/graph', { replace: true })
@@ -45,10 +44,7 @@ function GraphHeader({ graph }: GraphHeaderProps) {
               </Button.Ghost>
               <Button.Ghost
                 variant='primary'
-                onClick={() => {
-                  console.log(`nav to: /graph/${graph?.id}`)
-                  navigate(`/graph/${graph?.id}`)
-                }}
+                onClick={() => navigate(`/graph/${graph?.id}`)}
               >
                 Open graph
                 <Icon icon='eye' className='btn-icon' />

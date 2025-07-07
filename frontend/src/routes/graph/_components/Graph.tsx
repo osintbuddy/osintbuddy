@@ -9,6 +9,8 @@ import {
   ReactFlowInstance,
   ReactFlow,
   OnNodeDrag,
+  XYPosition,
+  NodeMouseHandler,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -28,6 +30,7 @@ interface ProjectGraphProps extends JSONObject {
   onNodesChange?: (changes: any) => void
   onEdgesChange?: (changes: any) => void
   onConnect?: (connection: any) => void
+  setPendingEntityPosition?: (position: XYPosition | null) => void
 }
 
 export default function Graph({
@@ -35,21 +38,17 @@ export default function Graph({
   onMultiSelectionCtxMenu,
   onPaneCtxMenu,
   onPaneClick,
-  graphRef,
   nodes,
   edges,
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
-  fitView,
-  positionMode,
-  editState,
   onNodesChange: onNodesChangeProp,
   onEdgesChange: onEdgesChangeProp,
   onConnect: onConnectProp,
+  setPendingEntityPosition,
 }: ProjectGraphProps) {
-  const { setEditState, enableEntityEdit, disableEntityEdit } =
-    useGraphFlowStore()
+  const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       // Handle edge update through websocket or API call
@@ -65,64 +64,39 @@ export default function Graph({
 
   const onDragOver: DragEventHandler<HTMLDivElement> = useCallback((event) => {
     event.preventDefault()
-    console.log('createGraphEntity')
-
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
   }, [])
 
-  const [isCreateEntityError, setIsCreateEntityError] = useState(false)
-  const [isLoadingCreateEntity, setIsLoadingCreateEntity] = useState(false)
-
   const createGraphEntity = useCallback(
-    async (entityData: any) => {
-      console.log('createGraphEntity')
-      setIsLoadingCreateEntity(true)
-      setIsCreateEntityError(false)
-      try {
-        sendJsonMessage({
-          action: 'create:entity',
-          entity: entityData,
-        })
-        setIsLoadingCreateEntity(false)
-      } catch (error) {
-        setIsCreateEntityError(true)
-        setIsLoadingCreateEntity(false)
-      }
+    async (data: any) => {
+      sendJsonMessage({
+        action: 'create:entity',
+        entity: data,
+      })
     },
     [sendJsonMessage]
   )
 
   const onDrop: DragEventHandler<HTMLDivElement> = useCallback(
     async (event) => {
-      console.log('onDrop')
-
       const label =
         event.dataTransfer &&
         event.dataTransfer.getData('application/reactflow')
       if (typeof label === 'undefined' || !label) return
 
-      const graphBounds = graphRef.current.getBoundingClientRect()
       const position = graphInstance?.screenToFlowPosition({
-        x: event.clientX - graphBounds.left,
-        y: event.clientY - graphBounds.top,
+        x: event.clientX,
+        y: event.clientY,
       })
-      if (label && position && hid) {
-        const createNode = { label, position }
-        try {
-          createGraphEntity({ createNode, hid })
-          setEditState({
-            label: 'createEntity',
-            id: null,
-          })
-        } catch (error: any) {
-          console.error(error)
-          toast.error(
-            `We ran into a problem creating the ${label} entity. Please try again`
-          )
-        }
-      }
+      const createEntity = { label, position }
+      createGraphEntity(createEntity).catch((error) => {
+        console.error(error)
+        toast.error(
+          `We ran into a problem creating the ${label} entity. Please try again`
+        )
+      })
     },
-    [graphInstance, createGraphEntity, hid, setEditState]
+    [graphInstance, createGraphEntity, hid, setPendingEntityPosition]
   )
 
   const nodeTypes = useMemo(
@@ -143,58 +117,17 @@ export default function Graph({
   )
 
   const doubleClickThreshold = 320
-  const [isDragging, setIsDragging] = useState(false)
-  const [isDoubleClick, setIsDoubleClick] = useState(false)
-  const [entityPosition, setEntityPosition] = useState<any>({
-    x: null,
-    y: null,
-  })
   const [clickDelta, setClickDelta] = useState(0)
 
   const onNodeDragStop: OnNodeDrag = (_, node) => {
-    console.log('stop drag', node)
-
-    if (
-      positionMode === 'manual' &&
-      (entityPosition.x !== node.position.x ||
-        entityPosition.y !== node.position.y)
-    ) {
-      sendJsonMessage({
-        action: 'update:node',
-        node: { id: node.id, x: node.position.x, y: node.position.y },
-      })
-      setEntityPosition({ x: node.position.x, y: node.position.y })
-    }
-    if (editState.label !== 'dragEntity' && !isDoubleClick) {
-      setEditState({
-        label: 'dragEntity',
-        id: node.id,
-      })
-    }
+    sendJsonMessage({
+      action: 'update:entity',
+      entity: { id: node.id, x: node.position.x, y: node.position.y },
+    })
   }
-
-  const handleGraphRead = (readType: string = 'read') => {
-    const viewport: any = graphInstance?.getViewport()
-    console.log('read Viewport')
-    if (viewport) {
-      sendJsonMessage({
-        action: `${readType}:graph`,
-        viewport,
-      })
-    }
-  }
-
-  useEffect(() => {
-    if (graphInstance) {
-      console.log('setViewport')
-      graphInstance.setViewport({ x: 0, y: 0, zoom: 0.22 })
-      handleGraphRead('initial')
-    }
-  }, [graphInstance])
 
   const onConnect = useCallback(
     (connection: any) => {
-      console.log(connection)
       // Use the store handler if provided, otherwise fallback to WebSocket
       if (onConnectProp) {
         onConnectProp(connection)
@@ -205,12 +138,11 @@ export default function Graph({
         })
       }
     },
-    [onConnectProp, sendJsonMessage]
+    [onConnectProp]
   )
 
   const onEdgeChange = useCallback(
     (changes: any) => {
-      console.log(changes)
       // Use the store handler if provided, otherwise fallback to WebSocket
       if (onEdgesChangeProp) {
         onEdgesChangeProp(changes)
@@ -221,32 +153,40 @@ export default function Graph({
         })
       }
     },
-    [onEdgesChangeProp, sendJsonMessage]
+    [onEdgesChangeProp]
   )
 
   const onNodesChange = useCallback(
     (changes: any) => {
-      console.log(changes)
       // Use the store handler if provided, otherwise fallback to WebSocket
       if (onNodesChangeProp) {
         onNodesChangeProp(changes)
       } else {
         sendJsonMessage({
-          action: 'update:nodes',
+          action: 'update:entities',
           changes,
         })
       }
     },
-    [onNodesChangeProp, sendJsonMessage]
+    [onNodesChangeProp]
   )
+  const onNodeClick: NodeMouseHandler = (_, node) => {
+    const newDelta = new Date().getTime()
+    const isDouble = newDelta - clickDelta < doubleClickThreshold
+    if (isDouble) {
+      if (node.type === 'view') enableEntityEdit(node.id)
+      else disableEntityEdit(node.id)
+    }
+    setClickDelta(newDelta)
+  }
 
   return (
     <ReactFlow
       className='h-full w-full'
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
-      minZoom={0}
-      maxZoom={1.5}
+      minZoom={0.1}
+      maxZoom={2.0}
       zoomOnScroll={true}
       zoomOnPinch={true}
       zoomOnDoubleClick={false}
@@ -260,24 +200,9 @@ export default function Graph({
       onReconnect={onReconnect}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
-      onNodeClick={(x: any, node: any) => {
-        const newDelta = new Date().getTime()
-        const isDouble = newDelta - clickDelta < doubleClickThreshold
-        if (isDouble) {
-          if (node.type === 'view') {
-            console.log('IS DOUBLE', node.type, node.id, x)
-            enableEntityEdit(node.id)
-          } else {
-            disableEntityEdit(node.id)
-            console.log('IS DOUBLE')
-          }
-        }
-        setClickDelta(newDelta)
-        setIsDoubleClick(isDouble)
-      }}
+      onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       nodeTypes={nodeTypes}
-      // onDragStart={onDragStart}
       panActivationKeyCode='Space'
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}

@@ -299,7 +299,7 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
 // Entities store
 interface EntitiesState {
   entities: Entity[]
-  pluginEntities: PluginEntity[]
+  plugins: PluginEntity[]
   favorites: string[]
   currentEntity: Entity | null
   isLoading: boolean
@@ -321,7 +321,7 @@ interface EntitiesState {
 
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
-  pluginEntities: [],
+  plugins: [],
   favorites: [],
   currentEntity: null,
   isLoading: false,
@@ -347,8 +347,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     try {
       const token = useAuthStore.getState().access_token as string;
       const response = await entitiesApi.getPluginEntities(token)
-      console.log(response, 'WTF')
-      set({ pluginEntities: response, isLoadingPlugins: false })
+      set({ plugins: response, isLoadingPlugins: false })
     } catch (error) {
       set({ error: error.message, isLoadingPlugins: false })
     }
@@ -478,12 +477,7 @@ export const useAppStore = create<SettingsState>()(
   )
 )
 
-
-type EditState = {
-  label: null | string
-  id: null | string
-}
-type PositionMode = 'manual' | 'force' | 'elk' | 'tree'
+export type PositionMode = 'manual' | 'force' | 'elk' | 'tree' | 'right tree'
 
 export interface GraphFlowState {
   nodes: Node[]
@@ -498,7 +492,7 @@ export interface GraphFlowState {
   addNode: (node: Node) => void
   removeNode: (nodeId: string) => void
   updateNode: (nodeId: string, updates: Partial<Node>) => void
-  resetGraph: () => void
+  clearGraph: () => void
   setEditState: (state: EditState) => void  
   setPositionMode: (mode: PositionMode) => void
   enableEntityEdit: (nodeId: string) => void
@@ -566,7 +560,7 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
     })
   },
   
-  resetGraph: () => {
+  clearGraph: () => {
     set({ 
       nodes: [], 
       edges: [] 

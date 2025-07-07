@@ -16,7 +16,7 @@ import {
   forceX,
   forceY,
 } from 'd3-force'
-import EntityOptions from './_components/EntityOptions'
+import OverlayMenus from './_components/EntityOptions'
 import ContextMenu from './_components/ContextMenu'
 import { toast } from 'react-toastify'
 import Graph from './_components/Graph'
@@ -43,37 +43,27 @@ export const getEdgeId = () => {
   return `e-tmp-${edgeId}`
 }
 
-export const useEffectOnce = (effect: () => void | (() => void)) => {
-  const destroyFunc = useRef<void | (() => void)>(null)
-  const effectCalled = useRef(false)
-  const renderAfterCalled = useRef(false)
-  const [val, setVal] = useState<number>(0)
+interface SocketNotification {
+  message: string | null
+  id: string | null
+  autoClose: boolean | null
+}
 
-  if (effectCalled.current) {
-    renderAfterCalled.current = true
-  }
+type ActionTypes =
+  | 'authenticated'
+  | 'read'
+  | 'remove'
+  | 'created'
+  | 'loading'
+  | 'error'
 
-  useEffect(() => {
-    // only execute the effect first time around
-    if (!effectCalled.current) {
-      destroyFunc.current = effect()
-      effectCalled.current = true
-    }
-
-    // this forces one render after the effect is run
-    setVal((val) => val + 1)
-
-    return () => {
-      // if the comp didn't render since the useEffect was called,
-      // we know it's the dummy React cycle
-      if (!renderAfterCalled.current) {
-        return
-      }
-      if (destroyFunc.current) {
-        destroyFunc.current()
-      }
-    }
-  }, [])
+interface SocketActions {
+  authenticated: Function
+  read: Function
+  remove: Function
+  created: Function
+  loading: Function
+  error: Function
 }
 
 export default function GraphInquiry({}: GraphInquiryProps) {
@@ -85,7 +75,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     setCurrentStep: setCurrentTourStep,
   } = useTour()
 
-  const { graph: activeGraph, getGraph, isLoading, isError } = useGraphStore()
+  const { graph, getGraph, isLoading, isError } = useGraphStore()
 
   const { access_token } = useAuthStore()
 
@@ -96,14 +86,12 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     setNodes,
     setEdges,
     addNode,
-    resetGraph,
+    clearGraph,
     onNodesChange,
     onEdgesChange,
     onConnect,
     setPositionMode,
-    editState,
     positionMode,
-    setEditState,
   } = useGraphFlowStore()
 
   useEffect(() => {
@@ -115,30 +103,31 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   useEffect(() => {
     if (hid) {
+      clearGraph()
       getGraph(hid)
     }
   }, [hid])
 
   const WS_GRAPH_INQUIRE = `ws://${WS_URL}/graph/${hid}/ws`
 
-  const isSuccess = !isLoading && !isError && activeGraph
+  const isSuccess = !isLoading && !isError && graph
 
   useEffect(() => {
     setPositionMode('manual')
-  }, [activeGraph?.id])
+  }, [graph?.id])
 
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
 
-  const [messageHistory, setMessageHistory] = useState<JSONObject[]>([])
   const [socketUrl, setSocketUrl] = useState(`${WS_GRAPH_INQUIRE}`)
   const [shouldConnect, setShouldConnect] = useState(false)
+  const [dropPosition, setDropPosition] = useState<XYPosition | null>(null)
 
   const { lastJsonMessage, readyState, sendJsonMessage }: UseWebsocket =
     useWebSocket(socketUrl, {
       shouldReconnect: () => shouldConnect,
       onOpen: () => {
-        // Send authentication token as first message
+        // Send auth token as first message
         if (access_token) {
           sendJsonMessage({
             action: 'auth',
@@ -147,7 +136,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         }
       },
       onClose: () => {
-        resetGraph()
+        clearGraph()
         toast.update('loadingToast', {
           render: `The connection was lost! ${shouldConnect ? 'Attempting to reconnect...' : ''}`,
           type: 'warning',
@@ -157,14 +146,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       },
     })
 
-  useEffectOnce(() => {
-    toast.loading('Loading graph...', {
-      closeButton: true,
-      isLoading: true,
-      toastId: 'loadingToast',
-    })
-    resetGraph()
-  })
   const socketStatus = {
     [ReadyState.CONNECTING]: 'connecting',
     [ReadyState.OPEN]: 'open',
@@ -174,73 +155,65 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   }[readyState]
 
   useEffect(() => {
-    if (activeGraph && !socketUrl.includes(activeGraph?.id)) {
-      resetGraph()
-      setSocketUrl(`${WS_GRAPH_INQUIRE}/${activeGraph.id}`)
+    if (graph && !socketUrl.includes(graph?.id)) {
+      clearGraph()
+      setSocketUrl(`${WS_GRAPH_INQUIRE}/${graph.id}`)
       setShouldConnect(true)
     }
-  }, [activeGraph?.id, socketStatus[readyState]])
+  }, [graph?.id, socketStatus[readyState]])
 
-  // Handle any actions the websocket sends from backend
-  const wsActionPlayer: any = {
-    authenticated: () => {
-      // Authentication successful, now load the graph
-      sendJsonMessage({
-        action: 'initial:graph',
-        viewport: null,
-      })
-    },
-    isInitialRead: () => {
-      setNodes(lastJsonMessage.nodes || [])
-      setEdges(lastJsonMessage.edges || [])
-    },
-    read: () => {
-      setNodes(lastJsonMessage.nodes || [])
-      setEdges(lastJsonMessage.edges || [])
-    },
-    removeEntity: () => {},
-    entityCreated: () => {
-      if (lastJsonMessage.node) {
-        // Add the newly created node using the new store
-        const newEntity = lastJsonMessage.node
-        addNode(newEntity)
-        toast.success(
-          `Entity "${newEntity.data?.label || 'Unknown'}" created successfully!`
-        )
-        // Set edit state to indicate entity was created for layout management
-        if (newEntity.id) {
-          setEditState({
-            label: 'createEntity',
-            id: newEntity.id,
+  const handleNotification = (notification: null | SocketNotification) => {
+    if (notification && notification?.id) {
+      !notification.autoClose
+        ? toast.update(lastJsonMessage.notification.id)
+        : toast.loading(notification.message ?? 'Loading...', {
+            closeButton: true,
+            isLoading: true,
+            toastId: notification.id,
+            autoClose: 1600,
           })
-        }
-      }
+    }
+  }
+
+  const fitView = useCallback(() => {
+    if (graphInstance?.fitView) graphInstance.fitView()
+  }, [graphInstance])
+
+  // Handle any actions the websocket sends
+  const socketActions: SocketActions = {
+    authenticated: (_) => {
+      toast.loading('Please wait while we load your graph...', {
+        closeButton: true,
+        isLoading: true,
+        toastId: 'graph',
+      })
+      sendJsonMessage({ action: 'read:graph' })
     },
-    isLoading: () => {
-      if (lastJsonMessage.detail)
-        toast.loading('Loading...', {
-          closeButton: true,
-          isLoading: true,
-          toastId: 'loadingToast',
-        })
-      else
-        toast.update('loadingToast', {
-          render: `${lastJsonMessage?.message ? lastJsonMessage.message : 'Success!'}`,
-          type: 'success',
-          isLoading: false,
-          autoClose: 1600,
-        })
+    read: (data) => {
+      setNodes(data.nodes || [])
+      setEdges(data.edges || [])
+      toast.dismiss('graph')
+      fitView()
     },
-    error: () => toast.error(`${lastJsonMessage.message}`),
+    remove: (data) => {},
+    created: (data) => {
+      addNode({
+        ...data.entity,
+      })
+      toast.success(
+        `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
+      )
+      // Clear the pending position
+      setDropPosition(null)
+    },
+    loading: (data) => handleNotification(data?.notification),
+    error: (data) => toast.error(`${data.message}`),
   }
 
   useEffect(() => {
-    const wsAction = lastJsonMessage?.action
-    if (wsAction) wsActionPlayer[wsAction]()
-    lastJsonMessage && messageHistory.length > 50
-      ? setMessageHistory([lastJsonMessage])
-      : setMessageHistory((prev) => prev.concat(lastJsonMessage))
-  }, [lastJsonMessage, setMessageHistory])
+    let action: ActionTypes = lastJsonMessage?.action
+    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
+  }, [lastJsonMessage])
 
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
@@ -282,11 +255,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   const onPaneClick = () => {
     setShowMenu(false)
     setCtxSelection(null)
-  }
-
-  let fitView: FitView | any
-  if (graphInstance) {
-    fitView = graphInstance.fitView
   }
 
   useEffect(() => {
@@ -340,7 +308,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             width: undefined,
             height: undefined,
           }))
-          resetGraph()
+          clearGraph()
           setNodes(layoutedNodes)
           setEdges(edges)
           window.requestAnimationFrame(() => {
@@ -348,7 +316,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
           })
         })
       },
-      [nodesBeforeLayout, editState]
+      [nodesBeforeLayout]
     )
 
     return { setElkLayout }
@@ -423,53 +391,11 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         console.warn(e)
       }
       return forceSimOff
-    }, [nodesBeforeLayout, editState])
+    }, [nodesBeforeLayout])
   }
 
   const [forceInitialized, { toggleForceLayout, isForceRunning }] =
     useForceLayoutElements()
-
-  // If not on a manual layout, update the manual layout positions
-  // for any drag changes, entity edit mode toggles, and transforms/deletions
-  // this is for when a user updates/deletes an entity in a layout mode thats not manual
-  useEffect(() => {
-    if (editState.label === 'deleteNode') {
-      setEdgesBeforeLayout(
-        edgesBeforeLayout.filter(
-          (edge: Edge) =>
-            edge.target !== editState.id || edge.source !== editState.id
-        )
-      )
-      setNodesBeforeLayout(
-        nodesBeforeLayout.filter((node: Node) => node.id !== editState.id)
-      )
-    }
-    if (editState.label === 'createEntity') {
-      setNodesBeforeLayout([
-        ...nodesBeforeLayout,
-        nodes.find((node: Node) => node.id === editState.id) as Node,
-      ])
-    }
-    if (editState.label === 'enableEditMode') {
-      setNodesBeforeLayout([
-        ...nodesBeforeLayout.map((node: Node) =>
-          node.id === editState.id?.toString()
-            ? { ...node, type: 'edit' }
-            : node
-        ),
-      ])
-    }
-    if (editState.label === 'disableEditMode') {
-      setNodesBeforeLayout([
-        ...nodesBeforeLayout.map((node: Node) =>
-          node.id === editState.id ? { ...node, type: 'view' } : node
-        ),
-      ])
-    }
-    if (editState.label?.includes('layout')) {
-      fitView && fitView({ includeHiddenNodes: true })
-    }
-  }, [editState])
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
@@ -479,9 +405,10 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       [toggleForceLayout]
     )
   )
-
   return (
     <>
+      {/* TODO: Add loading screen fade out transition */}
+      {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
       {isSuccess && (
         <div className='h-screen w-screen' ref={graphRef}>
           <Graph
@@ -489,7 +416,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
             onPaneCtxMenu={onPaneCtxMenu}
             onPaneClick={onPaneClick}
-            graphRef={graphRef}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
@@ -498,19 +424,18 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             graphInstance={graphInstance}
             setGraphInstance={setGraphInstance}
             sendJsonMessage={sendJsonMessage}
-            fitView={fitView}
-            positionMode={positionMode}
-            editState={editState}
+            setPendingEntityPosition={setDropPosition}
           />
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}
           <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
-            <EntityOptions
+            <OverlayMenus
               positionMode={positionMode}
               toggleForceLayout={toggleForceLayout}
-              activeGraph={activeGraph}
+              graph={graph}
               setElkLayout={setElkLayout}
               fitView={fitView}
+              clearGraph={clearGraph}
             />
 
             <ContextMenu

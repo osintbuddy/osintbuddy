@@ -318,7 +318,7 @@ export function TextArea({
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {
             sendJsonMessage({
-              action: 'update:node',
+              action: 'update:entity',
               node: { id: nodeId, [label]: value },
             })
           }}
@@ -387,7 +387,7 @@ export function UploadFileInput({
       const file = event.target.files[0]
       setValue(file)
       sendJsonMessage({
-        action: 'update:node',
+        action: 'update:entity',
         node: { id: nodeId, [label]: file, name: file?.name || 'unknown' },
       })
     }
@@ -441,7 +441,7 @@ export function TextInput({
             type='text'
             onBlur={() => {
               sendJsonMessage({
-                action: 'update:node',
+                action: 'update:entity',
                 node: { id: nodeId, [label]: value },
               })
             }}
@@ -537,7 +537,7 @@ export function DropdownInput({
         value={activeOption}
         onChange={(option) => {
           sendJsonMessage({
-            action: 'update:node',
+            action: 'update:entity',
             node: {
               id: nodeId,
               [label]: option?.value ? option.value : option.label,

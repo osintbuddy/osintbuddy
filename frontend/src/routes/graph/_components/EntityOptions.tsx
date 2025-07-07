@@ -2,53 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
-
-type UseResizeProps = {
-  minWidth: number
-}
-
-type UseResizeReturn = {
-  width: number
-  enableResize: () => void
-}
-
-export const useResize = ({ minWidth }: UseResizeProps): UseResizeReturn => {
-  const [isResizing, setIsResizing] = useState(false)
-  const [width, setWidth] = useState(minWidth)
-
-  const enableResize = useCallback(() => {
-    setIsResizing(true)
-  }, [setIsResizing])
-
-  const disableResize = useCallback(() => {
-    setIsResizing(false)
-  }, [setIsResizing])
-
-  const resize = useCallback(
-    (e: MouseEvent) => {
-      if (isResizing) {
-        const newWidth = e.clientX // You may want to add some offset here from props
-        if (newWidth >= minWidth) {
-          setWidth(newWidth)
-        }
-      }
-    },
-    [minWidth, isResizing, setWidth]
-  )
-
-  useEffect(() => {
-    document.addEventListener('mousemove', resize)
-    document.addEventListener('mouseup', disableResize)
-
-    return () => {
-      document.removeEventListener('mousemove', resize)
-      document.removeEventListener('mouseup', disableResize)
-    }
-  }, [disableResize, resize])
-
-  return { width, enableResize }
-}
+import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { Graph } from '@/app/api'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -84,24 +39,28 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
   )
 }
 
+interface OverlayMenusProps {
+  positionMode: PositionMode
+  graph: Graph | null
+  setElkLayout: Function
+  toggleForceLayout: Function
+  fitView: Function
+  clearGraph: Function
+}
+
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
-const MAX_GRAPH_LABEL_LENGTH = 22
-
-export default function EntityOptions({
+export default function OverlayMenus({
   positionMode,
-  activeGraph,
   setElkLayout,
+  graph,
   toggleForceLayout,
   fitView,
-}: JSONObject) {
-  const { hid = '' } = useParams()
-
+  clearGraph,
+}: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
-  const { pluginEntities, isLoadingPlugins, error, fetchPluginEntities } =
+  const { plugins, isLoadingPlugins, error, fetchPluginEntities } =
     useEntitiesStore()
-
-  const [showEntities, setShowEntities] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
 
   // Fetch plugin entities on component mount
@@ -112,11 +71,15 @@ export default function EntityOptions({
   const entities = useMemo(
     () =>
       searchFilter
-        ? pluginEntities.filter((entity) =>
-            entity.label.toLowerCase().includes(searchFilter.toLowerCase())
+        ? plugins.filter(
+            (entity) =>
+              entity.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
+              entity.description
+                .toLowerCase()
+                .includes(searchFilter.toLowerCase())
           )
-        : pluginEntities,
-    [searchFilter, pluginEntities]
+        : plugins,
+    [searchFilter, plugins]
   )
 
   const onDragStart = (event: DragEvent, nodeType: string) => {
@@ -137,13 +100,13 @@ export default function EntityOptions({
     y: 4,
     minW: 2,
     maxW: 44,
-    minH: 2.4,
+    minH: 3,
     maxH: 60,
     isDraggable: false,
     isBounded: true,
   })
 
-  const [positionsLayout, setPositionsLayout] = useState<Layout>({
+  const [appbarLayout, setAppbarLayout] = useState<Layout>({
     i: 'positions',
     w: 44,
     h: 4,
@@ -152,16 +115,14 @@ export default function EntityOptions({
     minW: 10,
     maxW: 44,
     minH: 100,
-    maxH: 100,
+    maxH: 4,
     isDraggable: false,
     isBounded: true,
   })
 
-  const { setPositionMode, setEditState } = useGraphFlowStore()
+  const { setPositionMode } = useGraphFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
-
-  console.log('pluginEntities', pluginEntities)
 
   return (
     <ResponsiveGridLayout
@@ -171,7 +132,7 @@ export default function EntityOptions({
       className='pointer-events-none absolute inset-0 z-10'
       style={{ width: '100%', height: '100%' }}
       rowHeight={4}
-      resizeHandles={['ne']}
+      resizeHandles={['se']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
       cols={{ lg: 40, md: 40, sm: 28, xs: 22, xxs: 18 }}
       isDraggable={true}
@@ -179,12 +140,12 @@ export default function EntityOptions({
       isBounded={true}
       layouts={{
         lg: [
-          { ...positionsLayout, isDraggable: isPositionsDraggable },
+          { ...appbarLayout, isDraggable: isPositionsDraggable },
           { ...entitiesLayout, isDraggable: isEntitiesDraggable },
         ],
       }}
       onLayoutChange={(layout, layouts) => {
-        setPositionsLayout({
+        setAppbarLayout({
           ...(layouts.lg.find((layout) => layout.i === 'positions') as Layout),
           isDraggable: isPositionsDraggable,
           isBounded: true,
@@ -203,15 +164,28 @@ export default function EntityOptions({
         <div className='flex w-full items-center justify-center'>
           <button
             className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
-            onClick={() => navigate('/dashboard', { replace: true })}
+            onClick={() => {
+              clearGraph()
+              navigate('/dashboard', { replace: true })
+            }}
           >
             <Icon icon='home' className='h-6 w-6' />
           </button>
+          <button
+            onClick={() => setIsPositionDraggable(!isPositionsDraggable)}
+            className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
+          >
+            {isPositionsDraggable ? (
+              <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
+            ) : (
+              <Icon icon='lock' className='h-5 w-5 text-inherit' />
+            )}
+          </button>
           <h5
-            title={activeGraph?.description ?? ''}
+            title={graph?.description ?? ''}
             className='mr-auto w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
           >
-            <span className='text-slate-400'>{activeGraph?.label}</span>
+            <span className='text-slate-400'>{graph?.label}</span>
           </h5>
           <div className='flex items-center'>
             <button
@@ -226,10 +200,6 @@ export default function EntityOptions({
               setIsForceActive(false)
               toggleForceLayout && toggleForceLayout(false)
               setPositionMode('manual')
-              setEditState({
-                label: 'layoutChangeM',
-                id: null,
-              })
             }}
             type='button'
             className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
@@ -278,10 +248,6 @@ export default function EntityOptions({
                 'elk.algorithm': 'layered',
                 'elk.direction': 'RIGHT',
               })
-              setEditState({
-                label: 'layoutChangeRT',
-                id: null,
-              })
             }}
             type='button'
             className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
@@ -303,10 +269,6 @@ export default function EntityOptions({
               setElkLayout({
                 'elk.algorithm': 'layered',
                 'elk.direction': 'DOWN',
-              })
-              setEditState({
-                label: 'layoutChangeDT',
-                id: null,
               })
             }}
             type='button'
@@ -349,8 +311,6 @@ export default function EntityOptions({
               <button
                 onClick={() => setIsEntitiesDraggable(!isEntitiesDraggable)}
                 className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
-                title={activeGraph.name}
-                aria-current={activeGraph.description}
               >
                 {isEntitiesDraggable ? (
                   <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
@@ -361,46 +321,38 @@ export default function EntityOptions({
             </div>
           </li>
         </ol>
-        {showEntities && (
-          <>
-            <div className='hover:border-mirage-200/40 to-mirage-400/70 from-mirage-300/60 focus-within:!border-primary/40 border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 mx-4 mt-2.5 mb-2 block items-center justify-between rounded border bg-gradient-to-br px-3.5 py-1 text-slate-100 shadow-sm transition-colors duration-200 ease-in-out focus-within:bg-gradient-to-l'>
-              <input
-                onChange={(e) => setSearchFilter(e.currentTarget.value)}
-                className='block w-full bg-transparent outline-hidden backdrop-blur-md placeholder:text-slate-700 sm:text-sm'
-                placeholder='Search entities...'
+        <div className='hover:border-mirage-200/40 to-mirage-400/70 from-mirage-300/60 focus-within:!border-primary/40 border-mirage-400/20 ring-light-900/10 focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 mx-4 mt-2.5 mb-2 block items-center justify-between rounded border bg-gradient-to-br px-3.5 py-1 text-slate-100 shadow-sm transition-colors duration-200 ease-in-out focus-within:bg-gradient-to-l'>
+          <input
+            onChange={(e) => setSearchFilter(e.currentTarget.value)}
+            className='block w-full bg-transparent outline-hidden backdrop-blur-md placeholder:text-slate-700 sm:text-sm'
+            placeholder='Search entities...'
+          />
+        </div>
+        <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
+          {isLoadingPlugins ? (
+            <li className='flex w-full items-center justify-center py-8'>
+              <div className='text-sm text-slate-500'>Loading entities...</div>
+            </li>
+          ) : error ? (
+            <li className='flex w-full items-center justify-center py-8'>
+              <div className='text-sm text-red-400'>
+                Error loading entities: {error}
+              </div>
+            </li>
+          ) : entities.length === 0 ? (
+            <li className='flex w-full items-center justify-center py-8'>
+              <div className='text-sm text-slate-500'>No entities found</div>
+            </li>
+          ) : (
+            entities.map((entity) => (
+              <EntityOption
+                onDragStart={onDragStart}
+                key={entity.label}
+                entity={entity}
               />
-            </div>
-            <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
-              {isLoadingPlugins ? (
-                <li className='flex w-full items-center justify-center py-8'>
-                  <div className='text-sm text-slate-500'>
-                    Loading entities...
-                  </div>
-                </li>
-              ) : error ? (
-                <li className='flex w-full items-center justify-center py-8'>
-                  <div className='text-sm text-red-400'>
-                    Error loading entities: {error}
-                  </div>
-                </li>
-              ) : entities.length === 0 ? (
-                <li className='flex w-full items-center justify-center py-8'>
-                  <div className='text-sm text-slate-500'>
-                    No entities found
-                  </div>
-                </li>
-              ) : (
-                entities.map((entity) => (
-                  <EntityOption
-                    onDragStart={onDragStart}
-                    key={entity.label}
-                    entity={entity}
-                  />
-                ))
-              )}
-            </ul>
-          </>
-        )}
+            ))
+          )}
+        </ul>
       </div>
     </ResponsiveGridLayout>
   )
