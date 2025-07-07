@@ -223,11 +223,13 @@ pub async fn read_graph(
 
 pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Result<(), AppError> {
     if let Some(vertex_id) = node.get("id").and_then(|v| v.as_str()) {
+        // Use a single transaction for all updates
+        let mut tx = age_tx(pool).await?;
+        
         for (key, value) in node.as_object().unwrap() {
             if key == "id" {
                 continue;
             }
-            let mut tx = age_tx(pool).await?;
             let snake_key = to_snake_case(key);
             let query = if value.is_string() {
                 format!(
@@ -243,15 +245,25 @@ pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Res
                     graph_name, vertex_id, snake_key, value
                 )
             };
-            let _ = with_cypher(query, tx.as_mut()).await;
-            tx.commit().await.map_err(|err| {
-                error!("{err}");
+            
+            // Execute the update query
+            let _result = with_cypher(query, tx.as_mut()).await.map_err(|err| {
+                error!("Failed to update node property {}: {}", key, err);
                 AppError {
-                    message: "()",
+                    message: "Failed to update node position",
                     kind: ErrorKind::Database,
                 }
             })?;
         }
+        
+        // Commit all updates in a single transaction
+        tx.commit().await.map_err(|err| {
+            error!("Failed to commit node updates: {err}");
+            AppError {
+                message: "Failed to save node position",
+                kind: ErrorKind::Database,
+            }
+        })?;
     }
 
     Ok(())

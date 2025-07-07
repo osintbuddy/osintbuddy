@@ -1,8 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
-import { useEffect, useState } from 'preact/hooks';
-import { graphsApi, Graph, GraphDetails, UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError, PluginEntity } from './api';
+import { graphsApi, Graph,UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError, PluginEntity } from './api';
 import { jwtParse } from './utilities';
+import { 
+  addEdge, 
+  applyNodeChanges, 
+  applyEdgeChanges,
+  Node,
+  Edge,
+  Connection,
+  NodeChange,
+  EdgeChange
+} from '@xyflow/react'
+
 
 // Auth store 
 type UserRoles = 'user' | 'admin';
@@ -468,37 +478,116 @@ export const useAppStore = create<SettingsState>()(
   )
 )
 
-// Graph visualization store
-interface GraphVisualizationState {
-  nodes: any[]
-  edges: any[]
-  positionMode: 'manual' | 'force' | 'elk'
-  editState: {
-    editLabel: string | null
-    editId: string | null
-  }
-  setAllNodes: (nodes: any[]) => void
-  setAllEdges: (edges: any[]) => void
-  setPositionMode: (mode: 'manual' | 'force' | 'elk') => void
-  setEditState: (editLabel: string | null, editId: string | null) => void
-  resetGraph: () => void
+
+type EditState = {
+  label: null | string
+  id: null | number
 }
 
-export const useGraphVisualizationStore = create<GraphVisualizationState>()((set) => ({
-  nodes: [],
-  edges: [],
+export interface GraphFlowState {
+  nodes: Node[]
+  edges: Edge[]
+  positionMode: 'manual'
+  editState: EditState
+  onNodesChange: (changes: NodeChange[]) => void
+  onEdgesChange: (changes: EdgeChange[]) => void
+  onConnect: (connection: Connection) => void
+  setNodes: (nodes: Node[]) => void
+  setEdges: (edges: Edge[]) => void
+  addNode: (node: Node) => void
+  removeNode: (nodeId: string) => void
+  updateNode: (nodeId: string, updates: Partial<Node>) => void
+  resetGraph: () => void
+  setEditState: (state: EditState) => void  
+  setPositionMode: (mode: PositionMode) => void
+  enableEntityEdit: (nodeId: string) => void
+  disableEntityEdit: (nodeId: string) => void
+}
+// Initial empty state
+const initialNodes: Node[] = []
+const initialEdges: Edge[] = []
+
+type PositionMode = 'manual' | 'force'
+// This is our useGraphFlowStore hook that we can use in our components to get parts of the store and call actions
+export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
+  nodes: initialNodes,
+  edges: initialEdges,
   positionMode: 'manual',
   editState: {
-    editLabel: null,
-    editId: null
+    label: null,
+    id: null
   },
-  setAllNodes: (nodes) => set({ nodes }),
-  setAllEdges: (edges) => set({ edges }),
-  setPositionMode: (mode) => set({ positionMode: mode }),
-  setEditState: (editLabel, editId) => set({ editState: { editLabel, editId } }),
-  resetGraph: () => set({ 
-    nodes: [], 
-    edges: [], 
-    editState: { editLabel: null, editId: null } 
-  })
+  setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
+  setEditState: ({label, id}: EditState) => set({ editState: { label, id } }),
+  onNodesChange: (changes: NodeChange[]) => {
+    set({
+      nodes: applyNodeChanges(changes, get().nodes),
+    })
+  },
+  
+  onEdgesChange: (changes: EdgeChange[]) => {
+    set({
+      edges: applyEdgeChanges(changes, get().edges),
+    })
+  },
+  
+  onConnect: (connection: Connection) => {
+    set({
+      edges: addEdge(connection, get().edges),
+    })
+  },
+  
+  setNodes: (nodes: Node[]) => {
+    set({ nodes })
+  },
+  
+  setEdges: (edges: Edge[]) => {
+    set({ edges })
+  },
+  
+  addNode: (node: Node) => {
+    set({
+      nodes: [...get().nodes, node]
+    })
+  },
+  
+  removeNode: (nodeId: string) => {
+    set({
+      nodes: get().nodes.filter(node => node.id !== nodeId),
+      edges: get().edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId)
+    })
+  },
+  
+  updateNode: (nodeId: string, updates: Partial<Node>) => {
+    set({
+      nodes: get().nodes.map(node => 
+        node.id === nodeId ? { ...node, ...updates } : node
+      )
+    })
+  },
+  
+  resetGraph: () => {
+    set({ 
+      nodes: [], 
+      edges: [] 
+    })
+  },
+  
+  enableEntityEdit: (nodeId: string) => {
+    set({
+      editState: { label: "enableEditMode", id: nodeId },
+      nodes: get().nodes.map((node) => 
+        node.id === nodeId ? { ...node, type: 'edit' } : node
+      )
+    })
+  },
+  
+  disableEntityEdit: (nodeId: string) => {
+    set({
+      editState: { label: "disableEditMode", id: nodeId },
+      nodes: get().nodes.map((node) => 
+        node.id === nodeId ? { ...node, type: 'view' } : node
+      )
+    })
+  }
 }))

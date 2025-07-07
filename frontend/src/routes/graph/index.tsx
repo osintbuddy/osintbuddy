@@ -25,11 +25,7 @@ import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
 import RoundLoader from '@/components/loaders'
 import { useTour } from '@reactour/tour'
-import {
-  useGraphStore,
-  useGraphVisualizationStore,
-  useAuthStore,
-} from '@/app/store'
+import { useGraphStore, useAuthStore, useGraphFlowStore } from '@/app/store'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
@@ -90,17 +86,25 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   } = useTour()
 
   const { graph: activeGraph, getGraph, isLoading, isError } = useGraphStore()
-  const {
-    setPositionMode,
-    resetGraph,
-    setAllNodes,
-    setAllEdges,
-    nodes: initialNodes,
-    edges: initialEdges,
-    editState: changeState,
-    positionMode,
-  } = useGraphVisualizationStore()
+
   const { access_token } = useAuthStore()
+
+  // Use the new ReactFlow-specific store
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    addNode,
+    resetGraph,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    setPositionMode,
+    editState,
+    positionMode,
+    setEditState,
+  } = useGraphFlowStore()
 
   useEffect(() => {
     if (location.state?.showGuide) {
@@ -187,14 +191,31 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       })
     },
     isInitialRead: () => {
-      setAllNodes(lastJsonMessage.nodes)
-      setAllEdges(lastJsonMessage.edges)
+      setNodes(lastJsonMessage.nodes || [])
+      setEdges(lastJsonMessage.edges || [])
     },
     read: () => {
-      setAllNodes(lastJsonMessage.nodes)
-      setAllEdges(lastJsonMessage.edges)
+      setNodes(lastJsonMessage.nodes || [])
+      setEdges(lastJsonMessage.edges || [])
     },
     removeEntity: () => {},
+    entityCreated: () => {
+      if (lastJsonMessage.node) {
+        // Add the newly created node using the new store
+        const newEntity = lastJsonMessage.node
+        addNode(newEntity)
+        toast.success(
+          `Entity "${newEntity.data?.label || 'Unknown'}" created successfully!`
+        )
+        // Set edit state to indicate entity was created for layout management
+        if (newEntity.id) {
+          setEditState({
+            label: 'createEntity',
+            id: newEntity.id,
+          })
+        }
+      }
+    },
     isLoading: () => {
       if (lastJsonMessage.detail)
         toast.loading('Loading...', {
@@ -221,8 +242,8 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       : setMessageHistory((prev) => prev.concat(lastJsonMessage))
   }, [lastJsonMessage, setMessageHistory])
 
-  const [nodesBeforeLayout, setNodesBeforeLayout] = useState(initialNodes)
-  const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(initialEdges)
+  const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
+  const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
   const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 })
   const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null)
   const [showMenu, setShowMenu] = useState(false)
@@ -270,15 +291,15 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   useEffect(() => {
     if (positionMode === 'manual') {
-      setNodesBeforeLayout(initialNodes)
-      setEdgesBeforeLayout(initialEdges)
+      setNodesBeforeLayout(nodes)
+      setEdgesBeforeLayout(edges)
     }
-  }, [initialNodes, initialEdges]) // , activeEditState
+  }, [nodes, edges, positionMode])
 
   useEffect(() => {
     if (positionMode === 'manual') {
-      setAllNodes(nodesBeforeLayout)
-      setAllEdges(edgesBeforeLayout)
+      setNodes(nodesBeforeLayout)
+      setEdges(edgesBeforeLayout)
     }
   }, [positionMode])
 
@@ -296,25 +317,38 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     const setElkLayout = useCallback(
       (options: any) => {
         const layoutOptions = { ...defaultOptions, ...options }
+        // Prepare nodes with measured dimensions for ELK
+        const elkNodes = structuredClone(nodesBeforeLayout).map(
+          (node: any) => ({
+            ...node,
+            width: node.measured?.width || node.width || 150,
+            height: node.measured?.height || node.height || 50,
+          })
+        )
         const graph = {
           id: 'root',
           layoutOptions: layoutOptions,
-          children: structuredClone(nodesBeforeLayout),
+          children: elkNodes,
           edges: structuredClone(edgesBeforeLayout),
         }
         elk.layout(graph as any).then(({ children, edges }: any) => {
-          children.forEach((node: any) => {
-            node.position = { x: node.x, y: node.y }
-          })
+          // Create new node objects instead of mutating
+          const layoutedNodes = children.map((node: any) => ({
+            ...node,
+            position: { x: node.x, y: node.y },
+            // Remove ELK-specific width/height to let ReactFlow handle sizing
+            width: undefined,
+            height: undefined,
+          }))
           resetGraph()
-          setAllNodes(children)
-          setAllEdges(edges)
+          setNodes(layoutedNodes)
+          setEdges(edges)
           window.requestAnimationFrame(() => {
             fitView && fitView({ padding: 0.25 })
           })
         })
       },
-      [nodesBeforeLayout, changeState]
+      [nodesBeforeLayout, editState]
     )
 
     return { setElkLayout }
@@ -324,8 +358,8 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   // force layout hook/toggle found in top right
   const useForceLayoutElements = () => {
-    const nodesInitialized = initialNodes.every(
-      (node: any) => node.width && node.height
+    const nodesInitialized = nodes.every(
+      (node: any) => node.measured?.width && node.measured?.height
     )
 
     return useMemo(() => {
@@ -336,12 +370,12 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         .alphaTarget(0.01)
         .stop()
 
-      let forceNodes = initialNodes.map((node: any) => ({
+      let forceNodes = nodes.map((node: any) => ({
         ...node,
         x: node.position.x,
         y: node.position.y,
       }))
-      let forceEdges = structuredClone(initialEdges)
+      let forceEdges = structuredClone(edges)
 
       const forceSimOff = [
         false,
@@ -363,7 +397,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         // running and progresses the simulation one step forward each time.
         const tick = () => {
           simulation.tick()
-          setAllNodes(
+          setNodes(
             forceNodes.map((node: any) => ({
               ...node,
               position: { x: node.x, y: node.y },
@@ -389,7 +423,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
         console.warn(e)
       }
       return forceSimOff
-    }, [nodesBeforeLayout, changeState])
+    }, [nodesBeforeLayout, editState])
   }
 
   const [forceInitialized, { toggleForceLayout, isForceRunning }] =
@@ -399,44 +433,43 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   // for any drag changes, entity edit mode toggles, and transforms/deletions
   // this is for when a user updates/deletes an entity in a layout mode thats not manual
   useEffect(() => {
-    if (changeState.editLabel === 'deleteNode') {
+    if (editState.label === 'deleteNode') {
       setEdgesBeforeLayout(
         edgesBeforeLayout.filter(
           (edge: Edge) =>
-            edge.target !== changeState.editId ||
-            edge.source !== changeState.editId
+            edge.target !== editState.id || edge.source !== editState.id
         )
       )
       setNodesBeforeLayout(
-        nodesBeforeLayout.filter((node: Node) => node.id !== changeState.editId)
+        nodesBeforeLayout.filter((node: Node) => node.id !== editState.id)
       )
     }
-    if (changeState.editLabel === 'createEntity') {
+    if (editState.label === 'createEntity') {
       setNodesBeforeLayout([
         ...nodesBeforeLayout,
-        initialNodes.find(
-          (node: Node) => node.id === changeState.editId
-        ) as Node,
+        nodes.find((node: Node) => node.id === editState.id) as Node,
       ])
     }
-    if (changeState.editLabel === 'enableEditMode') {
+    if (editState.label === 'enableEditMode') {
       setNodesBeforeLayout([
         ...nodesBeforeLayout.map((node: Node) =>
-          node.id === changeState.editId ? { ...node, type: 'edit' } : node
+          node.id === editState.id?.toString()
+            ? { ...node, type: 'edit' }
+            : node
         ),
       ])
     }
-    if (changeState.editLabel === 'disableEditMode') {
+    if (editState.label === 'disableEditMode') {
       setNodesBeforeLayout([
         ...nodesBeforeLayout.map((node: Node) =>
-          node.id === changeState.editId ? { ...node, type: 'view' } : node
+          node.id === editState.id ? { ...node, type: 'view' } : node
         ),
       ])
     }
-    if (changeState.editLabel?.includes('layout')) {
+    if (editState.label?.includes('layout')) {
       fitView && fitView({ includeHiddenNodes: true })
     }
-  }, [changeState])
+  }, [editState])
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
@@ -449,47 +482,53 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   return (
     <>
-      {isError && <h2>Error</h2>}
-      {isLoading && <RoundLoader />}
-
       {isSuccess && (
-        <div className='flex h-screen w-full flex-col'>
-          <EntityOptions
-            positionMode={positionMode}
-            toggleForceLayout={toggleForceLayout}
-            activeGraph={activeGraph}
-            setElkLayout={setElkLayout}
-            fitView={fitView}
-          />
-          <div className='bg-mirage-400/20 h-full w-full justify-between'>
-            <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>
-              <Graph
-                onSelectionCtxMenu={onSelectionCtxMenu}
-                onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
-                onPaneCtxMenu={onPaneCtxMenu}
-                onPaneClick={onPaneClick}
-                graphRef={graphRef}
-                nodes={initialNodes}
-                edges={initialEdges}
-                graphInstance={graphInstance}
-                setGraphInstance={setGraphInstance}
-                sendJsonMessage={sendJsonMessage}
-                fitView={fitView}
-                positionMode={positionMode}
-                editState={changeState}
-              />
-            </div>
-          </div>
-          <div className='bg-red absolute top-[3.5rem] -z-10 h-20 w-52 text-slate-900' />
-          <ContextMenu
-            activeTransformLabel={activeTransformLabel}
+        <div className='h-screen w-screen' ref={graphRef}>
+          <Graph
+            onSelectionCtxMenu={onSelectionCtxMenu}
+            onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
+            onPaneCtxMenu={onPaneCtxMenu}
+            onPaneClick={onPaneClick}
+            graphRef={graphRef}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            graphInstance={graphInstance}
+            setGraphInstance={setGraphInstance}
             sendJsonMessage={sendJsonMessage}
-            ctxSelection={ctxSelection}
-            showMenu={showMenu}
-            ctxPosition={ctxPosition}
-            closeMenu={() => setShowMenu(false)}
+            fitView={fitView}
+            positionMode={positionMode}
+            editState={editState}
           />
+
+          {/* Overlay EntityOptions on top of the ReactFlow graph */}
+          <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
+            <EntityOptions
+              positionMode={positionMode}
+              toggleForceLayout={toggleForceLayout}
+              activeGraph={activeGraph}
+              setElkLayout={setElkLayout}
+              fitView={fitView}
+            />
+
+            <ContextMenu
+              activeTransformLabel={activeTransformLabel}
+              sendJsonMessage={sendJsonMessage}
+              ctxSelection={ctxSelection}
+              showMenu={showMenu}
+              ctxPosition={ctxPosition}
+              closeMenu={() => setShowMenu(false)}
+            />
+          </div>
         </div>
+      )}
+      {isSuccess && (
+        <>
+          {isError && <h2>Error</h2>}
+          {isLoading && <RoundLoader />}
+        </>
       )}
     </>
   )

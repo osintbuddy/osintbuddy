@@ -10,6 +10,7 @@ import {
 import { Fragment } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
+import { Handle, Position } from '@xyflow/react'
 
 var dropdownKey = 0
 
@@ -36,18 +37,10 @@ const handleStyle = {
 type NodeElement = NodeInput & {
   nodeId: string
   editState: EditState
-  dispatch: ThunkDispatch<
-    { settings: { showSidebar: boolean }; graph: Graph },
-    undefined,
-    AnyAction
-  > &
-    Dispatch<AnyAction>
 }
 
 export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   const node = ctx.data
-
-  const dispatch = useAppDispatch()
 
   const getNodeElement = (
     element: NodeInput,
@@ -64,7 +57,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             label={element.label}
             value={element.value as string}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
         )
 
@@ -76,7 +68,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             label={element?.label}
             icon={element?.icon || 'ballpen'}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
         )
 
@@ -89,7 +80,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             initialValue={element?.value || ''}
             icon={element?.icon || 'file-upload'}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
         )
       case 'title':
@@ -99,7 +89,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
         )
 
@@ -110,7 +99,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
         )
       case 'textarea':
@@ -121,7 +109,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             label={element?.label}
             value={element?.value || ''}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
         )
       case 'copy-text':
@@ -131,7 +118,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
         )
       case 'empty':
@@ -309,12 +295,8 @@ export function TextArea({
   label,
   sendJsonMessage,
   icon,
-  dispatch,
+  value: initValue,
 }: NodeElement) {
-  const initValue = useAppSelector((state) =>
-    selectNodeValue(state, nodeId, label)
-  )
-
   const [value, setValue] = useState(initValue)
   const [showMonospace, setShowMonospace] = useState(true)
 
@@ -341,7 +323,6 @@ export function TextArea({
               action: 'update:node',
               node: { id: nodeId, [label]: value },
             })
-            dispatch(saveUserEdits({ value, nodeId, label }))
           }}
         />
       </div>
@@ -445,12 +426,8 @@ export function TextInput({
   label,
   sendJsonMessage,
   icon,
-  dispatch,
+  value: initValue,
 }: NodeElement) {
-  const initValue = useAppSelector((state) =>
-    selectNodeValue(state, nodeId, label)
-  )
-
   const [value, setValue] = useState(initValue)
 
   return (
@@ -469,7 +446,6 @@ export function TextInput({
                 action: 'update:node',
                 node: { id: nodeId, [label]: value },
               })
-              dispatch(saveUserEdits({ value, nodeId, label }))
             }}
             onChange={(event: InputEvent) =>
               setValue(event.currentTarget.value)
@@ -493,7 +469,7 @@ export function DropdownInput({
   label,
   nodeId,
   sendJsonMessage,
-  dispatch,
+  value: activeValue,
 }: NodeElement) {
   const [query, setQuery] = useState('')
   const dropdownRef = useRef(200)
@@ -507,10 +483,6 @@ export function DropdownInput({
               option?.label.toLowerCase().includes(query.toLowerCase())
             ) ?? []),
     [query]
-  )
-
-  const activeValue = useAppSelector((state) =>
-    selectNodeValue(state, nodeId, label)
   )
   const activeOption = options.find(
     (option) => option.value === activeValue || option.label === activeValue
@@ -572,13 +544,6 @@ export function DropdownInput({
               [label]: option?.value ? option.value : option.label,
             },
           })
-          dispatch(
-            saveUserEdits({
-              value: option?.value ? option.value : option.label,
-              nodeId,
-              label,
-            })
-          )
         }}
       >
         <label>

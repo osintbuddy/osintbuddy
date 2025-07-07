@@ -8,13 +8,9 @@ export default function GraphLayout() {
     return <Navigate to='/login' state={{ from: location.pathname }} replace />
   return (
     <>
-      <div className='flex max-w-screen flex-col'>
-        <div className='relative w-full overflow-hidden transition-all duration-100'>
-          <main id='main' className='h-screen flex-1 overflow-hidden'>
-            <Outlet />
-          </main>
-        </div>
-      </div>
+      <main className='relative flex w-full max-w-screen flex-col'>
+        <Outlet />
+      </main>
 
       <ToastContainer
         position='bottom-right'

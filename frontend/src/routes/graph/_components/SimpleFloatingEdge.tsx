@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 
 import { getEdgeParams } from './utils'
 import { Icon } from '@/components/icons'
-import { BaseEdge, EdgeLabelRenderer } from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, useStore, getBezierPath } from '@xyflow/react'
 
 function EdgeLabel({ transform, label }: { transform: string; label: string }) {
   return (
@@ -34,10 +34,10 @@ function SimpleFloatingEdge({
   label,
 }: JSONObject) {
   const sourceNode = useStore(
-    useCallback((store) => store.nodeInternals.get(source), [source])
+    useCallback((store) => store.nodeLookup.get(source), [source])
   )
   const targetNode = useStore(
-    useCallback((store) => store.nodeInternals.get(target), [target])
+    useCallback((store) => store.nodeLookup.get(target), [target])
   )
 
   if (!sourceNode || !targetNode) {

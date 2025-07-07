@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { useGraphVisualizationStore, useEntitiesStore } from '@/app/store'
+import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
 
 type UseResizeProps = {
   minWidth: number
@@ -60,7 +60,7 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
         <div
           draggable
           onDragStart={(event) => onDragStart(event, entity.label)}
-          className='from-mirage-400/50 to-mirage-400/40 hover:from-mirage-500/40 hover:to-mirage-400/60 border-mirage-300/20 border-l-primary-300/50 hover:border-primary-400 flex max-h-[160px] w-full min-w-[12rem] justify-between overflow-x-hidden rounded-md border border-l-[6px] bg-gradient-to-br p-2 backdrop-blur-md transition-colors duration-100 ease-out hover:border-l-[6px] hover:from-40%'
+          className='border-l-primary-350 hover:border-primary-400 from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex max-h-[160px] w-full min-w-[12rem] -translate-x-px items-center justify-between overflow-hidden overflow-x-hidden rounded-md border border-l-[6px] border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm shadow-2xs backdrop-blur-md transition-all duration-300 ease-out hover:translate-x-[3px] hover:border-l-[6px] hover:bg-gradient-to-tl hover:from-40% hover:shadow focus:outline-hidden'
         >
           <div className='flex w-full flex-col select-none'>
             <div className='relative flex w-full items-start justify-between gap-x-3'>
@@ -69,17 +69,11 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
               </p>
             </div>
             <div className='flex flex-wrap items-center gap-x-2 text-xs leading-5 text-slate-500'>
-              <p className='line-clamp-2 truncate leading-5 whitespace-normal text-slate-500'>
+              <p className='line-clamp-2 truncate leading-5 whitespace-normal text-slate-400'>
                 {entity.description}
               </p>
               <br />
               <p className='flex items-center truncate text-xs leading-5 text-slate-500'>
-                <svg
-                  viewBox='0 0 2 2'
-                  className='mr-1.5 ml-0 h-0.5 w-0.5 fill-current'
-                >
-                  <circle cx={1} cy={1} r={1} />
-                </svg>
                 Created by {entity.author ? entity.author : 'OSINTBuddy'}
               </p>
             </div>
@@ -152,18 +146,18 @@ export default function EntityOptions({
   const [positionsLayout, setPositionsLayout] = useState<Layout>({
     i: 'positions',
     w: 44,
-    h: 1.4,
+    h: 4,
     x: 0,
     y: 0,
     minW: 10,
     maxW: 44,
-    minH: 1.4,
-    maxH: 1.4,
+    minH: 100,
+    maxH: 100,
     isDraggable: false,
     isBounded: true,
   })
 
-  const { setPositionMode, setEditState } = useGraphVisualizationStore()
+  const { setPositionMode, setEditState } = useGraphFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
 
@@ -174,7 +168,8 @@ export default function EntityOptions({
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='absolute z-50'
+      className='pointer-events-none absolute inset-0 z-10'
+      style={{ width: '100%', height: '100%' }}
       rowHeight={4}
       resizeHandles={['ne']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -200,131 +195,138 @@ export default function EntityOptions({
         })
       }}
     >
-      <div key='positions' className='flex w-full flex-col'>
-        <section className='border-mirage-800/40 from-mirage-800/40 to-mirage-800/50 relative flex h-min justify-between rounded-lg rounded-b-sm border bg-gradient-to-r shadow-md backdrop-blur-md'>
+      <div
+        key='positions'
+        className='pointer-events-auto flex w-full flex-col rounded-md border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+      >
+        <div className='flex w-full items-center justify-center'>
+          <button
+            className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
+            onClick={() => navigate('/dashboard', { replace: true })}
+          >
+            <Icon icon='home' className='h-6 w-6' />
+          </button>
+          <h5
+            title={activeGraph?.description ?? ''}
+            className='mr-auto w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
+          >
+            <span className='text-slate-400'>{activeGraph?.label}</span>
+          </h5>
           <div className='flex items-center'>
             <button
-              className='from-mirage-400/30 to-mirage-400/40 hover:from-mirage-500/20 hover:to-mirage-500/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10'
-              onClick={() => navigate('/dashboard', { replace: true })}
+              className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
+              onClick={() => fitView({ duration: 300 })}
             >
-              <Icon icon='home' className='h-6' />
+              <Icon icon='viewfinder' className='h-6 w-6' />
             </button>
-            <h5
-              title={activeGraph?.description ?? ''}
-              className='w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap text-inherit text-slate-600'
-            >
-              <span className='text-slate-400'>{activeGraph?.label}</span>
-            </h5>
-            <ul className='isolate inline-flex shadow-sm'>
-              <div className='flex items-center'>
-                <button
-                  className='from-mirage-400/30 to-mirage-400/40 hover:from-mirage-500/20 hover:to-mirage-500/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10'
-                  onClick={() => fitView({ duration: 300 })}
-                >
-                  <Icon icon='viewfinder' className='h-6' />
-                </button>
-              </div>
-            </ul>
           </div>
+          <button
+            onClick={() => {
+              setIsForceActive(false)
+              toggleForceLayout && toggleForceLayout(false)
+              setPositionMode('manual')
+              setEditState({
+                label: 'layoutChangeM',
+                id: null,
+              })
+            }}
+            type='button'
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+              positionMode === 'manual'
+                ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                : ''
+            }`}
+          >
+            <Icon
+              icon='hand-three-fingers'
+              className={`h-6 w-6 ${positionMode === 'manual' ? 'text-primary-300' : ''}`}
+              aria-hidden='true'
+            />
+          </button>
+          <button
+            onClick={() => {
+              setPositionMode('force')
+              toggleForceLayout && toggleForceLayout(!isForceActive)
+              setIsForceActive(!isForceActive)
+            }}
+            type='button'
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+              positionMode === 'force'
+                ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                : ''
+            }`}
+          >
+            <Icon
+              icon={
+                isForceActive !== undefined && isForceActive
+                  ? 'cube-3d-sphere'
+                  : 'cube-3d-sphere-off'
+              }
+              className={`h-6 w-6 text-inherit ${positionMode === 'force' ? 'text-primary-300' : ''}`}
+            />
+          </button>
+          <button
+            onClick={() => {
+              toggleForceLayout && toggleForceLayout(false)
+              // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
+              // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
+              // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
+              setIsForceActive(false)
+              setPositionMode('elk')
+              setElkLayout({
+                'elk.algorithm': 'layered',
+                'elk.direction': 'RIGHT',
+              })
+              setEditState({
+                label: 'layoutChangeRT',
+                id: null,
+              })
+            }}
+            type='button'
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+              positionMode === 'right tree'
+                ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                : ''
+            }`}
+          >
+            <Icon
+              icon='binary-tree-2'
+              className={`h-6 w-6 origin-center -rotate-90 text-inherit ${positionMode === 'right tree' ? 'text-primary-300' : ''}`}
+            />
+          </button>
+          <button
+            onClick={() => {
+              setIsForceActive(false)
+              toggleForceLayout && toggleForceLayout(false)
+              setPositionMode('elk')
+              setElkLayout({
+                'elk.algorithm': 'layered',
+                'elk.direction': 'DOWN',
+              })
+              setEditState({
+                label: 'layoutChangeDT',
+                id: null,
+              })
+            }}
+            type='button'
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+              positionMode === 'tree'
+                ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                : ''
+            }`}
+          >
+            <Icon
+              icon='binary-tree'
+              className={`h-6 w-6 text-inherit ${positionMode === 'tree' ? 'text-primary-300' : ''}`}
+            />
+          </button>
+        </div>
 
-          <ul className='isolate inline-flex shadow-sm'>
-            <button
-              onClick={() => {
-                setIsForceActive(false)
-                toggleForceLayout && toggleForceLayout(false)
-                setPositionMode('manual')
-                setEditState('layoutChangeM', '')
-              }}
-              type='button'
-              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/60 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
-                positionMode === 'manual'
-                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-                  : ''
-              }`}
-            >
-              <Icon
-                icon='hand-three-fingers'
-                className={`h-6 w-6 ${positionMode === 'manual' ? 'text-primary-300' : ''}`}
-                aria-hidden='true'
-              />
-            </button>
-            <button
-              onClick={() => {
-                setPositionMode('force')
-                toggleForceLayout && toggleForceLayout(!isForceActive)
-                setIsForceActive(!isForceActive)
-              }}
-              type='button'
-              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
-                positionMode === 'force'
-                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-                  : ''
-              }`}
-            >
-              <Icon
-                icon={
-                  isForceActive !== undefined && isForceActive
-                    ? 'cube-3d-sphere'
-                    : 'cube-3d-sphere-off'
-                }
-                className={`h-6 w-6 text-inherit ${positionMode === 'force' ? 'text-primary-300' : ''}`}
-              />
-            </button>
-            <button
-              onClick={() => {
-                toggleForceLayout && toggleForceLayout(false)
-                // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
-                // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
-                // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
-                setIsForceActive(false)
-                setPositionMode('elk')
-                setElkLayout({
-                  'elk.algorithm': 'layered',
-                  'elk.direction': 'RIGHT',
-                })
-                setEditState('layoutChangeRT', '')
-              }}
-              type='button'
-              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
-                positionMode === 'right tree'
-                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-                  : ''
-              }`}
-            >
-              <Icon
-                icon='binary-tree-2'
-                className={`h-6 w-6 origin-center -rotate-90 text-inherit ${positionMode === 'right tree' ? 'text-primary-300' : ''}`}
-              />
-            </button>
-            <button
-              onClick={() => {
-                setIsForceActive(false)
-                toggleForceLayout && toggleForceLayout(false)
-                setPositionMode('elk')
-                setElkLayout({
-                  'elk.algorithm': 'layered',
-                  'elk.direction': 'DOWN',
-                })
-                setEditState('layoutChangeDT', '')
-              }}
-              type='button'
-              className={`from-mirage-300/10 to-mirage-300/20 hover:from-mirage-500/20 hover:to-mirage-300/30 border-mirage-300/20 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 hover:bg-mirage-600 relative inline-flex grow items-center justify-center rounded-sm border bg-gradient-to-br px-2 py-2 text-slate-500 outline-hidden transition-colors duration-100 ease-in-out hover:from-40% focus:z-10 ${
-                positionMode === 'tree'
-                  ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
-                  : ''
-              }`}
-            >
-              <Icon
-                icon='binary-tree'
-                className={`h-6 w-6 text-inherit ${positionMode === 'tree' ? 'text-primary-300' : ''}`}
-              />
-            </button>
-          </ul>
-        </section>
+        <ul className='isolate inline-flex shadow-sm'></ul>
       </div>
 
       <div
-        className='border-mirage-800/40 from-mirage-800/30 to-mirage-800/60 z-10 flex h-min flex-col overflow-hidden rounded-md border bg-gradient-to-br'
+        className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='entities'
         id='node-options-tour'
       >
@@ -345,7 +347,7 @@ export default function EntityOptions({
             <div className='flex w-full items-center justify-between'>
               <button
                 onClick={() => setIsEntitiesDraggable(!isEntitiesDraggable)}
-                className='hover:text-alert-700 font-display whitespace-nowrap text-inherit text-slate-600'
+                className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
                 title={activeGraph.name}
                 aria-current={activeGraph.description}
               >

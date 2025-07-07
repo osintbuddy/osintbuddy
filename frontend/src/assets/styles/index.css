@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import '../../../node_modules/react-grid-layout/css/styles.css';
+@import '../../../node_modules/@xyflow/react/dist/style.css';
 @import './fonts.css';
 @import './nodes.css';
 

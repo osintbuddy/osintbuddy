@@ -1,6 +1,6 @@
 /* Start node */
 .node.container {
-  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-mirage-400/90 backdrop-blur-xl focus:ring-mirage-300/70 focus-within:ring-mirage-300/70 hover:ring-mirage-300/70 bg-mirage-500/20 hover:bg-slate-900/60 focus:bg-slate-900/60 focus-within:bg-slate-900/60 hover:shadow-md shadow-slate-900/30 shadow cursor-grab active:cursor-grabbing;
+  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-mirage-400/90  focus:ring-mirage-300/70 focus-within:ring-mirage-300/70 hover:ring-mirage-300/70 bg-mirage-500/20 hover:bg-slate-900/60 focus:bg-slate-900/60 focus-within:bg-slate-900/60 hover:shadow-md cursor-grab active:cursor-grabbing border-black/10 bg-gradient-to-tr from-black/45 to-black/55 py-px shadow-2xl shadow-black/25 backdrop-blur-md;
 }
 
 .node .side-header {

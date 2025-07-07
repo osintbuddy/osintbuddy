@@ -68,7 +68,7 @@ export default function ContextAction({
                       //   })
                       //   entities.forEach((entity: any) => {
                       //     createEntityAction(entity);
-                      //     dispatch(setEditState({ editId: entity.id, editLabel: 'addNode' }))
+                      //     dispatch(setEditState({ id: entity.id, label: 'addNode' }))
                       //     sendJsonMessage({ action: 'update:node', node: { id: entity.id, x: entity.position.x, y: entity.position.y } });
                       //   })
                       // }).catch(err => console.log(err))
