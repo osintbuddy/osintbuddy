@@ -4,6 +4,7 @@ use actix_web::{Error, HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
 use futures_util::StreamExt;
 use log::error;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sqids::Sqids;
@@ -225,7 +226,7 @@ pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Res
     if let Some(vertex_id) = node.get("id").and_then(|v| v.as_str()) {
         // Use a single transaction for all updates
         let mut tx = age_tx(pool).await?;
-        
+
         for (key, value) in node.as_object().unwrap() {
             if key == "id" {
                 continue;
@@ -245,7 +246,7 @@ pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Res
                     graph_name, vertex_id, snake_key, value
                 )
             };
-            
+
             // Execute the update query
             let _result = with_cypher(query, tx.as_mut()).await.map_err(|err| {
                 error!("Failed to update node property {}: {}", key, err);
@@ -255,7 +256,7 @@ pub async fn update_node(pool: &PgPool, node: &Value, graph_name: String) -> Res
                 }
             })?;
         }
-        
+
         // Commit all updates in a single transaction
         tx.commit().await.map_err(|err| {
             error!("Failed to commit node updates: {err}");
@@ -593,24 +594,44 @@ pub async fn websocket_handler(
     Ok(response)
 }
 
-fn to_snake_case(s: &str) -> String {
-    let mut result = String::new();
-    let mut prev_char_was_uppercase = false;
+fn to_camel_case(value: &str) -> String {
+    let value = value.replace(' ', "_");
+    let value = value.to_lowercase();
+    let value_list: Vec<&str> = value.split('_').collect();
 
-    for (i, c) in s.chars().enumerate() {
-        if c.is_uppercase() {
-            if i > 0 && !prev_char_was_uppercase {
-                result.push('_');
+    if value_list.is_empty() {
+        return String::new();
+    }
+
+    let mut result = value_list[0].to_string();
+    for part in &value_list[1..] {
+        if !part.is_empty() {
+            let mut chars = part.chars();
+            if let Some(first) = chars.next() {
+                result.push(first.to_uppercase().next().unwrap_or(first));
+                result.push_str(&chars.collect::<String>());
             }
-            result.push(c.to_lowercase().next().unwrap());
-            prev_char_was_uppercase = true;
-        } else {
-            result.push(c);
-            prev_char_was_uppercase = false;
         }
     }
 
     result
+}
+
+fn to_snake_case(name: &str) -> String {
+    // First convert hyphens to underscores and convert to camel case
+    let name = to_camel_case(&name.replace('-', "_"));
+
+    // Apply regex transformations
+    let re1 = Regex::new(r"(.)([A-Z][a-z]+)").unwrap();
+    let name = re1.replace_all(&name, "${1}_${2}");
+
+    let re2 = Regex::new(r"__([A-Z])").unwrap();
+    let name = re2.replace_all(&name, "_${1}");
+
+    let re3 = Regex::new(r"([a-z0-9])([A-Z])").unwrap();
+    let name = re3.replace_all(&name, "${1}_${2}");
+
+    name.to_lowercase()
 }
 
 fn vertex_to_entity(vertex: &Value, blueprint: &Value) -> Value {

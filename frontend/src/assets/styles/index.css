@@ -138,7 +138,7 @@ html {
   --grid-size: 80px;
   --grid-small-size: 10px;
   --grid-e: 80px;
-  --grid-color: rgba(6, 25, 87, 0.301);
+  --grid-color: rgba(9, 18, 49, 0.342);
   --paper-color: #00031b;
   background:
     linear-gradient(-90deg, var(--grid-color) var(--grid-a), transparent var(--grid-a)),
