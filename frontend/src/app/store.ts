@@ -481,8 +481,9 @@ export const useAppStore = create<SettingsState>()(
 
 type EditState = {
   label: null | string
-  id: null | number
+  id: null | string
 }
+type PositionMode = 'manual' | 'force' | 'elk' | 'tree'
 
 export interface GraphFlowState {
   nodes: Node[]
@@ -507,7 +508,6 @@ export interface GraphFlowState {
 const initialNodes: Node[] = []
 const initialEdges: Edge[] = []
 
-type PositionMode = 'manual' | 'force'
 // This is our useGraphFlowStore hook that we can use in our components to get parts of the store and call actions
 export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   nodes: initialNodes,

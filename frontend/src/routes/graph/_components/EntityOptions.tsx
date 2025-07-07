@@ -176,6 +176,7 @@ export default function EntityOptions({
       cols={{ lg: 40, md: 40, sm: 28, xs: 22, xxs: 18 }}
       isDraggable={true}
       isResizable={true}
+      isBounded={true}
       layouts={{
         lg: [
           { ...positionsLayout, isDraggable: isPositionsDraggable },
@@ -326,7 +327,7 @@ export default function EntityOptions({
       </div>
 
       <div
-        className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+        className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='entities'
         id='node-options-tour'
       >

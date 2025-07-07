@@ -1,6 +1,6 @@
 /* Start node */
 .node.container {
-  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-mirage-400/90  focus:ring-mirage-300/70 focus-within:ring-mirage-300/70 hover:ring-mirage-300/70 bg-mirage-500/20 hover:bg-slate-900/60 focus:bg-slate-900/60 focus-within:bg-slate-900/60 hover:shadow-md cursor-grab active:cursor-grabbing border-black/10 bg-gradient-to-tr from-black/45 to-black/55 py-px shadow-2xl shadow-black/25 backdrop-blur-md;
+  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-slate-900/70 hover:ring-slate-900 bg-slate-925 cursor-grab active:cursor-grabbing py-px shadow-lg shadow-black/25;
 }
 
 .node .side-header {
@@ -57,16 +57,17 @@
 }
 
 .node-field {
-  @apply block mt-0.5 w-full rounded-sm  relative sm:text-sm sm:leading-6  hover:border-mirage-200/40 transition-colors duration-75 ease-in-out justify-between items-center to-mirage-400/50 from-mirage-300/20 bg-gradient-to-br border focus-within:!border-primary/40  text-slate-100 shadow-sm border-mirage-400/20  focus-within:from-mirage-400/20 focus-within:to-mirage-400/30 focus-within:bg-gradient-to-l pl-0.5;
+  @apply block  w-full rounded-sm  relative text-sm leading-4  hover:border-mirage-200/50 transition-colors duration-75 ease-in-out justify-between items-center to-black/35 from-black/10 bg-gradient-to-br border focus-within:!border-primary-350  text-slate-400 shadow-sm border-mirage-200/30  focus-within:from-black/45 focus-within:to-black/20 focus-within:bg-gradient-to-l pl-0.5;
 }
 
 .node-field svg {
-  @apply h-4 w-4 mt-0.5 absolute top-0.5 text-slate-700 z-50 pointer-events-none;
+  @apply h-4 w-4  absolute right-1 top-1 text-slate-900 pointer-events-none;
 }
 
 .node-field input {
-  @apply placeholder:text-slate-600 z-0 text-slate-400 bg-transparent focus:outline-hidden pl-[1.15rem] w-full;
+  @apply pr-5 pl-1 py-[3px] text-inherit placeholder:text-slate-800   font-sans focus:outline-hidden focus:ring-0 transition-colors duration-100 ease-in    ;
 }
+
 
 .node-field.dropdown input {
   @apply pl-1.5;

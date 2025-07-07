@@ -27,11 +27,11 @@ const getNodeKey = () => {
 }
 
 const handleStyle = {
-  borderColor: '#39477899',
-  background: '#12172720',
-  width: 12,
-  margin: -1,
-  height: 12,
+  borderColor: '#1C233B',
+  background: '#0c0c32',
+  width: 10,
+  margin: -3,
+  height: 10,
 }
 
 type NodeElement = NodeInput & {
@@ -46,7 +46,6 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
     element: NodeInput,
     key: string | null = getNodeKey()
   ) => {
-    console.log(element.type)
     switch (element.type) {
       case 'dropdown':
         return (
@@ -195,24 +194,23 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             backgroundColor:
               node?.color?.length === 7 ? `${node.color}99` : node?.color,
           }}
-          className='header'
+          className='text-slate-350 flex h-full w-full cursor-grab items-center justify-between rounded-t-md px-1 py-2 active:cursor-grabbing'
         >
-          <GripIcon />
-          <div className='text-container'>
-            <p className='text-mirage-900 whitespace-wrap font-display flex text-[0.4rem] font-black'>
-              <span className='text-mirage-900 whitespace-wrap mr-1 max-w-xl text-[0.5rem] font-extralight'>
-                {' '}
-                ID:{' '}
+          <GripIcon class='h-6 w-6' />
+          <div className='flex w-full flex-col px-2 font-medium'>
+            <p className='whitespace-wrap font-display text-slate-350 flex text-[0.4rem] font-black'>
+              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-extralight text-inherit'>
+                ID:
               </span>
               {ctx.id}
             </p>
-            <p className='whitespace-wrap font-display max-w-xl text-xs font-bold text-slate-200'>
+            <p className='whitespace-wrap font-display max-w-xl text-[0.65rem] font-semibold text-slate-200'>
               {ctx.data.label}
             </p>
           </div>
           <Icon
             icon={ctx.data.icon}
-            className='mr-2 h-5 w-5 cursor-grab focus:cursor-grabbing'
+            className='mr-2 h-6 w-6 cursor-grab focus:cursor-grabbing'
           />
         </div>
         <form
@@ -312,7 +310,7 @@ export function TextArea({
           className='h-4 w-4 text-slate-500'
         />
       </label>
-      <div className='node-field !w-full !min-w-2xl'>
+      <div className='!w-full !min-w-2xl'>
         <textarea
           rows={16}
           className={`nodrag nowheel whitespace-wrap block w-full min-w-[16rem] bg-transparent px-1 py-1.5 text-xs text-slate-400 outline-hidden placeholder:text-slate-700 focus:outline-hidden sm:text-sm ${showMonospace && '!font-code'}`}
@@ -433,13 +431,13 @@ export function TextInput({
   return (
     <>
       <div className='flex flex-col'>
-        <label className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
+        <label className='whitespace-wrap font-display mb-1 text-[0.55rem] font-medium text-slate-400'>
           {label}
         </label>
-        <div className='nodrag node-field'>
-          <Icon icon={icon} className='h-5 w-5' />
+        <div className='node-field'>
           <input
             id={`${nodeId}-${label}`}
+            class=''
             type='text'
             onBlur={() => {
               sendJsonMessage({
@@ -452,6 +450,7 @@ export function TextInput({
             }
             value={value ?? initValue}
           />
+          <Icon icon={icon} />
         </div>
       </div>
     </>

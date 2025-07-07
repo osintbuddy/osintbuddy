@@ -3,18 +3,12 @@ import { Icon } from '@/components/icons'
 import { Handle, Position } from '@xyflow/react'
 
 const handleStyle = {
-  borderColor: '#39477899',
-  background: '#12172720',
-  width: 12,
-  margin: -1,
-  height: 12,
+  borderColor: '#1C233B',
+  background: '#0c0c3240',
+  width: 10,
+  margin: -2,
+  height: 10,
 }
-
-type NodeElement = NodeInput & {
-  nodeId: string
-  editState: EditState
-}
-
 export default function ViewEntityNode({ ctx }: JSONObject) {
   const node = ctx.data
   const displayValue = useMemo(

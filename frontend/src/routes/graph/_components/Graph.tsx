@@ -245,7 +245,7 @@ export default function Graph({
       className='h-full w-full'
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
-      minZoom={0.2}
+      minZoom={0}
       maxZoom={1.5}
       zoomOnScroll={true}
       zoomOnPinch={true}
@@ -289,7 +289,7 @@ export default function Graph({
     >
       <Background
         color='#394778'
-        bgColor='#05050530'
+        bgColor='#0D101A30'
         variant={BackgroundVariant.Dots}
       />
     </ReactFlow>
