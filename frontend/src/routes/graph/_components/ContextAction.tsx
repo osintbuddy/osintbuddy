@@ -1,18 +1,25 @@
 import { Icon } from '../../../components/icons'
 import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
+import { Node } from '@xyflow/react'
+
+interface Transform {
+  label: string
+}
+
+interface ContextActionProps {
+  nodeCtx: Node | null
+  transforms: Transform[]
+  sendJsonMessage: Function
+  closeMenu: Function
+}
 
 export default function ContextAction({
   nodeCtx: ctx,
   transforms,
   sendJsonMessage,
   closeMenu,
-}: {
-  nodeCtx: JSONObject | null
-  transforms: JSONObject[]
-  sendJsonMessage: Function
-  closeMenu: Function
-}) {
+}: ContextActionProps) {
   const { hid } = useParams()
   // const [runTransform, { isLoading }] = useRunEntityTransformMutation()
 
