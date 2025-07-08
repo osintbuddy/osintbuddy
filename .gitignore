@@ -9,4 +9,4 @@ target/
 frontend/.env
 .env
 .claude/
-./CLAUDE.md
+CLAUDE.md
