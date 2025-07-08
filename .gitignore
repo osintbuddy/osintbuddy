@@ -8,3 +8,5 @@ rs/target/
 target/
 frontend/.env
 .env
+.claude/
+./CLAUDE.md
