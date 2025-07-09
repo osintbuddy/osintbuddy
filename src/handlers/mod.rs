@@ -6,6 +6,7 @@ mod entities;
 mod graphing;
 mod graphs;
 mod organization;
+mod plugin_ws;
 mod user;
 
 #[get("/status")]

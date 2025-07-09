@@ -59,29 +59,22 @@ export default function OverlayMenus({
   clearGraph,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
-  const { entities, isLoadingPlugins, error, fetchPluginEntities } =
-    useEntitiesStore()
   const [searchFilter, setSearchFilter] = useState('')
-
-  // Fetch plugin entities on component mount
-  useEffect(() => {
-    fetchPluginEntities()
-  }, [])
+  const { plugins } = useEntitiesStore()
 
   const filteredPlugins = useMemo(
     () =>
       searchFilter
-        ? entities.filter(
+        ? plugins.filter(
             (entity) =>
               entity.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
               entity.description
                 .toLowerCase()
                 .includes(searchFilter.toLowerCase())
           )
-        : entities,
-    [searchFilter, entities]
+        : plugins,
+    [searchFilter, plugins]
   )
-
   const onDragStart = (event: DragEvent, nodeType: string) => {
     if (event?.dataTransfer) {
       event.dataTransfer.setData('application/reactflow', nodeType)
@@ -114,7 +107,7 @@ export default function OverlayMenus({
     y: 0,
     minW: 10,
     maxW: 44,
-    minH: 100,
+    minH: 4,
     maxH: 4,
     isDraggable: false,
     isBounded: true,
@@ -329,32 +322,18 @@ export default function OverlayMenus({
           />
         </div>
         <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
-          {isLoadingPlugins && (
+          {filteredPlugins?.length === 0 && (
             <li className='flex w-full items-center justify-center py-8'>
-              <div className='text-sm text-slate-500'>Loading entities...</div>
+              <div className='text-sm text-slate-500'>No entities found!</div>
             </li>
           )}
-          {error && !isLoadingPlugins && (
-            <li className='flex w-full items-center justify-center py-8'>
-              <div className='text-sm text-red-400'>
-                Error loading entities: {error}
-              </div>
-            </li>
-          )}
-          {filteredPlugins.length === 0 && !isLoadingPlugins && !error && (
-            <li className='flex w-full items-center justify-center py-8'>
-              <div className='text-sm text-slate-500'>No entities found</div>
-            </li>
-          )}
-          {!error &&
-            !isLoadingPlugins &&
-            filteredPlugins.map((entity) => (
-              <EntityOption
-                onDragStart={onDragStart}
-                key={entity.label}
-                entity={entity}
-              />
-            ))}
+          {filteredPlugins.map((entity) => (
+            <EntityOption
+              onDragStart={onDragStart}
+              key={entity.label}
+              entity={entity}
+            />
+          ))}
         </ul>
       </div>
     </ResponsiveGridLayout>

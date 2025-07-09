@@ -1,4 +1,5 @@
 use crate::db::{Database, age_tx, with_cypher};
+use crate::plugin_engine::blueprint;
 use crate::schemas::errors::{AppError, ErrorKind};
 use actix_web::{Error, HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
@@ -92,14 +93,27 @@ fn dict_to_opencypher(value: &Value) -> String {
     properties
 }
 
-pub async fn get_blueprints() -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
+pub async fn get_entities() -> Result<Value, reqwest::Error> {
+    let client = reqwest::Client::new();
+    match client.get("http://127.0.0.1:42562/entities").send().await {
+        Ok(response) => response.json().await,
+        Err(err) => {
+            error!("{err}");
+            Err(err)
+        }
+    }
+}
+
+pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let response = client
         .get("http://127.0.0.1:42562/blueprint?label=_osib_all")
         .send()
         .await?;
-
+    info!("RESPONE get_blueprints: {:?}", response);
     let data: Vec<Value> = response.json().await?;
+    info!("RESPONE data: {:?}", data);
+
     let mut blueprints = HashMap::new();
 
     for blueprint in data {
@@ -110,6 +124,7 @@ pub async fn get_blueprints() -> Result<HashMap<String, Value>, Box<dyn std::err
             }
         }
     }
+    info!("RESPONE blueprints: {:?}", blueprints);
 
     Ok(blueprints)
 }
@@ -155,7 +170,7 @@ pub async fn read_graph(
     pool: &PgPool,
     graph_name: String,
 ) -> Result<(Vec<Value>, Vec<Value>), AppError> {
-    let blueprints = get_blueprints().await.map_err(|err| {
+    let blueprints = get_entity_blueprints().await.map_err(|err| {
         error!("{err}");
         AppError {
             message: "We ran into an error reading your graph!",
@@ -228,7 +243,7 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) {
             });
         }
         // Commit all updates in a single transaction
-        tx.commit().await.map_err(|err| {
+        let _ = tx.commit().await.map_err(|err| {
             error!("Failed to commit node updates: {err}");
             AppError {
                 message: "Failed to save node position",
@@ -362,6 +377,26 @@ pub async fn websocket_handler(
         .first()
         .ok_or_else(|| actix_web::error::ErrorBadRequest("Invalid graph ID"))?;
 
+    let blueprints = match get_entity_blueprints().await {
+        Ok(blueprints) => blueprints,
+        Err(err) => {
+            error!("{err}");
+            return Err(actix_web::error::ErrorBadRequest(
+                "Error fetching entity blueprints!",
+            ));
+        }
+    };
+    let entities = match get_entities().await {
+        Ok(entities) => entities,
+        Err(err) => {
+            error!("{err}");
+            return Err(actix_web::error::ErrorBadRequest(
+                "Error fetching entity blueprints!",
+            ));
+        }
+    };
+    info!("OK blueprints: {:?}", blueprints);
+
     actix_web::rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
@@ -408,7 +443,8 @@ pub async fn websocket_handler(
                                                 "autoClose": false,
                                                 "id": "graph",
                                                 "message": "Please wait while we load your graph...",
-                                            }
+                                            },
+                                            "plugins": entities,
                                         }).to_string()).await;
                                     }
                                 } else {
@@ -450,10 +486,12 @@ pub async fn websocket_handler(
                                 .await;
                             }
                             "read:graph" => {
+                                info!("read:graph executing...");
                                 if let Ok(graph_action) =
                                     read_graph(pool.as_ref(), graph_name).await
                                 {
                                     let (nodes, edges) = graph_action;
+                                    info!("read:graph nodes edges: {:?}", nodes);
                                     let message = json!({
                                         "action": "read",
                                         "notification": {
@@ -482,21 +520,7 @@ pub async fn websocket_handler(
                             "create:entity" => {
                                 let entity = event.entity.unwrap_or(json!({}));
                                 // Get blueprint for the entity label
-                                let Ok(blueprints) = get_blueprints().await else {
-                                    let _ = session
-                                    .text(
-                                        json!({
-                                            "action": "error",
-                                            "notification": {
-                                                "shouldClose": true,
-                                                "message": format!("Failed to fetch entity blueprints!", )
-                                            },
-                                        })
-                                        .to_string(),
-                                    )
-                                    .await;
-                                    break;
-                                };
+
                                 let entity_label = entity["label"].as_str().unwrap_or("");
                                 let snake_case_label = to_snake_case(entity_label);
                                 let blueprint = blueprints

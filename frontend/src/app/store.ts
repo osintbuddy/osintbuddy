@@ -300,6 +300,7 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
 interface EntitiesState {
   entities: Entity[]
   favorites: string[]
+  plugins: Entity[]
   currentEntity: Entity | null
   isLoading: boolean
   isLoadingEntity: boolean
@@ -310,17 +311,18 @@ interface EntitiesState {
   error: string | null
   entityError: string | null
   fetchEntities: (payload: Paginate) => Promise<void>
-  fetchPluginEntities: () => Promise<void>
   createEntity: (payload: CreateEntityPayload) => Promise<Entity>
   updateEntity: (payload: UpdateEntityPayload) => Promise<Entity>
   deleteEntity: (payload: DeleteEntityPayload) => Promise<void>
   favoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
   unfavoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
+  setPlugins: (payload: any) => Promise<void>
 }
 
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
   favorites: [],
+  plugins: [],
   currentEntity: null,
   isLoading: false,
   isLoadingEntity: false,
@@ -340,16 +342,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       set({ error: error.message, isLoading: false })
     }
   },
-  fetchPluginEntities: async () => {
-    set({ isLoadingPlugins: true, error: null })
-    try {
-      const token = useAuthStore.getState().access_token as string;
-      const response = await entitiesApi.getPluginEntities(token)
-      set({ entities: response.entities, favorites: response.favorites, isLoadingPlugins: false })
-    } catch (error) {
-      set({ error: error.message, isLoadingPlugins: false })
-    }
-  },
+  setPlugins: async (plugins) =>  set({ plugins }),
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
     try {

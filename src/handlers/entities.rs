@@ -11,8 +11,8 @@ use crate::{
     },
 };
 use log::error;
-use sqids::Sqids;
 use serde_json::Value;
+use sqids::Sqids;
 
 use actix_web::{
     HttpResponse, Result, delete, get,
@@ -312,7 +312,10 @@ fn to_snake_case(s: &str) -> String {
 async fn get_blueprint(label: &str) -> Result<Value, AppError> {
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("http://127.0.0.1:42562/blueprint?label={}", to_snake_case(label)))
+        .get(&format!(
+            "http://127.0.0.1:42562/blueprint?label={}",
+            to_snake_case(label)
+        ))
         .send()
         .await
         .map_err(|err| {
@@ -438,9 +441,7 @@ async fn get_entity_details(
 }
 
 #[get("/entity")]
-async fn get_entities_from_plugins(
-    _auth: AuthMiddleware,
-) -> Result<HttpResponse, AppError> {
+async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse, AppError> {
     let client = reqwest::Client::new();
     let response = client
         .get("http://127.0.0.1:42562/entities")

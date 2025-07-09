@@ -25,7 +25,12 @@ import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
 import RoundLoader from '@/components/loaders'
 import { useTour } from '@reactour/tour'
-import { useGraphStore, useAuthStore, useGraphFlowStore } from '@/app/store'
+import {
+  useGraphStore,
+  useAuthStore,
+  useGraphFlowStore,
+  useEntitiesStore,
+} from '@/app/store'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
@@ -56,14 +61,16 @@ type ActionTypes =
   | 'created'
   | 'loading'
   | 'error'
+  | 'blueprints'
 
 interface SocketActions {
-  authenticated: Function
-  read: Function
-  remove: Function
-  created: Function
-  loading: Function
-  error: Function
+  authenticated: (data: any) => void
+  read: (data: any) => void
+  remove: (data: any) => void
+  created: (data: any) => void
+  loading: (data: any) => void
+  error: (data: any) => void
+  blueprints: (data: any) => void
 }
 
 export default function GraphInquiry({}: GraphInquiryProps) {
@@ -76,7 +83,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   } = useTour()
 
   const { graph, getGraph, isLoading, isError } = useGraphStore()
-
+  const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
 
   // Use the new ReactFlow-specific store
@@ -181,12 +188,13 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
-    authenticated: (_) => {
+    authenticated: (data) => {
       toast.loading('Please wait while we load your graph...', {
         closeButton: true,
         isLoading: true,
         toastId: 'graph',
       })
+      setPlugins(data.plugins)
       sendJsonMessage({ action: 'read:graph' })
     },
     read: (data) => {
@@ -208,6 +216,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     },
     loading: (data) => handleNotification(data?.notification),
     error: (data) => toast.error(`${data.message}`),
+    blueprints: (data) => {},
   }
 
   useEffect(() => {
