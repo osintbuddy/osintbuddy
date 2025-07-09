@@ -42,7 +42,7 @@ interface GraphPanelProps {
     favorites: string[]
   }
   isLoading: boolean
-  isError: boolean
+isError: boolean
   isSuccess: boolean
   favoriteGraph: (graphId: string) => void
   unfavoriteGraph: (graphId: string) => void

@@ -217,6 +217,11 @@ export interface EntityWithTransforms {
   [key: string]: any
 }
 
+export interface Plugins {
+  entities: Entity[]
+  favorites: string[]
+}
+
 export const entitiesApi = {
   create: async (
     payload: CreateEntityPayload,
@@ -277,8 +282,8 @@ export const entitiesApi = {
   getPluginEntities: async (
     token: Tokens['access_token'], 
     onExp?: OnExp
-  ): Promise<PluginEntity[]> => {
-    return request<PluginEntity[]>('/entity', token, {}, onExp);
+  ): Promise<Plugins> => {
+    return request<Plugins>('/entity', token, {}, onExp);
   },
   getEntityDetails: async (
     hid: string,

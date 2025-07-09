@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
-import { graphsApi, Graph,UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload, ApiError, PluginEntity } from './api';
+import { graphsApi, Graph,UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload} from './api';
 import { jwtParse } from './utilities';
 import { 
   addEdge, 
@@ -299,7 +299,6 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
 // Entities store
 interface EntitiesState {
   entities: Entity[]
-  plugins: PluginEntity[]
   favorites: string[]
   currentEntity: Entity | null
   isLoading: boolean
@@ -321,7 +320,6 @@ interface EntitiesState {
 
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
-  plugins: [],
   favorites: [],
   currentEntity: null,
   isLoading: false,
@@ -347,7 +345,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     try {
       const token = useAuthStore.getState().access_token as string;
       const response = await entitiesApi.getPluginEntities(token)
-      set({ plugins: response, isLoadingPlugins: false })
+      set({ entities: response.entities, favorites: response.favorites, isLoadingPlugins: false })
     } catch (error) {
       set({ error: error.message, isLoadingPlugins: false })
     }
@@ -482,18 +480,17 @@ export type PositionMode = 'manual' | 'force' | 'elk' | 'tree' | 'right tree'
 export interface GraphFlowState {
   nodes: Node[]
   edges: Edge[]
-  positionMode: 'manual'
-  editState: EditState
+  positionMode: PositionMode
   onNodesChange: (changes: NodeChange[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
   onConnect: (connection: Connection) => void
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
   addNode: (node: Node) => void
+  addEdge: (edge: Edge) => void
   removeNode: (nodeId: string) => void
   updateNode: (nodeId: string, updates: Partial<Node>) => void
   clearGraph: () => void
-  setEditState: (state: EditState) => void  
   setPositionMode: (mode: PositionMode) => void
   enableEntityEdit: (nodeId: string) => void
   disableEntityEdit: (nodeId: string) => void
@@ -507,12 +504,7 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   positionMode: 'manual',
-  editState: {
-    label: null,
-    id: null
-  },
   setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
-  setEditState: ({label, id}: EditState) => set({ editState: { label, id } }),
   onNodesChange: (changes: NodeChange[]) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
@@ -545,6 +537,13 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
     })
   },
   
+  addEdge: (edge: Edge) => {
+    set({
+      edges: [...get().edges, edge]
+    })
+  },
+  
+
   removeNode: (nodeId: string) => {
     set({
       nodes: get().nodes.filter(node => node.id !== nodeId),
@@ -569,7 +568,6 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   
   enableEntityEdit: (nodeId: string) => {
     set({
-      editState: { label: "enableEditMode", id: nodeId },
       nodes: get().nodes.map((node) => 
         node.id === nodeId ? { ...node, type: 'edit' } : node
       )
@@ -578,7 +576,6 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   
   disableEntityEdit: (nodeId: string) => {
     set({
-      editState: { label: "disableEditMode", id: nodeId },
       nodes: get().nodes.map((node) => 
         node.id === nodeId ? { ...node, type: 'view' } : node
       )

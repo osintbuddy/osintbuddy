@@ -59,7 +59,7 @@ export default function OverlayMenus({
   clearGraph,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
-  const { plugins, isLoadingPlugins, error, fetchPluginEntities } =
+  const { entities, isLoadingPlugins, error, fetchPluginEntities } =
     useEntitiesStore()
   const [searchFilter, setSearchFilter] = useState('')
 
@@ -68,18 +68,18 @@ export default function OverlayMenus({
     fetchPluginEntities()
   }, [])
 
-  const entities = useMemo(
+  const filteredPlugins = useMemo(
     () =>
       searchFilter
-        ? plugins.filter(
+        ? entities.filter(
             (entity) =>
               entity.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
               entity.description
                 .toLowerCase()
                 .includes(searchFilter.toLowerCase())
           )
-        : plugins,
-    [searchFilter, plugins]
+        : entities,
+    [searchFilter, entities]
   )
 
   const onDragStart = (event: DragEvent, nodeType: string) => {
@@ -329,29 +329,32 @@ export default function OverlayMenus({
           />
         </div>
         <ul className='relative ml-4 h-full overflow-y-scroll pr-4'>
-          {isLoadingPlugins ? (
+          {isLoadingPlugins && (
             <li className='flex w-full items-center justify-center py-8'>
               <div className='text-sm text-slate-500'>Loading entities...</div>
             </li>
-          ) : error ? (
+          )}
+          {error && !isLoadingPlugins && (
             <li className='flex w-full items-center justify-center py-8'>
               <div className='text-sm text-red-400'>
                 Error loading entities: {error}
               </div>
             </li>
-          ) : entities.length === 0 ? (
+          )}
+          {filteredPlugins.length === 0 && !isLoadingPlugins && !error && (
             <li className='flex w-full items-center justify-center py-8'>
               <div className='text-sm text-slate-500'>No entities found</div>
             </li>
-          ) : (
-            entities.map((entity) => (
+          )}
+          {!error &&
+            !isLoadingPlugins &&
+            filteredPlugins.map((entity) => (
               <EntityOption
                 onDragStart={onDragStart}
                 key={entity.label}
                 entity={entity}
               />
-            ))
-          )}
+            ))}
         </ul>
       </div>
     </ResponsiveGridLayout>
