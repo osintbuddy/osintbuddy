@@ -48,11 +48,11 @@ export default function Subpanel({
   return (
     <>
       <header
-        class={`hover:border-primary-300 border-mirage-400 z-50 flex cursor-pointer items-center border-b-2 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
+        class={`hover:border-primary-350 border-mirage-400 z-50 flex cursor-pointer items-center border-b-2 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
         onClick={setShow}
       >
         <h2
-          class={`font-display ${show && '!text-slate-350'} px-1 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
+          class={`font-display ${show && '!text-slate-350/80'} px-1 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
         >
           {label}
         </h2>

@@ -210,7 +210,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           </div>
           <Icon
             icon={ctx.data.icon}
-            className='mr-2 h-6 w-6 cursor-grab focus:cursor-grabbing'
+            className='h-6 w-6 cursor-grab focus:cursor-grabbing'
           />
         </div>
         <form
@@ -319,7 +319,7 @@ export function TextArea({
           onBlur={() => {
             sendJsonMessage({
               action: 'update:entity',
-              node: { id: nodeId, [label]: value },
+              node: { id: Number(nodeId), [label]: value },
             })
           }}
         />
@@ -388,7 +388,11 @@ export function UploadFileInput({
       setValue(file)
       sendJsonMessage({
         action: 'update:entity',
-        node: { id: nodeId, [label]: file, name: file?.name || 'unknown' },
+        node: {
+          id: Number(nodeId),
+          [label]: file,
+          name: file?.name || 'unknown',
+        },
       })
     }
   }
@@ -431,7 +435,7 @@ export function TextInput({
   return (
     <>
       <div className='flex flex-col'>
-        <label className='whitespace-wrap font-display mb-1 text-[0.55rem] font-medium text-slate-400'>
+        <label className='whitespace-wrap font-display mb-1 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
           {label}
         </label>
         <div className='node-field'>
@@ -442,7 +446,7 @@ export function TextInput({
             onBlur={() => {
               sendJsonMessage({
                 action: 'update:entity',
-                node: { id: nodeId, [label]: value },
+                node: { id: Number(nodeId), [label]: value },
               })
             }}
             onChange={(event: InputEvent) =>
@@ -539,7 +543,7 @@ export function DropdownInput({
           sendJsonMessage({
             action: 'update:entity',
             node: {
-              id: nodeId,
+              id: Number(nodeId),
               [label]: option?.value ? option.value : option.label,
             },
           })

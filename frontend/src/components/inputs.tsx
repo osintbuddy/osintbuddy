@@ -136,7 +136,6 @@ interface IconInputProps extends InputProps {
 
 export function TransparentIcon(props: IconInputProps) {
   const { className, label, icon, onBtnClick, ...inputProps } = props
-  console.log(props, 'inputPorps', inputProps)
 
   return (
     <div className='relative flex w-full flex-col'>

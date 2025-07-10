@@ -80,7 +80,7 @@ function ContextAction({
                     //           y,
                     //         }
                     //         return entity
-                    //         // sendJsonMessage({ action: 'update:entity', node: { id: node.id, x, y } });
+                    //         // sendJsonMessage({ action: 'update:entity', node: { id: Number(node.id), x, y } });
                     //       }
                     //     )
                     //     entities.forEach((entity: any) => {
@@ -88,7 +88,7 @@ function ContextAction({
                     //       sendJsonMessage({
                     //         action: 'update:entity',
                     //         node: {
-                    //           id: entity.id,
+                    //           id: Number(entity.id),
                     //           x: entity.position.x,
                     //           y: entity.position.y,
                     //         },
@@ -123,7 +123,6 @@ function ContextAction({
 
 export interface ContextMenuProps {
   closeMenu: () => void
-  showMenu: () => void
   position: XYPosition
   sendJsonMessage: (message: any) => void
   selection: any
@@ -149,7 +148,6 @@ export default function ContextMenu({
         transform.label.toLowerCase().includes(query.toLowerCase())
       )
     : (transforms ?? [])
-  console.log(selection)
   return (
     <>
       <div

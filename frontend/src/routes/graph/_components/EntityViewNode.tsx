@@ -85,11 +85,11 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
             backgroundColor:
               node?.color?.length === 7 ? `${node.color}99` : node?.color,
           }}
-          className='header !rounded-full !p-3'
+          className='header !rounded-full !p-2'
         >
           <Icon
             icon={node.icon}
-            className='!h-14 !w-14 cursor-grab text-slate-300/95 focus:cursor-grabbing'
+            className='cursor-grab text-slate-300/95 select-none'
           />
         </div>
         <h2

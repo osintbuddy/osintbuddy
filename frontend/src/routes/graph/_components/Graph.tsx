@@ -124,7 +124,7 @@ export default function Graph({
   const onNodeDragStop: OnNodeDrag = (_, node) => {
     sendJsonMessage({
       action: 'update:entity',
-      entity: { id: node.id, x: node.position.x, y: node.position.y },
+      entity: { id: Number(node.id), x: node.position.x, y: node.position.y },
     })
   }
 
