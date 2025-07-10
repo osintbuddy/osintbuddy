@@ -19,13 +19,14 @@ import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useGraphFlowStore } from '@/app/store'
+import ContextMenu from './ContextMenu'
 
 const viewOptions: FitViewOptions = {
   padding: 50,
 }
 
 // im lazy so im extending the generic JSONObject for now, feel free to fix...
-interface ProjectGraphProps extends JSONObject {
+interface ProjectGraphProps {
   graphInstance?: ReactFlowInstance
   onNodesChange?: (changes: any) => void
   onEdgesChange?: (changes: any) => void
@@ -43,10 +44,11 @@ export default function Graph({
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
-  onNodesChange: onNodesChangeProp,
-  onEdgesChange: onEdgesChangeProp,
-  onConnect: onConnectProp,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
   setPendingEntityPosition,
+  ctxProps,
 }: ProjectGraphProps) {
   const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
   const onReconnect = useCallback(
@@ -126,26 +128,11 @@ export default function Graph({
     })
   }
 
-  const onConnect = useCallback(
-    (connection: any) => {
-      // Use the store handler if provided, otherwise fallback to WebSocket
-      if (onConnectProp) {
-        onConnectProp(connection)
-      } else {
-        sendJsonMessage({
-          action: 'create:edge',
-          connection,
-        })
-      }
-    },
-    [onConnectProp]
-  )
-
   const onEdgeChange = useCallback(
     (changes: any) => {
       // Use the store handler if provided, otherwise fallback to WebSocket
-      if (onEdgesChangeProp) {
-        onEdgesChangeProp(changes)
+      if (onEdgesChange) {
+        onEdgesChange(changes)
       } else {
         sendJsonMessage({
           action: 'update:edges',
@@ -153,23 +140,9 @@ export default function Graph({
         })
       }
     },
-    [onEdgesChangeProp]
+    [onEdgesChange]
   )
 
-  const onNodesChange = useCallback(
-    (changes: any) => {
-      // Use the store handler if provided, otherwise fallback to WebSocket
-      if (onNodesChangeProp) {
-        onNodesChangeProp(changes)
-      } else {
-        sendJsonMessage({
-          action: 'update:entities',
-          changes,
-        })
-      }
-    },
-    [onNodesChangeProp]
-  )
   const onNodeClick: NodeMouseHandler = (_, node) => {
     const newDelta = new Date().getTime()
     const isDouble = newDelta - clickDelta < doubleClickThreshold
@@ -179,7 +152,7 @@ export default function Graph({
     }
     setClickDelta(newDelta)
   }
-
+  const { showCtx, ctxSelection, ctxPosition, setShowCtx } = ctxProps
   return (
     <ReactFlow
       className='h-full w-full'
@@ -217,6 +190,15 @@ export default function Graph({
         bgColor='#0D101A30'
         variant={BackgroundVariant.Dots}
       />
+
+      {showCtx && (
+        <ContextMenu
+          sendJsonMessage={sendJsonMessage}
+          selection={ctxSelection}
+          position={ctxPosition}
+          closeMenu={() => setShowCtx(false)}
+        />
+      )}
     </ReactFlow>
   )
 }

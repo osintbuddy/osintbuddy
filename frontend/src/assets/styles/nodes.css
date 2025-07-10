@@ -87,20 +87,6 @@ p.node-label {
 }
 /* End node */
 
-/* Start node context menu */
-.node-context {
-  @apply py-1 hover:text-slate-300 text-slate-400;
-}
-
-.node-context button {
-  @apply hover:bg-mirage-800 hover:text-slate-300 text-slate-400 flex items-center px-3 py-2 text-sm w-full;
-}
-
-.node-context svg {
-  @apply mr-3 h-5 w-5 hover:text-slate-300 text-slate-400;
-}
-/* End node context menu */
-
 .elements {
   @apply p-2 grid rounded-b-md  gap-x-1;
 }

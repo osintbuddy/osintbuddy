@@ -8,12 +8,12 @@ interface FileInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export function TransparentFile(props: FileInputProps) {
-  const { onBtnClick } = props
+  const { onBtnClick, ...inputProps } = props
 
   return (
     <div className='relative flex w-full'>
       <input
-        {...props}
+        {...inputProps}
         type='text'
         class='hover:border-primary from-mirage-950/30 to-mirage-900/35 outline-mirage-500 hover:outline-mirage-400 focus:outline-primary focus:bg-mirage-400 -mr-0.5 w-full rounded-l border border-r-0 border-slate-900 bg-linear-to-br px-2 py-1 font-sans text-slate-300/90 outline-1 transition-colors duration-75 ease-in-out focus:outline-2'
       />
@@ -39,7 +39,7 @@ export function TransparentPassword(props: PasswordInputProps) {
   const [hidePassword, setHidePassword] = useState<'text' | 'password'>(
     'password'
   )
-  const { type: _, className, label } = props
+  const { type: _, className, label, ...inputProps } = props
 
   return (
     <div className='relative mt-7 flex w-full flex-col'>
@@ -53,7 +53,7 @@ export function TransparentPassword(props: PasswordInputProps) {
       )}
       <div className='relative flex w-full'>
         <input
-          {...props}
+          {...inputProps}
           type={hidePassword}
           className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
         />
@@ -88,7 +88,7 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export function Transparent(props: InputProps) {
-  const { className, label } = props
+  const { className, label, ...inputProps } = props
   return (
     <div className='relative mt-7 flex w-full flex-col'>
       {label && (
@@ -97,7 +97,7 @@ export function Transparent(props: InputProps) {
         </label>
       )}
       <input
-        {...props}
+        {...inputProps}
         className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
       />
     </div>
@@ -110,7 +110,7 @@ interface TextareaProps
 }
 
 export function Textarea(props: TextareaProps) {
-  const { className, label } = props
+  const { className, label, ...inputProps } = props
   return (
     <div className='relative mt-7 flex w-full flex-col'>
       {label && (
@@ -123,7 +123,7 @@ export function Textarea(props: TextareaProps) {
       )}
 
       <textarea
-        {...props}
+        {...inputProps}
         className={`hover:outline-mirage-400 outline-mirage-500 focus:outline-primary focus:ring-primary focus:border-primary text-slate-350 w-64 rounded border border-transparent bg-linear-to-br from-black/35 to-black/10 p-2 py-1 font-sans outline-1 transition-colors duration-100 ease-in-out placeholder:text-slate-800 hover:from-black/35 hover:to-black/30 focus:bg-black/60 ${className ?? ''}`}
       />
     </div>
@@ -131,11 +131,12 @@ export function Textarea(props: TextareaProps) {
 }
 interface IconInputProps extends InputProps {
   icon: JSX.Element
-  onBtnClick: MouseEventHandler<HTMLButtonElement>
+  onBtnClick?: MouseEventHandler<HTMLButtonElement>
 }
 
 export function TransparentIcon(props: IconInputProps) {
-  const { className, label, icon, onBtnClick } = props
+  const { className, label, icon, onBtnClick, ...inputProps } = props
+  console.log(props, 'inputPorps', inputProps)
 
   return (
     <div className='relative flex w-full flex-col'>
@@ -146,13 +147,13 @@ export function TransparentIcon(props: IconInputProps) {
       )}
       <div className='relative flex w-full'>
         <input
-          {...props}
+          {...inputProps}
           className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
         />
         <button
           type='button'
           onClick={onBtnClick}
-          className='focus:text-primary hover:text-primary-350 focus:outline-primary-400 absolute top-1 right-4 h-6 w-6 rounded p-0.5 text-slate-800 focus:outline-hidden'
+          className='focus:text-primary hover:text-primary-350 focus:outline-primary-400 absolute top-1 right-0 h-6 w-6 rounded p-0.5 text-slate-800 focus:outline-hidden'
         >
           {icon}
         </button>
@@ -232,7 +233,7 @@ export function ToggleSwitch(props: ToggleSwitchProps) {
 }
 
 export function Checkbox(props: InputProps) {
-  const { label, className } = props
+  const { label, className, ...inputProps } = props
   return (
     <div
       className={`text-slate-350 relative flex items-center justify-between ${className ?? ''}`}
@@ -241,7 +242,7 @@ export function Checkbox(props: InputProps) {
         {label}
       </label>
       <input
-        {...props}
+        {...inputProps}
         type='checkbox'
         id={label?.toString()}
         className="checked:accent-primary-350/95 text-mirage-500 hover:text-mirage-400 checked:bg-primary-350 checked:hover:bg-primary-400 checked:border-primary-350 checked:hover:border-primary-400 peer ms-2 h-4.5 w-4.5 appearance-none rounded border bg-black/40 p-2 font-sans text-sm checked:before:relative checked:before:-top-2.5 checked:before:right-[0.3rem] checked:before:text-slate-200 checked:before:content-['\2713\0020']"

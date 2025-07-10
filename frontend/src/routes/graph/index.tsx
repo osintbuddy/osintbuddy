@@ -16,7 +16,7 @@ import {
   forceX,
   forceY,
 } from 'd3-force'
-import OverlayMenus from './_components/EntityOptions'
+import OverlayMenus from './_components/OverlayMenus'
 import ContextMenu from './_components/ContextMenu'
 import { toast } from 'react-toastify'
 import Graph from './_components/Graph'
@@ -228,10 +228,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
   const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 })
   const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null)
-  const [showMenu, setShowMenu] = useState(false)
-  const [activeTransformLabel, setActiveTransformLabel] = useState<
-    string | null
-  >(null)
+  const [showCtx, setShowCtx] = useState(false)
 
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
@@ -247,14 +244,13 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       x: event.clientX - 20,
     })
     setCtxSelection(node)
-    setActiveTransformLabel(node.data.label)
-    setShowMenu(true)
+    setShowCtx(true)
   }
 
   const onPaneCtxMenu = (event: MouseEvent) => {
     event.preventDefault()
     setCtxSelection(null)
-    setShowMenu(true)
+    setShowCtx(true)
     setCtxPosition({
       x: event.clientX - 25,
       y: event.clientY - 25,
@@ -262,7 +258,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
   }
 
   const onPaneClick = () => {
-    setShowMenu(false)
+    setShowCtx(false)
     setCtxSelection(null)
   }
 
@@ -434,6 +430,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             setGraphInstance={setGraphInstance}
             sendJsonMessage={sendJsonMessage}
             setPendingEntityPosition={setDropPosition}
+            ctxProps={{ ctxPosition, ctxSelection, showCtx, setShowCtx }}
           />
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}
@@ -445,15 +442,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
               setElkLayout={setElkLayout}
               fitView={fitView}
               clearGraph={clearGraph}
-            />
-
-            <ContextMenu
-              activeTransformLabel={activeTransformLabel}
-              sendJsonMessage={sendJsonMessage}
-              ctxSelection={ctxSelection}
-              showMenu={showMenu}
-              ctxPosition={ctxPosition}
-              closeMenu={() => setShowMenu(false)}
             />
           </div>
         </div>
