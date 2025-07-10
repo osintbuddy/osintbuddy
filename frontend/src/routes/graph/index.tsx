@@ -1,11 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
-import {
-  XYPosition,
-  Node,
-  ReactFlowInstance,
-  FitView,
-  Edge,
-} from '@xyflow/react'
+import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
 import { useParams, useLocation, useBlocker } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -17,11 +11,9 @@ import {
   forceY,
 } from 'd3-force'
 import OverlayMenus from './_components/OverlayMenus'
-import ContextMenu from './_components/ContextMenu'
 import { toast } from 'react-toastify'
 import Graph from './_components/Graph'
 import ELK from 'elkjs/lib/elk.bundled.js'
-
 import { WS_URL } from '@/app/baseApi'
 import RoundLoader from '@/components/loaders'
 import { useTour } from '@reactour/tour'
@@ -36,22 +28,6 @@ interface UseWebsocket {
   lastJsonMessage: JSONObject
   readyState: ReadyState
   sendJsonMessage: SendJsonMessage
-  lastMessage: MessageEvent<any> | null
-}
-
-interface GraphInquiryProps {}
-
-let edgeId = 0
-
-export const getEdgeId = () => {
-  edgeId = edgeId + 1
-  return `e-tmp-${edgeId}`
-}
-
-interface SocketNotification {
-  message: string | null
-  id: string | null
-  autoClose: boolean | null
 }
 
 type ActionTypes =
@@ -61,7 +37,6 @@ type ActionTypes =
   | 'created'
   | 'loading'
   | 'error'
-  | 'blueprints'
 
 interface SocketActions {
   authenticated: (data: any) => void
@@ -70,23 +45,30 @@ interface SocketActions {
   created: (data: any) => void
   loading: (data: any) => void
   error: (data: any) => void
-  blueprints: (data: any) => void
 }
 
-export default function GraphInquiry({}: GraphInquiryProps) {
+export interface CtxPosition {
+  top: number
+  left: number
+  right: number
+  bottom: number
+}
+
+export interface CtxMenu {
+  entity?: Node | null
+  position?: CtxPosition
+}
+
+export default function GraphInquiry() {
   const { hid } = useParams()
   const location = useLocation()
-  const {
-    setIsOpen: setIsTourOpen,
-    steps,
-    setCurrentStep: setCurrentTourStep,
-  } = useTour()
+  const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
+    useTour()
 
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
 
-  // Use the new ReactFlow-specific store
   const {
     nodes,
     edges,
@@ -125,66 +107,34 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
-
-  const [socketUrl, setSocketUrl] = useState(`${WS_GRAPH_INQUIRE}`)
-  const [shouldConnect, setShouldConnect] = useState(false)
-  const [dropPosition, setDropPosition] = useState<XYPosition | null>(null)
-
-  const { lastJsonMessage, readyState, sendJsonMessage }: UseWebsocket =
-    useWebSocket(socketUrl, {
-      shouldReconnect: () => shouldConnect,
-      onOpen: () => {
-        // Send auth token as first message
-        if (access_token) {
-          sendJsonMessage({
-            action: 'auth',
-            token: access_token,
-          })
-        }
-      },
+  const { lastJsonMessage, sendJsonMessage }: UseWebsocket = useWebSocket(
+    WS_GRAPH_INQUIRE,
+    {
+      shouldReconnect: () => true,
+      retryOnError: true,
+      onOpen: () =>
+        sendJsonMessage({
+          action: 'auth',
+          token: access_token,
+        }),
       onClose: () => {
         clearGraph()
         toast.update('loadingToast', {
-          render: `The connection was lost! ${shouldConnect ? 'Attempting to reconnect...' : ''}`,
+          render: `The connection was lost! Attempting to reconnect...'}`,
           type: 'warning',
           isLoading: false,
           autoClose: 1400,
         })
       },
-    })
-
-  const socketStatus = {
-    [ReadyState.CONNECTING]: 'connecting',
-    [ReadyState.OPEN]: 'open',
-    [ReadyState.CLOSING]: 'closing',
-    [ReadyState.CLOSED]: 'closed',
-    [ReadyState.UNINSTANTIATED]: 'uninstantiated',
-  }[readyState]
-
-  useEffect(() => {
-    if (graph && !socketUrl.includes(graph?.id)) {
-      clearGraph()
-      setSocketUrl(`${WS_GRAPH_INQUIRE}/${graph.id}`)
-      setShouldConnect(true)
     }
-  }, [graph?.id, socketStatus[readyState]])
+  )
 
-  const handleNotification = (notification: null | SocketNotification) => {
-    if (notification && notification?.id) {
-      !notification.autoClose
-        ? toast.update(lastJsonMessage.notification.id)
-        : toast.loading(notification.message ?? 'Loading...', {
-            closeButton: true,
-            isLoading: true,
-            toastId: notification.id,
-            autoClose: 1600,
-          })
-    }
-  }
-
-  const fitView = useCallback(() => {
-    if (graphInstance?.fitView) graphInstance.fitView()
-  }, [graphInstance])
+  const fitView = useCallback(
+    (fitViewOptions?: FitViewOptions) => {
+      if (graphInstance?.fitView) graphInstance.fitView(fitViewOptions)
+    },
+    [graphInstance]
+  )
 
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
@@ -211,12 +161,21 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       toast.success(
         `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
       )
-      // Clear the pending position
-      setDropPosition(null)
     },
-    loading: (data) => handleNotification(data?.notification),
+    loading: (data) => {
+      const notification = data?.notification
+      if (notification && notification?.id) {
+        !notification.autoClose
+          ? toast.update(lastJsonMessage.notification.id)
+          : toast.loading(notification.message ?? 'Loading...', {
+              closeButton: true,
+              isLoading: true,
+              toastId: notification.id,
+              autoClose: 1600,
+            })
+      }
+    },
     error: (data) => toast.error(`${data.message}`),
-    blueprints: (data) => {},
   }
 
   useEffect(() => {
@@ -226,41 +185,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
-  const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 })
-  const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null)
-  const [showCtx, setShowCtx] = useState(false)
-
-  // @todo implement support for multi-select transforms -
-  // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
-  // just delete/save position on drag/etc?
-  const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
-    event.preventDefault()
-  }
-
-  const onSelectionCtxMenu = (event: MouseEvent, node: Node) => {
-    event.preventDefault()
-    setCtxPosition({
-      y: event.clientY - 20,
-      x: event.clientX - 20,
-    })
-    setCtxSelection(node)
-    setShowCtx(true)
-  }
-
-  const onPaneCtxMenu = (event: MouseEvent) => {
-    event.preventDefault()
-    setCtxSelection(null)
-    setShowCtx(true)
-    setCtxPosition({
-      x: event.clientX - 25,
-      y: event.clientY - 25,
-    })
-  }
-
-  const onPaneClick = () => {
-    setShowCtx(false)
-    setCtxSelection(null)
-  }
+  const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
 
   useEffect(() => {
     if (positionMode === 'manual') {
@@ -329,7 +254,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
 
   const { setElkLayout } = useElkLayoutElements()
 
-  // force layout hook/toggle found in top right
   const useForceLayoutElements = () => {
     const nodesInitialized = nodes.every(
       (node: any) => node.measured?.width && node.measured?.height
@@ -399,8 +323,7 @@ export default function GraphInquiry({}: GraphInquiryProps) {
     }, [nodesBeforeLayout])
   }
 
-  const [forceInitialized, { toggleForceLayout, isForceRunning }] =
-    useForceLayoutElements()
+  const [, { toggleForceLayout }] = useForceLayoutElements()
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
@@ -417,10 +340,6 @@ export default function GraphInquiry({}: GraphInquiryProps) {
       {isSuccess && (
         <div className='h-screen w-screen' ref={graphRef}>
           <Graph
-            onSelectionCtxMenu={onSelectionCtxMenu}
-            onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
-            onPaneCtxMenu={onPaneCtxMenu}
-            onPaneClick={onPaneClick}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
@@ -429,8 +348,8 @@ export default function GraphInquiry({}: GraphInquiryProps) {
             graphInstance={graphInstance}
             setGraphInstance={setGraphInstance}
             sendJsonMessage={sendJsonMessage}
-            setPendingEntityPosition={setDropPosition}
-            ctxProps={{ ctxPosition, ctxSelection, showCtx, setShowCtx }}
+            ctxMenu={ctxMenu}
+            setCtxMenu={setCtxMenu}
           />
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}

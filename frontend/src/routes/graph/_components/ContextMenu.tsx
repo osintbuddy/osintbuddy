@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom'
 import { Node } from '@xyflow/react'
 import { useGraphFlowStore } from '@/app/store'
 import { useId } from 'preact/compat'
+import { CtxPosition } from '..'
 
 interface Transform {
   label: string
@@ -123,7 +124,7 @@ function ContextAction({
 
 export interface ContextMenuProps {
   closeMenu: () => void
-  position: XYPosition
+  position: CtxPosition
   sendJsonMessage: (message: any) => void
   selection: any
 }
@@ -134,11 +135,6 @@ export default function ContextMenu({
   selection,
   sendJsonMessage,
 }: ContextMenuProps) {
-  const ctxPosition = {
-    top: position.y,
-    left: position.x,
-  }
-
   // TODO: Replace with proper API call using Zustand store
   const transforms: any = []
 
@@ -153,7 +149,7 @@ export default function ContextMenu({
       <div
         id='context-menu'
         className='absolute z-[999] inline-block text-left'
-        style={ctxPosition}
+        style={{ ...position }}
       >
         <div className='divide-mirage-950 border-mirage-950 absolute right-0 z-10 w-56 origin-top-right divide-y rounded-md border bg-gradient-to-br from-black/60 to-black/70 py-px shadow-2xl ring-1 shadow-black/25 ring-black/5 backdrop-blur-xl focus:outline-hidden'>
           <div className='group font-display flex items-center px-1.5 py-1 text-xs font-medium text-slate-600'>

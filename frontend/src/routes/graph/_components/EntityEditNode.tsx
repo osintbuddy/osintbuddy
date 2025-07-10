@@ -402,7 +402,7 @@ export function UploadFileInput({
       <p className='whitespace-wrap font-display mt-1 ml-1 text-[0.5rem] font-semibold text-slate-400'>
         {label}
       </p>
-      <div className='mb-1 flex items-center'>
+      <div className='flex items-center'>
         <div className='node-field'>
           <Icon icon={icon} className='h-6 w-6' />
           <label
@@ -435,7 +435,7 @@ export function TextInput({
   return (
     <>
       <div className='flex flex-col'>
-        <label className='whitespace-wrap font-display mb-1 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
+        <label className='whitespace-wrap font-display mt-0.5 ml-0.5 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
           {label}
         </label>
         <div className='node-field'>

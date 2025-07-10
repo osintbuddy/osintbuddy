@@ -1,7 +1,8 @@
-import { useCallback, useState, useMemo, useEffect } from 'preact/hooks'
+import { useCallback, useState, useMemo, useRef } from 'preact/hooks'
 import { DragEventHandler } from 'preact/compat'
 import {
   Edge,
+  Node,
   Background,
   BackgroundVariant,
   FitViewOptions,
@@ -9,7 +10,6 @@ import {
   ReactFlowInstance,
   ReactFlow,
   OnNodeDrag,
-  XYPosition,
   NodeMouseHandler,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
@@ -20,25 +20,26 @@ import NewConnectionLine from './ConnectionLine'
 import SimpleFloatingEdge from './SimpleFloatingEdge'
 import { useGraphFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
+import { CtxMenu, CtxPosition } from '..'
 
 const viewOptions: FitViewOptions = {
   padding: 50,
 }
 
-// im lazy so im extending the generic JSONObject for now, feel free to fix...
 interface ProjectGraphProps {
+  nodes: Node[]
+  edges: Edge[]
   graphInstance?: ReactFlowInstance
+  ctxMenu: CtxMenu | null
+  setGraphInstance: (flow: ReactFlowInstance) => void
+  sendJsonMessage: (message: any) => void
   onNodesChange?: (changes: any) => void
   onEdgesChange?: (changes: any) => void
   onConnect?: (connection: any) => void
-  setPendingEntityPosition?: (position: XYPosition | null) => void
+  setCtxMenu: (ctx: CtxMenu | null) => void
 }
 
 export default function Graph({
-  onSelectionCtxMenu,
-  onMultiSelectionCtxMenu,
-  onPaneCtxMenu,
-  onPaneClick,
   nodes,
   edges,
   graphInstance,
@@ -47,9 +48,52 @@ export default function Graph({
   onNodesChange,
   onEdgesChange,
   onConnect,
-  setPendingEntityPosition,
-  ctxProps,
+  ctxMenu,
+  setCtxMenu,
 }: ProjectGraphProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  // @todo implement support for multi-select transforms -
+  // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
+  // just delete/save position on drag/etc?
+  const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
+    event.preventDefault()
+  }
+
+  const onNodeContextMenu = (event: MouseEvent, node: Node) => {
+    event.preventDefault()
+    // Calculate position of the context menu. We want to make sure it
+    // doesn't get positioned off-screen.
+    const pane = ref.current as HTMLDivElement
+    const bounds = pane.getBoundingClientRect()
+    console.log(
+      'onSelectionCtxMenu',
+      event.clientY,
+      bounds.height,
+      event.clientY >= bounds.height - 200,
+      {
+        left: event.clientX < bounds.width - 200 && event.clientX,
+        bottom:
+          event.clientY >= bounds.height - 200 &&
+          bounds.height - event.clientY + 200,
+      }
+    )
+    setCtxMenu({
+      entity: node,
+      position: {
+        top: event.clientY < bounds.height - 200 && event.clientY,
+        left: event.clientX < bounds.width - 200 && event.clientX,
+        right:
+          event.clientX >= bounds.width - 200 && bounds.width - event.clientX,
+        bottom:
+          event.clientY >= bounds.height - 200 &&
+          bounds.height - event.clientY + 100,
+      },
+    })
+  }
+
+  const onPaneClick = useCallback(() => setCtxMenu(null), [setCtxMenu])
+
   const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
@@ -98,7 +142,7 @@ export default function Graph({
         )
       })
     },
-    [graphInstance, createGraphEntity, hid, setPendingEntityPosition]
+    [graphInstance, createGraphEntity, hid]
   )
 
   const nodeTypes = useMemo(
@@ -152,10 +196,10 @@ export default function Graph({
     }
     setClickDelta(newDelta)
   }
-  const { showCtx, ctxSelection, ctxPosition, setShowCtx } = ctxProps
+
   return (
     <ReactFlow
-      className='h-full w-full'
+      ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
       minZoom={0.1}
@@ -177,10 +221,10 @@ export default function Graph({
       fitViewOptions={viewOptions}
       nodeTypes={nodeTypes}
       panActivationKeyCode='Space'
+      onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
-      onPaneContextMenu={onPaneCtxMenu}
-      onNodeContextMenu={onSelectionCtxMenu}
+      onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
@@ -191,12 +235,12 @@ export default function Graph({
         variant={BackgroundVariant.Dots}
       />
 
-      {showCtx && (
+      {ctxMenu && (
         <ContextMenu
           sendJsonMessage={sendJsonMessage}
-          selection={ctxSelection}
-          position={ctxPosition}
-          closeMenu={() => setShowCtx(false)}
+          selection={ctxMenu.entity}
+          position={ctxMenu.position as CtxPosition}
+          closeMenu={() => setCtxMenu(null)}
         />
       )}
     </ReactFlow>
