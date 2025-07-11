@@ -91,13 +91,9 @@ export default function GraphInquiry() {
   }, [])
 
   useEffect(() => {
-    if (hid) {
-      clearGraph()
-      getGraph(hid)
-    }
-  }, [hid])
-
-  const WS_GRAPH_INQUIRE = `ws://${WS_URL}/graph/${hid}/ws`
+    clearGraph()
+    getGraph(hid as string)
+  }, [])
 
   const isSuccess = !isLoading && !isError && graph
 
@@ -108,7 +104,7 @@ export default function GraphInquiry() {
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
   const { lastJsonMessage, sendJsonMessage }: UseWebsocket = useWebSocket(
-    WS_GRAPH_INQUIRE,
+    `ws://${WS_URL}/graph/${hid}/ws`,
     {
       shouldReconnect: () => true,
       retryOnError: true,
