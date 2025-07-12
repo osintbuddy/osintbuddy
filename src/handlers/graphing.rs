@@ -1,5 +1,4 @@
 use crate::db::{Database, age_tx, with_cypher};
-use crate::plugin_engine::blueprint;
 use crate::schemas::errors::{AppError, ErrorKind};
 use actix_web::{Error, HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
@@ -220,6 +219,7 @@ pub async fn read_graph(
 pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) {
     if let Ok(mut tx) = age_tx(pool).await {
         for (key, value) in entity.as_object().unwrap() {
+            info!("key value, {} {}", key, value);
             let snake_key = to_snake_case(key);
             let query = if entity["value"].is_string() {
                 format!(
@@ -232,7 +232,7 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) {
                     graph_name, entity["id"], snake_key, value
                 )
             };
-
+            info!("QUERY {}", query);
             // Execute the update query
             let _result = with_cypher(query, tx.as_mut()).await.map_err(|err| {
                 error!("Failed to update node property {}: {}", key, err);
@@ -357,7 +357,88 @@ pub async fn save_node_on_drop(
     Ok(result)
 }
 
-pub async fn websocket_handler(
+// /// Handle transform requests using the new plugin engine
+// async fn handle_transform_request(
+//     session: &mut Session,
+//     plugin_engine: &Arc<PluginEngine>,
+//     transform_msg: TransformMessage,
+//     graph_uuid: sqlx::types::Uuid,
+//     user_id: i64,
+// ) {
+// }
+
+// /// Get plugin statistics via WebSocket
+// pub async fn get_plugin_stats(session: &mut Session, engine: &Arc<PluginEngine>) {
+//     // Get worker pool stats
+//     let worker_stats = engine.get_worker_pool().get_stats().await;
+
+//     // Get registry stats
+//     let registry_stats = engine.get_registry().get_stats().await;
+
+//     // Get sandbox stats
+//     let sandbox_stats = engine.get_sandbox().get_sandbox_stats().await;
+
+//     let stats_response = json!({
+//         "action": "plugin:stats",
+//         "data": {
+//             "worker_pool": {
+//                 "total_workers": worker_stats.total_workers,
+//                 "active_workers": worker_stats.active_workers,
+//                 "available_permits": worker_stats.available_permits
+//             },
+//             "registry": {
+//                 "total_plugins": registry_stats.total_plugins,
+//                 "available_plugins": registry_stats.available_plugins,
+//                 "loaded_plugins": registry_stats.loaded_plugins
+//             },
+//             "sandbox": {
+//                 "enabled": sandbox_stats.enabled,
+//                 "active_sandboxes": sandbox_stats.active_sandboxes,
+//                 "memory_limit_mb": sandbox_stats.total_memory_limit
+//             }
+//         }
+//     });
+
+//     let _ = session.text(stats_response.to_string()).await;
+// }
+
+// /// List available plugins via WebSocket
+// pub async fn list_available_plugins(session: &mut Session, plugin_engine: &Arc<PluginEngine>) {
+//     match plugin_engine.list_plugins().await {
+//         Ok(plugins) => {
+//             let plugins_response = json!({
+//                 "action": "plugins:list",
+//                 "data": {
+//                     "plugins": plugins.iter().map(|plugin| {
+//                         json!({
+//                             "id": plugin.id,
+//                             "name": plugin.name,
+//                             "description": plugin.description,
+//                             "author": plugin.author,
+//                             "version": plugin.version,
+//                             "available": plugin.is_available,
+//                             "transforms": plugin.transforms
+//                         })
+//                     }).collect::<Vec<_>>()
+//                 }
+//             });
+
+//             let _ = session.text(plugins_response.to_string()).await;
+//         }
+//         Err(e) => {
+//             let error_response = json!({
+//                 "action": "plugins:error",
+//                 "message": format!("Failed to list plugins: {}", e)
+//             });
+
+//             let _ = session.text(error_response.to_string()).await;
+//         }
+//     }
+// }
+
+pub async fn launch_sandbox() {}
+
+pub async fn graphing_websocket_handler(
     req: HttpRequest,
     stream: web::Payload,
     pool: Database,
@@ -395,7 +476,6 @@ pub async fn websocket_handler(
             ));
         }
     };
-    info!("OK blueprints: {:?}", blueprints);
 
     actix_web::rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.next().await {
@@ -491,7 +571,6 @@ pub async fn websocket_handler(
                                     read_graph(pool.as_ref(), graph_name).await
                                 {
                                     let (nodes, edges) = graph_action;
-                                    info!("read:graph nodes edges: {:?}", nodes);
                                     let message = json!({
                                         "action": "read",
                                         "notification": {

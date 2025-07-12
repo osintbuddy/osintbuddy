@@ -1,4 +1,5 @@
 use confik::{Configuration, EnvSource};
+use log::error;
 use tokio::sync::OnceCell;
 
 #[derive(Debug, Configuration, Clone)]
@@ -26,12 +27,12 @@ pub async fn get() -> AppConfig {
         .override_with(EnvSource::new().allow_secrets())
         .try_build()
         .unwrap_or_else(|err| {
-            println!("Using default config! Error loading env: {}", err);
+            error!("Using default config! Error loading env: {}", err);
             AppConfig {
                 serve_build: Some(false),
                 database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
                 backend_port: 48997,
-                backend_addr: String::from("127.0.0.1"),
+                backend_addr: String::from("localhost"),
                 backend_cors: String::from("http://localhost:5173"),
                 sqids_alphabet: String::from("RQWMLGFATEYHDSIUKXNCOVZJPB"),
                 jwt_maxage: 60,

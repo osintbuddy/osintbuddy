@@ -20,19 +20,19 @@ function GraphHeader({ graph }: GraphHeaderProps) {
   }
 
   return (
-    <div className='flex w-full flex-col px-4'>
-      <div className='bg-mirage-800/50 border-mirage-800/40 relative flex w-full rounded-b-md border-2 shadow'>
-        <div className='mx-auto w-full'>
-          <section className='relative flex flex-col items-start justify-between px-6 py-4 md:flex-row md:items-center lg:flex-row lg:items-center'>
-            <div className='flex w-full flex-col'>
-              <h3 className='text-lg leading-normal font-semibold whitespace-nowrap text-slate-300'>
-                {graph?.label}
-              </h3>
-              <p className='max-w-6xl truncate text-sm leading-normal whitespace-normal text-slate-400'>
-                {graph?.description}
-              </p>
-            </div>
-            <div className='relative mt-auto flex w-full items-center gap-x-4'>
+    <div className='flex w-full flex-col px-4 py-3'>
+      <div className='from-cod-900/60 to-cod-950/40 flex h-min w-full flex-col overflow-hidden rounded-sm border-2 border-slate-950/50 bg-gradient-to-br py-2 shadow-2xl shadow-black/25 backdrop-blur-sm'>
+        <ol className='text-slate-350 relative flex px-4 text-sm select-none'>
+          <li className='mr-auto flex flex-col'>
+            <h5 className='font-display flex w-full items-center justify-between truncate font-medium whitespace-nowrap text-inherit'>
+              {graph?.label}
+            </h5>
+            <p className='max-w-6xl truncate text-sm leading-normal whitespace-normal text-slate-400'>
+              {graph?.description}
+            </p>
+          </li>
+          <li className='flex'>
+            <div className='flex w-full items-center justify-between space-x-4'>
               <Button.Ghost
                 onClick={handleDeleteGraph}
                 className='ml-auto'
@@ -50,8 +50,8 @@ function GraphHeader({ graph }: GraphHeaderProps) {
                 <Icon icon='eye' className='btn-icon' />
               </Button.Ghost>
             </div>
-          </section>
-        </div>
+          </li>
+        </ol>
       </div>
     </div>
   )
@@ -68,25 +68,25 @@ export default function GraphDetails() {
       <header class='flex w-full'>
         <GraphHeader graph={graph} />
       </header>
-      <section class='relative z-10 flex w-full p-4'>
-        <div class='bg-mirage-300/40 border-mirage-800/50 relative mr-4 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
-          <h2 class='flex items-end text-slate-300/80'>
+      <section class='relative z-10 flex w-full px-4'>
+        <div class='from-cod-900/60 to-cod-950/40 relative mr-4 w-full rounded-sm border-2 border-slate-950/50 bg-gradient-to-tr px-6 py-3 shadow-sm'>
+          <h2 class='text-slate-350 flex items-end'>
             Total Entities{' '}
             <span class='ml-auto font-sans text-6xl font-semibold'>
               {vertices_count ?? 0}
             </span>
           </h2>
         </div>
-        <div class='bg-mirage-300/40 border-mirage-800/50 relative mx-2 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
-          <h2 class='flex items-end text-slate-300/80'>
+        <div class='from-cod-900/60 to-cod-950/40 relative mx-2 w-full rounded-sm border-2 border-slate-950/50 bg-gradient-to-tr px-6 py-3 shadow-sm'>
+          <h2 class='text-slate-350 flex items-end'>
             Total Relationships
             <span class='ml-auto font-sans text-6xl font-semibold'>
               {edges_count ?? 0}
             </span>
           </h2>
         </div>
-        <div class='bg-mirage-300/40 border-mirage-800/50 relative ml-4 w-full rounded-md border-2 px-6 py-3 shadow-sm'>
-          <h2 class='flex items-end text-slate-300/80'>
+        <div class='from-cod-900/60 to-cod-950/40 relative ml-4 w-full rounded-sm border-2 border-slate-950/50 bg-gradient-to-tr px-6 py-3 shadow-sm'>
+          <h2 class='text-slate-350 flex items-end'>
             2nd Degree Entities
             <span class='ml-auto font-sans text-6xl font-semibold'>
               {degree2_count ?? 0}
@@ -95,13 +95,14 @@ export default function GraphDetails() {
         </div>
       </section>
       <h2 class='px-4 text-slate-600'>
-        TODO: Add notes here{' '}
+        TODO: Add something here{' '}
         <a
           class='text-radiance-900'
           href='https://medevel.com/notion-style-editors-21991/'
         >
-          (editors)
-        </a>
+          (maybe editors?)
+        </a>{' '}
+        or table view of entities, or ???
       </h2>
     </div>
   )

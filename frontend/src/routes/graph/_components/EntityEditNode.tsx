@@ -319,7 +319,7 @@ export function TextArea({
           onBlur={() => {
             sendJsonMessage({
               action: 'update:entity',
-              node: { id: Number(nodeId), [label]: value },
+              entity: { id: Number(nodeId), [label]: value },
             })
           }}
         />
@@ -388,7 +388,7 @@ export function UploadFileInput({
       setValue(file)
       sendJsonMessage({
         action: 'update:entity',
-        node: {
+        entity: {
           id: Number(nodeId),
           [label]: file,
           name: file?.name || 'unknown',
@@ -446,7 +446,7 @@ export function TextInput({
             onBlur={() => {
               sendJsonMessage({
                 action: 'update:entity',
-                node: { id: Number(nodeId), [label]: value },
+                entity: { id: Number(nodeId), [label]: value },
               })
             }}
             onChange={(event: InputEvent) =>
@@ -542,7 +542,7 @@ export function DropdownInput({
         onChange={(option) => {
           sendJsonMessage({
             action: 'update:entity',
-            node: {
+            entity: {
               id: Number(nodeId),
               [label]: option?.value ? option.value : option.label,
             },

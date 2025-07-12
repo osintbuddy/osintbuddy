@@ -73,14 +73,8 @@ pub async fn with_cypher(
             for (i, _) in row.columns().iter().enumerate() {
                 let value = row.get::<String, _>(i);
                 let result = re.replace_all(&value, "").to_string();
-                let v = match serde_json::Value::from_str(result.as_str()) {
-                    Ok(v) => v,
-                    Err(err) => {
-                        error!("WHAT THE FK!? {err}");
-                        json!({})
-                    }
-                };
-                info!("WHY THE FK IS IT A STRING?! {}", v);
+                let v = serde_json::Value::from_str(result.as_str())
+                    .expect("Error parsing Age string!");
                 json_objs.push(v);
             }
             return json_objs;

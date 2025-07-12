@@ -188,7 +188,7 @@ export default function ContextMenu({
                 closeMenu()
                 sendJsonMessage({
                   action: 'delete:node',
-                  node: { id: selection.id },
+                  node: { id: Number(selection.id) },
                 })
               }}
               type='button'

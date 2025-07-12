@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.1.7",
+    "@editorjs/editorjs": "^2.30.8",
     "@markdoc/markdoc": "^0.5.2",
     "@react-sigma/core": "^5.0.2",
     "@reactour/tour": "^3.7.0",
