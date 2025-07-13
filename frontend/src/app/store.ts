@@ -295,16 +295,21 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
     }
   }
 }))
-
+interface Transform {
+  label: string
+  icon: string
+}
 // Entities store
 interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
   currentEntity: Entity | null
+  transforms: Transform[]
   isLoading: boolean
   isLoadingEntity: boolean
   isLoadingPlugins: boolean
+  isLoadingTransforms: boolean
   isCreating: boolean
   isUpdating: boolean
   isDeleting: boolean
@@ -317,6 +322,8 @@ interface EntitiesState {
   favoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
   unfavoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
   setPlugins: (payload: any) => Promise<void>
+  fetchTransforms: (label: string) => Promise<void>
+  clearTransforms: () => Promise<void>
 }
 
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
@@ -324,9 +331,11 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   favorites: [],
   plugins: [],
   currentEntity: null,
+  transforms: [],
   isLoading: false,
   isLoadingEntity: false,
   isLoadingPlugins: false,
+  isLoadingTransforms: false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
@@ -343,6 +352,20 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     }
   },
   setPlugins: async (plugins) =>  set({ plugins }),
+  fetchTransforms: async (label: string) => {
+    set({ isLoadingTransforms: true, error: null })
+    try {
+      const token = useAuthStore.getState().access_token as string;
+      const transforms = await entitiesApi.getEntityTransforms(label, token)
+      set({ transforms, isLoadingTransforms: false })
+    } catch (error) {
+      set({ error: error.message, isLoadingTransforms: false, transforms: [] })
+    }
+  },
+  clearTransforms: async () => {
+    const transforms: Transform[] = []
+    set({transforms})
+  },
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
     try {

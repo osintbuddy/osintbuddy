@@ -29,11 +29,5 @@ env_logger = "0.11.8"
 log = "0.4.27"
 regex = "1.11.1"
 reqwest = { version = "0.11", features = ["json"] }
-futures-util = "0.3"
-pyo3 = { version = "0.25", features = ["auto-initialize", "serde"] }
-pyo3-async-runtimes = { version = "0.25", features = ["tokio-runtime"] }
-tokio-process = "0.2"
-nix = { version = "0.29", features = ["process", "signal"] }
-anyhow = "1.0"
-thiserror = "1.0"
 minio = "0.3.0"
+futures-util = "0.3"

@@ -92,7 +92,10 @@ export default function Graph({
     })
   }
 
-  const onPaneClick = useCallback(() => setCtxMenu(null), [setCtxMenu])
+  const onPaneClick = useCallback(
+    () => setCtxMenu({ entity: null }),
+    [setCtxMenu]
+  )
 
   const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
   const onReconnect = useCallback(
@@ -224,6 +227,7 @@ export default function Graph({
       onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
+      onPaneContextMenu={onNodeContextMenu}
       onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}

@@ -1,126 +1,8 @@
 import { Icon } from '@/components/icons'
-import { useState } from 'preact/hooks'
+import { useState, useEffect } from 'preact/hooks'
 import Input from '@/components/inputs'
-import { XYPosition } from '@xyflow/react'
-
-import { toast } from 'react-toastify'
-import { useParams } from 'react-router-dom'
-import { Node } from '@xyflow/react'
-import { useGraphFlowStore } from '@/app/store'
-import { useId } from 'preact/compat'
+import { useEntitiesStore } from '@/app/store'
 import { CtxPosition } from '..'
-
-interface Transform {
-  label: string
-}
-
-interface ContextActionProps {
-  nodeCtx: Node | null
-  transforms: Transform[]
-  sendJsonMessage: Function
-  closeMenu: Function
-}
-
-function ContextAction({
-  nodeCtx: ctx,
-  transforms,
-  sendJsonMessage,
-  closeMenu,
-}: ContextActionProps) {
-  const { hid } = useParams()
-  // const [runTransform, { isLoading }] = useRunEntityTransformMutation()
-  const { addNode, addEdge } = useGraphFlowStore()
-
-  const createEntityAction = ({ data, id, position, parentId }: any) => {
-    const edgeId = useId()
-    addNode({ id, data, position, type: 'edit' })
-    addEdge({
-      source: parentId,
-      target: id,
-      sourceHandle: 'r1',
-      targetHandle: 'l2',
-      type: 'float',
-      id: edgeId,
-    })
-  }
-
-  return (
-    <>
-      {transforms && ctx && (
-        <>
-          <div className='node-context max-h-32 overflow-y-scroll'>
-            {transforms.map((transform: any) => (
-              <div key={transform.label}>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    closeMenu()
-                    // runTransform({
-                    //   hid: hid ?? '',
-                    //   sourceEntity: {
-                    //     id: ctx?.id,
-                    //     type: ctx?.label,
-                    //     data: ctx?.data,
-                    //     position: ctx?.position,
-                    //     transform: transform?.label,
-                    //   },
-                    // })
-                    //   .then((resp: any) => {
-                    //     const entities = resp.data.map(
-                    //       (node: JSONObject, idx: number) => {
-                    //         let entity = { ...node }
-                    //         // TODO: Move position layout logic to backend...
-                    //         const isOdd = idx % 2 === 0
-                    //         const pos = node.position
-                    //         const x = isOdd ? pos.x + 560 : pos.x + 970
-                    //         const y = isOdd
-                    //           ? pos.y - (idx - 4) * 120
-                    //           : pos.y - (idx - 3.5) * 120
-                    //         entity.position = {
-                    //           x,
-                    //           y,
-                    //         }
-                    //         return entity
-                    //         // sendJsonMessage({ action: 'update:entity', node: { id: Number(node.id), x, y } });
-                    //       }
-                    //     )
-                    //     entities.forEach((entity: any) => {
-                    //       createEntityAction(entity)
-                    //       sendJsonMessage({
-                    //         action: 'update:entity',
-                    //         node: {
-                    //           id: Number(entity.id),
-                    //           x: entity.position.x,
-                    //           y: entity.position.y,
-                    //         },
-                    //       })
-                    //     })
-                    //   })
-                    //   .catch((err) => console.log(err))
-                    // sendJsonMessage({
-                    //   action: 'transform:node',
-                    //   node: {
-                    //     id: ctx.id,
-                    //     type: ctx.label,
-                    //     data: ctx.data,
-                    //     position: ctx.position,
-                    //     transform: transform.label,
-                    //   },
-                    // })
-                    toast.warn('TODO: ')
-                  }}
-                >
-                  <Icon icon={transform.icon}></Icon>
-                  {transform.label}
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </>
-  )
-}
 
 export interface ContextMenuProps {
   closeMenu: () => void
@@ -135,10 +17,16 @@ export default function ContextMenu({
   selection,
   sendJsonMessage,
 }: ContextMenuProps) {
-  // TODO: Replace with proper API call using Zustand store
-  const transforms: any = []
-
+  const { transforms, fetchTransforms, isLoadingTransforms, clearTransforms } =
+    useEntitiesStore()
   const [query, setQuery] = useState('')
+
+  // Fetch transforms when selection changes and has a valid label
+  useEffect(() => {
+    if (selection?.data?.label) {
+      fetchTransforms(selection.data.label)
+    } else clearTransforms()
+  }, [selection?.data?.label, fetchTransforms])
   const filteredTransforms = query
     ? transforms.filter((transform: any) =>
         transform.label.toLowerCase().includes(query.toLowerCase())
@@ -152,38 +40,63 @@ export default function ContextMenu({
         style={{ ...position }}
       >
         <div className='divide-mirage-950 border-mirage-950 absolute right-0 z-10 w-56 origin-top-right divide-y rounded-md border bg-gradient-to-br from-black/60 to-black/70 py-px shadow-2xl ring-1 shadow-black/25 ring-black/5 backdrop-blur-xl focus:outline-hidden'>
-          <div className='group font-display flex items-center px-1.5 py-1 text-xs font-medium text-slate-600'>
-            <span className='font-display mr-1 font-semibold text-slate-800'>
+          <div className='group font-display flex items-center px-1.5 py-1 text-xs font-medium text-slate-800'>
+            <span className='font-display mr-1 font-semibold text-slate-800/70'>
               ID:{' '}
             </span>
             {selection?.id ? selection.id : '???'}
           </div>
-          {transforms && (
-            <div>
-              {selection && (
-                <Input.TransparentIcon
-                  className='h-8 !rounded-none !px-1.5 !py-1 !outline-none'
-                  icon={
-                    <Icon icon='search' className='relative right-0 h-4 w-4' />
-                  }
-                />
+          {selection && (
+            <Input.TransparentIcon
+              onChange={(e) => setQuery(e.currentTarget.value)}
+              className='h-8 !rounded-none !px-1.5 !py-1 !outline-none'
+              icon={<Icon icon='search' className='relative right-0 h-4 w-4' />}
+            />
+          )}
+          {transforms && !isLoadingTransforms && (
+            <div className='border-mirage-950 flex flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
+              {filteredTransforms.map((transform: any) => (
+                <button
+                  key={transform.label}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    closeMenu()
+                    sendJsonMessage({
+                      action: 'transform:entity',
+                      entity: {
+                        id: selection.id,
+                        type: selection.data?.label,
+                        data: selection.data,
+                        position: selection.position,
+                        transform: transform.label,
+                      },
+                    })
+                  }}
+                  class='flex w-full items-center px-2 py-1 text-slate-600 hover:bg-black/40 hover:text-slate-400'
+                >
+                  <Icon icon={transform.icon} className='mr-1.5 h-4 w-4'></Icon>
+                  {transform.label}
+                </button>
+              ))}
+              {transforms?.length === 0 && (
+                <p class='relative mt-auto px-2 py-1 text-sm text-slate-600'>
+                  {selection?.id
+                    ? 'No transforms found!'
+                    : 'No entity selected!'}
+                </p>
               )}
-              <ContextAction
-                closeMenu={closeMenu}
-                nodeCtx={selection}
-                sendJsonMessage={sendJsonMessage}
-                transforms={filteredTransforms}
-              />
             </div>
           )}
-          {transforms?.length === 0 && (
-            <p class='px-2 py-1 text-sm text-slate-600'>
-              {selection?.id ? 'No transforms found!' : 'No entity selected!'}
+          {isLoadingTransforms && (
+            <p class='relative mt-auto flex w-full px-2 py-1 text-sm text-slate-600'>
+              Loading transforms
+              <span class='dot-flashing top-3.5 left-2' />
             </p>
           )}
+
           {selection?.data?.label && (
             <button
-              className='hover:text-danger-500 group hover:bg-mirage-950/10 flex w-full items-center px-1.5 py-1 text-sm text-slate-600'
+              className='hover:text-danger-500 group flex w-full items-center px-1.5 py-1 text-sm text-slate-600 hover:bg-black/40'
               onClick={() => {
                 closeMenu()
                 sendJsonMessage({
@@ -196,7 +109,6 @@ export default function ContextMenu({
               <Icon
                 icon='trash'
                 className='group-hover:text-danger-500 mr-1.5 h-4 w-4'
-                aria-hidden='true'
               />
               Delete
             </button>

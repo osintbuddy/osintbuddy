@@ -11,11 +11,11 @@ interface IconProps {
 }
 
 export function Icon(props: TablerIconProps) {
-  const { icon, className } = props
+  const { icon, className, ...svgProps } = props
   return (
     <>
       <svg
-        {...props}
+        {...svgProps}
         className={` ${className ?? 'h-5 w-5 text-inherit'}`}
         fill='none'
         stroke='currentColor'

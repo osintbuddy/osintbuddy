@@ -447,7 +447,6 @@ pub async fn graphing_websocket_handler(
     app: crate::AppData,
 ) -> Result<HttpResponse, Error> {
     let (response, mut session, mut msg_stream) = actix_ws::handle(&req, stream)?;
-
     // We'll authenticate when we receive the first message
     let mut authenticated = false;
     let mut graph_uuid: Option<sqlx::types::Uuid> = None;
@@ -467,14 +466,32 @@ pub async fn graphing_websocket_handler(
             ));
         }
     };
-    let entities = match get_entities().await {
-        Ok(entities) => entities,
-        Err(err) => {
-            error!("{err}");
+    // TODO: Get entities from db when in production environment (app.cfg.environment == "production")
+    // and run the plugin system in firecracker VMs
+    let entities = {
+        use std::process::Command;
+
+        let output = Command::new("ob")
+            .args(&["ls", "entities"])
+            .output()
+            .map_err(|err| {
+                error!("Error running 'ob ls entities': {}", err);
+                actix_web::error::ErrorBadRequest("Failed to execute 'ob ls entities' command.")
+            })?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            error!("Command 'ob ls entities' failed: {}", stderr);
             return Err(actix_web::error::ErrorBadRequest(
-                "Error fetching entity blueprints!",
+                "Command 'ob ls entities' execution failed.",
             ));
         }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        serde_json::from_str::<Value>(&stdout).map_err(|err| {
+            error!("Error parsing entities JSON: {}", err);
+            actix_web::error::ErrorBadRequest("Failed to parse entities JSON output.")
+        })?
     };
 
     actix_web::rt::spawn(async move {
@@ -585,11 +602,11 @@ pub async fn graphing_websocket_handler(
                                     let _ = session.text(message).await;
                                 };
                             }
-                            "transform:node" => {
+                            "transform:entity" => {
                                 let message = json!({
                                     "action": "loading".to_string(),
                                     "notification": {
-                                        "shouldClose": true,
+                                        "autoClose": false,
                                         "message": null,
                                     },
                                 })

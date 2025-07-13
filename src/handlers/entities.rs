@@ -442,24 +442,35 @@ async fn get_entity_details(
 
 #[get("/entity")]
 async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse, AppError> {
-    let client = reqwest::Client::new();
-    let response = client
-        .get("http://127.0.0.1:42562/entities")
-        .send()
-        .await
+    use std::process::Command;
+    // TODO: Get entities from db when in production environment (app.cfg.environment == "production")
+    // and run the plugin system in firecracker VMs
+    let output = Command::new("ob")
+        .args(&["ls", "entities"])
+        .output()
         .map_err(|err| {
-            error!("Error fetching entities: {}", err);
+            error!("Error running 'ob ls entities': {}", err);
             AppError {
-                kind: ErrorKind::Network,
-                message: "Failed to fetch entities from plugins service.",
+                kind: ErrorKind::Critical,
+                message: "Failed to execute 'ob ls entities' command.",
             }
         })?;
 
-    let entities: Value = response.json().await.map_err(|err| {
-        error!("Error parsing entities response: {}", err);
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        error!("Command 'ob ls entities' failed: {}", stderr);
+        return Err(AppError {
+            kind: ErrorKind::Critical,
+            message: "Command 'ob ls entities' execution failed.",
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let entities: Value = serde_json::from_str(&stdout).map_err(|err| {
+        error!("Error parsing entities JSON: {}", err);
         AppError {
-            kind: ErrorKind::Network,
-            message: "Failed to parse entities response.",
+            kind: ErrorKind::Critical,
+            message: "Failed to parse entities JSON output.",
         }
     })?;
 

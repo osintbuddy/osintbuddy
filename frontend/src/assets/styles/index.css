@@ -4,6 +4,7 @@
 @import '../../../node_modules/@xyflow/react/dist/style.css';
 @import './fonts.css';
 @import './nodes.css';
+@import './loaders.css';
 
 @custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
 @custom-variant theme-blueprint {  &:where([data-theme="blueprint"] *) {    @slot;  }}

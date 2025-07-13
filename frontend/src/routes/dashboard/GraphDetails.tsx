@@ -15,7 +15,7 @@ function GraphHeader({ graph }: GraphHeaderProps) {
 
   const handleDeleteGraph = async () => {
     if (!graph?.id) return
-    await deleteGraph({ id: graph.id.toString() })
+    await deleteGraph({ id: graph.id })
     navigate('/dashboard/graph', { replace: true })
   }
 
@@ -100,9 +100,9 @@ export default function GraphDetails() {
           class='text-radiance-900'
           href='https://medevel.com/notion-style-editors-21991/'
         >
-          (maybe editors?)
+          (maybe editors?
         </a>{' '}
-        or table view of entities, or ???
+        or table view of entities, or ???)
       </h2>
     </div>
   )

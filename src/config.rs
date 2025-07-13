@@ -4,6 +4,7 @@ use tokio::sync::OnceCell;
 
 #[derive(Debug, Configuration, Clone)]
 pub struct AppConfig {
+    pub environment: String,
     pub backend_addr: String,
     pub backend_port: u16,
     pub backend_cors: String,
@@ -29,6 +30,7 @@ pub async fn get() -> AppConfig {
         .unwrap_or_else(|err| {
             error!("Using default config! Error loading env: {}", err);
             AppConfig {
+                environment: String::from("development"),
                 serve_build: Some(false),
                 database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
                 backend_port: 48997,

@@ -4,10 +4,10 @@
   width: 3px;
   height: 3px;
   border-radius: 5px;
-  background-color: #cbd5e1;
-  color: #cbd5e1;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
   animation: dot-flashing 1s infinite linear alternate;
-  animation-delay: 0.5s;
+  animation-delay: 0.3s;
 }
 .dot-flashing::before, .dot-flashing::after {
   content: "";
@@ -20,8 +20,8 @@
   width: 3px;
   height: 3px;
   border-radius: 5px;
-  background-color: #cbd5e1;
-  color: #cbd5e1;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
   animation: dot-flashing 1s infinite alternate;
   animation-delay: 0s;
 }
@@ -30,15 +30,15 @@
   width: 3px;
   height: 3px;
   border-radius: 5px;
-  background-color: #cbd5e1;
-  color: #cbd5e1;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
   animation: dot-flashing 1s infinite alternate;
-  animation-delay: 1s;
+  animation-delay: .7s;
 }
 
 @keyframes dot-flashing {
   0% {
-    background-color: #cbd5e1;
+    background-color: var(--color-slate-600);
   }
   50%, 100% {
     background-color: #cbd5e120;
