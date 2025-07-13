@@ -51,53 +51,43 @@ export default function Graph({
   ctxMenu,
   setCtxMenu,
 }: ProjectGraphProps) {
+  const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
   const ref = useRef<HTMLDivElement>(null)
-
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
-  const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
-    event.preventDefault()
-  }
-
-  const onNodeContextMenu = (event: MouseEvent, node: Node) => {
-    event.preventDefault()
-    // Calculate position of the context menu. We want to make sure it
-    // doesn't get positioned off-screen.
-    const pane = ref.current as HTMLDivElement
-    const bounds = pane.getBoundingClientRect()
-    console.log(
-      'onSelectionCtxMenu',
-      event.clientY,
-      bounds.height,
-      event.clientY >= bounds.height - 200,
-      {
-        left: event.clientX < bounds.width - 200 && event.clientX,
-        bottom:
-          event.clientY >= bounds.height - 200 &&
-          bounds.height - event.clientY + 200,
-      }
-    )
-    setCtxMenu({
-      entity: node,
-      position: {
-        top: event.clientY < bounds.height - 200 && event.clientY,
-        left: event.clientX < bounds.width - 200 && event.clientX,
-        right:
-          event.clientX >= bounds.width - 200 && bounds.width - event.clientX,
-        bottom:
-          event.clientY >= bounds.height - 200 &&
-          bounds.height - event.clientY + 100,
-      },
-    })
-  }
-
-  const onPaneClick = useCallback(
-    () => setCtxMenu({ entity: null }),
-    [setCtxMenu]
+  const onMultiSelectionCtxMenu = useCallback(
+    (event: MouseEvent, nodes: Node[]) => {
+      event.preventDefault()
+    },
+    []
   )
 
-  const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
+  const onNodeContextMenu = useCallback(
+    (event: MouseEvent, node: Node | null) => {
+      event.preventDefault()
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      const pane = ref.current as HTMLDivElement
+      const bounds = pane.getBoundingClientRect()
+      setCtxMenu({
+        entity: node,
+        position: {
+          top: event.clientY < bounds.height - 200 && event.clientY,
+          left: event.clientX < bounds.width - 200 && event.clientX,
+          right:
+            event.clientX >= bounds.width - 200 && bounds.width - event.clientX,
+          bottom:
+            event.clientY >= bounds.height - 200 &&
+            bounds.height - event.clientY + 100,
+        },
+      })
+    },
+    []
+  )
+
+  const onPaneClick = useCallback(() => setCtxMenu({ entity: null }), [])
+
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       // Handle edge update through websocket or API call
@@ -107,7 +97,7 @@ export default function Graph({
         newConnection,
       })
     },
-    [sendJsonMessage]
+    []
   )
   const { hid } = useParams()
 
@@ -199,7 +189,6 @@ export default function Graph({
     }
     setClickDelta(newDelta)
   }
-
   return (
     <ReactFlow
       ref={ref}
@@ -227,7 +216,7 @@ export default function Graph({
       onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
-      onPaneContextMenu={onNodeContextMenu}
+      onPaneContextMenu={(event) => onNodeContextMenu(event, null)}
       onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}

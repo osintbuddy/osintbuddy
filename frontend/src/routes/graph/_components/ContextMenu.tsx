@@ -72,7 +72,7 @@ export default function ContextMenu({
                       },
                     })
                   }}
-                  class='flex w-full items-center px-2 py-1 text-slate-600 hover:bg-black/40 hover:text-slate-400'
+                  class='hover:border-primary-350 flex w-full items-center border-l-2 border-transparent px-2 py-1 text-slate-600 hover:bg-black/40 hover:text-slate-400'
                 >
                   <Icon icon={transform.icon} className='mr-1.5 h-4 w-4'></Icon>
                   {transform.label}
@@ -96,7 +96,7 @@ export default function ContextMenu({
 
           {selection?.data?.label && (
             <button
-              className='hover:text-danger-500 group flex w-full items-center px-1.5 py-1 text-sm text-slate-600 hover:bg-black/40'
+              className='hover:text-danger-500 group flex w-full items-center px-2.5 py-1 text-sm text-slate-600 hover:bg-black/40'
               onClick={() => {
                 closeMenu()
                 sendJsonMessage({

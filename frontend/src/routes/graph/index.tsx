@@ -329,6 +329,7 @@ export default function GraphInquiry() {
       [toggleForceLayout]
     )
   )
+
   return (
     <>
       {/* TODO: Add loading screen fade out transition */}
