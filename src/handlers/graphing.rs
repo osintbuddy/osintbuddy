@@ -127,7 +127,6 @@ pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError>
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    info!("Blueprints output: {}", stdout);
     
     // Parse the JSON output from the CLI
     let data: Vec<Value> = serde_json::from_str(&stdout).map_err(|err| {
@@ -148,8 +147,6 @@ pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError>
             }
         }
     }
-    info!("Processed blueprints: {:?}", blueprints);
-
     Ok(blueprints)
 }
 
@@ -176,8 +173,6 @@ pub async fn execute_transform(entity: &Value) -> Result<Vec<Value>, AppError> {
         }
     })?;
 
-    info!("Executing transform with entity: {}", entity_json);
-
     let output = Command::new("ob")
         .args(&["run", "-t", &entity_json])
         .output()
@@ -199,7 +194,6 @@ pub async fn execute_transform(entity: &Value) -> Result<Vec<Value>, AppError> {
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    info!("Transform output: {}", stdout);
 
     // Parse the JSON output from the CLI
     let result: Value = serde_json::from_str(&stdout).map_err(|err| {
@@ -305,7 +299,6 @@ pub async fn read_graph(
 
 pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Result<(), AppError> {
     let mut tx = age_tx(pool).await?;
-    info!("updating entity: {:?}", entity);
     // Safely get entity object and id
     let entity_obj = entity.as_object().ok_or_else(|| {
         error!("Entity is not a valid JSON object: {}", entity);
@@ -328,8 +321,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
         if key == "id" || key == "type" || key == "label" {
             continue;
         }
-
-        info!("Updating property: {} = {}", key, value);
         let snake_key = to_snake_case(key);
         
         // Use safe cypher query with proper escaping
@@ -347,8 +338,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
                 graph_name, entity_id, snake_key, value
             )
         };
-        info!("QUERY: {}", query);
-
         // Execute the update query using the cypher helper
         with_cypher(query, tx.as_mut()).await.map_err(|err| {
             error!("Failed to update node property {}: {}", key, err);
@@ -368,7 +357,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
         }
     })?;
 
-    info!("Successfully updated node properties");
     Ok(())
 }
 
@@ -383,7 +371,6 @@ pub async fn remove_node(
         "SELECT * FROM cypher('{}', $$ MATCH (s)-[e]->() WHERE id(s)={} RETURN e $$) as (e agtype)",
         graph_name, node_id
     );
-    info!("node id {}", node_id);
     let mut tx = age_tx(pool).await?;
     let edge_rows = with_cypher(check_edges_query, tx.as_mut()).await?;
 
@@ -398,8 +385,6 @@ pub async fn remove_node(
             graph_name, node_id
         )
     };
-    info!("query node id {}", delete_query);
-
     let _ = with_cypher(delete_query, tx.as_mut()).await;
     tx.commit().await.map_err(|err| {
         error!("{err}");
@@ -408,7 +393,6 @@ pub async fn remove_node(
             kind: ErrorKind::Database,
         }
     })?;
-    info!("after with_cypher");
     session
         .text(
             json!({
@@ -628,7 +612,6 @@ pub async fn graphing_websocket_handler(
                                 .await;
                             }
                             "read:graph" => {
-                                info!("read:graph executing...");
                                 if let Ok(graph_action) =
                                     read_graph(pool.as_ref(), graph_name).await
                                 {
@@ -934,8 +917,6 @@ fn vertex_to_entity(vertex: &Value, blueprint: &Value) -> Value {
                                 if let Some(db_value) = props.get(&snake_case_field) {
                                     // Update the element's value with database data
                                     element_obj.insert("value".to_string(), db_value.clone());
-                                    info!("Mapped database field '{}' -> element '{}': {}", 
-                                        snake_case_field, label_str, db_value);
                                 }
                             }
                         }

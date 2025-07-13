@@ -1,4 +1,5 @@
 import { useMemo } from 'preact/hooks'
+import { memo } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import { Handle, Position } from '@xyflow/react'
 
@@ -9,7 +10,7 @@ const handleStyle = {
   margin: -2,
   height: 10,
 }
-export default function ViewEntityNode({ ctx }: JSONObject) {
+function ViewEntityNode({ ctx }: JSONObject) {
   const node = ctx.data
   const displayValue = useMemo(
     () =>
@@ -103,3 +104,5 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
     </>
   )
 }
+
+export default memo(ViewEntityNode)

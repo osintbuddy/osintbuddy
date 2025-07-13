@@ -53,7 +53,6 @@ async fn create_graph_handler(
             message: "We ran into a missing graph id error!",
             kind: ErrorKind::Critical,
         })?;
-    info!("Creating Age graph, graph_name: {}", graph_name);
     let mut tx = age_tx(pool.as_ref()).await?;
 
     sqlx::raw_sql(

@@ -6,24 +6,25 @@ import {
   useMemo,
   useRef,
   useState,
+  useCallback,
 } from 'preact/hooks'
-import { Fragment } from 'preact/compat'
+import { Fragment, memo } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { Handle, Position } from '@xyflow/react'
 
-var dropdownKey = 0
+// Use useRef instead of global variables to avoid memory leaks
+let dropdownKeyRef = { current: 0 }
+let nodeKeyRef = { current: 0 }
 
 const getDropdownKey = () => {
-  dropdownKey += 1
-  return `k_${dropdownKey}`
+  dropdownKeyRef.current += 1
+  return `k_${dropdownKeyRef.current}`
 }
 
-var nodeKey = 0
-
 const getNodeKey = () => {
-  nodeKey += 1
-  return `k_${nodeKey}`
+  nodeKeyRef.current += 1
+  return `k_${nodeKeyRef.current}`
 }
 
 const handleStyle = {
@@ -39,10 +40,10 @@ type NodeElement = NodeInput & {
   editState: EditState
 }
 
-export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
+function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   const node = ctx.data
 
-  const getNodeElement = (
+  const getNodeElement = useCallback((
     element: NodeInput,
     key: string | null = getNodeKey()
   ) => {
@@ -123,12 +124,12 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
       case 'empty':
         return <input className='pointer-events-none h-0 bg-transparent' />
     }
-  }
+  }, [ctx.id, sendJsonMessage])
 
-  const columnsCount = Math.max(
+  const columnsCount = useMemo(() => Math.max(
     0,
     ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
-  )
+  ), [node.elements])
   return (
     <>
       <Handle
@@ -589,3 +590,5 @@ export function DropdownInput({
     </>
   )
 }
+
+export default memo(EditEntityNode)

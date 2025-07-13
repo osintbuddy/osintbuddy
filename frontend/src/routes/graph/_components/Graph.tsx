@@ -145,7 +145,7 @@ export default function Graph({
       ),
       view: (data: JSONObject) => <ViewEntityNode ctx={data} />,
     }),
-    []
+    [sendJsonMessage]
   )
 
   const edgeTypes = useMemo(
@@ -158,12 +158,15 @@ export default function Graph({
   const doubleClickThreshold = 320
   const [clickDelta, setClickDelta] = useState(0)
 
-  const onNodeDragStop: OnNodeDrag = (_, node) => {
-    sendJsonMessage({
-      action: 'update:entity',
-      entity: { id: Number(node.id), x: node.position.x, y: node.position.y },
-    })
-  }
+  const onNodeDragStop: OnNodeDrag = useCallback((_, node) => {
+    // Debounce position updates to reduce WebSocket traffic
+    setTimeout(() => {
+      sendJsonMessage({
+        action: 'update:entity',
+        entity: { id: Number(node.id), x: node.position.x, y: node.position.y },
+      })
+    }, 100)
+  }, [sendJsonMessage])
 
   const onEdgeChange = useCallback(
     (changes: any) => {

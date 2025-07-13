@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
 import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, useBlocker } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import {
@@ -141,7 +141,6 @@ export default function Graphing() {
         })
       },
       onClose: (event) => {
-        console.log('WebSocket closed:', event)
         // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
         if (event.code === 1000 || event.code === 1008) {
           clearGraph()
@@ -184,7 +183,6 @@ export default function Graphing() {
     },
     remove: () => {},
     created: (data) => {
-      console.log(data)
       addNode(data.entity)
       toast.success(
         `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
@@ -355,12 +353,12 @@ export default function Graphing() {
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
-  // useBlocker(
-  //   useCallback(
-  //     (tx: any) => tx.historyAction && toggleForceLayout(false),
-  //     [toggleForceLayout]
-  //   )
-  // )
+  useBlocker(
+    useCallback(
+      (tx: any) => tx.historyAction && toggleForceLayout(false),
+      [toggleForceLayout]
+    )
+  )
 
   return (
     <>
