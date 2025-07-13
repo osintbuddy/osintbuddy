@@ -92,17 +92,6 @@ fn dict_to_opencypher(value: &Value) -> String {
     properties
 }
 
-pub async fn get_entities() -> Result<Value, reqwest::Error> {
-    let client = reqwest::Client::new();
-    match client.get("http://127.0.0.1:42562/entities").send().await {
-        Ok(response) => response.json().await,
-        Err(err) => {
-            error!("{err}");
-            Err(err)
-        }
-    }
-}
-
 pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError> {
     use std::process::Command;
 
@@ -148,17 +137,6 @@ pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError>
         }
     }
     Ok(blueprints)
-}
-
-pub async fn refresh_entity_plugins() -> Result<Value, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-    let response = client.get("http://127.0.0.1:42562/refresh").send().await?;
-
-    let entities: Value = response.json().await?;
-    Ok(serde_json::json!({
-        "status": "success",
-        "plugins": entities
-    }))
 }
 
 pub async fn execute_transform(entity: &Value) -> Result<Vec<Value>, AppError> {
@@ -638,13 +616,15 @@ pub async fn graphing_websocket_handler(
                                 match execute_transform(&entity).await {
                                     Ok(new_entities) => {
                                         // Create nodes in the graph database and send them back
-                                        for new_entity_data in new_entities {
+                                        for new_entity in new_entities {
+                                            info!("new entity {}", new_entity);
                                             // Get the entity label and blueprint
-                                            if let Some(entity_label) = new_entity_data
+                                            if let Some(entity_label) = new_entity
                                                 .get("data")
                                                 .and_then(|data| data.get("label"))
                                                 .and_then(|l| l.as_str())
                                             {
+                                                info!("entity label {}", entity_label);
                                                 let snake_case_label = to_snake_case(entity_label);
                                                 let blueprint = blueprints
                                                     .get(&snake_case_label)
@@ -653,73 +633,132 @@ pub async fn graphing_websocket_handler(
                                                         blueprints.get(&entity_label.to_lowercase())
                                                     });
 
-                                                if let Some(_blueprint) = blueprint {
-                                                    // Transform result structure: {"data": {...}, "edge_label": "..."}
-                                                    // We need to create a blueprint-compatible structure for save_node_on_drop
-                                                    let mut blueprint_for_db = new_entity_data
-                                                        .get("data")
-                                                        .unwrap()
-                                                        .clone();
+                                                // Transform result structure: {"data": {...}, "edge_label": "..."}
+                                                // We need to create a blueprint-compatible structure for save_node_with_data
+                                                info!(
+                                                    "Transform returned new_entity: {:?}",
+                                                    new_entity
+                                                );
+                                                //  Object {"data": Object {"color": String("#F47C00"), "elements": Array [Object {"icon": String("map-pin"), "label": String("IP Address"), "type": String("text"), "value": String("142.250.73.110")}], "icon": String("building-broadcast-tower"), "label": String("IP")}, "edge_label": String("transformed_to")}
+                                                let mut entity_data =
+                                                    new_entity.get("data").unwrap().clone();
 
-                                                    // Use position from new entity or default position
-                                                    let position = new_entity_data
-                                                        .get("position")
-                                                        .cloned()
-                                                        .unwrap_or(json!({"x": 300, "y": 300}));
+                                                // Use position from new entity or default position
+                                                let position = entity
+                                                    .get("position")
+                                                    .cloned()
+                                                    .unwrap_or(json!({"x": 0, "y": 0}));
 
-                                                    blueprint_for_db
-                                                        .as_object_mut()
-                                                        .unwrap()
-                                                        .insert("position".to_string(), position);
+                                                entity_data
+                                                    .as_object_mut()
+                                                    .unwrap()
+                                                    .insert("position".to_string(), position);
 
-                                                    // Create the node in the graph database
-                                                    if let Ok(raw_result) = save_node_on_drop(
-                                                        &pool,
-                                                        graph_name.clone(),
-                                                        &blueprint_for_db,
-                                                        entity_label,
-                                                    )
-                                                    .await
-                                                    {
-                                                        // Create the full blueprint entity structure for the frontend
-                                                        let mut processed_entity =
-                                                            vertex_to_blueprint(
-                                                                &raw_result,
-                                                                &blueprint_for_db,
-                                                            );
+                                                // Create the node in the graph database with all data
+                                                let Ok(saved_entity) = save_node_on_drop(
+                                                    &pool,
+                                                    graph_name.clone(),
+                                                    &entity_data,
+                                                    entity_label,
+                                                )
+                                                .await
+                                                else {
+                                                    error!(
+                                                        "Failed to save node with data: {:?}",
+                                                        entity
+                                                    );
+                                                    let message = json!({
+                                                        "action": "error",
+                                                        "notification": {
+                                                            "autoClose": true,
+                                                            "toastId": entity["id"],
+                                                            "message": format!("Failed to create {}:", entity_label),
+                                                            "type": "error",
+                                                        },
+                                                    });
+                                                    let _ = session.text(message.to_string()).await;
+                                                    continue;
+                                                };
 
-                                                        // Add the full blueprint data structure
-                                                        processed_entity["data"] =
-                                                            new_entity_data["data"].clone();
-                                                        info!("entity {}", entity["id"]);
-                                                        let message = json!({
-                                                            "action": "created".to_string(),
-                                                            "entity": processed_entity
-                                                        });
-                                                        // Send the created entity back to the client
-                                                        let _ =
-                                                            session.text(message.to_string()).await;
+                                                // Create the full blueprint entity structure for the frontend
+                                                let mut processed_entity = vertex_to_blueprint(
+                                                    &saved_entity,
+                                                    &entity_data,
+                                                );
+
+                                                // Add the full blueprint data structure
+                                                processed_entity["data"] =
+                                                    new_entity["data"].clone();
+                                                
+                                                // Save the element data to database properties
+                                                if let Some(elements) = new_entity["data"]["elements"].as_array() {
+                                                    let entity_id = saved_entity["id"].as_i64().unwrap_or(0);
+                                                    let mut update_tx = age_tx(&pool).await.unwrap();
+                                                    
+                                                    for element in elements {
+                                                        if let (Some(label), Some(value)) = (
+                                                            element.get("label").and_then(|l| l.as_str()),
+                                                            element.get("value")
+                                                        ) {
+                                                            let snake_key = to_snake_case(label);
+                                                            let query = if value.is_string() {
+                                                                format!(
+                                                                    "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
+                                                                    graph_name,
+                                                                    entity_id,
+                                                                    snake_key,
+                                                                    value.as_str().unwrap().replace("'", "''")
+                                                                )
+                                                            } else {
+                                                                format!(
+                                                                    "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
+                                                                    graph_name, entity_id, snake_key, value
+                                                                )
+                                                            };
+                                                            let _ = with_cypher(query, update_tx.as_mut()).await;
+                                                        }
                                                     }
+                                                    let _ = update_tx.commit().await;
                                                 }
                                                 let message = json!({
-                                                    "action": "loading".to_string(),
+                                                    "action": "created",
+                                                    "entity": processed_entity,
                                                     "notification": {
                                                         "toastId": entity["id"],
-                                                        "autoClose": true,
+                                                        "message": format!("{} entity created successfully!", entity_label),
                                                         "type": "success",
-                                                        "isLoading": false,
-                                                        "message": format!("{} entity transformed successfully!", entity_label),
-                                                    },
+                                                        "autoClose": 5000,
+                                                    }
                                                 });
-                                                let _ = session.text(message.to_string()).await;
+                                                // Send the created entity back to the client
+                                                if let Err(e) =
+                                                    session.text(message.to_string()).await
+                                                {
+                                                    error!(
+                                                        "Failed to send created entity message: {}",
+                                                        e
+                                                    );
+                                                }
                                             }
                                         }
+                                        // Send final success notification to update the loading toast
+                                        let message = json!({
+                                            "action": "loading",
+                                            "notification": {
+                                                "toastId": entity["id"],
+                                                "autoClose": true,
+                                                "type": "success",
+                                                "isLoading": false,
+                                                "message": "Transform completed successfully!",
+                                            },
+                                        });
+                                        let _ = session.text(message.to_string()).await;
                                     }
                                     Err(err) => {
                                         error!("Transform execution failed: {:?}", err);
                                         let _ = session.text(
                                             json!({
-                                                "action": "error".to_string(),
+                                                "action": "error",
                                                 "notification": {
                                                     "autoClose": true,
                                                     "toastId": entity["id"],
