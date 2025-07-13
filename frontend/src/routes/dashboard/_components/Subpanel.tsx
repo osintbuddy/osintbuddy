@@ -1,24 +1,17 @@
-import { Link, useParams } from "react-router-dom"
-import styles from "./subpanel.module.css"
-import { ChevronDownIcon } from "@heroicons/react/20/solid"
-import { StarIcon } from "@heroicons/react/24/outline";
-import { formatPGDate } from "@src/app/utilities"
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query"
-import { SerializedError } from "@reduxjs/toolkit"
-
-
-const MAX_DESCRIPTION_LENGTH = 79
-const MAX_LABEL_LENGTH = 32
+import { Link, NavLink, useParams } from 'react-router-dom'
+import { formatPGDate } from '@/app/utilities'
+import { Icon } from '@/components/icons'
+import { Entity, Graph } from '@/app/api'
 
 export function GraphLoaderCard() {
   return (
     <>
-      <div className="mb-2">
-        <div className="w-full py-6 space-y-1 rounded-md rounded-r-none border border-mirage-400/60  from-mirage-400/50 to-mirage-400/30 shadow bg-gradient-to-tl from-10%  before:absolute  px-4  via-mirage-400/10 relative before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-mirage-300/5 before:to-transparent isolate overflow-hidden shadow-black/5 border-l border-y border-mirage-500">
-          <div className="space-y-3">
-            <div className="h-2 w-3/5 rounded-lg bg-slate-600/20 animate-pulse"></div>
-            <div className="h-2 w-4/5 rounded-lg bg-slate-600/20 animate-pulse"></div>
-            <div className="h-2 w-2/5 rounded-lg bg-slate-600/20 animate-pulse"></div>
+      <div class='mb-2'>
+        <div class='from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-sm shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden'>
+          <div class='space-y-3'>
+            <div class='h-2 w-3/5 animate-pulse rounded-lg bg-slate-800/20'></div>
+            <div class='h-2 w-4/5 animate-pulse rounded-lg bg-slate-800/20'></div>
+            <div class='h-2 w-2/5 animate-pulse rounded-lg bg-slate-800/20'></div>
           </div>
         </div>
       </div>
@@ -26,84 +19,117 @@ export function GraphLoaderCard() {
   )
 }
 
-interface EntitiesSubpanelProps {
-  showError: boolean | FetchBaseQueryError | SerializedError | undefined
-  showEntities: boolean
+interface SubpanelProps {
+  showError: any
+  show: boolean
   isLoading: boolean | undefined
-  setShowEntities: () => void
-  isSuccess: boolean | undefined
+  setShow: () => void
+  isFavorite?: boolean
   label: string
   onClick: (hid: string) => void
-  items: JSONObject[] | undefined // Entity[] | Graph[]
-  to: "/dashboard/entity" | "/dashboard/graph"
+  items: Entity[] | Graph[]
+  to: '/dashboard/entity' | '/dashboard/graph'
   errorMessage?: string | null
-  dateLabel?: string 
-  dateKey?: string
 }
 
 export default function Subpanel({
   showError,
-  showEntities,
+  show,
   isLoading,
-  setShowEntities,
-  isSuccess,
+  setShow,
   label,
   onClick,
   items,
   to,
   errorMessage,
-  dateLabel =  "Last edit",
-  dateKey = "last_edit"
-}: EntitiesSubpanelProps) {
-  const { hid } = useParams();
+  isFavorite = false,
+}: SubpanelProps) {
+  const { hid } = useParams()
   return (
-    <section className={styles["subpanel"]}>
-      <header className={styles["subpanel-header"]} onClick={setShowEntities}>
-        <h2 className={`${styles["cyberpunk"]} ${styles["glitched"]}`}>{label ?? ""}</h2>
-        <ChevronDownIcon className={styles[`show-header-icon-${showEntities}`] + " transition-transform duration-100"} />
+    <>
+      <header
+        class={`hover:border-primary-350 border-mirage-400 z-50 flex cursor-pointer items-center border-b-2 py-0.5 pb-1 text-slate-700 transition-colors duration-500 ease-in-out hover:text-slate-500`}
+        onClick={setShow}
+      >
+        <h2
+          class={`font-display ${show && '!text-slate-350/80'} px-1 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
+        >
+          {label}
+        </h2>
+        <Icon
+          icon='chevron-down'
+          className={
+            `hover:text-primary-300 mr-1 ml-auto h-5 w-5 origin-center transform cursor-pointer text-slate-600 hover:rotate-3 focus:outline-hidden ${!show && 'rotate-180'}` +
+            ' transition-transform duration-300'
+          }
+        />
       </header>
-      {showError && showEntities && !isLoading && (
+      {showError && show && !isLoading && (
         <>
           <p>
-            {errorMessage?.length ? (<p className="text-slate-400/60 text-sm px-2">{errorMessage}</p>) : (
-              <>We ran into an error fetching your data. Please try refreshing the page, if this error continues to occur please <a href="#" className="text-info-300">file an issue</a> on github</>
+            {errorMessage?.length ? (
+              <p class='px-2 text-sm text-slate-400/60'>{errorMessage}</p>
+            ) : (
+              <>
+                We ran into an error fetching your data. Please try refreshing
+                the page, if this error continues to occur please{' '}
+                <a href='#' class='text-info-300'>
+                  file an issue
+                </a>{' '}
+                on github
+              </>
             )}
           </p>
         </>
       )}
-      {showEntities && isLoading && !showError && (
+      {show && isLoading && !showError && (
         <>
           <GraphLoaderCard />
           <GraphLoaderCard />
         </>
       )}
-
-      <section className={` transition-transform duration-150 ease-out ${showEntities ? 'translate-y-0' : '-translate-y-[45%] -scale-y-0 !h-0'}`}>
-        {items && items.map((item) => {
-          const isActive = hid === `${item.id}`
-          const descriptionClassName = styles["subpanel-desc"] + " " + styles[`subpanel-desc-${isActive}`]
+      <div
+        class={`overflow-y-scroll pr-2.5 pl-0.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
+      >
+        {items.map((item) => {
           return (
-            <Link
+            <NavLink
               key={item.id}
               to={`${to}/${item.id}`}
-              className={`${styles["subpanel-link"]} ${styles[`subpanel-link-${isActive}`]} ${isSuccess && showEntities ? 'translate-y-0 scale-y-100' : '-translate-y-full  scale-y-0 '}`}>
-              <div>
-                <p className={styles["subpanel-label"] + " " + styles[`subpanel-label-${isActive}`]}>{item.label}</p>
-                <p className={descriptionClassName}>{item.description}</p>
-                <p className={descriptionClassName}><span className="font-sans">{dateLabel} </span> {formatPGDate(item[dateKey])}</p>
-              </div>
-              <StarIcon
-                onClick={async () => await onClick(item.id)}
-                className={
-                  styles["link-icon"] + " " +
-                  styles[`link-icon-${item.is_favorite}`] + " " +
-                  styles[`link-active-${hid !== `${item.id}`}`]
-                }
-              />
-            </Link>
+              className={({ isActive }) =>
+                `from-mirage-600/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 mb-1.5 flex w-full -translate-x-px items-center overflow-hidden rounded-md border border-slate-950 bg-transparent from-10% text-sm shadow-2xs transition-transform duration-300 ease-out first:mt-2 hover:translate-x-[3px] hover:border-slate-900/40 hover:bg-gradient-to-tl hover:shadow focus:outline-hidden ${isActive ? '*:text-slate-350 from-mirage-600/20 to-mirage-600/10 hover:!from-mirage-600/20 hover:!to-mirage-600/10 translate-x-0 !border-slate-900/40 bg-gradient-to-tl from-10% shadow-none hover:!translate-x-0 hover:!border-slate-900/40 hover:bg-gradient-to-tl' : '*:text-slate-500'}`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <div class='group mb-0.5 flex w-full flex-col items-start p-2.5 pr-0 text-inherit'>
+                    <p
+                      class={`line-clamp-1 pb-0.5 text-base leading-4 ${isActive ? 'group-hover:text-slate-350' : 'group-hover:text-slate-400'}`}
+                    >
+                      {item.label}
+                    </p>
+                    <p class='mb-0.5 line-clamp-3 h-full max-h-8 w-full overflow-clip pr-6 leading-4 wrap-break-word'>
+                      {item.description}
+                    </p>
+                    <p class='mt-1 text-left text-xs leading-none font-light'>
+                      Created {formatPGDate(item.ctime)}
+                    </p>
+                  </div>
+                  <Icon
+                    icon='star'
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      await onClick(item.id)
+                    }}
+                    className={`hover:!text-primary-350 text- absolute right-0 ml-auto h-8 w-8 rounded border border-transparent p-1 text-slate-700 transition-colors duration-300 ${isFavorite ? '!text-primary-300' : '!text-slate-700'} link-active-${hid !== item.id}`}
+                  />
+                </>
+              )}
+            </NavLink>
           )
         })}
-      </section>
-    </section>
+      </div>
+    </>
   )
 }

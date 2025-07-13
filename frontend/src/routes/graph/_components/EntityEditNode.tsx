@@ -1,60 +1,63 @@
 // @ts-nocheck
-import { ChevronUpDownIcon, PaperClipIcon } from '@heroicons/react/24/outline';
-import { Combobox } from '@headlessui/react';
-import classNames from 'classnames';
-import { ChangeEvent, Dispatch, Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { Handle, Position } from 'reactflow';
-import { GripIcon, Icon } from '@src/components/Icons';
-import { toast } from 'react-toastify';
-import List from 'react-virtualized/dist/es/List'
-import { useAppDispatch, useAppSelector } from '@src/app/hooks';
-import { type ThunkDispatch } from 'redux-thunk';
-import { type Graph, EditState, saveUserEdits, selectNodeValue, disableEntityEdit, setEditState } from '@src/features/graph/graphSlice';
-import { AnyAction, current } from '@reduxjs/toolkit';
+import {
+  ChangeEvent,
+  Dispatch,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks'
+import { Fragment } from 'preact/compat'
+import { GripIcon, Icon } from '@/components/icons'
+import { toast } from 'react-toastify'
+import { Handle, Position } from '@xyflow/react'
 
-var dropdownKey = 0;
+var dropdownKey = 0
 
 const getDropdownKey = () => {
-  dropdownKey += 1;
-  return `k_${dropdownKey}`;
-};
+  dropdownKey += 1
+  return `k_${dropdownKey}`
+}
 
-var nodeKey = 0;
+var nodeKey = 0
 
 const getNodeKey = () => {
-  nodeKey += 1;
-  return `k_${nodeKey}`;
-};
+  nodeKey += 1
+  return `k_${nodeKey}`
+}
 
-const handleStyle = { borderColor: '#39477899', background: '#12172720', width: 12, margin: -1, height: 12 }
+const handleStyle = {
+  borderColor: '#1C233B',
+  background: '#0c0c32',
+  width: 10,
+  margin: -3,
+  height: 10,
+}
 
 type NodeElement = NodeInput & {
-  nodeId: string;
-  editState: EditState;
-  dispatch: ThunkDispatch<{ settings: { showSidebar: boolean }; graph: Graph }, undefined, AnyAction> &
-  Dispatch<AnyAction>;
-};
+  nodeId: string
+  editState: EditState
+}
 
 export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
-  const node = ctx.data;
+  const node = ctx.data
 
-  const dispatch = useAppDispatch();
-
-  const getNodeElement = (element: NodeInput, key: string | null = getNodeKey()) => {
+  const getNodeElement = (
+    element: NodeInput,
+    key: string | null = getNodeKey()
+  ) => {
     switch (element.type) {
       case 'dropdown':
         return (
           <DropdownInput
             key={key}
             nodeId={ctx.id}
-            value={ctx?.value}
             options={element.options || []}
             label={element.label}
             value={element.value as string}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
-        );
+        )
 
       case 'text':
         return (
@@ -64,9 +67,8 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             label={element?.label}
             icon={element?.icon || 'ballpen'}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
-        );
+        )
 
       case 'upload':
         return (
@@ -77,9 +79,8 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             initialValue={element?.value || ''}
             icon={element?.icon || 'file-upload'}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
-        );
+        )
       case 'title':
         return (
           <Title
@@ -87,9 +88,8 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
-        );
+        )
 
       case 'section':
         return (
@@ -98,9 +98,8 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
-        );
+        )
       case 'textarea':
         return (
           <TextArea
@@ -108,12 +107,9 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-
-            dispatch={dispatch}
             sendJsonMessage={sendJsonMessage}
-            dispatch={dispatch}
           />
-        );
+        )
       case 'copy-text':
         return (
           <CopyText
@@ -121,104 +117,192 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             nodeId={ctx.id}
             label={element?.label}
             value={element?.value || ''}
-            dispatch={dispatch}
           />
-        );
+        )
       case 'empty':
-        return <input className='h-0 bg-transparent pointer-events-none' />;
+        return <input className='pointer-events-none h-0 bg-transparent' />
     }
-  };
+  }
 
-  const columnsCount = Math.max(0, ...node.elements.map(s => s.length === undefined ? 1 : s.length))
+  const columnsCount = Math.max(
+    0,
+    ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
+  )
   return (
     <>
-      <Handle position={Position.Right} id='r1' key='r1' type='source' style={handleStyle} />
-      <Handle position={Position.Top} id='t1' key='t1' type='source' style={handleStyle} />
-      <Handle position={Position.Bottom} id='b1' key='b1' type='source' style={handleStyle} />
-      <Handle position={Position.Left} id='l1' key='l1' type='source' style={handleStyle} />
+      <Handle
+        position={Position.Right}
+        id='r1'
+        key='r1'
+        type='source'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Top}
+        id='t1'
+        key='t1'
+        type='source'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Bottom}
+        id='b1'
+        key='b1'
+        type='source'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Left}
+        id='l1'
+        key='l1'
+        type='source'
+        style={handleStyle}
+      />
 
-      <Handle position={Position.Right} id='r2' key='r2' type='target' style={handleStyle} />
-      <Handle position={Position.Top} id='t2' key='t2' type='target' style={handleStyle} />
-      <Handle position={Position.Bottom} id='b2' key='b2' type='target' style={handleStyle} />
-      <Handle position={Position.Left} id='l2' key='l2' type='target' style={handleStyle} />
+      <Handle
+        position={Position.Right}
+        id='r2'
+        key='r2'
+        type='target'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Top}
+        id='t2'
+        key='t2'
+        type='target'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Bottom}
+        id='b2'
+        key='b2'
+        type='target'
+        style={handleStyle}
+      />
+      <Handle
+        position={Position.Left}
+        id='l2'
+        key='l2'
+        type='target'
+        style={handleStyle}
+      />
       <div className='node container'>
         <div
           // 99 === 0.6 opacity
-          style={{ backgroundColor: node?.color?.length === 7 ? `${node.color}99` : node?.color }}
-          className='header '
+          style={{
+            backgroundColor:
+              node?.color?.length === 7 ? `${node.color}99` : node?.color,
+          }}
+          className='text-slate-350 flex h-full w-full cursor-grab items-center justify-between rounded-t-md px-1 py-2 active:cursor-grabbing'
         >
-          <GripIcon />
-          <div className='text-container '>
-            <p className='text-[0.4rem] flex font-black  text-mirage-900  whitespace-wrap font-display'>
-              <span className='mr-1 text-[0.5rem] text-mirage-900 font-extralight max-w-xl whitespace-wrap '> ID: </span>
+          <GripIcon class='h-6 w-6' />
+          <div className='flex w-full flex-col px-2 font-medium'>
+            <p className='whitespace-wrap font-display text-slate-350 flex text-[0.4rem] font-black'>
+              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-extralight text-inherit'>
+                ID:
+              </span>
               {ctx.id}
             </p>
-            <p className='text-xs text-slate-200 max-w-xl whitespace-wrap font-display font-bold'>{ctx.data.label}</p>
+            <p className='whitespace-wrap font-display max-w-xl text-[0.65rem] font-semibold text-slate-200'>
+              {ctx.data.label}
+            </p>
           </div>
-          <Icon icon={ctx.data.icon} className='h-5 w-5 mr-2 cursor-grab focus:cursor-grabbing' />
+          <Icon
+            icon={ctx.data.icon}
+            className='h-6 w-6 cursor-grab focus:cursor-grabbing'
+          />
         </div>
         <form
           id={`${ctx.id}-form`}
           onSubmit={(event) => event.preventDefault()}
           className='elements'
           style={{
-            gridTemplateColumns: '100%'
+            gridTemplateColumns: '100%',
           }}
         >
           {ctx.data.elements.map((element: NodeInput, i: number) => {
             if (Array.isArray(element)) {
               return (
-                <div style={{ display: 'grid', columnGap: '0.5rem', gridTemplateColumns: `repeat(${element.length}, minmax(0, 1fr))` }} key={i.toString()}>
+                <div
+                  style={{
+                    display: 'grid',
+                    columnGap: '0.5rem',
+                    gridTemplateColumns: `repeat(${element.length}, minmax(0, 1fr))`,
+                  }}
+                  key={i.toString()}
+                >
                   {element.map((elm, i: number) => (
                     <Fragment key={i.toString()}>
                       {getNodeElement(elm, `${elm.label}-${elm.id}-${ctx.id}`)}
                     </Fragment>
                   ))}
                 </div>
-              );
+              )
             }
-            return getNodeElement(element, `${element.label}-${element.id}-${ctx.id}`);
+            return getNodeElement(
+              element,
+              `${element.label}-${element.id}-${ctx.id}`
+            )
           })}
         </form>
-      </div >
+      </div>
     </>
-  );
+  )
 }
 
-export function CopyText({ nodeId, label, value }: { nodeId: string; label: string; value: string }) {
+export function CopyText({
+  nodeId,
+  label,
+  value,
+}: {
+  nodeId: string
+  label: string
+  value: string
+}) {
   return (
     <div
       onClick={() => {
-        navigator.clipboard.writeText(value);
-        toast.success(`Copied ${label} to clipboard!`);
+        navigator.clipboard.writeText(value)
+        toast.success(`Copied ${label} to clipboard!`)
       }}
-      className='flex items-center max-w-xs text-info-300'
+      className='text-info-300 flex max-w-xs items-center'
     >
-      <PaperClipIcon className='w-4 h-4 text-inherit text-info-200 shrink-0' />
+      <Icon icon='paperclip' className='h-4 w-4' />
       <p
         title='Click to copy'
         data-type='link'
-        className='ml-2 text-xs text-inherit break-keep whitespace-nowrap  truncate'
+        className='ml-2 truncate text-xs break-keep whitespace-nowrap text-inherit'
       >
         {value}
       </p>
-      <input type='text' className='hidden' data-label={label} id={`${nodeId}-${label}`} value={value} readOnly />
+      <input
+        type='text'
+        className='hidden'
+        data-label={label}
+        id={`${nodeId}-${label}`}
+        value={value}
+        readOnly
+      />
     </div>
-  );
+  )
 }
 
-
-export function TextArea({ nodeId, label, sendJsonMessage, icon, dispatch }: NodeElement) {
-  const initValue = useAppSelector((state) => selectNodeValue(state, nodeId, label));
-
+export function TextArea({
+  nodeId,
+  label,
+  sendJsonMessage,
+  icon,
+  value: initValue,
+}: NodeElement) {
   const [value, setValue] = useState(initValue)
   const [showMonospace, setShowMonospace] = useState(true)
 
   return (
-    <div className='flex flex-col w-full'>
+    <div className='flex w-full flex-col'>
       <label
         onClick={() => setShowMonospace(!showMonospace)}
-        className='flex justify-between items-center font-semibold leading-5 font-display text-slate-400'
+        className='font-display flex items-center justify-between leading-5 font-semibold text-slate-400'
       >
         {label}
         <Icon
@@ -226,31 +310,45 @@ export function TextArea({ nodeId, label, sendJsonMessage, icon, dispatch }: Nod
           className='h-4 w-4 text-slate-500'
         />
       </label>
-      <div className='node-field !w-full !min-w-2xl'>
+      <div className='!w-full !min-w-2xl'>
         <textarea
           rows={16}
-          className={`form-input min-w-[16rem] text-xs text-slate-400 nodrag nowheel whitespace-wrap px-1 py-1.5 ${showMonospace && '!font-code'}`}
+          className={`nodrag nowheel whitespace-wrap block w-full min-w-[16rem] bg-transparent px-1 py-1.5 text-xs text-slate-400 outline-hidden placeholder:text-slate-700 focus:outline-hidden sm:text-sm ${showMonospace && '!font-code'}`}
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {
-            sendJsonMessage({ action: 'update:node', node: { id: nodeId, [label]: value } });
-            dispatch(saveUserEdits({ value, nodeId, label }))
+            sendJsonMessage({
+              action: 'update:entity',
+              entity: { id: Number(nodeId), [label]: value },
+            })
           }}
         />
       </div>
     </div>
-  );
+  )
 }
 
-const MAX_TEXT_LENGTH = 100;
+const MAX_TEXT_LENGTH = 100
 
-export function Text({ nodeId, label, value, icon }: { nodeId: string; label: string; value: string; icon?: any }) {
+export function Text({
+  nodeId,
+  label,
+  value,
+  icon,
+}: {
+  nodeId: string
+  label: string
+  value: string
+  icon?: any
+}) {
   return (
-    <div className=' w-full flex  pb-1 relative text-slate-400'>
+    <div className='relative flex w-full pb-1 text-slate-400'>
       {icon && <Icon icon={icon} className='h-6 w-6' />}
-      <p className='text-xs text-slate-400 transition-colors duration-500 ease-out pr-2.5'>{value} </p>
-    </div >
-  );
+      <p className='pr-2.5 text-xs text-slate-400 transition-colors duration-500 ease-out'>
+        {value}{' '}
+      </p>
+    </div>
+  )
 }
 
 export function Title({
@@ -258,15 +356,15 @@ export function Title({
   label,
   value,
 }: {
-  nodeId: string;
-  label: string;
-  value: string;
+  nodeId: string
+  label: string
+  value: string
 }) {
   return (
-    <div className='node-display !py-0 !my-0'>
+    <div className='node-display !my-0 !py-0'>
       {value && <h1 className='my-0'>{value}</h1>}
     </div>
-  );
+  )
 }
 
 export function UploadFileInput({
@@ -276,29 +374,40 @@ export function UploadFileInput({
   sendJsonMessage,
   icon,
 }: {
-  nodeId: string;
-  label: string;
-  initialValue: string;
-  sendJsonMessage: Function;
-  icon?: any;
+  nodeId: string
+  label: string
+  initialValue: string
+  sendJsonMessage: Function
+  icon?: any
 }) {
-  const [value, setValue] = useState<File>(initialValue as any);
+  const [value, setValue] = useState<File>(initialValue as any)
 
   const updateValue = (event: ChangeEvent<HTMLInputElement>) => {
     if (event?.target?.files && event?.target?.files?.length > 0) {
-      const file = event.target.files[0];
-      setValue(file);
-      sendJsonMessage({ action: 'update:node', node: { id: nodeId, [label]: file, name: file?.name || 'unknown' } });
+      const file = event.target.files[0]
+      setValue(file)
+      sendJsonMessage({
+        action: 'update:entity',
+        entity: {
+          id: Number(nodeId),
+          [label]: file,
+          name: file?.name || 'unknown',
+        },
+      })
     }
-  };
+  }
 
   return (
     <>
-      <p className='text-[0.5rem] ml-1 text-slate-400 whitespace-wrap font-semibold font-display mt-1'>{label}</p>
-      <div className='flex items-center mb-1'>
+      <p className='whitespace-wrap font-display mt-1 ml-1 text-[0.5rem] font-semibold text-slate-400'>
+        {label}
+      </p>
+      <div className='flex items-center'>
         <div className='node-field'>
           <Icon icon={icon} className='h-6 w-6' />
-          <label className={classNames('ml-5 w-52', value?.name && 'text-slate-400')}>
+          <label
+            className={classNames('ml-5 w-52', value?.name && 'text-slate-400')}
+          >
             <input
               data-label={label}
               id={`${nodeId}-${label}`}
@@ -311,135 +420,171 @@ export function UploadFileInput({
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export function TextInput({ nodeId, label, sendJsonMessage, icon, dispatch }: NodeElement) {
-  const initValue = useAppSelector((state) => selectNodeValue(state, nodeId, label));
-
+export function TextInput({
+  nodeId,
+  label,
+  sendJsonMessage,
+  icon,
+  value: initValue,
+}: NodeElement) {
   const [value, setValue] = useState(initValue)
 
   return (
     <>
       <div className='flex flex-col'>
-        <label className='text-[0.5rem] mt-1 text-slate-400 whitespace-wrap font-semibold font-display '>
+        <label className='whitespace-wrap font-display mt-0.5 ml-0.5 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
           {label}
         </label>
-        <div className='nodrag node-field'>
-          <Icon icon={icon} className='h-5 w-5' />
+        <div className='node-field'>
           <input
             id={`${nodeId}-${label}`}
+            class=''
             type='text'
             onBlur={() => {
-              sendJsonMessage({ action: 'update:node', node: { id: nodeId, [label]: value } });
-              dispatch(saveUserEdits({ value, nodeId, label }))
+              sendJsonMessage({
+                action: 'update:entity',
+                entity: { id: Number(nodeId), [label]: value },
+              })
             }}
-            onChange={(event: InputEvent) => setValue(event.currentTarget.value)}
+            onChange={(event: InputEvent) =>
+              setValue(event.currentTarget.value)
+            }
             value={value ?? initValue}
           />
+          <Icon icon={icon} />
         </div>
-
       </div>
     </>
-  );
+  )
 }
 
 interface DropdownOption {
-  label: string;
-  tooltip: string;
-  value: string;
+  label: string
+  tooltip: string
+  value: string
 }
 
-export function DropdownInput({ options, label, nodeId, sendJsonMessage, dispatch }: NodeElement) {
-  const [query, setQuery] = useState('');
+export function DropdownInput({
+  options,
+  label,
+  nodeId,
+  sendJsonMessage,
+  value: activeValue,
+}: NodeElement) {
+  const [query, setQuery] = useState('')
   const dropdownRef = useRef(200)
-  const filteredOptions = useMemo(() =>
-    query === ''
-      ? [...options].sort((a, b) => a.label.localeCompare(b.label)) ?? []
-      : [...options]?.sort((a, b) => a.label.localeCompare(b.label)).filter((option: DropdownOption) => option?.label.toLowerCase().includes(query.toLowerCase())) ?? [], [query]);
-
-  const activeValue = useAppSelector((state) => selectNodeValue(state, nodeId, label));
-  const activeOption = options.find((option) => option.value === activeValue || option.label === activeValue) ?? {
+  const filteredOptions = useMemo(
+    () =>
+      query === ''
+        ? ([...options].sort((a, b) => a.label.localeCompare(b.label)) ?? [])
+        : ([...options]
+            ?.sort((a, b) => a.label.localeCompare(b.label))
+            .filter((option: DropdownOption) =>
+              option?.label.toLowerCase().includes(query.toLowerCase())
+            ) ?? []),
+    [query]
+  )
+  const activeOption = options.find(
+    (option) => option.value === activeValue || option.label === activeValue
+  ) ?? {
     label: '',
     value: '',
-    tooltip: ''
-  };
+    tooltip: '',
+  }
 
   const rowRenderer = ({ index, key, isScrolling, isVisible, style }) => {
     return (
-      <Combobox.Option
-        key={key}
-        style={style}
-        value={filteredOptions[index]}
-        className={({ active }) =>
-          `overflow-y-none px-2 flex flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-700 text-slate-400' : 'text-slate-500'}`
-        }
-      >
+      <>
+        {/* <Combobox.Option
+          key={key}
+          style={style}
+          value={filteredOptions[index]}
+          className={({ active }) =>
+            `overflow-y-none px-2 flex flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-700 text-slate-400' : 'text-slate-500'}`
+          }
+        > */}
         <span
-          className="block truncate"
-          title={options[index].tooltip !== filteredOptions[index].label ? filteredOptions[index].tooltip : 'No description found'}
+          className='block truncate'
+          title={
+            options[index].tooltip !== filteredOptions[index].label
+              ? filteredOptions[index].tooltip
+              : 'No description found'
+          }
         >
           {filteredOptions[index].label}
         </span>
-        {filteredOptions[index]?.value &&
+        {filteredOptions[index]?.value && (
           <span
-            className="flex truncate leading-3 text-[0.5rem]"
-            title={filteredOptions[index].tooltip !== filteredOptions[index].label ? filteredOptions[index].tooltip : 'No description found'}
+            className='flex truncate text-[0.5rem] leading-3'
+            title={
+              filteredOptions[index].tooltip !== filteredOptions[index].label
+                ? filteredOptions[index].tooltip
+                : 'No description found'
+            }
           >
             {filteredOptions[index].value}
           </span>
-        }
-      </Combobox.Option>
+        )}
+        {/* </Combobox.Option > */}
+      </>
     )
   }
 
   return (
     <>
-      <Combobox
-        className='w-full dropdown-input'
+      <div
+        className='dropdown-input w-full'
         as='div'
         value={activeOption}
         onChange={(option) => {
           sendJsonMessage({
-            action: 'update:node',
-            node: {
-              id: nodeId,
+            action: 'update:entity',
+            entity: {
+              id: Number(nodeId),
               [label]: option?.value ? option.value : option.label,
-            }
-          });
-          dispatch(
-            saveUserEdits({
-              value: option?.value ? option.value : option.label,
-              nodeId,
-              label,
-            })
-          );
+            },
+          })
         }}
       >
-        <Combobox.Label>
-          <p className='text-[0.5rem] text-slate-400 whitespace-wrap font-semibold font-display mt-1'>{label}</p>
-        </Combobox.Label>
-        <div className='relative node-field dropdown !px-0'>
-          <Combobox.Input
+        <label>
+          <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
+            {label}
+          </p>
+        </label>
+        <div className='node-field dropdown relative !px-0'>
+          <input
             ref={dropdownRef}
             onChange={(event) => setQuery(event.target.value)}
             displayValue={(option: DropdownOption) => option.label}
-            className='nodrag focus:ring-info-400 mr-4 outline-none px-2'
+            className='nodrag focus:ring-info-400 mr-4 px-2 outline-hidden'
           />
-          <Combobox.Button className='absolute z-[99] -top-px inset-y-0 h-6 w-4 right-0 focus:outline-none'>
-            <ChevronUpDownIcon className='h-7 w-7 !text-slate-600 ' aria-hidden='true' />
-          </Combobox.Button>
-          <Combobox.Options className='absolute nodrag nowheel mr-1 z-10 max-h-80 w-full overflow-hidden rounded-b-md from-mirage-700/90 to-mirage-800/80 from-30%  bg-gradient-to-br py-1 text-[0.6rem] shadow-lg  focus:outline-none sm:text-sm'>
+          <button className='absolute inset-y-0 -top-px right-0 z-[99] h-6 w-4 focus:outline-hidden'>
+            <Icon
+              icon='chevron-down'
+              className='h-7 w-7 !text-slate-600'
+              aria-hidden='true'
+            />
+          </button>
+          <div className='nodrag nowheel from-mirage-700/90 to-mirage-800/80 absolute z-10 mr-1 max-h-80 w-full overflow-hidden rounded-b-md bg-gradient-to-br from-30% py-1 text-[0.6rem] shadow-lg focus:outline-hidden sm:text-sm'>
             <List
               rowCount={filteredOptions.length}
               width={dropdownRef?.current?.clientWidth}
-              height={filteredOptions?.length <= 3 ? filteredOptions?.length * 54 : 260}
+              height={
+                filteredOptions?.length <= 3
+                  ? filteredOptions?.length * 54
+                  : 260
+              }
               rowRenderer={rowRenderer}
-              rowHeight={({ index }) => filteredOptions[index]?.value ? 54 : 40}
+              rowHeight={({ index }) =>
+                filteredOptions[index]?.value ? 54 : 40
+              }
             />
-          </Combobox.Options>
+          </div>
         </div>
-      </Combobox>
+      </div>
     </>
-  );
+  )
 }

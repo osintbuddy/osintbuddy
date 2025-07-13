@@ -1,169 +1,204 @@
-import { useCallback, useState, useMemo, DragEventHandler, useEffect, MouseEvent } from 'react';
-import ReactFlow, {
+import { useCallback, useState, useMemo, useRef } from 'preact/hooks'
+import { DragEventHandler } from 'preact/compat'
+import {
   Edge,
+  Node,
   Background,
   BackgroundVariant,
   FitViewOptions,
-  NodeDragHandler,
   Connection,
-  Node,
-  getViewportForBounds,
-  MiniMap,
   ReactFlowInstance,
-  getNodesBounds,
-  getBoundsOfRects,
-  getTransformForBounds,
-} from 'reactflow';
-import EditEntityNode from './EntityEditNode';
-import { addNodeUpdate, createEdge, disableEntityEdit, enableEntityEdit, graph, onEdgesChange, selectEditState, setEditLabel, setEditState, updateEdgeEvent, updateNodeFlow } from '@src/features/graph/graphSlice';
-import { useAppDispatch, useAppSelector, useEffectOnce } from '@src/app/hooks';
-import { toast } from 'react-toastify';
-import ViewEntityNode from './EntityViewNode';
-import { CreateEntityOnDropApiResponse, useCreateEntityOnDropMutation, useRefreshEntityPluginsQuery } from '@src/app/api';
-import { useParams } from 'react-router-dom';
-import NewConnectionLine from './ConnectionLine';
-import SimpleFloatingEdge from './SimpleFloatingEdge';
-import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
+  ReactFlow,
+  OnNodeDrag,
+  NodeMouseHandler,
+} from '@xyflow/react'
+import EditEntityNode from './EntityEditNode'
+import { toast } from 'react-toastify'
+import ViewEntityNode from './EntityViewNode'
+import { useParams } from 'react-router-dom'
+import NewConnectionLine from './ConnectionLine'
+import SimpleFloatingEdge from './SimpleFloatingEdge'
+import { useGraphFlowStore } from '@/app/store'
+import ContextMenu from './ContextMenu'
+import { CtxMenu, CtxPosition } from '..'
 
 const viewOptions: FitViewOptions = {
   padding: 50,
-};
+}
 
-// im lazy so im extending the generic JSONObject for now, feel free to fix...
-interface ProjectGraphProps extends JSONObject {
+interface ProjectGraphProps {
+  nodes: Node[]
+  edges: Edge[]
   graphInstance?: ReactFlowInstance
+  ctxMenu: CtxMenu | null
+  setGraphInstance: (flow: ReactFlowInstance) => void
+  sendJsonMessage: (message: any) => void
+  onNodesChange?: (changes: any) => void
+  onEdgesChange?: (changes: any) => void
+  onConnect?: (connection: any) => void
+  setCtxMenu: (ctx: CtxMenu | null) => void
 }
 
 export default function Graph({
-  onSelectionCtxMenu,
-  onMultiSelectionCtxMenu,
-  onPaneCtxMenu,
-  onPaneClick,
-  graphRef,
   nodes,
   edges,
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
-  fitView,
-  positionMode,
-  editState
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  ctxMenu,
+  setCtxMenu,
 }: ProjectGraphProps) {
-  const dispatch = useAppDispatch();
-  const onEdgeUpdate = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => dispatch(updateEdgeEvent({ oldEdge, newConnection })),
+  const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
+  const ref = useRef<HTMLDivElement>(null)
+  // @todo implement support for multi-select transforms -
+  // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
+  // just delete/save position on drag/etc?
+  const onMultiSelectionCtxMenu = useCallback(
+    (event: MouseEvent, nodes: Node[]) => {
+      event.preventDefault()
+    },
     []
-  );
+  )
+
+  const onNodeContextMenu = useCallback(
+    (event: MouseEvent, node: Node | null) => {
+      event.preventDefault()
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      const pane = ref.current as HTMLDivElement
+      const bounds = pane.getBoundingClientRect()
+      setCtxMenu({
+        entity: node,
+        position: {
+          top: event.clientY < bounds.height - 200 && event.clientY,
+          left: event.clientX < bounds.width - 200 && event.clientX,
+          right:
+            event.clientX >= bounds.width - 200 && bounds.width - event.clientX,
+          bottom:
+            event.clientY >= bounds.height - 200 &&
+            bounds.height - event.clientY + 100,
+        },
+      })
+    },
+    []
+  )
+
+  const onPaneClick = useCallback(() => setCtxMenu({ entity: null }), [])
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      // Handle edge update through websocket or API call
+      sendJsonMessage({
+        action: 'update:edge',
+        oldEdge,
+        newConnection,
+      })
+    },
+    []
+  )
   const { hid } = useParams()
-  useRefreshEntityPluginsQuery()
 
   const onDragOver: DragEventHandler<HTMLDivElement> = useCallback((event) => {
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-  }, []);
+    event.preventDefault()
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  }, [])
 
-  const [blankNode, setBlankNode] = useState<any>({ label: null, position: null });
-  const [createGraphEntity, {
-    isError: isCreateEntityError,
-    isLoading: isLoadingCreateEntity }
-  ] = useCreateEntityOnDropMutation(blankNode)
+  const createGraphEntity = useCallback(
+    async (data: any) => {
+      sendJsonMessage({
+        action: 'create:entity',
+        entity: data,
+      })
+    },
+    [sendJsonMessage]
+  )
 
   const onDrop: DragEventHandler<HTMLDivElement> = useCallback(
     async (event) => {
-      event.preventDefault();
-      const label = event.dataTransfer && event.dataTransfer.getData('application/reactflow');
-      if (typeof label === 'undefined' || !label) return;
+      const label =
+        event.dataTransfer &&
+        event.dataTransfer.getData('application/reactflow')
+      if (typeof label === 'undefined' || !label) return
 
-      const graphBounds = graphRef.current.getBoundingClientRect();
-      const position = graphInstance?.project({
-        x: event.clientX - graphBounds.left,
-        y: event.clientY - graphBounds.top,
-      });
-      if (label && position && hid) {
-        const createNode = { label, position }
-        createGraphEntity({ createNode, hid })
-          .then(({ data }: CreateEntityOnDropApiResponse) => {
-            dispatch(addNodeUpdate({ position, label, ...data, }))
-            dispatch(setEditState({ editId: data.id, editLabel: 'createEntity' }))
-          })
-          .catch((error: any) => {
-            console.error(error)
-            toast.error(`We ran into a problem creating the ${label} entity. Please try again`)
-          })
-      }
+      const position = graphInstance?.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      })
+      const createEntity = { label, position }
+      createGraphEntity(createEntity).catch((error) => {
+        console.error(error)
+        toast.error(
+          `We ran into a problem creating the ${label} entity. Please try again`
+        )
+      })
     },
-    [graphInstance]
-  );
+    [graphInstance, createGraphEntity, hid]
+  )
 
   const nodeTypes = useMemo(
     () => ({
       edit: (data: JSONObject) => (
-        <EditEntityNode
-          ctx={data}
-          sendJsonMessage={sendJsonMessage}
-        />
+        <EditEntityNode ctx={data} sendJsonMessage={sendJsonMessage} />
       ),
-      view: (data: JSONObject) => (
-        <ViewEntityNode
-          ctx={data}
-          dispatch={dispatch}
-        />
-      ),
+      view: (data: JSONObject) => <ViewEntityNode ctx={data} />,
     }),
     []
-  );
+  )
 
   const edgeTypes = useMemo(
     () => ({
-      float: SimpleFloatingEdge
+      float: SimpleFloatingEdge,
     }),
     []
-  );
+  )
 
-  const doubleClickThreshold = 320;
-  const [isDragging, setIsDragging] = useState(false)
-  const [isDoubleClick, setIsDoubleClick] = useState(false)
-  const [entityPosition, setEntityPosition] = useState<any>({ x: null, y: null })
+  const doubleClickThreshold = 320
   const [clickDelta, setClickDelta] = useState(0)
 
-  const onNodeDragStop: NodeDragHandler = (_, node) => {
-    if (positionMode === 'manual' && (entityPosition.x !== node.position.x || entityPosition.y !== node.position.y)) {
-      sendJsonMessage({ action: 'update:node', node: { id: node.id, x: node.position.x, y: node.position.y } });
-      setEntityPosition({ x: node.position.x, y: node.position.y })
-    }
-    if (editState !== 'dragEntity' && !isDoubleClick) {
-      dispatch(setEditState({ editId: node.id, editLabel: "dragEntity" }))
-    }
-  };
-
-  const handleGraphRead = (readType: string = 'read') => {
-    const viewport: any = graphInstance?.getViewport()
-    if (viewport) {
-      sendJsonMessage({
-        action: `${readType}:graph`,
-        viewport
-      })
-    }
+  const onNodeDragStop: OnNodeDrag = (_, node) => {
+    sendJsonMessage({
+      action: 'update:entity',
+      entity: { id: Number(node.id), x: node.position.x, y: node.position.y },
+    })
   }
 
-  useEffect(() => {
-    graphInstance?.setViewport({ x: 0, y: 0, zoom: 0.22 })
-    handleGraphRead('initial_read');
-  }, [graphInstance?.getViewport])
+  const onEdgeChange = useCallback(
+    (changes: any) => {
+      // Use the store handler if provided, otherwise fallback to WebSocket
+      if (onEdgesChange) {
+        onEdgesChange(changes)
+      } else {
+        sendJsonMessage({
+          action: 'update:edges',
+          changes,
+        })
+      }
+    },
+    [onEdgesChange]
+  )
 
-  const onConnect = useCallback((connection: any) => dispatch(createEdge(connection)), [])
-  const onEdgeChange = useCallback((changes: any) => dispatch(onEdgesChange(changes)), [])
-  const onNodesChange = useCallback((changes: any) => dispatch(updateNodeFlow(changes)), [])
-
-  const onMoveStart = useCallback(() => !isDragging && setIsDragging(true), [])
-  const onMoveEnd = useCallback(() => setIsDragging(false), [])
-  const onDragStart = useCallback(() => setIsDragging(true), [])
+  const onNodeClick: NodeMouseHandler = (_, node) => {
+    const newDelta = new Date().getTime()
+    const isDouble = newDelta - clickDelta < doubleClickThreshold
+    if (isDouble) {
+      if (node.type === 'view') enableEntityEdit(node.id)
+      else disableEntityEdit(node.id)
+    }
+    setClickDelta(newDelta)
+  }
   return (
     <ReactFlow
+      ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
-      minZoom={0.2}
-      maxZoom={1.5}
+      minZoom={0.1}
+      maxZoom={2.0}
+      zoomOnScroll={true}
+      zoomOnPinch={true}
+      zoomOnDoubleClick={false}
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
@@ -171,35 +206,36 @@ export default function Graph({
       onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
-      onEdgeUpdate={onEdgeUpdate}
+      onReconnect={onReconnect}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
-      onNodeClick={(_: any, node: any) => {
-        const newDelta = new Date().getTime()
-        const isDouble = newDelta - clickDelta < doubleClickThreshold
-        if (isDouble) {
-          if (node.type === 'view') dispatch(enableEntityEdit(node.id))
-          else dispatch(disableEntityEdit(node.id))
-        }
-        setClickDelta(newDelta)
-        setIsDoubleClick(isDouble)
-      }}
-      onMoveStart={onMoveStart}
-      onMoveEnd={onMoveEnd}
+      onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       nodeTypes={nodeTypes}
-      onDragStart={onDragStart}
-      onDragEnd={onMoveEnd}
       panActivationKeyCode='Space'
+      onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
-      onPaneContextMenu={onPaneCtxMenu}
-      onNodeContextMenu={onSelectionCtxMenu}
+      onPaneContextMenu={(event) => onNodeContextMenu(event, null)}
+      onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
     >
-      <Background size={2.5} variant={BackgroundVariant.Dots} className='bg-transparent' color='#334155e6' />
+      <Background
+        color='#394778'
+        bgColor='#0D101A30'
+        variant={BackgroundVariant.Dots}
+      />
+
+      {ctxMenu && (
+        <ContextMenu
+          sendJsonMessage={sendJsonMessage}
+          selection={ctxMenu.entity}
+          position={ctxMenu.position as CtxPosition}
+          closeMenu={() => setCtxMenu(null)}
+        />
+      )}
     </ReactFlow>
-  );
+  )
 }

@@ -1,348 +1,400 @@
-import { emptyApi as api } from "./baseApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    refreshEntityPlugins: build.query<
-      RefreshEntityPluginsApiResponse,
-      RefreshEntityPluginsApiArg
-    >({
-      query: () => ({ url: `/api/v1/node/refresh` }),
-    }),
-    createEntityOnDrop: build.mutation<
-      CreateEntityOnDropApiResponse,
-      CreateEntityOnDropApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/node/`,
-        method: "POST",
-        body: queryArg.createNode,
-        params: {
-          hid: queryArg.hid,
-        },
-      }),
-    }),
-    runEntityTransform: build.mutation<
-      RunEntityTransformApiResponse,
-      RunEntityTransformApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/node/transform/`,
-        method: "POST",
-        body: queryArg.sourceEntity,
-        params: {
-          hid: queryArg.hid,
-        },
-      }),
-    }),
-    postSignin: build.mutation<PostSigninApiResponse, PostSigninApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/auth/sign-in`,
-        method: "POST",
-        params: {
-          code: queryArg.code,
-        },
-      }),
-    }),
-    postSignout: build.mutation<PostSignoutApiResponse, PostSignoutApiArg>({
-      query: () => ({ url: `/api/v1/auth/sign-out`, method: "POST" }),
-    }),
-    getAccount: build.query<GetAccountApiResponse, GetAccountApiArg>({
-      query: () => ({ url: `/api/v1/account/` }),
-    }),
-    getGraph: build.query<GetGraphApiResponse, GetGraphApiArg>({
-      query: (queryArg) => ({ url: `/api/v1/graph/${queryArg.hid}` }),
-    }),
-    getGraphs: build.query<GetGraphsApiResponse, GetGraphsApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/graph`,
-        params: {
-          skip: queryArg.skip,
-          limit: queryArg.limit,
-          favorite_skip: queryArg.favoriteSkip,
-          favorite_limit: queryArg.favoriteLimit,
-        },
-      }),
-    }),
-    createGraph: build.mutation<CreateGraphApiResponse, CreateGraphApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/graph`,
-        method: "POST",
-        body: queryArg.graphCreate,
-      }),
-    }),
-    deleteGraph: build.mutation<DeleteGraphApiResponse, DeleteGraphApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/graph`,
-        method: "DELETE",
-        params: {
-          hid: queryArg.hid,
-        },
-      }),
-    }),
-    getGraphsByFavorite: build.query<
-      GetGraphsByFavoriteApiResponse,
-      GetGraphsByFavoriteApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/graph/favorites`,
-        params: {
-          skip: queryArg.skip,
-          limit: queryArg.limit,
-          is_favorite: queryArg.isFavorite,
-        },
-      }),
-    }),
-    updateGraphFavoriteId: build.mutation<
-      UpdateGraphFavoriteIdApiResponse,
-      UpdateGraphFavoriteIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/graph/${queryArg.hid}/favorite/`,
-        method: "PATCH",
-      }),
-    }),
-    getGraphStats: build.query<GetGraphStatsApiResponse, GetGraphStatsApiArg>({
-      query: (queryArg) => ({ url: `/api/v1/graph/${queryArg.hid}/stats` }),
-    }),
-    getEntityTransforms: build.query<
-      GetEntityTransformsApiResponse,
-      GetEntityTransformsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/entity/plugins/transform/`,
-        params: {
-          label: queryArg.label,
-        },
-      }),
-    }),
-    getEntity: build.query<GetEntityApiResponse, GetEntityApiArg>({
-      query: (queryArg) => ({ url: `/api/v1/entity/details/${queryArg.hid}` }),
-    }),
-    getEntities: build.query<GetEntitiesApiResponse, GetEntitiesApiArg>({
-      query: () => ({ url: `/api/v1/entity` }),
-    }),
-    createEntity: build.mutation<CreateEntityApiResponse, CreateEntityApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/entity`,
-        method: "POST",
-        body: queryArg.postEntityCreate,
-      }),
-    }),
-    updateEntityById: build.mutation<
-      UpdateEntityByIdApiResponse,
-      UpdateEntityByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/entity/${queryArg.hid}`,
-        method: "PUT",
-        body: queryArg.entityUpdate,
-      }),
-    }),
-    deleteEntity: build.mutation<DeleteEntityApiResponse, DeleteEntityApiArg>({
-      query: (queryArg) => ({
-        url: `/api/v1/entity/${queryArg.hid}`,
-        method: "DELETE",
-      }),
-    }),
-    updateEntityFavoriteId: build.mutation<
-      UpdateEntityFavoriteIdApiResponse,
-      UpdateEntityFavoriteIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/api/v1/entity/${queryArg.hid}/favorite`,
-        method: "PUT",
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
-export { injectedRtkApi as api };
-export type RefreshEntityPluginsApiResponse =
-  /** status 200 Successful Response */ any;
-export type RefreshEntityPluginsApiArg = void;
-export type CreateEntityOnDropApiResponse =
-  /** status 200 Successful Response */ any;
-export type CreateEntityOnDropApiArg = {
-  hid: string;
-  createNode: CreateNode;
+import { toast } from 'react-toastify';
+import { BASE_URL } from './baseApi';
+import { useAuthStore } from './store';
+
+// Base API middleware for authenticated requests
+interface ApiOptions {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: any;
+}
+
+export interface ApiError {
+  kind: string
+  message: string
+}
+
+export interface Paginate {
+  skip: number
+  limit: number
+}
+
+type TokenTypes =  'bearer'
+
+export interface Tokens {
+  access_token: string
+  refresh_token: string
+  token_type: TokenTypes
+}
+
+type OnExp = () => void;
+
+export const request = async <T>(
+  endpoint: string,
+  token: string,
+  options: ApiOptions = {},
+  onExp?: OnExp
+): Promise<T> => {
+  const { method = 'GET', headers = { 'Content-Type': 'application/json' } } = options;
+  let { body } = options;
+  if (typeof body !== "string") body = JSON.stringify(body);
+  
+  const appRequest = async (authToken: string) => {
+    return fetch(`${BASE_URL}${endpoint}`, {
+      body,
+      method,
+      headers: { 'Authorization': `Bearer ${authToken}`, ...headers },
+    });
+  };
+
+  let response = await appRequest(token);
+    // TODO: Test me
+  if (response.status > 300 || response.status < 200) {
+    const error = await response.json() as ApiError;
+    // Handle expiration with refresh logic
+    if (error.message.toLowerCase().includes("token")) {
+      try {
+        const refreshToken = useAuthStore.getState().refresh_token;
+        
+        if (refreshToken) {
+          const newTokens = await authApi.refresh(refreshToken);
+          const { access_token, refresh_token } = newTokens;
+          useAuthStore.setState({
+            access_token,
+            refresh_token,
+          });
+          // Retry original request with new token
+          const { status, json } = await appRequest(access_token);
+          if (status >= 200 && status < 300) return await json();
+        }
+      } catch {
+        // Refresh failed
+        useAuthStore.setState({
+          user: null,
+          access_token: null,
+          refresh_token: null,
+          isAuthenticated: false,
+        });
+        
+        toast.error("Session expired. Please login again.");
+        if (onExp) onExp();
+        throw error;
+      }
+
+    } else {
+      if (onExp) onExp();
+      toast.error(error.message);
+      throw error;
+    }
+  }
+  
+  const data = await response.json();
+  return data;
 };
-export type RunEntityTransformApiResponse =
-  /** status 200 Successful Response */ any;
-export type RunEntityTransformApiArg = {
-  hid: string;
-  sourceEntity: object;
-};
-export type PostSigninApiResponse = /** status 200 Successful Response */
-  | Status
-  | HttpError;
-export type PostSigninApiArg = {
-  code: string;
-};
-export type PostSignoutApiResponse =
-  /** status 200 Successful Response */ Status;
-export type PostSignoutApiArg = void;
-export type GetAccountApiResponse = /** status 200 Successful Response */
-  | MemberInDbBase
-  | HttpError;
-export type GetAccountApiArg = void;
-export type GetGraphApiResponse = /** status 200 Successful Response */ Graph;
-export type GetGraphApiArg = {
-  hid: string;
-};
-export type GetGraphsApiResponse =
-  /** status 200 Successful Response */ AllGraphsList;
-export type GetGraphsApiArg = {
-  skip?: number;
-  limit?: number;
-  favoriteSkip?: number;
-  favoriteLimit?: number;
-};
-export type CreateGraphApiResponse =
-  /** status 200 Successful Response */ Graph;
-export type CreateGraphApiArg = {
-  graphCreate: GraphCreate;
-};
-export type DeleteGraphApiResponse = /** status 200 Successful Response */ any;
-export type DeleteGraphApiArg = {
-  hid: string;
-};
-export type GetGraphsByFavoriteApiResponse =
-  /** status 200 Successful Response */ GraphsList;
-export type GetGraphsByFavoriteApiArg = {
-  skip?: number;
-  limit?: number;
-  isFavorite?: boolean;
-};
-export type UpdateGraphFavoriteIdApiResponse =
-  /** status 200 Successful Response */ any;
-export type UpdateGraphFavoriteIdApiArg = {
-  hid: string;
-};
-export type GetGraphStatsApiResponse =
-  /** status 200 Successful Response */ any;
-export type GetGraphStatsApiArg = {
-  hid: string;
-};
-export type GetEntityTransformsApiResponse =
-  /** status 200 Successful Response */ any;
-export type GetEntityTransformsApiArg = {
-  label: string;
-};
-export type GetEntityApiResponse = /** status 200 Successful Response */ any;
-export type GetEntityApiArg = {
-  hid: any;
-};
-export type GetEntitiesApiResponse = /** status 200 Successful Response */ any;
-export type GetEntitiesApiArg = void;
-export type CreateEntityApiResponse = /** status 200 Successful Response */ any;
-export type CreateEntityApiArg = {
-  postEntityCreate: PostEntityCreate;
-};
-export type UpdateEntityByIdApiResponse =
-  /** status 200 Successful Response */ any;
-export type UpdateEntityByIdApiArg = {
-  hid: string;
-  entityUpdate: EntityUpdate;
-};
-export type DeleteEntityApiResponse = /** status 200 Successful Response */ any;
-export type DeleteEntityApiArg = {
-  hid: string;
-};
-export type UpdateEntityFavoriteIdApiResponse =
-  /** status 200 Successful Response */ any;
-export type UpdateEntityFavoriteIdApiArg = {
-  hid: string;
-};
-export type ValidationError = {
-  loc: (string | number)[];
-  msg: string;
-  type: string;
-};
-export type HttpValidationError = {
-  detail?: ValidationError[];
-};
-export type XyPosition = {
-  x: number;
-  y: number;
-};
-export type CreateNode = {
-  label: string;
-  position: XyPosition;
-};
-export type Status = {
-  status: string;
-};
-export type HttpError = {
-  detail: string;
-};
-export type MemberInDbBase = {
-  name: string;
-  username?: string | null;
-  email?: string | null;
-  avatar?: string | null;
-  phone?: string | null;
-  display_name?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  is_admin: boolean;
-  created_time: string;
-  updated_time: string;
-  cid: string;
-};
-export type Graph = {
-  label: string;
-  description: string | null;
-  is_favorite?: boolean;
-  id: string;
-  updated: string;
-  created: string;
-  last_seen: string;
-};
-export type AllGraphsList = {
-  graphs: Graph[];
-  count: number;
-  favorite_graphs: Graph[];
-  favorite_count: number;
-};
-export type GraphCreate = {
-  label: string;
-  description: string | null;
-  is_favorite?: boolean;
-};
-export type GraphsList = {
-  graphs: Graph[];
-  count: number;
-};
-export type PostEntityCreate = {
-  label: string;
-  author: string;
-  description: string;
-};
-export type EntityUpdate = {
-  label?: string | null;
-  author?: string | null;
-  description?: string | null;
-  source: string | null;
-  is_favorite?: boolean;
-};
-export const {
-  useRefreshEntityPluginsQuery,
-  useCreateEntityOnDropMutation,
-  useRunEntityTransformMutation,
-  usePostSigninMutation,
-  usePostSignoutMutation,
-  useGetAccountQuery,
-  useGetGraphQuery,
-  useGetGraphsQuery,
-  useCreateGraphMutation,
-  useDeleteGraphMutation,
-  useGetGraphsByFavoriteQuery,
-  useUpdateGraphFavoriteIdMutation,
-  useGetGraphStatsQuery,
-  useGetEntityTransformsQuery,
-  useGetEntityQuery,
-  useGetEntitiesQuery,
-  useCreateEntityMutation,
-  useUpdateEntityByIdMutation,
-  useDeleteEntityMutation,
-  useUpdateEntityFavoriteIdMutation,
-} = injectedRtkApi;
+
+export interface LoginCredentials {
+  email: string
+  password: string
+}
+
+export interface RegisterCredentials {
+  name: string
+  email: string
+  password: string
+}
+
+export interface Registered {
+  name: string
+  email: string
+  verified: boolean
+  ctime: string
+  mtime: string
+}
+
+
+export const authApi = {
+  login: async (user: LoginCredentials): Promise<Tokens> => {
+    const response = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      body: JSON.stringify(user),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw await response.json() as ApiError;
+    }
+    const data = await response.json()
+    return data
+  },
+  register: async (user: RegisterCredentials): Promise<Registered> => {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify(user),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) {
+      throw await response.json() as ApiError;
+    }
+    const data = await response.json()
+    return data
+  },
+  logout: async (tokens: Tokens) => {
+    const response: { message: string } = await request('/auth/logout', tokens.access_token, {
+      method: 'POST',
+      body: JSON.stringify(tokens)
+    });
+    toast.success(response.message)
+  },
+  refresh: async (refreshToken: string): Promise<Tokens> => {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${refreshToken}`,
+        'Content-Type': 'application/json' 
+      }
+    });
+
+    if (!response.ok) {
+      throw await response.json() as ApiError;
+    }
+    const data = await response.json()
+    return data as Tokens
+  },
+}
+
+export interface CreateEntityPayload {
+  label: string
+  description: string
+  author: string
+  source: string
+}
+
+export interface UpdateEntityPayload {
+  id: string
+  label: string
+  description: string
+  author: string
+  source: string
+}
+
+export interface DeleteEntityPayload {
+  id: string
+}
+
+export interface FavoriteEntityPayload {
+  entity_id: string
+  is_favorite: boolean
+}
+
+export interface Entity {
+  id: string
+  label: string
+  description: string
+  author: string
+  source: string
+  ctime: string
+  mtime: string
+}
+
+export interface ListEntitiesResponse {
+  entities: Entity[]
+  favorites: string[]
+}
+
+export interface PluginEntity {
+  label: string
+  description: string
+  author?: string
+  [key: string]: any
+}
+
+export interface EntityWithTransforms {
+  label: string
+  description: string
+  author?: string
+  blueprint?: any
+  transforms?: any[]
+  [key: string]: any
+}
+
+export interface Plugins {
+  entities: Entity[]
+  favorites: string[]
+}
+
+export const entitiesApi = {
+  create: async (
+    payload: CreateEntityPayload,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<Entity> => {
+    return request<Entity>('/entities', token, {
+      method: 'POST',
+      body: payload
+    }, onExp);
+  },
+  list: async (
+    payload: Paginate,
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<ListEntitiesResponse> => {
+    const { skip, limit } = payload;
+    return request<ListEntitiesResponse>(`/entities?skip=${skip}&limit=${limit}`, token, {}, onExp);
+  },
+  getById: async (
+    id: string, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<Entity> => {
+    return request<Entity>(`/entities/${id}`, token, {}, onExp);
+  },
+  update: async (
+    payload: UpdateEntityPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<Entity> => {
+    return request<Entity>('/entities', token, {
+      method: 'PATCH',
+      body: payload
+    }, onExp);
+  },
+  delete: async (
+    payload: DeleteEntityPayload, 
+    token:  Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<void> => {
+    return request<void>('/entities', token, {
+      method: 'DELETE',
+      body: payload
+    }, onExp);
+  },
+  favorite: async (
+    payload: FavoriteEntityPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<void> => {
+    return request<void>('/entities/favorite', token, {
+      method: 'POST',
+      body: payload
+    }, onExp);
+  },
+  // New plugin-related endpoints
+  getPluginEntities: async (
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<Plugins> => {
+    return request<Plugins>('/entity', token, {}, onExp);
+  },
+  getEntityDetails: async (
+    hid: string,
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<EntityWithTransforms> => {
+    return request<EntityWithTransforms>(`/entity/details/${hid}`, token, {}, onExp);
+  },
+  getEntityTransforms: async (
+    label: string,
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<any[]> => {
+    return request<any[]>(`/entity/plugins/transform/?label=${encodeURIComponent(label)}`, token, {}, onExp);
+  },
+}
+
+export interface CreateGraphPayload {
+  label: string
+  description: string
+}
+
+export interface UpdateGraphPayload {
+  id: string
+  label: string
+  description: string
+}
+
+export interface DeleteGraphPayload {
+  id: string
+}
+
+export interface FavoriteGraphPayload {
+  graph_id: string
+  is_favorite: boolean
+}
+
+export interface Graph {
+  id: string
+  label: string
+  description: string
+  ctime: string
+  mtime: string
+}
+
+export interface ListGraphsResponse {
+  graphs: Graph[]
+  favorites: string[]
+}
+
+export interface GraphDetails {
+  graph: Graph
+  vertices_count: number
+  edges_count: number
+  degree2_count: number
+}
+
+export const graphsApi = {
+  create: async (
+    payload: CreateGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<Graph> => {
+    return request<Graph>('/graphs', token, {
+      method: 'POST',
+      body: payload
+    }, onExp);
+  },
+  list: async (
+    payload: Paginate,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<ListGraphsResponse> => {
+    const { skip, limit } = payload;
+    return request<ListGraphsResponse>(`/graphs?skip=${skip}&limit=${limit}`, token, {}, onExp);
+  },
+  getById: async (
+    id: string, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<GraphDetails> => {
+    return request<GraphDetails>(`/graphs/${id}`, token, {}, onExp);
+  },
+  update: async (
+    payload: UpdateGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<Graph> => {
+    return request<Graph>('/graphs', token, {
+      method: 'PATCH',
+      body: payload
+    }, onExp);
+  },
+  delete: async (
+    payload: DeleteGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<void> => {
+    return request<void>('/graphs', token, {
+      method: 'DELETE',
+      body: payload
+    }, onExp);
+  },
+  favorite: async (
+    payload: FavoriteGraphPayload, 
+    token: Tokens['access_token'], 
+    onExp?: OnExp
+  ): Promise<void> => {
+    return request<void>('/graphs/favorite', token, {
+      method: 'POST',
+      body: payload
+    }, onExp);
+  },
+}

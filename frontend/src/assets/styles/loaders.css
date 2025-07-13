@@ -1,0 +1,47 @@
+/* Flashing ellipsis loader */
+ .dot-flashing {
+  position: relative;
+  width: 3px;
+  height: 3px;
+  border-radius: 5px;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.3s;
+}
+.dot-flashing::before, .dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+.dot-flashing::before {
+  left: -6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 5px;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+.dot-flashing::after {
+  left: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 5px;
+  background-color: var(--color-slate-600);
+  color: var(--color-slate-600);
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: .7s;
+}
+
+@keyframes dot-flashing {
+  0% {
+    background-color: var(--color-slate-600);
+  }
+  50%, 100% {
+    background-color: #cbd5e120;
+  }
+}
+/* End flashing ellipsis loader */

@@ -1,268 +1,259 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { XYPosition, Node, ReactFlowInstance, FitView, Edge } from 'reactflow';
-import { HotKeys } from 'react-hotkeys';
-import { useParams, useLocation, useBlocker, Link, useNavigate } from 'react-router-dom';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
-import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
-import 'reactflow/dist/style.css';
-import EntityOptions from './_components/EntityOptions';
-import ContextMenu from './_components/ContextMenu';
-import { toast } from 'react-toastify';
-import Graph from './_components/Graph';
-import ELK from 'elkjs/lib/elk.bundled.js';
-import { useAppDispatch, useAppSelector, useEffectOnce } from '@src/app/hooks';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
+import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
+import { useParams, useLocation, useBlocker } from 'react-router-dom'
+import useWebSocket, { ReadyState } from 'react-use-websocket'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import {
-  ProjectViewModes,
-  createEdge,
-  createNode,
-  graphEdges,
-  graphNodes,
-  resetGraph,
-  selectEditState,
-  selectPositionMode,
-  selectViewMode,
-  setAllEdges,
-  setAllNodes,
-  setEditState,
-  setPositionMode,
-} from '@src/features/graph/graphSlice';
-import { WS_URL } from '@src/app/baseApi';
-import CommandPallet from './_components/CommandPallet';
-import { useGetGraphQuery } from '@src/app/api';
-import RoundLoader from '@src/components/Loaders';
-import { useTour } from '@reactour/tour';
-
-const keyMap = {
-  TOGGLE_PALETTE: ['shift+p'],
-};
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceX,
+  forceY,
+} from 'd3-force'
+import OverlayMenus from './_components/OverlayMenus'
+import { toast } from 'react-toastify'
+import Graph from './_components/Graph'
+import ELK from 'elkjs/lib/elk.bundled.js'
+import { WS_URL } from '@/app/baseApi'
+import RoundLoader from '@/components/loaders'
+import { useTour } from '@reactour/tour'
+import {
+  useGraphStore,
+  useAuthStore,
+  useGraphFlowStore,
+  useEntitiesStore,
+} from '@/app/store'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
   readyState: ReadyState
   sendJsonMessage: SendJsonMessage
-  lastMessage: MessageEvent<any> | null
 }
 
-interface GraphInquiryProps {
+type ActionTypes =
+  | 'authenticated'
+  | 'read'
+  | 'remove'
+  | 'created'
+  | 'loading'
+  | 'error'
+
+interface SocketActions {
+  authenticated: (data: any) => void
+  read: (data: any) => void
+  remove: (data: any) => void
+  created: (data: any) => void
+  loading: (data: any) => void
+  error: (data: any) => void
 }
 
-let edgeId = 0;
-
-export const getEdgeId = () => {
-  edgeId = edgeId + 1
-  return `e-tmp-${edgeId}`
+export interface CtxPosition {
+  top: number
+  left: number
+  right: number
+  bottom: number
 }
 
-const loadingToastId = "loadingToast";
+export interface CtxMenu {
+  entity?: Node | null
+  position?: CtxPosition
+}
 
-
-export default function GraphInquiry({ }: GraphInquiryProps) {
-  const dispatch = useAppDispatch();
+export default function GraphInquiry() {
   const { hid } = useParams()
   const location = useLocation()
-  const { setIsOpen: setIsTourOpen, steps, setCurrentStep: setCurrentTourStep } = useTour();
+  const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
+    useTour()
+
+  const { graph, getGraph, isLoading, isError } = useGraphStore()
+  const { setPlugins } = useEntitiesStore()
+  const { access_token } = useAuthStore()
+
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    addNode,
+    clearGraph,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    setPositionMode,
+    positionMode,
+  } = useGraphFlowStore()
 
   useEffect(() => {
-    if (location.state?.showGraphGuide) {
+    if (location.state?.showGuide) {
       setCurrentTourStep(0)
       setIsTourOpen(true)
     }
   }, [])
 
-  const WS_GRAPH_INQUIRE = `ws://${WS_URL}/node/graph/${hid}`
+  useEffect(() => {
+    clearGraph()
+    getGraph(hid as string)
+  }, [])
 
-  const { data: activeGraph, isSuccess, isLoading, isError } = useGetGraphQuery({ hid: hid as string })
+  const isSuccess = !isLoading && !isError && graph
 
   useEffect(() => {
-    dispatch(setPositionMode('manual'))
-  }, [activeGraph?.id])
+    setPositionMode('manual')
+  }, [graph?.id])
 
-  const graphRef = useRef<HTMLDivElement>(null);
-  const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>();
-
-  const [showCommandPalette, setShowCommandPalette] = useState<boolean>(false);
-
-  const [messageHistory, setMessageHistory] = useState<JSONObject[]>([]);
-  const [socketUrl, setSocketUrl] = useState(`${WS_GRAPH_INQUIRE}`);
-  const [shouldConnect, setShouldConnect] = useState(false)
-
-  const { lastJsonMessage, readyState, sendJsonMessage }: UseWebsocket = useWebSocket(socketUrl, {
-    shouldReconnect: () => shouldConnect,
-    onClose: () => {
-      dispatch(resetGraph())
-      toast.update(
-        loadingToastId,
-        {
-          render: `The connection was lost! ${shouldConnect ? 'Attempting to reconnect...' : ''}`,
+  const graphRef = useRef<HTMLDivElement>(null)
+  const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
+  const { lastJsonMessage, sendJsonMessage }: UseWebsocket = useWebSocket(
+    `ws://${WS_URL}/graph/${hid}/ws`,
+    {
+      shouldReconnect: () => true,
+      retryOnError: true,
+      onOpen: () =>
+        sendJsonMessage({
+          action: 'auth',
+          token: access_token,
+        }),
+      onClose: () => {
+        clearGraph()
+        toast.update('loadingToast', {
+          render: `The connection was lost! Attempting to reconnect...'}`,
           type: 'warning',
           isLoading: false,
-          autoClose: 1400
-        }
+          autoClose: 1400,
+        })
+      },
+    }
+  )
+
+  const fitView = useCallback(
+    (fitViewOptions?: FitViewOptions) => {
+      if (graphInstance?.fitView) graphInstance.fitView(fitViewOptions)
+    },
+    [graphInstance]
+  )
+
+  // Handle any actions the websocket sends
+  const socketActions: SocketActions = {
+    authenticated: (data) => {
+      toast.loading('Please wait while we load your graph...', {
+        closeButton: true,
+        isLoading: true,
+        toastId: 'graph',
+      })
+      setPlugins(data.plugins)
+      sendJsonMessage({ action: 'read:graph' })
+    },
+    read: (data) => {
+      setNodes(data.nodes || [])
+      setEdges(data.edges || [])
+      toast.dismiss('graph')
+      fitView()
+    },
+    remove: (data) => {},
+    created: (data) => {
+      addNode({
+        ...data.entity,
+      })
+      toast.success(
+        `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
       )
-    }
-  });
-
-  useEffectOnce(() => {
-    toast.loading('Loading graph...', { closeButton: true, isLoading: true, toastId: loadingToastId })
-    dispatch(resetGraph());
-  });
-  const socketStatus = {
-    [ReadyState.CONNECTING]: 'connecting',
-    [ReadyState.OPEN]: 'open',
-    [ReadyState.CLOSING]: 'closing',
-    [ReadyState.CLOSED]: 'closed',
-    [ReadyState.UNINSTANTIATED]: 'uninstantiated',
-  }[readyState];
-
-  useEffect(() => {
-    if (activeGraph && !socketUrl.includes(activeGraph?.id)) {
-      dispatch(resetGraph());
-      setSocketUrl(`${WS_GRAPH_INQUIRE}/${activeGraph.id}`)
-      setShouldConnect(true)
-    }
-  }, [activeGraph?.id, socketStatus[readyState]])
-
-  const togglePalette = () => setShowCommandPalette(!showCommandPalette);
-
-  const handlers = {
-    TOGGLE_PALETTE: togglePalette,
-  };
-
-  // Handle any actions the websocket sends from backend
-  const wsActionPlayer: any = {
-    'isInitialRead': () => {
-      dispatch(setAllNodes(lastJsonMessage.nodes))
-      dispatch(setAllEdges(lastJsonMessage.edges))
     },
-    'read': () => {
-      dispatch(setAllNodes(lastJsonMessage.nodes))
-      dispatch(setAllEdges(lastJsonMessage.edges))
+    loading: (data) => {
+      const notification = data?.notification
+      if (notification && notification?.id) {
+        !notification.autoClose
+          ? toast.update(lastJsonMessage.notification.id)
+          : toast.loading(notification.message ?? 'Loading...', {
+              closeButton: true,
+              isLoading: true,
+              toastId: notification.id,
+              autoClose: 1600,
+            })
+      }
     },
-    'removeEntity': () => {
-
-    },
-    'isLoading': () => {
-      if (lastJsonMessage.detail) toast.loading('Loading...', { closeButton: true, isLoading: true, toastId: loadingToastId })
-      else toast.update(loadingToastId, { render: `${lastJsonMessage?.message ? lastJsonMessage.message : "Success!"}`, type: "success", isLoading: false, autoClose: 1600 })
-    },
-    'error': () => toast.error(`${lastJsonMessage.message}`)
+    error: (data) => toast.error(`${data.message}`),
   }
 
   useEffect(() => {
-    const wsAction = lastJsonMessage?.action
-    if (wsAction) wsActionPlayer[wsAction]()
-    lastJsonMessage && messageHistory.length > 50 ?
-      setMessageHistory([lastJsonMessage]) :
-      setMessageHistory((prev) => prev.concat(lastJsonMessage))
-  }, [lastJsonMessage, setMessageHistory]);
+    let action: ActionTypes = lastJsonMessage?.action
+    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
+  }, [lastJsonMessage])
 
-  const initialNodes = useAppSelector((state) => graphNodes(state));
-  const initialEdges = useAppSelector((state) => graphEdges(state));
-  const changeState = useAppSelector(state => selectEditState(state))
-  const positionMode = useAppSelector((state) => selectPositionMode(state))
-  
-  const [nodesBeforeLayout, setNodesBeforeLayout] = useState(initialNodes)
-  const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(initialEdges)
-  const [ctxPosition, setCtxPosition] = useState<XYPosition>({ x: 0, y: 0 });
-  const [ctxSelection, setCtxSelection] = useState<JSONObject | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const [activeTransformLabel, setActiveTransformLabel] = useState<string | null>(null)
-  
-
-// @todo implement support for multi-select transforms -
-  // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
-  // just delete/save position on drag/etc?
-  const onMultiSelectionCtxMenu = (event: MouseEvent, nodes: Node[]) => {
-    event.preventDefault();
-  };
-
-  const onSelectionCtxMenu = (event: MouseEvent, node: Node) => {
-    event.preventDefault();
-    setCtxPosition({
-      y: event.clientY - 20,
-      x: event.clientX - 20,
-    });
-    setCtxSelection(node);
-    setActiveTransformLabel(node.data.label)
-    setShowMenu(true);
-  };
-
-  const onPaneCtxMenu = (event: MouseEvent) => {
-    event.preventDefault();
-    setCtxSelection(null);
-    setShowMenu(true);
-    setCtxPosition({
-      x: event.clientX - 25,
-      y: event.clientY - 25,
-    });
-  };
-
-  const onPaneClick = () => {
-    setShowMenu(false);
-    setCtxSelection(null);
-  };
-
-  let fitView: FitView | any;
-  if (graphInstance) {
-    fitView = graphInstance.fitView
-  }
+  const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
+  const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
+  const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
 
   useEffect(() => {
     if (positionMode === 'manual') {
-      setNodesBeforeLayout(initialNodes)
-      setEdgesBeforeLayout(initialEdges)
+      setNodesBeforeLayout(nodes)
+      setEdgesBeforeLayout(edges)
     }
-  }, [initialNodes, initialEdges]) // , activeEditState
+  }, [nodes, edges, positionMode])
 
   useEffect(() => {
     if (positionMode === 'manual') {
-      dispatch(setAllNodes(nodesBeforeLayout))
-      dispatch(setAllEdges(edgesBeforeLayout))
+      setNodes(nodesBeforeLayout)
+      setEdges(edgesBeforeLayout)
     }
   }, [positionMode])
 
   // TODO: Also implement d3-hierarchy, entitree-flex, dagre, webcola, and graphology layout modes
   //       Once implemented measure performance and deprecate whatever performs worse
   // tree layouts toggle found in top right
-  const elk = new ELK();
+  const elk = new ELK()
   const useElkLayoutElements = () => {
     const defaultOptions = {
       'elk.algorithm': 'layered',
       'elk.layered.spacing.nodeNodeBetweenLayers': 420,
       'elk.spacing.nodeNode': 180,
-    };
+    }
 
-    const setElkLayout = useCallback((options: any) => {
+    const setElkLayout = useCallback(
+      (options: any) => {
+        const layoutOptions = { ...defaultOptions, ...options }
+        // Prepare nodes with measured dimensions for ELK
+        const elkNodes = structuredClone(nodesBeforeLayout).map(
+          (node: any) => ({
+            ...node,
+            width: node.measured?.width || node.width || 150,
+            height: node.measured?.height || node.height || 50,
+          })
+        )
+        const graph = {
+          id: 'root',
+          layoutOptions: layoutOptions,
+          children: elkNodes,
+          edges: structuredClone(edgesBeforeLayout),
+        }
+        elk.layout(graph as any).then(({ children, edges }: any) => {
+          // Create new node objects instead of mutating
+          const layoutedNodes = children.map((node: any) => ({
+            ...node,
+            position: { x: node.x, y: node.y },
+            // Remove ELK-specific width/height to let ReactFlow handle sizing
+            width: undefined,
+            height: undefined,
+          }))
+          clearGraph()
+          setNodes(layoutedNodes)
+          setEdges(edges)
+          window.requestAnimationFrame(() => {
+            fitView && fitView({ padding: 0.25 })
+          })
+        })
+      },
+      [nodesBeforeLayout]
+    )
 
-      const layoutOptions = { ...defaultOptions, ...options };
-      const graph = {
-        id: 'root',
-        layoutOptions: layoutOptions,
-        children: structuredClone(nodesBeforeLayout),
-        edges: structuredClone(edgesBeforeLayout),
-      };
-      elk.layout(graph as any).then(({ children, edges }: any) => {
-        children.forEach((node: any) => {
-          node.position = { x: node.x, y: node.y };
-        });
-        dispatch(resetGraph())
-        dispatch(setAllNodes(children));
-        dispatch(setAllEdges(edges))
-        window.requestAnimationFrame(() => {
-          fitView && fitView({ padding: 0.25 });
-        });
-      });
-    }, [nodesBeforeLayout, changeState]);
+    return { setElkLayout }
+  }
 
-    return { setElkLayout };
-  };
+  const { setElkLayout } = useElkLayoutElements()
 
-  const { setElkLayout } = useElkLayoutElements();
-
-  // force layout hook/toggle found in top right
   const useForceLayoutElements = () => {
-    const nodesInitialized = initialNodes.every((node: any) => node.width && node.height)
+    const nodesInitialized = nodes.every(
+      (node: any) => node.measured?.width && node.measured?.height
+    )
 
     return useMemo(() => {
       const simulation = forceSimulation()
@@ -270,15 +261,22 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
         .force('x', forceX().x(0).strength(0.05))
         .force('y', forceY().y(0).strength(0.05))
         .alphaTarget(0.01)
-        .stop();
+        .stop()
 
-      let forceNodes = initialNodes.map((node: any) => ({ ...node, x: node.position.x, y: node.position.y }));
-      let forceEdges = structuredClone(initialEdges);
+      let forceNodes = nodes.map((node: any) => ({
+        ...node,
+        x: node.position.x,
+        y: node.position.y,
+      }))
+      let forceEdges = structuredClone(edges)
 
-      const forceSimOff = [false, { toggleForceLayout: (setForce?: boolean) => null } as any]
+      const forceSimOff = [
+        false,
+        { toggleForceLayout: (setForce?: boolean) => null } as any,
+      ]
       // if no width or height or no nodes in the flow, can't run the simulation!
-      if (!nodesInitialized || forceNodes.length === 0) return forceSimOff;
-      let running = false;
+      if (!nodesInitialized || forceNodes.length === 0) return forceSimOff
+      let running = false
       try {
         simulation.nodes(forceNodes).force(
           'link',
@@ -286,19 +284,24 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
             .id((d: any) => d.id)
             .strength(0.05)
             .distance(42)
-        );
+        )
 
         // The tick function is called every animation frame while the simulation is
         // running and progresses the simulation one step forward each time.
         const tick = () => {
-          simulation.tick();
-          dispatch(setAllNodes(forceNodes.map((node: any) => ({ ...node, position: { x: node.x, y: node.y } }))));
+          simulation.tick()
+          setNodes(
+            forceNodes.map((node: any) => ({
+              ...node,
+              position: { x: node.x, y: node.y },
+            }))
+          )
           window.requestAnimationFrame(() => {
             if (running) {
               tick()
-            };
-          });
-        };
+            }
+          })
+        }
 
         const toggleForceLayout = (setForce?: boolean) => {
           if (typeof setForce === 'boolean') {
@@ -306,106 +309,65 @@ export default function GraphInquiry({ }: GraphInquiryProps) {
           } else {
             running = !running
           }
-          running && window.requestAnimationFrame(tick);
-        };
-        return [true, { toggleForceLayout, isForceRunning: running }];
-      } catch (e) { console.warn(e) }
+          running && window.requestAnimationFrame(tick)
+        }
+        return [true, { toggleForceLayout, isForceRunning: running }]
+      } catch (e) {
+        console.warn(e)
+      }
       return forceSimOff
-    }, [nodesBeforeLayout, changeState]);
+    }, [nodesBeforeLayout])
   }
 
-  const [forceInitialized, { toggleForceLayout, isForceRunning }] = useForceLayoutElements();
-
-  // If not on a manual layout, update the manual layout positions 
-  // for any drag changes, entity edit mode toggles, and transforms/deletions
-  // this is for when a user updates/deletes an entity in a layout mode thats not manual
-  useEffect(() => {
-    if (changeState.editLabel === 'deleteNode') {
-      setEdgesBeforeLayout(edgesBeforeLayout.filter((edge: Edge) => edge.target !== changeState.editId || edge.source !== changeState.editId))
-      setNodesBeforeLayout(nodesBeforeLayout.filter((node: Node) => node.id !== changeState.editId))
-    }
-    if (changeState.editLabel === 'createEntity') {
-      setNodesBeforeLayout([...nodesBeforeLayout, initialNodes.find((node: Node) => node.id === changeState.editId) as Node])
-    }
-    if (changeState.editLabel === "enableEditMode") {
-      setNodesBeforeLayout([...nodesBeforeLayout.map((node: Node) =>
-        node.id === changeState.editId ? { ...node, type: 'edit' } : node
-      )])
-    }
-    if (changeState.editLabel === "disableEditMode") {
-      setNodesBeforeLayout([...nodesBeforeLayout.map((node: Node) =>
-        node.id === changeState.editId ? { ...node, type: 'view' } : node
-      )])
-    }
-    if (changeState.editLabel?.includes('layout')) {
-      fitView && fitView({ includeHiddenNodes: true })
-    }
-  }, [changeState])
+  const [, { toggleForceLayout }] = useForceLayoutElements()
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
-  useBlocker(useCallback(
-    (tx: any) => tx.historyAction && toggleForceLayout(false),
-    [toggleForceLayout]
-  ));
+  useBlocker(
+    useCallback(
+      (tx: any) => tx.historyAction && toggleForceLayout(false),
+      [toggleForceLayout]
+    )
+  )
 
   return (
     <>
-      {isError && (
-        <h2>Error</h2>
-      )}
-      {isLoading && (
-        <RoundLoader />
-      )}
-      
+      {/* TODO: Add loading screen fade out transition */}
+      {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
       {isSuccess && (
-        <HotKeys keyMap={keyMap} handlers={handlers}>
-          <div className='h-screen flex flex-col w-full'>
-            <EntityOptions
+        <div className='h-screen w-screen' ref={graphRef}>
+          <Graph
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            graphInstance={graphInstance}
+            setGraphInstance={setGraphInstance}
+            sendJsonMessage={sendJsonMessage}
+            ctxMenu={ctxMenu}
+            setCtxMenu={setCtxMenu}
+          />
+
+          {/* Overlay EntityOptions on top of the ReactFlow graph */}
+          <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
+            <OverlayMenus
               positionMode={positionMode}
               toggleForceLayout={toggleForceLayout}
-              activeGraph={activeGraph}
+              graph={graph}
               setElkLayout={setElkLayout}
               fitView={fitView}
+              clearGraph={clearGraph}
             />
-            <div className='h-full w-full justify-between  bg-mirage-400/20'>
-              <div style={{ width: '100%', height: '100vh' }} ref={graphRef}>
-                <Graph
-                  onSelectionCtxMenu={onSelectionCtxMenu}
-                  onMultiSelectionCtxMenu={onMultiSelectionCtxMenu}
-                  onPaneCtxMenu={onPaneCtxMenu}
-                  onPaneClick={onPaneClick}
-                  graphRef={graphRef}
-                  nodes={initialNodes}
-                  edges={initialEdges}
-                  graphInstance={graphInstance}
-                  setGraphInstance={setGraphInstance}
-                  sendJsonMessage={sendJsonMessage}
-                  fitView={fitView}
-                  positionMode={positionMode}
-                  editState={changeState}
-                />
-              </div>
-            </div>
           </div>
-
-          <CommandPallet
-            isOpen={showCommandPalette}
-            setOpen={setShowCommandPalette}
-          />
-          <div
-            className='absolute top-[3.5rem] w-52 bg-red -z-10 h-20  text-slate-900'
-          />
-          <ContextMenu
-            activeTransformLabel={activeTransformLabel}
-            sendJsonMessage={sendJsonMessage}
-            ctxSelection={ctxSelection}
-            showMenu={showMenu}
-            ctxPosition={ctxPosition}
-            closeMenu={() => setShowMenu(false)}
-          />
-        </HotKeys>
+        </div>
+      )}
+      {isSuccess && (
+        <>
+          {isError && <h2>Error</h2>}
+          {isLoading && <RoundLoader />}
+        </>
       )}
     </>
-  );
+  )
 }

@@ -5,3 +5,11 @@ plugins/
 osintbuddy-plugins/
 .vscode/
 rs/target/
+target/
+frontend/.env
+.env
+.claude/
+CLAUDE.md
+id_rsa*
+rootfs.ext4
+vmlinux.bin
