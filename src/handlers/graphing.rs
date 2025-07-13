@@ -305,8 +305,25 @@ pub async fn read_graph(
 
 pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Result<(), AppError> {
     let mut tx = age_tx(pool).await?;
+    info!("updating entity: {:?}", entity);
+    // Safely get entity object and id
+    let entity_obj = entity.as_object().ok_or_else(|| {
+        error!("Entity is not a valid JSON object: {}", entity);
+        AppError {
+            message: "Invalid entity format",
+            kind: ErrorKind::Invalid,
+        }
+    })?;
 
-    for (key, value) in entity.as_object().unwrap() {
+    let entity_id = entity.get("id").and_then(|id| id.as_i64()).ok_or_else(|| {
+        error!("Entity missing valid id field: {}", entity);
+        AppError {
+            message: "Entity missing valid id",
+            kind: ErrorKind::Invalid,
+        }
+    })?;
+
+    for (key, value) in entity_obj {
         // Skip system fields that shouldn't be updated
         if key == "id" || key == "type" || key == "label" {
             continue;
@@ -314,23 +331,25 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
 
         info!("Updating property: {} = {}", key, value);
         let snake_key = to_snake_case(key);
+        
+        // Use safe cypher query with proper escaping
         let query = if value.is_string() {
             format!(
                 "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
                 graph_name,
-                entity["id"],
+                entity_id,
                 snake_key,
-                value.as_str().unwrap()
+                value.as_str().unwrap().replace("'", "''") // Escape single quotes
             )
         } else {
             format!(
                 "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
-                graph_name, entity["id"], snake_key, value
+                graph_name, entity_id, snake_key, value
             )
         };
         info!("QUERY: {}", query);
 
-        // Execute the update query
+        // Execute the update query using the cypher helper
         with_cypher(query, tx.as_mut()).await.map_err(|err| {
             error!("Failed to update node property {}: {}", key, err);
             AppError {
@@ -588,15 +607,14 @@ pub async fn graphing_websocket_handler(
                                     graph_name,
                                 ).await {
                                     error!("Failed to update entity: {:?}", err);
-                                    let _ = session.text(
-                                        json!({
-                                            "action": "error",
-                                            "notification": {
-                                                "autoClose": true,
-                                                "message": format!("Update failed: {}", err.message),
-                                            },
-                                        })
-                                        .to_string(),
+                                    let message = json!({
+                                        "action": "error",
+                                        "notification": {
+                                            "autoClose": true,
+                                            "message": format!("Update failed: {}", err.message),
+                                        },
+                                    });
+                                    let _ = session.text(message.to_string(),
                                     ).await;
                                 }
                             }

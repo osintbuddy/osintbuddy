@@ -6,6 +6,7 @@ import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
 import { ReadyState } from 'react-use-websocket'
 import { MouseEventHandler } from 'preact/compat'
+import { toast } from 'react-toastify'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -49,7 +50,6 @@ interface OverlayMenusProps {
   fitView: Function
   clearGraph: Function
   readyState: ReadyState
-  forceReconnect: MouseEventHandler<HTMLButtonElement>
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -61,8 +61,6 @@ export default function OverlayMenus({
   toggleForceLayout,
   fitView,
   clearGraph,
-  readyState,
-  forceReconnect,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
@@ -122,7 +120,6 @@ export default function OverlayMenus({
   const { setPositionMode } = useGraphFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
-
   return (
     <ResponsiveGridLayout
       allowOverlap={false}
@@ -184,27 +181,7 @@ export default function OverlayMenus({
             title={graph?.description ?? ''}
             className='mr-auto w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
           >
-            <span className='relative text-slate-400'>
-              {graph?.label}
-              <button
-                disabled={readyState === ReadyState.OPEN}
-                onClick={forceReconnect}
-                className={`relative -top-3 left-1 h-3 w-3 rounded-full ${
-                  readyState === ReadyState.OPEN
-                    ? 'bg-success-700'
-                    : readyState === ReadyState.CONNECTING
-                      ? 'animate-pulse bg-yellow-500'
-                      : 'bg-danger-500'
-                }`}
-                title={
-                  readyState === ReadyState.OPEN
-                    ? 'Connected'
-                    : readyState === ReadyState.CONNECTING
-                      ? 'Connecting...'
-                      : 'Disconnected'
-                }
-              />
-            </span>
+            <span className='relative text-slate-400'>{graph?.label}</span>
           </h5>
           {/* Connection Status Indicator */}
 

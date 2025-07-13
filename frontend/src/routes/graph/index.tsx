@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
 import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
-import { useParams, useLocation, useBlocker } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import {
@@ -59,7 +59,7 @@ export interface CtxMenu {
   position?: CtxPosition
 }
 
-export default function GraphInquiry() {
+export default function Graphing() {
   const { hid } = useParams()
   const location = useLocation()
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
@@ -68,7 +68,7 @@ export default function GraphInquiry() {
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
-  
+
   // Track if we're intentionally navigating away
   const isNavigatingAway = useRef(false)
 
@@ -95,6 +95,11 @@ export default function GraphInquiry() {
 
   useEffect(() => {
     clearGraph()
+    toast.loading('Please wait while we load your graph...', {
+      closeButton: true,
+      isLoading: true,
+      toastId: 'graph',
+    })
     getGraph(hid as string)
   }, [])
 
@@ -104,82 +109,57 @@ export default function GraphInquiry() {
     setPositionMode('manual')
   }, [graph?.id])
 
-  // Clean up and set navigation flag when component unmounts
   useEffect(() => {
     return () => {
-      isNavigatingAway.current = true
       // Dismiss any connection-related toasts on navigation
       toast.dismiss('connection-lost')
       toast.dismiss('connection-error')
       toast.dismiss('reconnect-failed')
+      clearGraph()
     }
   }, [])
 
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
-  const {
-    lastJsonMessage,
-    sendJsonMessage,
-    readyState,
-  }: UseWebsocket = useWebSocket(`ws://${WS_URL}/graph/${hid}/ws`, {
-    shouldReconnect: (closeEvent) => {
+  const { lastJsonMessage, sendJsonMessage, readyState }: UseWebsocket =
+    useWebSocket(`ws://${WS_URL}/graph/${hid}/ws`, {
+      share: true,
       // Always try to reconnect unless it's an intentional close
-      console.log('WebSocket close event:', closeEvent)
-      return closeEvent?.code !== 1000
-    },
-    retryOnError: true,
-    reconnectAttempts: 50,
-    reconnectInterval: (attemptNumber) =>
-      Math.min(1000 + attemptNumber * 1000, 10000),
-    share: false,
-    onOpen: () => {
-      console.log('WebSocket connected')
-      sendJsonMessage({
-        action: 'auth',
-        token: access_token,
-      })
-      // Dismiss any existing connection warnings
-      toast.dismiss('connection-lost')
-      toast.dismiss('connection-error')
-    },
-    onClose: (event) => {
-      console.log('WebSocket closed:', event)
-      // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
-      if (event.code === 1000 || event.code === 1008) {
-        clearGraph()
-      }
+      shouldReconnect: (closeEvent) => closeEvent?.code !== 1000,
+      retryOnError: false,
+      reconnectAttempts: 10,
+      reconnectInterval: (attemptNumber) =>
+        Math.min(1000 + attemptNumber * 1000, 1000),
+      onOpen: () => {
+        isNavigatingAway.current = false
+        // Dismiss any existing connection warnings
+        toast.dismiss('connection-lost')
+        toast.dismiss('connection-error')
+        sendJsonMessage({
+          action: 'auth',
+          token: access_token,
+        })
+      },
+      onClose: (event) => {
+        console.log('WebSocket closed:', event)
+        // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
+        if (event.code === 1000 || event.code === 1008) {
+          clearGraph()
+        }
+      },
 
-      // Show reconnection warning but don't clear the graph
-      // Don't show connection warnings if we're navigating away
-      if (event.code !== 1000 && !isNavigatingAway.current) {
-        toast.warning('Connection lost! Attempting to reconnect...', {
-          toastId: 'connection-lost',
+      onReconnectStop: (numAttempts) => {
+        console.error(
+          'WebSocket failed to reconnect after',
+          numAttempts,
+          'attempts'
+        )
+        toast.error('Failed to reconnect. Please refresh the page.', {
+          toastId: 'reconnect-failed',
           autoClose: false,
         })
-      }
-    },
-    onError: (event) => {
-      console.error('WebSocket error:', event)
-      // Don't show error notifications if we're navigating away
-      if (!isNavigatingAway.current) {
-        toast.error('WebSocket connection error', {
-          toastId: 'connection-error',
-          autoClose: 5000,
-        })
-      }
-    },
-    onReconnectStop: (numAttempts) => {
-      console.error(
-        'WebSocket failed to reconnect after',
-        numAttempts,
-        'attempts'
-      )
-      toast.error('Failed to reconnect. Please refresh the page.', {
-        toastId: 'reconnect-failed',
-        autoClose: false,
-      })
-    },
-  })
+      },
+    })
 
   const fitView = useCallback(
     (fitViewOptions?: FitViewOptions) => {
@@ -191,13 +171,8 @@ export default function GraphInquiry() {
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
     authenticated: (data) => {
-      toast.loading('Please wait while we load your graph...', {
-        closeButton: true,
-        isLoading: true,
-        toastId: 'graph',
-      })
       setPlugins(data.plugins)
-      sendMessage({ action: 'read:graph' })
+      sendJsonMessage({ action: 'read:graph' })
       // Dismiss connection lost warning on successful auth
       toast.dismiss('connection-lost')
     },
@@ -235,45 +210,6 @@ export default function GraphInquiry() {
     let action: ActionTypes = lastJsonMessage?.action
     if (action && socketActions[action]) socketActions[action](lastJsonMessage)
   }, [lastJsonMessage])
-
-  // Monitor connection status and add manual reconnect capability
-  useEffect(() => {
-    if (readyState === ReadyState.OPEN) {
-      toast.dismiss('connection-lost')
-      toast.dismiss('connection-error')
-      toast.dismiss('reconnect-failed')
-    } else if (readyState === ReadyState.CLOSED) {
-      console.log('WebSocket is closed, attempting to reconnect...')
-    } else if (readyState === ReadyState.CONNECTING) {
-      console.log('WebSocket is connecting...')
-    }
-  }, [readyState])
-
-  // Manual reconnect function
-  const forceReconnect = useCallback(() => {
-    console.log('Force reconnecting WebSocket...')
-    toast.info('Attempting to reconnect...', { autoClose: 2000 })
-    // Force a page refresh as a simple reconnect mechanism
-    window.location.reload()
-  }, [])
-
-  // Safe wrapper for sendJsonMessage that checks connection status
-  const sendMessage = useCallback(
-    (message: any) => {
-      if (readyState === ReadyState.OPEN) {
-        sendJsonMessage(message)
-      } else {
-        toast.warning('Cannot send message: WebSocket connection not ready', {
-          autoClose: 2000,
-        })
-        console.warn(
-          'Attempted to send message while WebSocket is not connected:',
-          message
-        )
-      }
-    },
-    [sendJsonMessage, readyState]
-  )
 
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
@@ -419,19 +355,19 @@ export default function GraphInquiry() {
 
   // Prevents layout bugs from occurring on navigate away and returning to a graph
   // https://reactrouter.com/en/main/hooks/use-blocker
-  useBlocker(
-    useCallback(
-      (tx: any) => tx.historyAction && toggleForceLayout(false),
-      [toggleForceLayout]
-    )
-  )
+  // useBlocker(
+  //   useCallback(
+  //     (tx: any) => tx.historyAction && toggleForceLayout(false),
+  //     [toggleForceLayout]
+  //   )
+  // )
 
   return (
     <>
       {/* TODO: Add loading screen fade out transition */}
       {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
       {isSuccess && (
-        <div className='h-screen w-screen' ref={graphRef}>
+        <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
           <Graph
             nodes={nodes}
             edges={edges}
@@ -440,13 +376,31 @@ export default function GraphInquiry() {
             onConnect={onConnect}
             graphInstance={graphInstance}
             setGraphInstance={setGraphInstance}
-            sendJsonMessage={sendMessage}
+            sendJsonMessage={sendJsonMessage}
             ctxMenu={ctxMenu}
             setCtxMenu={setCtxMenu}
           />
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}
           <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
+            <button
+              disabled={readyState === ReadyState.OPEN}
+              onClick={() => window.location.reload()}
+              className={`absolute top-1.5 right-1.5 z-20 h-3 w-3 rounded-full ${
+                readyState === ReadyState.OPEN
+                  ? 'bg-success-700'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'animate-pulse bg-yellow-500'
+                    : 'bg-danger-500'
+              }`}
+              title={
+                readyState === ReadyState.OPEN
+                  ? 'Connected'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'Connecting...'
+                    : 'Disconnected'
+              }
+            />
             <OverlayMenus
               readyState={readyState}
               positionMode={positionMode}
@@ -455,7 +409,6 @@ export default function GraphInquiry() {
               setElkLayout={setElkLayout}
               fitView={fitView}
               clearGraph={clearGraph}
-              forceReconnect={forceReconnect}
             />
           </div>
         </div>
