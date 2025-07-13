@@ -27,7 +27,10 @@ function GraphHeader({ graph }: GraphHeaderProps) {
             <h5 className='font-display flex w-full items-center justify-between truncate font-medium whitespace-nowrap text-inherit'>
               {graph?.label}
             </h5>
-            <p className='max-w-6xl truncate text-sm leading-normal whitespace-normal text-slate-400'>
+            <p
+              title={graph?.description}
+              className='line-clamp-1 max-w-6xl truncate text-sm leading-normal whitespace-normal text-slate-400'
+            >
               {graph?.description}
             </p>
           </li>

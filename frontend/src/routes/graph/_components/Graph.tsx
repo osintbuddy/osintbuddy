@@ -158,15 +158,22 @@ export default function Graph({
   const doubleClickThreshold = 320
   const [clickDelta, setClickDelta] = useState(0)
 
-  const onNodeDragStop: OnNodeDrag = useCallback((_, node) => {
-    // Debounce position updates to reduce WebSocket traffic
-    setTimeout(() => {
-      sendJsonMessage({
-        action: 'update:entity',
-        entity: { id: Number(node.id), x: node.position.x, y: node.position.y },
-      })
-    }, 100)
-  }, [sendJsonMessage])
+  const onNodeDragStop: OnNodeDrag = useCallback(
+    (_, node) => {
+      // Debounce position updates to reduce WebSocket traffic
+      setTimeout(() => {
+        sendJsonMessage({
+          action: 'update:entity',
+          entity: {
+            id: Number(node.id),
+            x: node.position.x,
+            y: node.position.y,
+          },
+        })
+      }, 100)
+    },
+    [sendJsonMessage]
+  )
 
   const onEdgeChange = useCallback(
     (changes: any) => {
@@ -194,6 +201,8 @@ export default function Graph({
   }
   return (
     <ReactFlow
+      // TODO:
+      // onCopy={}
       ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}

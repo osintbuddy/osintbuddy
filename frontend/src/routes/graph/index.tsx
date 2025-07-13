@@ -11,7 +11,7 @@ import {
   forceY,
 } from 'd3-force'
 import OverlayMenus from './_components/OverlayMenus'
-import { toast } from 'react-toastify'
+import { toast, UpdateOptions } from 'react-toastify'
 import Graph from './_components/Graph'
 import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
@@ -172,7 +172,6 @@ export default function Graphing() {
     authenticated: (data) => {
       setPlugins(data.plugins)
       sendJsonMessage({ action: 'read:graph' })
-      // Dismiss connection lost warning on successful auth
       toast.dismiss('connection-lost')
     },
     read: (data) => {
@@ -184,24 +183,48 @@ export default function Graphing() {
     remove: () => {},
     created: (data) => {
       addNode(data.entity)
-      toast.success(
-        `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
-      )
-    },
-    loading: (data) => {
-      const notification = data?.notification
-      if (notification && notification?.id) {
-        !notification.autoClose
-          ? toast.update(lastJsonMessage.notification.id)
-          : toast.loading(notification.message ?? 'Loading...', {
-              closeButton: true,
-              isLoading: true,
-              toastId: notification.id,
-              autoClose: 1600,
-            })
+      const notification = data.notification
+      if (notification) {
+        const { message, ...notificationProps } = notification
+        toast.success(notification.message, notificationProps)
       }
     },
-    error: (data) => toast.error(`${data.notification.message}`),
+    loading: (data) => {
+      const { toastId, type, isLoading, autoClose, ...notification } =
+        data?.notification
+      // Update existing loading toast to success
+      if (isLoading) {
+        // Create new loading toast
+        toast.loading(notification.message ?? 'Loading...', {
+          closeButton: true,
+          isLoading: true,
+          toastId: toastId,
+          autoClose: 1600,
+        })
+      } else
+        toast.update(toastId, {
+          render: notification.message,
+          type: 'success',
+          isLoading: false,
+          autoClose: 5000,
+          ...notification,
+        })
+    },
+    error: (data) => {
+      const notification = data.notification
+      if (notification?.toastId) {
+        // Update existing loading toast to error
+        toast.update(notification.toastId, {
+          render: notification.message,
+          type: 'error',
+          isLoading: false,
+          autoClose: 5000,
+        })
+      } else {
+        // Create new error toast if no toastId
+        toast.error(notification?.message || 'An error occurred')
+      }
+    },
   }
 
   useEffect(() => {

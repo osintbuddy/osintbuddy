@@ -10,6 +10,18 @@ const handleStyle = {
   margin: -2,
   height: 10,
 }
+
+const handleConfigs = [
+  { position: Position.Right, id: 'r', type: 'source' as const },
+  { position: Position.Top, id: 't', type: 'source' as const },
+  { position: Position.Bottom, id: 'b', type: 'source' as const },
+  { position: Position.Left, id: 'l', type: 'source' as const },
+  { position: Position.Right, id: 'r', type: 'target' as const },
+  { position: Position.Top, id: 't', type: 'target' as const },
+  { position: Position.Bottom, id: 'b', type: 'target' as const },
+  { position: Position.Left, id: 'l', type: 'target' as const },
+]
+
 function ViewEntityNode({ ctx }: JSONObject) {
   const node = ctx.data
   const displayValue = useMemo(
@@ -22,63 +34,20 @@ function ViewEntityNode({ ctx }: JSONObject) {
 
   return (
     <>
-      <Handle
-        position={Position.Right}
-        id='r1'
-        key='r1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t1'
-        key='t1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b1'
-        key='b1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l1'
-        key='l1'
-        type='source'
-        style={handleStyle}
-      />
-
-      <Handle
-        position={Position.Right}
-        id='r2'
-        key='r2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t2'
-        key='t2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b2'
-        key='b2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l2'
-        key='l2'
-        type='target'
-        style={handleStyle}
-      />
+      {handleConfigs.map((handle) => {
+        const suffix = handle.type === 'source' ? '1' : '2'
+        const handleId = `${handle.id}${suffix}`
+        
+        return (
+          <Handle
+            key={handleId}
+            position={handle.position}
+            id={handleId}
+            type={handle.type}
+            style={handleStyle}
+          />
+        )
+      })}
       <div className='node container !h-16 !w-16 !rounded-full'>
         <div
           // 99 === 0.6 opacity

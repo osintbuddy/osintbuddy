@@ -105,7 +105,7 @@ pub async fn get_entities() -> Result<Value, reqwest::Error> {
 
 pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError> {
     use std::process::Command;
-    
+
     let output = Command::new("ob")
         .args(&["blueprints"])
         .output()
@@ -127,7 +127,7 @@ pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError>
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    
+
     // Parse the JSON output from the CLI
     let data: Vec<Value> = serde_json::from_str(&stdout).map_err(|err| {
         error!("Error parsing blueprints JSON: {}", err);
@@ -322,7 +322,7 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
             continue;
         }
         let snake_key = to_snake_case(key);
-        
+
         // Use safe cypher query with proper escaping
         let query = if value.is_string() {
             format!(
@@ -556,8 +556,9 @@ pub async fn graphing_websocket_handler(
                                         let _ = session.text(json!({
                                             "action": "authenticated".to_string(),
                                             "notification": {
+                                                "type": "success",
                                                 "autoClose": false,
-                                                "id": "graph",
+                                                "toastId": "graph",
                                                 "message": "Please wait while we load your graph...",
                                             },
                                             "plugins": entities,
@@ -589,7 +590,9 @@ pub async fn graphing_websocket_handler(
                                     pool.as_ref(),
                                     event.entity.unwrap_or(json!({})),
                                     graph_name,
-                                ).await {
+                                )
+                                .await
+                                {
                                     error!("Failed to update entity: {:?}", err);
                                     let message = json!({
                                         "action": "error",
@@ -598,8 +601,7 @@ pub async fn graphing_websocket_handler(
                                             "message": format!("Update failed: {}", err.message),
                                         },
                                     });
-                                    let _ = session.text(message.to_string(),
-                                    ).await;
+                                    let _ = session.text(message.to_string()).await;
                                 }
                             }
                             "delete:entity" => {
@@ -631,17 +633,6 @@ pub async fn graphing_websocket_handler(
                                 };
                             }
                             "transform:entity" => {
-                                // Send initial loading message
-                                let loading_message = json!({
-                                    "action": "loading".to_string(),
-                                    "notification": {
-                                        "autoClose": false,
-                                        "message": "Executing transform...",
-                                    },
-                                })
-                                .to_string();
-                                let _ = session.text(loading_message).await;
-
                                 // Execute the transform
                                 let entity = event.entity.unwrap_or(json!({}));
                                 match execute_transform(&entity).await {
@@ -665,8 +656,11 @@ pub async fn graphing_websocket_handler(
                                                 if let Some(_blueprint) = blueprint {
                                                     // Transform result structure: {"data": {...}, "edge_label": "..."}
                                                     // We need to create a blueprint-compatible structure for save_node_on_drop
-                                                    let mut blueprint_for_db = new_entity_data.get("data").unwrap().clone();
-                                                    
+                                                    let mut blueprint_for_db = new_entity_data
+                                                        .get("data")
+                                                        .unwrap()
+                                                        .clone();
+
                                                     // Use position from new entity or default position
                                                     let position = new_entity_data
                                                         .get("position")
@@ -688,42 +682,38 @@ pub async fn graphing_websocket_handler(
                                                     .await
                                                     {
                                                         // Create the full blueprint entity structure for the frontend
-                                                        let mut processed_entity = vertex_to_blueprint(
-                                                            &raw_result,
-                                                            &blueprint_for_db,
-                                                        );
-                                                        
-                                                        // Add the full blueprint data structure
-                                                        processed_entity["data"] = new_entity_data["data"].clone();
+                                                        let mut processed_entity =
+                                                            vertex_to_blueprint(
+                                                                &raw_result,
+                                                                &blueprint_for_db,
+                                                            );
 
+                                                        // Add the full blueprint data structure
+                                                        processed_entity["data"] =
+                                                            new_entity_data["data"].clone();
+                                                        info!("entity {}", entity["id"]);
+                                                        let message = json!({
+                                                            "action": "created".to_string(),
+                                                            "entity": processed_entity
+                                                        });
                                                         // Send the created entity back to the client
-                                                        let _ = session.text(
-                                                            json!({
-                                                                "action": "created".to_string(),
-                                                                "notification": {
-                                                                    "autoClose": true,
-                                                                    "message": format!("{} entity created successfully!", entity_label),
-                                                                },
-                                                                "entity": processed_entity
-                                                            })
-                                                            .to_string(),
-                                                        ).await;
+                                                        let _ =
+                                                            session.text(message.to_string()).await;
                                                     }
                                                 }
+                                                let message = json!({
+                                                    "action": "loading".to_string(),
+                                                    "notification": {
+                                                        "toastId": entity["id"],
+                                                        "autoClose": true,
+                                                        "type": "success",
+                                                        "isLoading": false,
+                                                        "message": format!("{} entity transformed successfully!", entity_label),
+                                                    },
+                                                });
+                                                let _ = session.text(message.to_string()).await;
                                             }
                                         }
-
-                                        // Send completion message
-                                        let _ = session.text(
-                                            json!({
-                                                "action": "loading".to_string(),
-                                                "notification": {
-                                                    "autoClose": true,
-                                                    "message": "Transform completed successfully!",
-                                                },
-                                            })
-                                            .to_string(),
-                                        ).await;
                                     }
                                     Err(err) => {
                                         error!("Transform execution failed: {:?}", err);
@@ -732,6 +722,7 @@ pub async fn graphing_websocket_handler(
                                                 "action": "error".to_string(),
                                                 "notification": {
                                                     "autoClose": true,
+                                                    "toastId": entity["id"],
                                                     "message": format!("Transform failed: {}", err.message),
                                                 },
                                             })
@@ -752,19 +743,15 @@ pub async fn graphing_websocket_handler(
                                     .or_else(|| blueprints.get(&entity_label.to_lowercase()));
 
                                 let Some(blueprint) = blueprint else {
-                                    let _ = session
-                                        .text(
-                                            json!({
-                                                "action": "error",
-                                                "notification": {
-                                                    "shouldClose": true,
-                                                    "message": format!("Blueprint not found for entity: {} (tried: {}, {}, {})", 
-                                                        entity_label, snake_case_label, entity_label, entity_label.to_lowercase())
-                                                },
-                                            })
-                                            .to_string(),
-                                        )
-                                        .await;
+                                    let message = json!({
+                                        "action": "error",
+                                        "notification": {
+                                            "shouldClose": true,
+                                            "message": format!("Blueprint not found for entity: {} (tried: {}, {}, {})",
+                                                entity_label, snake_case_label, entity_label, entity_label.to_lowercase())
+                                        },
+                                    });
+                                    let _ = session.text(message.to_string()).await;
                                     continue;
                                 };
                                 let mut blueprint_with_position = blueprint.clone();
@@ -786,19 +773,15 @@ pub async fn graphing_websocket_handler(
                                         &raw_result,
                                         &blueprint_with_position.clone(),
                                     );
-                                    let _ = session
-                            .text(
-                                json!({
-                                    "action": "created".to_string(),
-                                    "notification": {
-                                        "shouldClose": true,
-                                        "message": "todo {} entity created successfully!",
-                                    },
-                                    "entity": processed_entity
-                                })
-                                .to_string(),
-                            )
-                            .await;
+                                    let message = json!({
+                                        "action": "created".to_string(),
+                                        "notification": {
+                                            "shouldClose": true,
+                                            "message": "{} entity created successfully!",
+                                        },
+                                        "entity": processed_entity
+                                    });
+                                    let _ = session.text(message.to_string()).await;
                                 }
                             }
                             _ => {}
@@ -906,13 +889,14 @@ fn vertex_to_entity(vertex: &Value, blueprint: &Value) -> Value {
                     for element in elements_array {
                         if let Some(element_obj) = element.as_object_mut() {
                             // Clone the label string to avoid borrow conflicts
-                            if let Some(label_str) = element_obj.get("label")
+                            if let Some(label_str) = element_obj
+                                .get("label")
                                 .and_then(|l| l.as_str())
-                                .map(|s| s.to_string()) {
-                                
+                                .map(|s| s.to_string())
+                            {
                                 // Convert element label to snake_case to match database field
                                 let snake_case_field = to_snake_case(&label_str);
-                                
+
                                 // Look for the value in database properties
                                 if let Some(db_value) = props.get(&snake_case_field) {
                                     // Update the element's value with database data

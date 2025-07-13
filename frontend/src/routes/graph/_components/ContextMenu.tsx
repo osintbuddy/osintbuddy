@@ -3,6 +3,7 @@ import { useState, useEffect } from 'preact/hooks'
 import Input from '@/components/inputs'
 import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { CtxPosition } from '..'
+import { toast } from 'react-toastify'
 
 export interface ContextMenuProps {
   closeMenu: () => void
@@ -72,6 +73,19 @@ export default function ContextMenu({
                         transform: transform.label,
                       },
                     })
+                    console.log('sending transforms', {
+                      closeButton: true,
+                      isLoading: true,
+                      toastId: selection.id,
+                    })
+                    toast.loading(
+                      `Transforming ${selection.id} ${transform.label.toLowerCase()}. Please wait...`,
+                      {
+                        closeButton: true,
+                        isLoading: true,
+                        toastId: selection.id,
+                      }
+                    )
                   }}
                   class='hover:border-primary-350 flex w-full items-center border-l-2 border-transparent px-2 py-1 text-slate-600 hover:bg-black/40 hover:text-slate-400'
                 >
