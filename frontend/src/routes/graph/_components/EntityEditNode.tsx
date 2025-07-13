@@ -65,6 +65,7 @@ export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             key={key}
             nodeId={ctx.id}
             label={element?.label}
+            value={element.value}
             icon={element?.icon || 'ballpen'}
             sendJsonMessage={sendJsonMessage}
           />
@@ -443,7 +444,7 @@ export function TextInput({
             id={`${nodeId}-${label}`}
             class=''
             type='text'
-            onBlur={() => {
+            onBlur={(event) => {
               sendJsonMessage({
                 action: 'update:entity',
                 entity: { id: Number(nodeId), [label]: value },

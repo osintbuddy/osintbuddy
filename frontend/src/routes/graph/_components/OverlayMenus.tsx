@@ -4,6 +4,8 @@ import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
 import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
+import { ReadyState } from 'react-use-websocket'
+import { MouseEventHandler } from 'preact/compat'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -46,6 +48,8 @@ interface OverlayMenusProps {
   toggleForceLayout: Function
   fitView: Function
   clearGraph: Function
+  readyState: ReadyState
+  forceReconnect: MouseEventHandler<HTMLButtonElement>
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -57,6 +61,8 @@ export default function OverlayMenus({
   toggleForceLayout,
   fitView,
   clearGraph,
+  readyState,
+  forceReconnect,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
@@ -178,8 +184,30 @@ export default function OverlayMenus({
             title={graph?.description ?? ''}
             className='mr-auto w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
           >
-            <span className='text-slate-400'>{graph?.label}</span>
+            <span className='relative text-slate-400'>
+              {graph?.label}
+              <button
+                disabled={readyState === ReadyState.OPEN}
+                onClick={forceReconnect}
+                className={`relative -top-3 left-1 h-3 w-3 rounded-full ${
+                  readyState === ReadyState.OPEN
+                    ? 'bg-success-700'
+                    : readyState === ReadyState.CONNECTING
+                      ? 'animate-pulse bg-yellow-500'
+                      : 'bg-danger-500'
+                }`}
+                title={
+                  readyState === ReadyState.OPEN
+                    ? 'Connected'
+                    : readyState === ReadyState.CONNECTING
+                      ? 'Connecting...'
+                      : 'Disconnected'
+                }
+              />
+            </span>
           </h5>
+          {/* Connection Status Indicator */}
+
           <div className='flex items-center'>
             <button
               className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
