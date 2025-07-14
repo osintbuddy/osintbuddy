@@ -23,6 +23,7 @@ import {
   useGraphFlowStore,
   useEntitiesStore,
 } from '@/app/store'
+import '@xyflow/react/dist/style.css'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
@@ -59,7 +60,7 @@ export interface CtxMenu {
   position?: CtxPosition
 }
 
-export default function GraphInquiry() {
+export default function Graphing() {
   const { hid } = useParams()
   const location = useLocation()
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
@@ -69,12 +70,16 @@ export default function GraphInquiry() {
   const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
 
+  // Track if we're intentionally navigating away
+  const isNavigatingAway = useRef(false)
+
   const {
     nodes,
     edges,
     setNodes,
     setEdges,
     addNode,
+    addEdge,
     clearGraph,
     onNodesChange,
     onEdgesChange,
@@ -92,6 +97,11 @@ export default function GraphInquiry() {
 
   useEffect(() => {
     clearGraph()
+    toast.loading('Please wait while we load your graph...', {
+      closeButton: true,
+      isLoading: true,
+      toastId: 'graph',
+    })
     getGraph(hid as string)
   }, [])
 
@@ -101,29 +111,56 @@ export default function GraphInquiry() {
     setPositionMode('manual')
   }, [graph?.id])
 
+  useEffect(() => {
+    return () => {
+      // Dismiss any connection-related toasts on navigation
+      toast.dismiss('connection-lost')
+      toast.dismiss('connection-error')
+      toast.dismiss('reconnect-failed')
+      clearGraph()
+    }
+  }, [])
+
   const graphRef = useRef<HTMLDivElement>(null)
   const [graphInstance, setGraphInstance] = useState<ReactFlowInstance>()
-  const { lastJsonMessage, sendJsonMessage }: UseWebsocket = useWebSocket(
-    `ws://${WS_URL}/graph/${hid}/ws`,
-    {
-      shouldReconnect: () => true,
-      retryOnError: true,
-      onOpen: () =>
+  const { lastJsonMessage, sendJsonMessage, readyState }: UseWebsocket =
+    useWebSocket(`ws://${WS_URL}/graph/${hid}/ws`, {
+      share: true,
+      // Always try to reconnect unless it's an intentional close
+      shouldReconnect: (closeEvent) => closeEvent?.code !== 1000,
+      retryOnError: false,
+      reconnectAttempts: 10,
+      reconnectInterval: (attemptNumber) =>
+        Math.min(1000 + attemptNumber * 1000, 1000),
+      onOpen: () => {
+        isNavigatingAway.current = false
+        // Dismiss any existing connection warnings
+        toast.dismiss('connection-lost')
+        toast.dismiss('connection-error')
         sendJsonMessage({
           action: 'auth',
           token: access_token,
-        }),
-      onClose: () => {
-        clearGraph()
-        toast.update('loadingToast', {
-          render: `The connection was lost! Attempting to reconnect...'}`,
-          type: 'warning',
-          isLoading: false,
-          autoClose: 1400,
         })
       },
-    }
-  )
+      onClose: (event) => {
+        // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
+        if (event.code === 1000 || event.code === 1008) {
+          clearGraph()
+        }
+      },
+
+      onReconnectStop: (numAttempts) => {
+        console.error(
+          'WebSocket failed to reconnect after',
+          numAttempts,
+          'attempts'
+        )
+        toast.error('Failed to reconnect. Please refresh the page.', {
+          toastId: 'reconnect-failed',
+          autoClose: false,
+        })
+      },
+    })
 
   const fitView = useCallback(
     (fitViewOptions?: FitViewOptions) => {
@@ -135,13 +172,9 @@ export default function GraphInquiry() {
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
     authenticated: (data) => {
-      toast.loading('Please wait while we load your graph...', {
-        closeButton: true,
-        isLoading: true,
-        toastId: 'graph',
-      })
       setPlugins(data.plugins)
       sendJsonMessage({ action: 'read:graph' })
+      toast.dismiss('connection-lost')
     },
     read: (data) => {
       setNodes(data.nodes || [])
@@ -149,29 +182,55 @@ export default function GraphInquiry() {
       toast.dismiss('graph')
       fitView()
     },
-    remove: (data) => {},
+    remove: () => {},
     created: (data) => {
-      addNode({
-        ...data.entity,
-      })
-      toast.success(
-        `Successfully created a new ${data.entity.data?.label.toLowerCase()} entity!`
-      )
-    },
-    loading: (data) => {
-      const notification = data?.notification
-      if (notification && notification?.id) {
-        !notification.autoClose
-          ? toast.update(lastJsonMessage.notification.id)
-          : toast.loading(notification.message ?? 'Loading...', {
-              closeButton: true,
-              isLoading: true,
-              toastId: notification.id,
-              autoClose: 1600,
-            })
+      addNode(data.entity)
+      if (data.edge) {
+        addEdge(data.edge)
+      } else {
+      }
+      const notification = data.notification
+      if (notification) {
+        const { message, ...notificationProps } = notification
+        toast.success(notification.message, notificationProps)
       }
     },
-    error: (data) => toast.error(`${data.message}`),
+    loading: (data) => {
+      const { toastId, type, isLoading, autoClose, ...notification } =
+        data?.notification
+      // Update existing loading toast to success
+      if (isLoading) {
+        // Create new loading toast
+        toast.loading(notification.message ?? 'Loading...', {
+          closeButton: true,
+          isLoading: true,
+          toastId: toastId,
+          autoClose: 1600,
+        })
+      } else
+        toast.update(toastId, {
+          render: notification.message,
+          type: 'success',
+          isLoading: false,
+          autoClose: 5000,
+          ...notification,
+        })
+    },
+    error: (data) => {
+      const notification = data.notification
+      if (notification?.toastId) {
+        // Update existing loading toast to error
+        toast.update(notification.toastId, {
+          render: notification.message,
+          type: 'error',
+          isLoading: false,
+          autoClose: 5000,
+        })
+      } else {
+        // Create new error toast if no toastId
+        toast.error(notification?.message || 'An error occurred')
+      }
+    },
   }
 
   useEffect(() => {
@@ -335,7 +394,7 @@ export default function GraphInquiry() {
       {/* TODO: Add loading screen fade out transition */}
       {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
       {isSuccess && (
-        <div className='h-screen w-screen' ref={graphRef}>
+        <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
           <Graph
             nodes={nodes}
             edges={edges}
@@ -351,7 +410,26 @@ export default function GraphInquiry() {
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}
           <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
+            <button
+              disabled={readyState === ReadyState.OPEN}
+              onClick={() => window.location.reload()}
+              className={`absolute top-1.5 right-1.5 z-20 h-3 w-3 rounded-full ${
+                readyState === ReadyState.OPEN
+                  ? 'bg-success-700'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'animate-pulse bg-yellow-500'
+                    : 'bg-danger-500'
+              }`}
+              title={
+                readyState === ReadyState.OPEN
+                  ? 'Connected'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'Connecting...'
+                    : 'Disconnected'
+              }
+            />
             <OverlayMenus
+              readyState={readyState}
               positionMode={positionMode}
               toggleForceLayout={toggleForceLayout}
               graph={graph}

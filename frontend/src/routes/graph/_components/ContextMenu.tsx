@@ -1,8 +1,9 @@
 import { Icon } from '@/components/icons'
 import { useState, useEffect } from 'preact/hooks'
 import Input from '@/components/inputs'
-import { useEntitiesStore } from '@/app/store'
+import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { CtxPosition } from '..'
+import { toast } from 'react-toastify'
 
 export interface ContextMenuProps {
   closeMenu: () => void
@@ -19,6 +20,7 @@ export default function ContextMenu({
 }: ContextMenuProps) {
   const { transforms, fetchTransforms, isLoadingTransforms, clearTransforms } =
     useEntitiesStore()
+  const { removeNode } = useGraphFlowStore()
   const [query, setQuery] = useState('')
 
   // Fetch transforms when selection changes and has a valid label
@@ -71,6 +73,14 @@ export default function ContextMenu({
                         transform: transform.label,
                       },
                     })
+                    toast.loading(
+                      `Transforming ${selection.id} ${transform.label.toLowerCase()}. Please wait...`,
+                      {
+                        closeButton: true,
+                        isLoading: true,
+                        toastId: selection.id,
+                      }
+                    )
                   }}
                   class='hover:border-primary-350 flex w-full items-center border-l-2 border-transparent px-2 py-1 text-slate-600 hover:bg-black/40 hover:text-slate-400'
                 >
@@ -100,9 +110,10 @@ export default function ContextMenu({
               onClick={() => {
                 closeMenu()
                 sendJsonMessage({
-                  action: 'delete:node',
-                  node: { id: Number(selection.id) },
+                  action: 'delete:entity',
+                  entity: { id: Number(selection.id) },
                 })
+                removeNode(selection.id)
               }}
               type='button'
             >

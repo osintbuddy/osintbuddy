@@ -2,22 +2,24 @@ import { useCallback } from 'react'
 
 import { getEdgeParams } from './utils'
 import { Icon } from '@/components/icons'
-import { BaseEdge, EdgeLabelRenderer, useStore, getBezierPath } from '@xyflow/react'
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  useStore,
+  getBezierPath,
+} from '@xyflow/react'
 
 function EdgeLabel({ transform, label }: { transform: string; label: string }) {
+  // TODO: On click open properties panel the edge can be updated by
   return (
     <>
       {label && (
         <div
           style={{ transform }}
-          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-md border-2 border-slate-700 bg-slate-800/5 p-1 px-3 text-[0.6rem] leading-none font-semibold text-slate-500 capitalize backdrop-blur-md hover:text-slate-400/80'
+          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/50 px-1 text-[0.6rem] leading-none font-semibold text-slate-500 backdrop-blur-xs hover:text-slate-400/80'
         >
           <p className='flex cursor-pointer items-center justify-between'>
             {label}{' '}
-            <Icon
-              icon='chevron-down'
-              className='ml-2 h-4 w-4 origin-center hover:rotate-3'
-            />
           </p>
         </div>
       )}
@@ -57,14 +59,16 @@ function SimpleFloatingEdge({
     targetX: tx,
     targetY: ty,
   })
-
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
         markerEnd={markerEnd}
-        style={{ ...style, cursor: 'grab' }}
+        style={{
+          ...style,
+          cursor: 'grab',
+        }}
       />
 
       <EdgeLabelRenderer>

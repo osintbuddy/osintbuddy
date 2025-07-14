@@ -178,7 +178,7 @@ export interface UpdateEntityPayload {
 }
 
 export interface DeleteEntityPayload {
-  id: string
+  id: number | string
 }
 
 export interface FavoriteEntityPayload {

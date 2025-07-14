@@ -46,7 +46,7 @@
   --color-slate-950: #020617;
 
   --color-mirage: #1C233B;
-  --color-mirage-50: #D;
+  --color-mirage-50: #394778;
   --color-mirage-100: #35426F;
   --color-mirage-200: #2D385E;
   --color-mirage-300: #242E4D;
@@ -334,7 +334,7 @@ input[type='number'] {
 }
 
 .react-flow__edge-path {
-  stroke: #49505a !important;
+  stroke: #394778 !important;
 }
 
 /* .react-flow__edge {
