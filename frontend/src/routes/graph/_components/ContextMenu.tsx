@@ -73,11 +73,6 @@ export default function ContextMenu({
                         transform: transform.label,
                       },
                     })
-                    console.log('sending transforms', {
-                      closeButton: true,
-                      isLoading: true,
-                      toastId: selection.id,
-                    })
                     toast.loading(
                       `Transforming ${selection.id} ${transform.label.toLowerCase()}. Please wait...`,
                       {

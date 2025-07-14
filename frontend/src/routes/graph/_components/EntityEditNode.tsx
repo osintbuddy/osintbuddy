@@ -31,7 +31,7 @@ const handleStyle = {
   borderColor: '#1C233B',
   background: '#0c0c32',
   width: 10,
-  margin: -3,
+  margin: -4,
   height: 10,
 }
 
@@ -43,93 +43,97 @@ type NodeElement = NodeInput & {
 function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   const node = ctx.data
 
-  const getNodeElement = useCallback((
-    element: NodeInput,
-    key: string | null = getNodeKey()
-  ) => {
-    switch (element.type) {
-      case 'dropdown':
-        return (
-          <DropdownInput
-            key={key}
-            nodeId={ctx.id}
-            options={element.options || []}
-            label={element.label}
-            value={element.value as string}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
+  const getNodeElement = useCallback(
+    (element: NodeInput, key: string | null = getNodeKey()) => {
+      switch (element.type) {
+        case 'dropdown':
+          return (
+            <DropdownInput
+              key={key}
+              nodeId={ctx.id}
+              options={element.options || []}
+              label={element.label}
+              value={element.value as string}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
 
-      case 'text':
-        return (
-          <TextInput
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element.value}
-            icon={element?.icon || 'ballpen'}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
+        case 'text':
+          return (
+            <TextInput
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element.value}
+              icon={element?.icon || 'ballpen'}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
 
-      case 'upload':
-        return (
-          <UploadFileInput
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            initialValue={element?.value || ''}
-            icon={element?.icon || 'file-upload'}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
-      case 'title':
-        return (
-          <Title
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
+        case 'upload':
+          return (
+            <UploadFileInput
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              initialValue={element?.value || ''}
+              icon={element?.icon || 'file-upload'}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
+        case 'title':
+          return (
+            <Title
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
 
-      case 'section':
-        return (
-          <Text
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
-      case 'textarea':
-        return (
-          <TextArea
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
-      case 'copy-text':
-        return (
-          <CopyText
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
-      case 'empty':
-        return <input className='pointer-events-none h-0 bg-transparent' />
-    }
-  }, [ctx.id, sendJsonMessage])
+        case 'section':
+          return (
+            <Text
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
+        case 'textarea':
+          return (
+            <TextArea
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
+        case 'copy-text':
+          return (
+            <CopyText
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
+        case 'empty':
+          return <input className='pointer-events-none h-0 bg-transparent' />
+      }
+    },
+    [ctx.id, sendJsonMessage]
+  )
 
-  const columnsCount = useMemo(() => Math.max(
-    0,
-    ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
-  ), [node.elements])
+  const columnsCount = useMemo(
+    () =>
+      Math.max(
+        0,
+        ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
+      ),
+    [node.elements]
+  )
   return (
     <>
       <Handle

@@ -203,6 +203,7 @@ export default function Graph({
     <ReactFlow
       // TODO:
       // onCopy={}
+      defaultMarkerColor='#394778'
       ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}

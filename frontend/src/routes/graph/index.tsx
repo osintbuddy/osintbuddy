@@ -11,7 +11,7 @@ import {
   forceY,
 } from 'd3-force'
 import OverlayMenus from './_components/OverlayMenus'
-import { toast, UpdateOptions } from 'react-toastify'
+import { toast } from 'react-toastify'
 import Graph from './_components/Graph'
 import ELK from 'elkjs/lib/elk.bundled.js'
 import { WS_URL } from '@/app/baseApi'
@@ -23,6 +23,7 @@ import {
   useGraphFlowStore,
   useEntitiesStore,
 } from '@/app/store'
+import '@xyflow/react/dist/style.css'
 
 interface UseWebsocket {
   lastJsonMessage: JSONObject
@@ -78,6 +79,7 @@ export default function Graphing() {
     setNodes,
     setEdges,
     addNode,
+    addEdge,
     clearGraph,
     onNodesChange,
     onEdgesChange,
@@ -183,6 +185,10 @@ export default function Graphing() {
     remove: () => {},
     created: (data) => {
       addNode(data.entity)
+      if (data.edge) {
+        addEdge(data.edge)
+      } else {
+      }
       const notification = data.notification
       if (notification) {
         const { message, ...notificationProps } = notification

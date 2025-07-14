@@ -7,8 +7,9 @@ const handleStyle = {
   borderColor: '#1C233B',
   background: '#0c0c3240',
   width: 10,
-  margin: -2,
+  margin: 0,
   height: 10,
+  padding: 4,
 }
 
 const handleConfigs = [
@@ -37,7 +38,7 @@ function ViewEntityNode({ ctx }: JSONObject) {
       {handleConfigs.map((handle) => {
         const suffix = handle.type === 'source' ? '1' : '2'
         const handleId = `${handle.id}${suffix}`
-        
+
         return (
           <Handle
             key={handleId}
