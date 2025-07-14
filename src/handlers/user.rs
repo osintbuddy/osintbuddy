@@ -200,8 +200,6 @@ async fn login_user_handler(
         ctime: user_org_info.ctime.unwrap(),
         mtime: user_org_info.mtime.unwrap(),
     };
-    info!("{:?} ", refresh_claims);
-    info!("{:?} ", claims);
     let refresh_token = encode(
         &Header::default(),
         &refresh_claims,

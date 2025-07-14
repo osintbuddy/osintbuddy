@@ -71,11 +71,30 @@ pub async fn with_cypher(
         .map(|row| {
             let mut json_objs: Vec<serde_json::Value> = Vec::new();
             for (i, _) in row.columns().iter().enumerate() {
-                let value = row.get::<String, _>(i);
+                // Try different ways to extract the agtype value safely
+                let value = match row.try_get::<String, _>(i) {
+                    Ok(val) => val,
+                    Err(_) => {
+                        // If String fails, try &str
+                        match row.try_get::<&str, _>(i) {
+                            Ok(val) => val.to_string(),
+                            Err(e) => {
+                                error!("Failed to extract value at column {}: {}", i, e);
+                                continue;
+                            }
+                        }
+                    }
+                };
+                
                 let result = re.replace_all(&value, "").to_string();
-                let v = serde_json::Value::from_str(result.as_str())
-                    .expect("Error parsing Age string!");
-                json_objs.push(v);
+                match serde_json::Value::from_str(result.as_str()) {
+                    Ok(v) => json_objs.push(v),
+                    Err(e) => {
+                        error!("Error parsing Age string '{}': {}", result, e);
+                        // Continue processing other columns instead of panicking
+                        continue;
+                    }
+                }
             }
             return json_objs;
         })

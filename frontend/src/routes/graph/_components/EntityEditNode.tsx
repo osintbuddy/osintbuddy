@@ -6,31 +6,32 @@ import {
   useMemo,
   useRef,
   useState,
+  useCallback,
 } from 'preact/hooks'
-import { Fragment } from 'preact/compat'
+import { Fragment, memo } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { Handle, Position } from '@xyflow/react'
 
-var dropdownKey = 0
+// Use useRef instead of global variables to avoid memory leaks
+let dropdownKeyRef = { current: 0 }
+let nodeKeyRef = { current: 0 }
 
 const getDropdownKey = () => {
-  dropdownKey += 1
-  return `k_${dropdownKey}`
+  dropdownKeyRef.current += 1
+  return `k_${dropdownKeyRef.current}`
 }
 
-var nodeKey = 0
-
 const getNodeKey = () => {
-  nodeKey += 1
-  return `k_${nodeKey}`
+  nodeKeyRef.current += 1
+  return `k_${nodeKeyRef.current}`
 }
 
 const handleStyle = {
   borderColor: '#1C233B',
   background: '#0c0c32',
   width: 10,
-  margin: -3,
+  margin: -4,
   height: 10,
 }
 
@@ -39,94 +40,99 @@ type NodeElement = NodeInput & {
   editState: EditState
 }
 
-export default function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
+function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   const node = ctx.data
 
-  const getNodeElement = (
-    element: NodeInput,
-    key: string | null = getNodeKey()
-  ) => {
-    switch (element.type) {
-      case 'dropdown':
-        return (
-          <DropdownInput
-            key={key}
-            nodeId={ctx.id}
-            options={element.options || []}
-            label={element.label}
-            value={element.value as string}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
+  const getNodeElement = useCallback(
+    (element: NodeInput, key: string | null = getNodeKey()) => {
+      switch (element.type) {
+        case 'dropdown':
+          return (
+            <DropdownInput
+              key={key}
+              nodeId={ctx.id}
+              options={element.options || []}
+              label={element.label}
+              value={element.value as string}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
 
-      case 'text':
-        return (
-          <TextInput
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            icon={element?.icon || 'ballpen'}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
+        case 'text':
+          return (
+            <TextInput
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element.value}
+              icon={element?.icon || 'ballpen'}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
 
-      case 'upload':
-        return (
-          <UploadFileInput
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            initialValue={element?.value || ''}
-            icon={element?.icon || 'file-upload'}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
-      case 'title':
-        return (
-          <Title
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
+        case 'upload':
+          return (
+            <UploadFileInput
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              initialValue={element?.value || ''}
+              icon={element?.icon || 'file-upload'}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
+        case 'title':
+          return (
+            <Title
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
 
-      case 'section':
-        return (
-          <Text
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
-      case 'textarea':
-        return (
-          <TextArea
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-            sendJsonMessage={sendJsonMessage}
-          />
-        )
-      case 'copy-text':
-        return (
-          <CopyText
-            key={key}
-            nodeId={ctx.id}
-            label={element?.label}
-            value={element?.value || ''}
-          />
-        )
-      case 'empty':
-        return <input className='pointer-events-none h-0 bg-transparent' />
-    }
-  }
+        case 'section':
+          return (
+            <Text
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
+        case 'textarea':
+          return (
+            <TextArea
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+              sendJsonMessage={sendJsonMessage}
+            />
+          )
+        case 'copy-text':
+          return (
+            <CopyText
+              key={key}
+              nodeId={ctx.id}
+              label={element?.label}
+              value={element?.value || ''}
+            />
+          )
+        case 'empty':
+          return <input className='pointer-events-none h-0 bg-transparent' />
+      }
+    },
+    [ctx.id, sendJsonMessage]
+  )
 
-  const columnsCount = Math.max(
-    0,
-    ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
+  const columnsCount = useMemo(
+    () =>
+      Math.max(
+        0,
+        ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
+      ),
+    [node.elements]
   )
   return (
     <>
@@ -443,7 +449,7 @@ export function TextInput({
             id={`${nodeId}-${label}`}
             class=''
             type='text'
-            onBlur={() => {
+            onBlur={(event) => {
               sendJsonMessage({
                 action: 'update:entity',
                 entity: { id: Number(nodeId), [label]: value },
@@ -588,3 +594,5 @@ export function DropdownInput({
     </>
   )
 }
+
+export default memo(EditEntityNode)

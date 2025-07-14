@@ -1,4 +1,5 @@
 import { useMemo } from 'preact/hooks'
+import { memo } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import { Handle, Position } from '@xyflow/react'
 
@@ -6,10 +7,23 @@ const handleStyle = {
   borderColor: '#1C233B',
   background: '#0c0c3240',
   width: 10,
-  margin: -2,
+  margin: 0,
   height: 10,
+  padding: 4,
 }
-export default function ViewEntityNode({ ctx }: JSONObject) {
+
+const handleConfigs = [
+  { position: Position.Right, id: 'r', type: 'source' as const },
+  { position: Position.Top, id: 't', type: 'source' as const },
+  { position: Position.Bottom, id: 'b', type: 'source' as const },
+  { position: Position.Left, id: 'l', type: 'source' as const },
+  { position: Position.Right, id: 'r', type: 'target' as const },
+  { position: Position.Top, id: 't', type: 'target' as const },
+  { position: Position.Bottom, id: 'b', type: 'target' as const },
+  { position: Position.Left, id: 'l', type: 'target' as const },
+]
+
+function ViewEntityNode({ ctx }: JSONObject) {
   const node = ctx.data
   const displayValue = useMemo(
     () =>
@@ -21,63 +35,20 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
 
   return (
     <>
-      <Handle
-        position={Position.Right}
-        id='r1'
-        key='r1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t1'
-        key='t1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b1'
-        key='b1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l1'
-        key='l1'
-        type='source'
-        style={handleStyle}
-      />
+      {handleConfigs.map((handle) => {
+        const suffix = handle.type === 'source' ? '1' : '2'
+        const handleId = `${handle.id}${suffix}`
 
-      <Handle
-        position={Position.Right}
-        id='r2'
-        key='r2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t2'
-        key='t2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b2'
-        key='b2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l2'
-        key='l2'
-        type='target'
-        style={handleStyle}
-      />
+        return (
+          <Handle
+            key={handleId}
+            position={handle.position}
+            id={handleId}
+            type={handle.type}
+            style={handleStyle}
+          />
+        )
+      })}
       <div className='node container !h-16 !w-16 !rounded-full'>
         <div
           // 99 === 0.6 opacity
@@ -103,3 +74,5 @@ export default function ViewEntityNode({ ctx }: JSONObject) {
     </>
   )
 }
+
+export default memo(ViewEntityNode)

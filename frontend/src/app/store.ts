@@ -401,20 +401,20 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
       throw error
     }
   },
-  deleteEntity: async (payload: DeleteEntityPayload) => {
+  deleteEntity: async ({ id }: DeleteEntityPayload) => {
     set({ isDeleting: true, error: null })
     try {
       const token = useAuthStore.getState().access_token as string;
-      await entitiesApi.delete(payload, token)
+      await entitiesApi.delete({ id  }, token)
       
       // Remove the deleted entity from the entities list
       const currentEntities = get().entities
       const filteredEntities = currentEntities.filter(entity => 
-        entity.id !== payload.id
+        entity.id !== id
       )
       // Clear currentEntity if it's the one being deleted
       const currentEntity = get().currentEntity
-      const updatedCurrentEntity = currentEntity?.id === payload.id ? null : currentEntity
+      const updatedCurrentEntity = currentEntity?.id === id ? null : currentEntity
       set({ entities: filteredEntities, currentEntity: updatedCurrentEntity, isDeleting: false })
     } catch (error) {
       set({  error: error.message, isDeleting: false })
