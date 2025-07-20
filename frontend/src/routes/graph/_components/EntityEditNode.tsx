@@ -12,7 +12,7 @@ import { Fragment, memo } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { Handle, Position } from '@xyflow/react'
-
+import { useVirtualizer } from '@tanstack/react-virtual'
 // Use useRef instead of global variables to avoid memory leaks
 let dropdownKeyRef = { current: 0 }
 let nodeKeyRef = { current: 0 }
@@ -499,8 +499,15 @@ export function DropdownInput({
     value: '',
     tooltip: '',
   }
+  const parentRef = useRef(null)
+  const rowVirtualizer = useVirtualizer({
+    count: options?.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 15,
+    overscan: 5,
+  })
 
-  const rowRenderer = ({ index, key, isScrolling, isVisible, style }) => {
+  const rowRenderer = (item) => {
     return (
       <>
         {/* <Combobox.Option
@@ -538,21 +545,34 @@ export function DropdownInput({
     )
   }
 
+  const [showOptions, setShowOptions] = useState(false)
+  // TODO: Fix scroll styles and logic... https://tanstack.com/virtual/latest/docs/framework/react/examples/smooth-scroll?panel=code
+  useEffect(() => {
+    /** if clicked on outside of dropdown element */
+    function handleClickOutside(event) {
+      if (parentRef.current && !parentRef.current.contains(event.target)) {
+        setShowOptions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [parentRef])
+
   return (
     <>
       <div
-        className='dropdown-input w-full'
-        as='div'
-        value={activeOption}
-        onChange={(option) => {
-          sendJsonMessage({
-            action: 'update:entity',
-            entity: {
-              id: Number(nodeId),
-              [label]: option?.value ? option.value : option.label,
-            },
-          })
-        }}
+        className='dropdown-input'
+        ref={parentRef}
+        // value={activeOption}
+        // onChange={(option) => {
+        //   sendJsonMessage({
+        //     action: 'update:entity',
+        //     entity: {
+        //       id: Number(nodeId),
+        //       [label]: option?.value ? option.value : option.label,
+        //     },
+        //   })
+        // }}
       >
         <label>
           <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
@@ -566,15 +586,25 @@ export function DropdownInput({
             displayValue={(option: DropdownOption) => option.label}
             className='nodrag focus:ring-info-400 mr-4 px-2 outline-hidden'
           />
-          <button className='absolute inset-y-0 -top-px right-0 z-[99] h-6 w-4 focus:outline-hidden'>
+          <button
+            onClick={() => setShowOptions(!showOptions)}
+            className='absolute inset-y-0 -top-px right-0 z-[99] h-6 w-4 focus:outline-hidden'
+          >
             <Icon
               icon='chevron-down'
               className='h-7 w-7 !text-slate-600'
               aria-hidden='true'
             />
           </button>
-          <div className='nodrag nowheel from-mirage-700/90 to-mirage-800/80 absolute z-10 mr-1 max-h-80 w-full overflow-hidden rounded-b-md bg-gradient-to-br from-30% py-1 text-[0.6rem] shadow-lg focus:outline-hidden sm:text-sm'>
-            <List
+          {showOptions && (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+              }}
+              className='nodrag absolute z-10 mr-1 h-80 w-full overflow-x-hidden overflow-y-scroll rounded-b-md bg-gradient-to-br from-black/50 from-30% to-black/65 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
+            >
+              {/* <List
               rowCount={filteredOptions.length}
               width={dropdownRef?.current?.clientWidth}
               height={
@@ -586,8 +616,42 @@ export function DropdownInput({
               rowHeight={({ index }) =>
                 filteredOptions[index]?.value ? 54 : 40
               }
-            />
-          </div>
+            /> */}
+              {rowVirtualizer.getVirtualItems().map(({ index, key }) => {
+                return (
+                  <div
+                    key={key.toString()}
+                    className='nowheel z-50 bg-transparent px-2 hover:bg-black/80'
+                  >
+                    <span
+                      className='block truncate'
+                      title={
+                        filteredOptions[index].tooltip !==
+                        filteredOptions[index].label
+                          ? filteredOptions[index].tooltip
+                          : 'No description found'
+                      }
+                    >
+                      {filteredOptions[index].label}
+                    </span>
+                    {filteredOptions[index].value && ( // filteredOptions[index]?.value
+                      <span
+                        className='flex truncate text-[0.5rem] leading-3'
+                        // title={
+                        //   filteredOptions[index].tooltip !==
+                        //   filteredOptions[index].label
+                        //     ? filteredOptions[index].tooltip
+                        //     : 'No description found'
+                        // }
+                      >
+                        {filteredOptions[index].value}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </>
