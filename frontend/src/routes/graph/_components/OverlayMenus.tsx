@@ -292,12 +292,7 @@ export default function OverlayMenus({
         <ol className='relative flex px-4 pt-2 text-sm select-none'>
           <li className='mr-auto flex'>
             <h5 className='font-display flex w-full items-center justify-between truncate whitespace-nowrap text-inherit'>
-              <Link
-                title='View all graphs'
-                className='text-slate-500'
-                to='/dashboard/entity'
-                replace
-              >
+              <Link className='text-slate-500' to='/dashboard/entity' replace>
                 Entities
               </Link>
             </h5>

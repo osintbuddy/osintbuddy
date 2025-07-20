@@ -1,0 +1,87 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO entities (label,description,author,source,visibility,owner_id) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "uuid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "author",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "source",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "visibility",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "org_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "ctime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "mtime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "owner_id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Varchar",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "aa27ac2bf3a0b01c0aa95d434f1c89b9a2a5e25ea873386f27d499961401c6fa"
+}

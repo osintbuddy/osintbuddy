@@ -15,7 +15,7 @@ pub struct Organization {
     pub contact_email: Option<String>,
     pub subscription_level: String,
     pub max_users: i32,
-    pub max_graphs: i32,
+    pub max_cases: i32,
     pub max_entities: i32,
     pub can_export: bool,
     pub can_share: bool,

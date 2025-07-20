@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM users WHERE id = $1",
+  "query": "INSERT INTO cases (label,description,visibility,owner_id,org_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -10,61 +10,65 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
-        "type_info": "Varchar"
+        "name": "uuid",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "email",
-        "type_info": "Varchar"
+        "name": "label",
+        "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "verified",
-        "type_info": "Bool"
+        "name": "description",
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "password",
+        "name": "visibility",
         "type_info": "Varchar"
       },
       {
         "ordinal": 5,
-        "name": "user_type",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "org_id",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "ctime",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "mtime",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "owner_id",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Text",
+        "Varchar",
+        "Int8",
         "Int8"
       ]
     },
     "nullable": [
       false,
-      false,
-      false,
+      true,
       false,
       false,
       false,
       false,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3"
+  "hash": "2141de12b7f14c655b102db6a288bb8c2bd538501cb2894f280b340b410c8e0c"
 }

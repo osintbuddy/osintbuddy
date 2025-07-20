@@ -3,9 +3,8 @@ use crate::{
     schemas::errors::{AppError, ErrorKind},
 };
 use actix_web::web::Data;
-use log::{error, info};
+use log::error;
 use regex::Regex;
-use serde_json::json;
 use sqlx::Postgres;
 use sqlx::Row;
 use sqlx::postgres::{PgPoolOptions, PgRow};
@@ -85,7 +84,7 @@ pub async fn with_cypher(
                         }
                     }
                 };
-                
+
                 let result = re.replace_all(&value, "").to_string();
                 match serde_json::Value::from_str(result.as_str()) {
                     Ok(v) => json_objs.push(v),

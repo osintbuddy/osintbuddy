@@ -16,7 +16,7 @@ use actix_web::{
     patch, post,
     web::{Data, Path},
 };
-use log::{error, info};
+use log::error;
 use sqids::Sqids;
 use std::string::String;
 
@@ -30,7 +30,7 @@ async fn create_graph_handler(
     let body = body.into_inner().validate()?;
     let graph = sqlx::query_as!(
         DbGraph,
-        "INSERT INTO graphs (label,description,visibility,owner_id,org_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+        "INSERT INTO cases (label,description,visibility,owner_id,org_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
         "private",
@@ -98,7 +98,7 @@ async fn update_graph_handler(
 ) -> Result<Graph, AppError> {
     sqlx::query_as!(
         DbGraph,
-        "UPDATE graphs SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
+        "UPDATE cases SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
         body.id,
@@ -164,7 +164,7 @@ async fn list_graph_handler(
 ) -> Result<ListGraphsResponse, AppError> {
     let graphs = sqlx::query_as!(
         DbGraph,
-        "SELECT * FROM graphs WHERE owner_id = $1 OFFSET $2 LIMIT $3",
+        "SELECT * FROM cases WHERE owner_id = $1 OFFSET $2 LIMIT $3",
         auth.account_id,
         page.skip,
         page.limit,
@@ -180,7 +180,7 @@ async fn list_graph_handler(
     })?;
 
     let favorites = sqlx::query_scalar!(
-        "SELECT graph_id FROM favorite_graphs WHERE owner_id = $1",
+        "SELECT case_id FROM favorite_cases WHERE owner_id = $1",
         auth.account_id
     )
     .fetch_all(pool.as_ref())
@@ -249,7 +249,7 @@ async fn get_graph_handler(
 
     let graph = sqlx::query_as!(
         DbGraph,
-        "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
+        "SELECT * FROM cases WHERE id = $1 AND owner_id = $2",
         *decoded_id as i64,
         auth.account_id
     )
@@ -336,7 +336,7 @@ async fn favorite_graph_handler(
 
     let graph = sqlx::query_as!(
         DbGraph,
-        "SELECT * FROM graphs WHERE id = $1 AND owner_id = $2",
+        "SELECT * FROM cases WHERE id = $1 AND owner_id = $2",
         *graph_id as i64,
         auth.account_id
     )
@@ -353,7 +353,7 @@ async fn favorite_graph_handler(
     if body.is_favorite {
         // Add to favorites
         sqlx::query!(
-            "INSERT INTO favorite_graphs (owner_id, graph_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            "INSERT INTO favorite_cases (owner_id, case_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
             auth.account_id,
             *graph_id as i64
         )
@@ -370,7 +370,7 @@ async fn favorite_graph_handler(
     } else {
         // Remove from favorites
         sqlx::query!(
-            "DELETE FROM favorite_graphs WHERE owner_id = $1 AND graph_id = $2",
+            "DELETE FROM favorite_cases WHERE owner_id = $1 AND case_id = $2",
             auth.account_id,
             *graph_id as i64
         )

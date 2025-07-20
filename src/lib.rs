@@ -50,7 +50,7 @@ pub async fn run() -> std::io::Result<()> {
 
     let web_addr = config.backend_addr.clone();
     let web_port = config.backend_port.clone();
-    info!("Listening on: http://{web_addr}:{web_port}");
+    info!("OSIB is listening on: http://{web_addr}:{web_port}");
 
     HttpServer::new(move || {
         let sqids = Sqids::builder()
@@ -86,7 +86,7 @@ pub async fn run() -> std::io::Result<()> {
         if config
             .serve_build
             .clone()
-            .expect("serve_build .env var not found or set in cfg!")
+            .expect("serve_build cfg value not found/set in .env!")
         {
             return app
                 .service(Files::new("/", "./frontend/dist/").index_file("index.html"))

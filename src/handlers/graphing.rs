@@ -529,7 +529,7 @@ pub async fn graphing_websocket_handler(
 
                                 // Get the graph from database to validate access and get UUID
                                 if let Ok(graph) = sqlx::query!(
-                                    "SELECT uuid FROM graphs WHERE id = $1 AND owner_id = $2",
+                                    "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
                                     decoded_id as i64,
                                     user_id_i64
                                 )
@@ -989,7 +989,7 @@ fn vertex_to_blueprint(vertex: &Value, blueprint: &Value) -> Value {
 
     entity.as_object_mut().unwrap().insert(
         "type".to_string(),
-        serde_json::Value::String("view".to_string()),
+        serde_json::Value::String("edit".to_string()),
     );
 
     entity

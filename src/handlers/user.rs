@@ -16,8 +16,8 @@ use argon2::{
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::prelude::*;
-use jsonwebtoken::{EncodingKey, Header, encode, DecodingKey, Validation};
-use log::{error, info};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
+use log::error;
 use sqids::Sqids;
 use sqlx::Row;
 
@@ -78,7 +78,7 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
         error!("{err}");
         AppError {
             kind: ErrorKind::Database,
-            message: "We ran into an error creating your organization.",
+            message: "We ran into an error creating your team.",
         }
     })?;
 
@@ -122,13 +122,13 @@ async fn login_user_handler(
     sqids: Data<Sqids>,
 ) -> Result<Token, AppError> {
     let body = body.into_inner().validate()?;
-    
+
     // Fetch user and organization information in a single query
     let user_org_info = sqlx::query!(
         r#"
         SELECT 
             u.id, u.name, u.email, u.password, u.verified, u.user_type, u.org_id, u.ctime, u.mtime,
-            o.subscription_level, o.max_graphs, o.max_entities, o.can_export, o.can_share
+            o.subscription_level, o.max_cases, o.max_entities, o.can_export, o.can_share
         FROM users u 
         JOIN organizations o ON u.org_id = o.id 
         WHERE u.email = $1
@@ -192,11 +192,11 @@ async fn login_user_handler(
         user_type: user_org_info.user_type,
         org_id: user_org_info.org_id,
         org_subscription_level: user_org_info.subscription_level,
-        org_max_graphs: user_org_info.max_graphs,
+        org_max_cases: user_org_info.max_cases,
         org_max_entities: user_org_info.max_entities,
         org_can_export: user_org_info.can_export,
         org_can_share: user_org_info.can_share,
-        // valid users will always have ctime and mtime
+        // users will always have ctime and mtime
         ctime: user_org_info.ctime.unwrap(),
         mtime: user_org_info.mtime.unwrap(),
     };
@@ -304,7 +304,7 @@ async fn refresh_handler(
         r#"
         SELECT 
             u.id, u.name, u.email, u.password, u.verified, u.user_type, u.org_id, u.ctime, u.mtime,
-            o.subscription_level, o.max_graphs, o.max_entities, o.can_export, o.can_share
+            o.subscription_level, o.max_cases, o.max_entities, o.can_export, o.can_share
         FROM users u 
         JOIN organizations o ON u.org_id = o.id 
         WHERE u.id = $1
@@ -353,7 +353,7 @@ async fn refresh_handler(
         user_type: user_org_info.user_type,
         org_id: user_org_info.org_id,
         org_subscription_level: user_org_info.subscription_level,
-        org_max_graphs: user_org_info.max_graphs,
+        org_max_cases: user_org_info.max_cases,
         org_max_entities: user_org_info.max_entities,
         org_can_export: user_org_info.can_export,
         org_can_share: user_org_info.can_share,

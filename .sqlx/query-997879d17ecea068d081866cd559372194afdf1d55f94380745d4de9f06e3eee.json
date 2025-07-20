@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM users WHERE id = $1",
+  "query": "SELECT * FROM cases WHERE owner_id = $1 OFFSET $2 LIMIT $3",
   "describe": {
     "columns": [
       {
@@ -10,61 +10,63 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
-        "type_info": "Varchar"
+        "name": "uuid",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "email",
-        "type_info": "Varchar"
+        "name": "label",
+        "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "verified",
-        "type_info": "Bool"
+        "name": "description",
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "password",
+        "name": "visibility",
         "type_info": "Varchar"
       },
       {
         "ordinal": 5,
-        "name": "user_type",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "org_id",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "ctime",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "mtime",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "owner_id",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
+        "Int8",
+        "Int8",
         "Int8"
       ]
     },
     "nullable": [
       false,
-      false,
-      false,
+      true,
       false,
       false,
       false,
       false,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3"
+  "hash": "997879d17ecea068d081866cd559372194afdf1d55f94380745d4de9f06e3eee"
 }

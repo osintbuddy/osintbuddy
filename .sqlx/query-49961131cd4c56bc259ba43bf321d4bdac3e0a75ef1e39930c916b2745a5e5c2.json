@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM favorite_cases WHERE owner_id = $1 AND case_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "49961131cd4c56bc259ba43bf321d4bdac3e0a75ef1e39930c916b2745a5e5c2"
+}

@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE organizations \n        SET name = $1, description = $2, website = $3, contact_email = $4, mtime = NOW()\n        WHERE id = $5 \n        RETURNING *\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "website",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "contact_email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "subscription_level",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "max_users",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "max_cases",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "max_entities",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "can_export",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "can_share",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 11,
+        "name": "ctime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "mtime",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "fde56f008196baf8ef9ae8847fb696234827a1a93e7d695f399c670da7e4af7b"
+}

@@ -7,8 +7,8 @@ CREATE TABLE organizations (
     website VARCHAR(255),
     contact_email VARCHAR(255),
     subscription_level VARCHAR(20) NOT NULL DEFAULT 'trial',
-    max_users INTEGER NOT NULL DEFAULT 5,
-    max_graphs INTEGER NOT NULL DEFAULT 3,
+    max_users INTEGER NOT NULL DEFAULT 3,
+    max_cases INTEGER NOT NULL DEFAULT 3,
     max_entities INTEGER NOT NULL DEFAULT 100,
     can_export BOOLEAN NOT NULL DEFAULT FALSE,
     can_share BOOLEAN NOT NULL DEFAULT FALSE,
@@ -35,7 +35,7 @@ CREATE TABLE users (
 CREATE INDEX users_email_idx ON users (email);
 CREATE INDEX users_org_id_idx ON users (org_id);
 
-CREATE TABLE graphs (
+CREATE TABLE cases (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
     label TEXT NOT NULL,
@@ -47,18 +47,18 @@ CREATE TABLE graphs (
     owner_id BIGSERIAL NOT NULL,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE SET NULL,
-    CONSTRAINT valid_graph_visibility CHECK (visibility IN ('private', 'organization', 'shared', 'public', 'restricted'))
+    CONSTRAINT valid_case_visibility CHECK (visibility IN ('private', 'organization', 'shared', 'public', 'restricted'))
 );
-CREATE INDEX graphs_org_id_idx ON graphs (org_id);
+CREATE INDEX cases_org_id_idx ON cases (org_id);
 
-CREATE TABLE favorite_graphs (
-    graph_id BIGSERIAL NOT NULL,
+CREATE TABLE favorite_cases (
+    case_id BIGSERIAL NOT NULL,
     owner_id BIGSERIAL NOT NULL,
-    PRIMARY KEY (owner_id, graph_id),
-    FOREIGN KEY (graph_id) REFERENCES graphs(id) ON DELETE CASCADE,
+    PRIMARY KEY (owner_id, case_id),
+    FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE INDEX favorite_graphs_owner_id_idx ON favorite_graphs (owner_id);
+CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 
 CREATE TABLE entities (
     id BIGSERIAL PRIMARY KEY,
@@ -101,7 +101,7 @@ CREATE TABLE resource_shares (
     FOREIGN KEY (shared_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    CONSTRAINT valid_resource_type CHECK (resource_type IN ('graph', 'entity')),
+    CONSTRAINT valid_resource_type CHECK (resource_type IN ('case', 'entity', 'feed')),
     CONSTRAINT valid_access_level CHECK (access_level IN ('read', 'write', 'admin'))
     -- org_id is always required (NOT NULL), shared_with_user_id is optional
     -- When shared_with_user_id IS NULL, it means sharing with entire organization
@@ -124,8 +124,90 @@ CREATE TABLE access_logs (
     access_reason TEXT,
     ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT valid_resource_type CHECK (resource_type IN ('graph', 'entity')),
+    CONSTRAINT valid_resource_type CHECK (resource_type IN ('case', 'entity', 'feed')),
     CONSTRAINT valid_action CHECK (action IN ('create', 'read', 'update', 'delete', 'share', 'export'))
 );
 CREATE INDEX access_logs_user_id_idx ON access_logs (user_id);
 CREATE INDEX access_logs_resource_idx ON access_logs (resource_type, resource_id);
+
+CREATE TABLE feeds (
+    id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    categories TEXT[] NOT NULL DEFAULT '{}',
+    org_id BIGSERIAL NOT NULL,
+    owner_id BIGSERIAL NOT NULL,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'organization',
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT valid_feed_visibility CHECK (visibility IN ('private', 'organization', 'shared', 'public', 'restricted'))
+);
+CREATE INDEX feeds_org_id_idx ON feeds (org_id);
+CREATE INDEX feeds_owner_id_idx ON feeds (owner_id);
+CREATE INDEX feeds_categories_idx ON feeds USING GIN (categories);
+
+CREATE TABLE posts (
+    id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuid_generate_v4(),
+    feed_id BIGSERIAL NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    content_format VARCHAR(20) NOT NULL DEFAULT 'markdown',
+    author_id BIGSERIAL NOT NULL,
+    parent_post_id BIGSERIAL,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    CONSTRAINT valid_content_format CHECK (content_format IN ('markdown', 'html', 'plain'))
+);
+CREATE INDEX posts_feed_id_idx ON posts (feed_id);
+CREATE INDEX posts_author_id_idx ON posts (author_id);
+CREATE INDEX posts_parent_post_id_idx ON posts (parent_post_id);
+
+CREATE TABLE post_edit_history (
+    id BIGSERIAL PRIMARY KEY,
+    post_id BIGSERIAL NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    content_format VARCHAR(20) NOT NULL DEFAULT 'markdown',
+    edited_by BIGSERIAL NOT NULL,
+    edit_reason TEXT,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (edited_by) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT valid_edit_content_format CHECK (content_format IN ('markdown', 'html', 'plain'))
+);
+CREATE INDEX post_edit_history_post_id_idx ON post_edit_history (post_id);
+CREATE INDEX post_edit_history_edited_by_idx ON post_edit_history (edited_by);
+
+CREATE TABLE tags (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    color VARCHAR(7),
+    org_id BIGSERIAL NOT NULL,
+    created_by BIGSERIAL NOT NULL,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(name, org_id)
+);
+CREATE INDEX tags_org_id_idx ON tags (org_id);
+CREATE INDEX tags_name_idx ON tags (name);
+
+CREATE TABLE post_tags (
+    post_id BIGSERIAL NOT NULL,
+    tag_id BIGSERIAL NOT NULL,
+    tagged_by BIGSERIAL NOT NULL,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+    FOREIGN KEY (tagged_by) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX post_tags_post_id_idx ON post_tags (post_id);
+CREATE INDEX post_tags_tag_id_idx ON post_tags (tag_id);

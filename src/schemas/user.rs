@@ -44,7 +44,7 @@ pub struct TokenClaims {
     pub user_type: String,
     pub org_id: i64,
     pub org_subscription_level: String,
-    pub org_max_graphs: i32,
+    pub org_max_cases: i32,
     pub org_max_entities: i32,
     pub org_can_export: bool,
     pub org_can_share: bool,

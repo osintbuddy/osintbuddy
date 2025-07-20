@@ -98,7 +98,7 @@ export default function DashboardPage() {
                 class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 0}
               >
-                Graphs
+                Cases
               </Link>
               <Link
                 to='entity'
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                   onClick={() => setShowCreateGraphModal(true)}
                   className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
-                  Create graph
+                  Create case
                   <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
                 </Button.Ghost>
               )}
@@ -373,7 +373,7 @@ export function CreateGraphModal({
         <section class='border-primary mt-6 border-b-2 px-px pb-1 pl-1'>
           <div class='flex flex-wrap items-center justify-between'>
             <h1 class='font-code text-2xl font-semibold tracking-tight text-slate-400'>
-              CREATE://GRAPH
+              CREATE://CASE
             </h1>
             <Icon
               icon='chart-dots-3'
