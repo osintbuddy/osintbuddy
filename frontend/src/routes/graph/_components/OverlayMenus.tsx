@@ -1,12 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useState, useMemo } from 'preact/hooks'
+import { Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
 import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
 import { ReadyState } from 'react-use-websocket'
-import { MouseEventHandler } from 'preact/compat'
-import { toast } from 'react-toastify'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -26,13 +24,13 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
                 {entity.label}
               </p>
             </div>
-            <div className='flex flex-wrap items-center gap-x-2 text-xs leading-5 text-slate-500'>
-              <p className='line-clamp-2 truncate leading-5 whitespace-normal text-slate-400'>
+            <div className='flex flex-col text-xs leading-5 text-slate-500'>
+              <p className='line-clamp-2 gap-x-2 truncate leading-5 whitespace-normal text-slate-400'>
                 {entity.description}
               </p>
               <br />
               <p className='flex items-center truncate text-xs leading-5 text-slate-500'>
-                Created by {entity.author ? entity.author : 'OSINTBuddy'}
+                Created by {entity.author ? entity.author : 'unknown'}
               </p>
             </div>
           </div>

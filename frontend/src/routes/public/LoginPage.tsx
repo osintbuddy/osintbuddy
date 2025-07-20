@@ -95,7 +95,7 @@ export default function LoginPage(): JSX.Element {
             >
               {isLoading ? (
                 <>
-                  Authenticating...{' '}
+                  Authenticating
                   <div class='dot-flashing !top-[3px] ml-2.5' />
                 </>
               ) : (
