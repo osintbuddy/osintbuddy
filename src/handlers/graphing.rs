@@ -350,14 +350,19 @@ pub async fn remove_node(
     graph_name: String,
 ) -> Result<(), AppError> {
     let node_id: i64 = node["id"].as_i64().unwrap_or(0);
-    let check_edges_query = format!(
-        "SELECT * FROM cypher('{}', $$ MATCH (s)-[e]->() WHERE id(s)={} RETURN e $$) as (e agtype)",
+    let check_in_edges_query = format!(
+        "SELECT * FROM cypher('{}', $$ MATCH (v)-[e]->() WHERE id(v)={} RETURN e $$) as (e agtype)",
+        graph_name, node_id
+    );
+    let check_out_edges_query = format!(
+        "SELECT * FROM cypher('{}', $$ MATCH ()-[e]->(v) WHERE id(v)={} RETURN e $$) as (e agtype)",
         graph_name, node_id
     );
     let mut tx = age_tx(pool).await?;
-    let edge_rows = with_cypher(check_edges_query, tx.as_mut()).await?;
-
-    let delete_query = if edge_rows.is_empty() {
+    let in_edge_rows = with_cypher(check_in_edges_query, tx.as_mut()).await?;
+    let edge_rows = with_cypher(check_out_edges_query, tx.as_mut()).await?;
+    info!("edge rows: {:?}", edge_rows);
+    let delete_query = if edge_rows.is_empty() && in_edge_rows.is_empty() {
         format!(
             "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} DELETE v $$) as (v agtype)",
             graph_name, node_id
@@ -791,7 +796,10 @@ pub async fn graphing_websocket_handler(
                                                         "label": edge_label,
                                                         "markerEnd": {
                                                             "type": "arrowclosed",
-                                                        }
+                                                        },
+                                                        "style": {
+                                                            "strokeWidth": 2,
+                                                          },
                                                     });
 
                                                     message
@@ -825,17 +833,19 @@ pub async fn graphing_websocket_handler(
                                     }
                                     Err(err) => {
                                         error!("Transform execution failed: {:?}", err);
-                                        let _ = session.text(
-                                            json!({
-                                                "action": "error",
-                                                "notification": {
-                                                    "autoClose": true,
-                                                    "toastId": entity["id"],
-                                                    "message": format!("Transform failed: {}", err.message),
-                                                },
-                                            })
-                                            .to_string(),
-                                        ).await;
+                                        let _ = session
+                                            .text(
+                                                json!({
+                                                    "action": "error",
+                                                    "notification": {
+                                                        "autoClose": true,
+                                                        "toastId": entity["id"],
+                                                        "message":  err.message,
+                                                    },
+                                                })
+                                                .to_string(),
+                                            )
+                                            .await;
                                     }
                                 }
                             }

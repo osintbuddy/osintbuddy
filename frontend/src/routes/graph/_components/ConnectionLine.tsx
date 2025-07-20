@@ -1,17 +1,25 @@
+import { getBezierPath } from '@xyflow/react'
+
 export default function NewConnectionLine({
   fromX,
   fromY,
   toX,
   toY,
 }: JSONObject) {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX: fromX,
+    sourceY: fromY,
+    targetX: toX,
+    targetY: toY,
+  })
   return (
     <g>
       <path
         fill='none'
-        stroke={'#64748b'}
-        strokeWidth={1.5}
+        stroke={'#0215FF'}
+        strokeWidth={2}
         className='animated'
-        d={`M${fromX},${fromY} C ${fromX} ${toY} ${fromX} ${toY} ${toX},${toY}`}
+        d={edgePath}
       />
       <circle
         cx={toX}

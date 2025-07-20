@@ -73,13 +73,13 @@ export default function Graph({
       setCtxMenu({
         entity: node,
         position: {
-          top: event.clientY < bounds.height - 200 && event.clientY,
-          left: event.clientX < bounds.width - 200 && event.clientX,
+          top: event.clientY < bounds.height - 250 && event.clientY,
+          left: event.clientX < bounds.width - 250 && event.clientX,
           right:
-            event.clientX >= bounds.width - 200 && bounds.width - event.clientX,
+            event.clientX >= bounds.width - 250 && bounds.width - event.clientX,
           bottom:
-            event.clientY >= bounds.height - 200 &&
-            bounds.height - event.clientY + 100,
+            event.clientY >= bounds.height - 250 &&
+            bounds.height - event.clientY + 180,
         },
       })
     },

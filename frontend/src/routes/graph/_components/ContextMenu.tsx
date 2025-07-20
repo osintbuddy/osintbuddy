@@ -56,7 +56,7 @@ export default function ContextMenu({
             />
           )}
           {transforms && !isLoadingTransforms && (
-            <div className='border-mirage-950 flex flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
+            <div className='border-mirage-950 flex min-h-[86px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
               {filteredTransforms.map((transform: any) => (
                 <button
                   key={transform.label}
@@ -74,7 +74,7 @@ export default function ContextMenu({
                       },
                     })
                     toast.loading(
-                      `Transforming ${selection.id} ${transform.label.toLowerCase()}. Please wait...`,
+                      `Transforming ${transform.label.toLowerCase()}. Please wait...`,
                       {
                         closeButton: true,
                         isLoading: true,
@@ -89,19 +89,23 @@ export default function ContextMenu({
                 </button>
               ))}
               {transforms?.length === 0 && (
-                <p class='relative mt-auto px-2 py-1 text-sm text-slate-600'>
-                  {selection?.id
-                    ? 'No transforms found!'
-                    : 'No entity selected!'}
-                </p>
+                <div className='flex min-h-[86px] flex-col'>
+                  <p class='relative mt-auto px-2 py-1 text-sm text-slate-600'>
+                    {selection?.id
+                      ? 'No transforms found!'
+                      : 'No entity selected!'}
+                  </p>
+                </div>
               )}
             </div>
           )}
           {isLoadingTransforms && (
-            <p class='relative mt-auto flex w-full px-2 py-1 text-sm text-slate-600'>
-              Loading transforms
-              <span class='dot-flashing top-3.5 left-2' />
-            </p>
+            <div class='flex min-h-[86px] flex-col'>
+              <p class='relative mt-auto flex w-full px-2 py-1 text-sm text-slate-600'>
+                Loading transforms
+                <span class='dot-flashing top-3.5 left-2' />
+              </p>
+            </div>
           )}
 
           {selection?.data?.label && (

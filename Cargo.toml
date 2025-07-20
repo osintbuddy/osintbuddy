@@ -1,6 +1,6 @@
 [package]
 name = "osib"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["jerlendds oss@osintbuddy.com"]
 edition = "2024"
 
@@ -21,7 +21,6 @@ argon2 = "0.5.3"
 serde = { version = "1.0.219", features = ["derive"] }
 uuid = { version = "1.17.0", features = ["serde", "v4"] }
 rand_core = { version = "0.9.3", features = ["std"] }
-tokio = { version = "1", features = ["full"] }
 moka = { version = "0.12.10", features = ["sync"] }
 actix-ws = "0.3.0"
 actix-files = "0.6.6"
@@ -31,3 +30,13 @@ regex = "1.11.1"
 reqwest = { version = "0.11", features = ["json"] }
 minio = "0.3.0"
 futures-util = "0.3"
+tokio = { version = "1.43", features = [
+    "net",
+    "time",
+    "io-util",
+    "rt",
+    "macros",
+    "rt-multi-thread",
+    "full"
+] }
+firecracker-rs-sdk = { version = "0.1.0", features = ["_rt-tokio"] }

@@ -441,13 +441,12 @@ export function TextInput({
   return (
     <>
       <div className='flex flex-col'>
-        <label className='whitespace-wrap font-display mt-0.5 ml-0.5 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
+        <label className='whitespace-wrap font-display nodrag mt-0.5 ml-0.5 text-[0.55rem] font-medium text-slate-400 active:cursor-grabbing'>
           {label}
         </label>
-        <div className='node-field'>
+        <div className='node-field nodrag'>
           <input
             id={`${nodeId}-${label}`}
-            class=''
             type='text'
             onBlur={(event) => {
               sendJsonMessage({

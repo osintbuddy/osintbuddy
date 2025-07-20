@@ -59,6 +59,7 @@ function SimpleFloatingEdge({
     targetX: tx,
     targetY: ty,
   })
+  console.log(style)
   return (
     <>
       <BaseEdge

@@ -64,7 +64,7 @@ function ViewEntityNode({ ctx }: JSONObject) {
           />
         </div>
         <h2
-          className={`pointer-events-none absolute top-full -right-28 -bottom-10 -left-28 h-auto max-w-xl text-center text-xl text-slate-500`}
+          className={`pointer-events-none absolute top-full -right-28 -left-28 h-auto max-w-xl text-center text-xl text-slate-500`}
         >
           {displayValue?.length >= 90
             ? `${displayValue.slice(0, 90)}...`

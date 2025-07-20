@@ -335,6 +335,7 @@ input[type='number'] {
 
 .react-flow__edge-path {
   stroke: #394778 !important;
+  stroke-width: 2 !important;
 }
 
 /* .react-flow__edge {
