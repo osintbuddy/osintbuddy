@@ -503,8 +503,8 @@ export function DropdownInput({
   const rowVirtualizer = useVirtualizer({
     count: options?.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 15,
-    overscan: 5,
+    estimateSize: () => 20,
+    overscan: filteredOptions?.length,
   })
 
   const rowRenderer = (item) => {
@@ -584,7 +584,7 @@ export function DropdownInput({
             ref={dropdownRef}
             onChange={(event) => setQuery(event.target.value)}
             displayValue={(option: DropdownOption) => option.label}
-            className='nodrag focus:ring-info-400 mr-4 px-2 outline-hidden'
+            className='nodrag mr-4 px-2 outline-hidden'
           />
           <button
             onClick={() => setShowOptions(!showOptions)}
@@ -602,7 +602,8 @@ export function DropdownInput({
                 height: `${rowVirtualizer.getTotalSize()}px`,
                 width: '100%',
               }}
-              className='nodrag absolute z-10 mr-1 h-80 w-full overflow-x-hidden overflow-y-scroll rounded-b-md bg-gradient-to-br from-black/50 from-30% to-black/65 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
+              onMouseLeave={() => setShowOptions(false)}
+              className='nodrag absolute z-10 mr-1 h-80 max-h-80 w-full overflow-x-hidden overflow-y-scroll rounded-b-md bg-gradient-to-br from-black/50 from-30% to-black/65 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
             >
               {/* <List
               rowCount={filteredOptions.length}
@@ -621,7 +622,7 @@ export function DropdownInput({
                 return (
                   <div
                     key={key.toString()}
-                    className='nowheel z-50 bg-transparent px-2 hover:bg-black/80'
+                    className='nowheel hover:border-primary-350 z-50 border-l-2 border-transparent bg-transparent px-2 hover:bg-black/80'
                   >
                     <span
                       className='block truncate'
