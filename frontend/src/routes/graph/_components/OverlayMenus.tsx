@@ -59,6 +59,7 @@ export default function OverlayMenus({
   toggleForceLayout,
   fitView,
   clearGraph,
+  readyState,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
@@ -91,8 +92,8 @@ export default function OverlayMenus({
     i: 'entities',
     w: 7,
     h: 57,
-    x: 0,
-    y: 4,
+    x: 34,
+    y: 0,
     minW: 2,
     maxW: 44,
     minH: 3,
@@ -102,8 +103,8 @@ export default function OverlayMenus({
   })
 
   const [appbarLayout, setAppbarLayout] = useState<Layout>({
-    i: 'positions',
-    w: 44,
+    i: 'toolbar',
+    w: 33,
     h: 4,
     x: 0,
     y: 0,
@@ -140,7 +141,7 @@ export default function OverlayMenus({
       }}
       onLayoutChange={(layout, layouts) => {
         setAppbarLayout({
-          ...(layouts.lg.find((layout) => layout.i === 'positions') as Layout),
+          ...(layouts.lg.find((layout) => layout.i === 'toolbar') as Layout),
           isDraggable: isPositionsDraggable,
           isBounded: true,
         })
@@ -152,7 +153,7 @@ export default function OverlayMenus({
       }}
     >
       <div
-        key='positions'
+        key='toolbar'
         className='pointer-events-auto flex w-full flex-col rounded-md border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
       >
         <div className='flex w-full items-center justify-center'>
@@ -177,16 +178,34 @@ export default function OverlayMenus({
           </button>
           <h5
             title={graph?.description ?? ''}
-            className='mr-auto w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
+            className='relative w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
           >
             <span className='relative text-slate-400'>{graph?.label}</span>
-          </h5>
-          {/* Connection Status Indicator */}
-
-          <div className='flex items-center'>
             <button
+              disabled={readyState === ReadyState.OPEN}
+              onClick={() => window.location.reload()}
+              className={`absolute top-1.5 right-1.5 z-20 h-3 w-3 rounded-full ${
+                readyState === ReadyState.OPEN
+                  ? 'bg-success-700'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'animate-pulse bg-yellow-500'
+                    : 'bg-danger-500'
+              }`}
+              title={
+                readyState === ReadyState.OPEN
+                  ? 'Connected'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'Connecting...'
+                    : 'Disconnected'
+              }
+            />
+          </h5>
+
+          <div className='mr-auto flex items-center'>
+            <button
+              title='Fit the graph view'
               className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
-              onClick={() => fitView({ duration: 300 })}
+              onClick={() => fitView({ duration: 200 })}
             >
               <Icon icon='viewfinder' className='h-6 w-6' />
             </button>
@@ -197,6 +216,7 @@ export default function OverlayMenus({
               toggleForceLayout && toggleForceLayout(false)
               setPositionMode('manual')
             }}
+            title='Set entities to your manual layout'
             type='button'
             className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
               positionMode === 'manual'
@@ -211,6 +231,7 @@ export default function OverlayMenus({
             />
           </button>
           <button
+            title='Toggle entities to a force layout'
             onClick={() => {
               setPositionMode('force')
               toggleForceLayout && toggleForceLayout(!isForceActive)
@@ -233,6 +254,7 @@ export default function OverlayMenus({
             />
           </button>
           <button
+            title='Set entities to an elk right tree layout'
             onClick={() => {
               toggleForceLayout && toggleForceLayout(false)
               // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
@@ -258,6 +280,7 @@ export default function OverlayMenus({
             />
           </button>
           <button
+            title='Set entities to an elk down tree layout'
             onClick={() => {
               setIsForceActive(false)
               toggleForceLayout && toggleForceLayout(false)
@@ -280,8 +303,6 @@ export default function OverlayMenus({
             />
           </button>
         </div>
-
-        <ul className='isolate inline-flex shadow-sm'></ul>
       </div>
 
       <div
@@ -292,7 +313,11 @@ export default function OverlayMenus({
         <ol className='relative flex px-4 pt-2 text-sm select-none'>
           <li className='mr-auto flex'>
             <h5 className='font-display flex w-full items-center justify-between truncate whitespace-nowrap text-inherit'>
-              <Link className='text-slate-500' to='/dashboard/entity' replace>
+              <Link
+                className='font-display font-medium text-slate-500'
+                to='/dashboard/entity'
+                replace
+              >
                 Entities
               </Link>
             </h5>

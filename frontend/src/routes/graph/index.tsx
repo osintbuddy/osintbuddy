@@ -410,24 +410,6 @@ export default function Graphing() {
 
           {/* Overlay EntityOptions on top of the ReactFlow graph */}
           <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
-            <button
-              disabled={readyState === ReadyState.OPEN}
-              onClick={() => window.location.reload()}
-              className={`absolute top-1.5 right-1.5 z-20 h-3 w-3 rounded-full ${
-                readyState === ReadyState.OPEN
-                  ? 'bg-success-700'
-                  : readyState === ReadyState.CONNECTING
-                    ? 'animate-pulse bg-yellow-500'
-                    : 'bg-danger-500'
-              }`}
-              title={
-                readyState === ReadyState.OPEN
-                  ? 'Connected'
-                  : readyState === ReadyState.CONNECTING
-                    ? 'Connecting...'
-                    : 'Disconnected'
-              }
-            />
             <OverlayMenus
               readyState={readyState}
               positionMode={positionMode}

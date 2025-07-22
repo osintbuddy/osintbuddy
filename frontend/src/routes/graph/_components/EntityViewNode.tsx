@@ -49,7 +49,7 @@ function ViewEntityNode({ ctx }: JSONObject) {
           />
         )
       })}
-      <div className='node container !h-16 !w-16 !rounded-full'>
+      <div className='node container !h-18 !w-18 !rounded-full'>
         <div
           // 99 === 0.6 opacity
           style={{
@@ -60,11 +60,11 @@ function ViewEntityNode({ ctx }: JSONObject) {
         >
           <Icon
             icon={node.icon}
-            className='cursor-grab text-slate-300/95 select-none'
+            className='!h-16 !w-16 cursor-grab text-slate-300/95 select-none'
           />
         </div>
         <h2
-          className={`pointer-events-none absolute top-full -right-28 -left-28 h-auto max-w-xl text-center text-xl text-slate-500`}
+          className={`break pointer-events-none absolute top-full -right-28 -left-28 mt-2.5 line-clamp-4 h-auto text-center text-xl leading-6 wrap-anywhere text-slate-400`}
         >
           {displayValue?.length >= 90
             ? `${displayValue.slice(0, 90)}...`

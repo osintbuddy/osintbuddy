@@ -12,7 +12,7 @@ import { Fragment, memo } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { Handle, Position } from '@xyflow/react'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { FixedSizeList as List } from 'react-window'
 // Use useRef instead of global variables to avoid memory leaks
 let dropdownKeyRef = { current: 0 }
 let nodeKeyRef = { current: 0 }
@@ -216,7 +216,7 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           </div>
           <Icon
             icon={ctx.data.icon}
-            className='h-6 w-6 cursor-grab focus:cursor-grabbing'
+            className='mx-1 h-6 w-6 cursor-grab focus:cursor-grabbing'
           />
         </div>
         <form
@@ -308,7 +308,7 @@ export function TextArea({
     <div className='flex w-full flex-col'>
       <label
         onClick={() => setShowMonospace(!showMonospace)}
-        className='font-display flex items-center justify-between leading-5 font-semibold text-slate-400'
+        className='font-display flex items-center justify-between text-xs leading-5 font-semibold text-slate-400'
       >
         {label}
         <Icon
@@ -316,10 +316,11 @@ export function TextArea({
           className='h-4 w-4 text-slate-500'
         />
       </label>
-      <div className='!w-full !min-w-2xl'>
+      <div className='hover:border-mirage-200/50 focus-within:!border-primary-350 border-mirage-200/30 w-full rounded-sm border focus-within:from-black/25 focus-within:to-black/20'>
         <textarea
-          rows={16}
-          className={`nodrag nowheel whitespace-wrap block w-full min-w-[16rem] bg-transparent px-1 py-1.5 text-xs text-slate-400 outline-hidden placeholder:text-slate-700 focus:outline-hidden sm:text-sm ${showMonospace && '!font-code'}`}
+          rows={4}
+          spellcheck={false}
+          className={`nodrag nowheel whitespace-wrap order block w-full rounded-sm bg-transparent bg-gradient-to-br from-black/10 to-black/15 px-1 py-px text-xs text-slate-400 shadow-sm outline-hidden transition-colors duration-75 ease-in-out placeholder:text-slate-700 focus-within:bg-gradient-to-l focus:outline-hidden sm:text-xs ${showMonospace && '!font-code'}`}
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {
@@ -499,158 +500,116 @@ export function DropdownInput({
     value: '',
     tooltip: '',
   }
-  const parentRef = useRef(null)
-  const rowVirtualizer = useVirtualizer({
-    count: options?.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 20,
-    overscan: filteredOptions?.length,
-  })
 
-  const rowRenderer = (item) => {
-    return (
-      <>
-        {/* <Combobox.Option
+  const DropdownCell = useCallback(
+    ({ index, key, isScrolling, isVisible, style }) => {
+      return (
+        <div
           key={key}
           style={style}
-          value={filteredOptions[index]}
-          className={({ active }) =>
-            `overflow-y-none px-2 flex flex-col justify-center nowheel nodrag cursor-default select-none  ${active ? 'bg-mirage-700 text-slate-400' : 'text-slate-500'}`
-          }
-        > */}
-        <span
-          className='block truncate'
-          title={
-            options[index].tooltip !== filteredOptions[index].label
-              ? filteredOptions[index].tooltip
-              : 'No description found'
-          }
+          className={`overflow-y-none nowheel nodrag flex cursor-default flex-col justify-center px-2 select-none ${activeOption.label === filteredOptions[index].label || activeOption.value === filteredOptions[index].value ? 'bg-black/65 text-slate-400' : 'text-slate-500'}`}
         >
-          {filteredOptions[index].label}
-        </span>
-        {filteredOptions[index]?.value && (
           <span
-            className='flex truncate text-[0.5rem] leading-3'
+            className='block truncate text-xs'
             title={
-              filteredOptions[index].tooltip !== filteredOptions[index].label
+              options[index].tooltip !== filteredOptions[index].label
                 ? filteredOptions[index].tooltip
                 : 'No description found'
             }
           >
-            {filteredOptions[index].value}
+            {filteredOptions[index].label}
           </span>
-        )}
-        {/* </Combobox.Option > */}
-      </>
-    )
-  }
+          {filteredOptions[index]?.value && (
+            <span
+              className='flex truncate text-[0.5rem] leading-3'
+              title={
+                filteredOptions[index].tooltip !== filteredOptions[index].label
+                  ? filteredOptions[index].tooltip
+                  : 'No description found'
+              }
+            >
+              {filteredOptions[index].value}
+            </span>
+          )}
+          {/* </Combobox.Option > */}
+        </div>
+      )
+    },
+    []
+  )
 
-  const [showOptions, setShowOptions] = useState(false)
-  // TODO: Fix scroll styles and logic... https://tanstack.com/virtual/latest/docs/framework/react/examples/smooth-scroll?panel=code
   useEffect(() => {
-    /** if clicked on outside of dropdown element */
+    /**
+     * Alert if clicked on outside of element
+     */
     function handleClickOutside(event) {
-      if (parentRef.current && !parentRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowOptions(false)
       }
     }
+    // Bind the event listener
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [parentRef])
-
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [dropdownRef])
+  const [showOptions, setShowOptions] = useState(false)
   return (
     <>
       <div
-        className='dropdown-input'
-        ref={parentRef}
-        // value={activeOption}
-        // onChange={(option) => {
-        //   sendJsonMessage({
-        //     action: 'update:entity',
-        //     entity: {
-        //       id: Number(nodeId),
-        //       [label]: option?.value ? option.value : option.label,
-        //     },
-        //   })
-        // }}
+        className='dropdown-input w-full'
+        as='div'
+        value={activeOption}
+        onChange={(option) => {
+          sendJsonMessage({
+            action: 'update:entity',
+            entity: {
+              id: Number(nodeId),
+              [label]: option?.value ? option.value : option.label,
+            },
+          })
+        }}
       >
         <label>
           <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
             {label}
           </p>
         </label>
-        <div className='node-field dropdown relative !px-0'>
+        <div ref={dropdownRef} className='node-field dropdown relative !px-0'>
           <input
-            ref={dropdownRef}
             onChange={(event) => setQuery(event.target.value)}
             displayValue={(option: DropdownOption) => option.label}
-            className='nodrag mr-4 px-2 outline-hidden'
+            className='nodrag focus:ring-info-400 mr-4 w-full px-2 outline-hidden'
           />
           <button
             onClick={() => setShowOptions(!showOptions)}
-            className='absolute inset-y-0 -top-px right-0 z-[99] h-6 w-4 focus:outline-hidden'
+            className='group absolute inset-y-0 right-0 z-[99] h-8 w-5 focus:outline-hidden'
           >
             <Icon
-              icon='chevron-down'
-              className='h-7 w-7 !text-slate-600'
+              icon={showOptions ? 'x' : 'chevron-down'}
+              className={`${showOptions && '!text-slate-500'} h-5 w-5 text-slate-600 group-hover:!text-slate-400`}
               aria-hidden='true'
             />
           </button>
           {showOptions && (
-            <div
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-              }}
-              onMouseLeave={() => setShowOptions(false)}
-              className='nodrag absolute z-10 mr-1 h-80 max-h-80 w-full overflow-x-hidden overflow-y-scroll rounded-b-md bg-gradient-to-br from-black/50 from-30% to-black/65 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
-            >
-              {/* <List
-              rowCount={filteredOptions.length}
-              width={dropdownRef?.current?.clientWidth}
-              height={
-                filteredOptions?.length <= 3
-                  ? filteredOptions?.length * 54
-                  : 260
-              }
-              rowRenderer={rowRenderer}
-              rowHeight={({ index }) =>
-                filteredOptions[index]?.value ? 54 : 40
-              }
-            /> */}
-              {rowVirtualizer.getVirtualItems().map(({ index, key }) => {
-                return (
-                  <div
-                    key={key.toString()}
-                    className='nowheel hover:border-primary-350 z-50 border-l-2 border-transparent bg-transparent px-2 hover:bg-black/80'
-                  >
-                    <span
-                      className='block truncate'
-                      title={
-                        filteredOptions[index].tooltip !==
-                        filteredOptions[index].label
-                          ? filteredOptions[index].tooltip
-                          : 'No description found'
-                      }
-                    >
-                      {filteredOptions[index].label}
-                    </span>
-                    {filteredOptions[index].value && ( // filteredOptions[index]?.value
-                      <span
-                        className='flex truncate text-[0.5rem] leading-3'
-                        // title={
-                        //   filteredOptions[index].tooltip !==
-                        //   filteredOptions[index].label
-                        //     ? filteredOptions[index].tooltip
-                        //     : 'No description found'
-                        // }
-                      >
-                        {filteredOptions[index].value}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
+            <div className='nodrag nowheel absolute z-[999] mr-1 max-h-80 w-full overflow-hidden rounded-b-md bg-gradient-to-br from-black/65 from-30% to-black/55 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'>
+              <List
+                itemSize={34}
+                itemCount={filteredOptions?.length ?? 0}
+                rowCount={filteredOptions?.length ?? 0}
+                width={dropdownRef?.current?.clientWidth}
+                height={
+                  filteredOptions?.length <= 3
+                    ? filteredOptions?.length * 54
+                    : 260
+                }
+                rowHeight={({ index }) =>
+                  filteredOptions[index]?.value ? 54 : 40
+                }
+              >
+                {DropdownCell}
+              </List>
             </div>
           )}
         </div>

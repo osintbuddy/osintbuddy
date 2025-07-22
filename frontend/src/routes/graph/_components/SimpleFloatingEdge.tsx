@@ -16,7 +16,7 @@ function EdgeLabel({ transform, label }: { transform: string; label: string }) {
       {label && (
         <div
           style={{ transform }}
-          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/50 px-1 text-[0.6rem] leading-none font-semibold text-slate-500 backdrop-blur-xs hover:text-slate-400/80'
+          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/30 p-px text-[0.6rem] leading-none font-semibold text-slate-400/50 backdrop-blur-xs hover:text-slate-400'
         >
           <p className='flex cursor-pointer items-center justify-between'>
             {label}{' '}
@@ -59,7 +59,6 @@ function SimpleFloatingEdge({
     targetX: tx,
     targetY: ty,
   })
-  console.log(style)
   return (
     <>
       <BaseEdge
