@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react'
 import { CSSProperties } from 'preact/compat'
 
-const handleStyle: CSSProperties = {
+export const handleStyle: CSSProperties = {
   width: 8,
   height: 8,
   padding: 7,

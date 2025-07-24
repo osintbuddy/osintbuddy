@@ -352,34 +352,48 @@ input[type='number'] {
 .react-flow__handle.react-flow__handle-bottom {
   top:  calc(100% - 6px);
 }
-
+.x {
+  color: var(--color-green-600);
+  background-color:  #00a63e;
+}
 .validationflow .react-flow__handle.connectingto {
-  border-color:  #fb2c36 !important;
+  border-color:  var(--color-red-600);
 }
 .validationflow .react-flow__handle.valid {
-  border-color: #55dd99 !important;
+  border-color: var(--color-green-600);
 }
 .react-flow__handle.connectionindicator {
   border-width: 1.75px;
-  border-color: #282e8381;
-  background-color: #0c0c3240;
+  border-color: #282e8399;
+  background-color: #0c0c32;
   transition: color ease-in 150ms;
  }
 .react-flow__handle.connectionindicator:hover {
   pointer-events: all;
-  border-color: #0215FF;
-  background-color: #0c0c3299;
+  border-color: var(--color-primary-500);
+  background-color: #0c0c32;
 }
 .react-flow__handle.connectionindicator:focus,
 .react-flow__handle.connectingfrom,
 .react-flow__handle.connectingto {
-  border-color: #0215FF;
-  background-color: #0c0c32;
+  border-color:  var(--color-primary-400);
+  background-color: var(--color-primary-400);
 }
  
 .react-flow__edge.selectable:hover .react-flow__edge-path,
 .react-flow__edge.selectable.selected .react-flow__edge-path {
-  stroke: var(--xy-theme-edge-hover);
+  stroke: var(--color-mirage-50);
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: url(#glow);
+    opacity: 0.45;   /* ↓ less intense */
+  }
+  50% {
+    filter: url(#glow);
+    opacity: 1;   /* ↓ peak intensity */
+  }
 }
 /* end react flow style overrides */
 

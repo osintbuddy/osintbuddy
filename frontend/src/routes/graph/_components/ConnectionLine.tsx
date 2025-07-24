@@ -16,13 +16,13 @@ export default function NewConnectionLine({
   fromPosition,
   toPosition,
 }: ConnectionLineComponentProps) {
-  const { fromHandle } = useConnection()
   // Create a mock target node at the cursor position
+  console.log(fromPosition, toPosition, toX, toY)
   const targetNode = {
     id: 'connection-target',
     measured: {
-      width: 1,
-      height: 1,
+      width: 8,
+      height: 8,
     },
     internals: {
       positionAbsolute: { x: toX, y: toY },
@@ -36,9 +36,9 @@ export default function NewConnectionLine({
           id: handle,
           position: handle,
           x: 0,
-          y: 0,
-          width: 1,
-          height: 1,
+          y: -6,
+          width: 8,
+          height: 8,
         })),
       },
     },
@@ -61,25 +61,25 @@ export default function NewConnectionLine({
     connectionStatus === null
       ? '#1524ea'
       : connectionStatus === 'valid'
-        ? '#00a63e'
-        : '#fb2c36'
+        ? 'var(--color-green-600)'
+        : 'var(--color-red-600)'
 
   return (
     <g>
       {/* Subtle glow pulse */}
       <defs>
-        <filter id='glow' x='-50%' y='-50%' width='200%' height='200%'>
-          <feGaussianBlur stdDeviation='5' result='blur' />
+        <filter id='glow' x='-100%' y='-100%' width='200%' height='200%'>
+          <feGaussianBlur stdDeviation='10' result='blur' />
           <feMerge>
             <feMergeNode in='blur' />
             <feMergeNode in='SourceGraphic' />
           </feMerge>
         </filter>
       </defs>
-
       <path
         fill='none'
-        stroke='#0215FF'
+        stroke='color-mix(in srgb, var(--color-primary-500) 80%, transparent)'
+        stroke-dasharray='4'
         strokeWidth={2}
         d={edgePath}
         style={{
@@ -87,12 +87,12 @@ export default function NewConnectionLine({
           animation: 'glowPulse 2s ease-in-out infinite',
         }}
       />
-
       {/* Pulsing flowing dots */}
       <path id='tracePath' fill='none' stroke='none' d={edgePath} />
-      <circle r='3' fill={dotColor}>
+      <circle r='1' fill={dotColor}>
         <animateMotion
-          dur='2.5s'
+          dur='3s'
+          begin='0s'
           repeatCount='indefinite'
           keyPoints='0;1'
           keyTimes='0;1'
@@ -103,37 +103,65 @@ export default function NewConnectionLine({
         <animate
           attributeName='r'
           values='1;3;1'
-          dur='2.5s'
+          begin='0s'
+          dur='3s'
           repeatCount='indefinite'
         />
         <animate
           attributeName='opacity'
-          values='0;1;0'
-          dur='2.5s'
+          values='0.2;0.75;0.2'
+          begin='0s'
+          dur='3s'
           repeatCount='indefinite'
         />
       </circle>
-
+      <circle r='1' fill={dotColor}>
+        <animateMotion
+          dur='3s'
+          begin='-1.5s'
+          repeatCount='indefinite'
+          keyPoints='0;1'
+          keyTimes='0;1'
+          calcMode='linear'
+        >
+          <mpath href='#tracePath' />
+        </animateMotion>
+        <animate
+          attributeName='r'
+          begin='-1.5s'
+          values='1;3;1'
+          dur='3s'
+          repeatCount='indefinite'
+        />
+      </circle>
+      <circle r='1' fill={dotColor}>
+        <animateMotion
+          dur='3s'
+          begin='-3s'
+          repeatCount='indefinite'
+          keyPoints='0;1'
+          keyTimes='0;1'
+          calcMode='linear'
+        >
+          <mpath href='#tracePath' />
+        </animateMotion>
+        <animate
+          attributeName='r'
+          values='1;3;1'
+          dur='3s'
+          begin='-3s'
+          repeatCount='indefinite'
+        />
+      </circle>
+      {/* Dot under cursor position */}
       <circle
         cx={tx || toX}
         cy={ty || toY}
-        r={3}
+        r={5}
         stroke={dotColor}
-        strokeWidth={1.5}
+        strokeWidth={2}
         fill='none'
       />
-      <style>{`
-        @keyframes glowPulse {
-          0%, 100% {
-            filter: url(#glow);
-            opacity: 0.6;
-          }
-          50% {
-            filter: url(#glow);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </g>
   )
 }
