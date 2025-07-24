@@ -264,7 +264,7 @@ pub async fn read_graph(
                 "id": id.to_string(),
                 "source": start_id.to_string(),
                 "target": end_id.to_string(),
-                "type": "float",
+                "type": "sfloat",
                 "label": label,
                 "markerEnd": {
                     "type": "arrowclosed",
@@ -793,7 +793,7 @@ pub async fn graphing_websocket_handler(
                                                         "id": format!("{}_{}", source_id, target_id),
                                                         "source": source_id.to_string(),
                                                         "target": target_id.to_string(),
-                                                        "type": "float",
+                                                        "type": "sfloat",
                                                         "label": edge_label,
                                                         "markerEnd": {
                                                             "type": "arrowclosed",

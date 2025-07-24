@@ -1,10 +1,18 @@
-import { useMemo } from 'preact/hooks'
+import { useCallback, useEffect, useMemo } from 'preact/hooks'
 import { memo } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
+import {
+  useInternalNode,
+  useNodeConnections,
+  useReactFlow,
+} from '@xyflow/react'
+import { useStore } from 'zustand'
+import { useGraphFlowStore } from '@/app/store'
 
 function ViewEntityNode({ ctx }: JSONObject) {
+  const internalNode = useInternalNode(ctx.id)
   const entity = ctx.data
   const displayValue = useMemo(
     () =>
@@ -13,6 +21,34 @@ function ViewEntityNode({ ctx }: JSONObject) {
         : entity.elements[0]?.value,
     [entity.elements]
   )
+
+  const connections = useNodeConnections()
+  const { updateEdge } = useGraphFlowStore()
+  useEffect(() => {
+    for (const connection of connections) {
+      console.log(
+        'inside fix edge positioon viewentity',
+        entity.label,
+        ctx.id,
+        connection
+      )
+
+      // if (
+      //   connection.source &&
+      //   connection.target &&
+      //   (sourceNodeHandle?.id !== connection.sourceHandle ||
+      //     targetNodeHandle.id !== connection.targetHandle) &&
+      //   !true
+      // ) {
+      // updateEdge(connection.edgeId, {
+      //   sourceHandle: connection.source,
+      //   targetHandle: connection.target,
+      // })
+      // }
+    }
+  }, [connections, updateEdge])
+  // console.log('FE sN tN', sourceNode, targetNode)
+  // console.log('FE s t', sourceHandle, targetHandle)
 
   return (
     <>

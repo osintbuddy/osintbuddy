@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getEdgeParams } from './utils'
 import {
   BaseEdge,
@@ -6,7 +6,10 @@ import {
   useStore,
   getBezierPath,
   Edge,
+  useReactFlow,
 } from '@xyflow/react'
+import { Icon } from '@/components/icons'
+import { useGraphFlowStore } from '@/app/store'
 
 export default function FloatingEdge({
   id,
@@ -15,9 +18,11 @@ export default function FloatingEdge({
   markerEnd,
   style,
   label,
-  selected,
+  sourceHandle,
+  targetHandle,
   data,
 }: Edge) {
+  const { removeEdge } = useGraphFlowStore()
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
   )
@@ -29,23 +34,53 @@ export default function FloatingEdge({
     return null
   }
 
-  const {
-    sx,
-    sy,
-    tx,
-    ty,
-    sourcePos: sourcePosition,
-    targetPos: targetPosition,
-  } = getEdgeParams(sourceNode, targetNode)
+  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
+    sourceNode,
+    targetNode
+  )
+  const { updateEdge } = useReactFlow()
 
+  useEffect(() => {
+    const sourceNodeHandle = sourceNode?.internals?.handleBounds?.source?.find(
+      ({ position }) => position === sourcePos
+    )
+    const targetNodeHandle = targetNode?.internals?.handleBounds?.source?.find(
+      ({ position }) => position === targetPos
+    )
+    if (
+      sourceNodeHandle &&
+      targetNodeHandle &&
+      (sourceNodeHandle?.id !== sourceHandle ||
+        targetNodeHandle.id !== targetHandle)
+    ) {
+      updateEdge(id, {
+        sourceHandle: sourceNodeHandle?.id,
+        targetHandle: targetNodeHandle?.id,
+        label: 'new',
+      })
+    }
+  }, [sourcePos, sourceNode, sourceHandle, targetPos, targetNode, targetHandle])
+  // console.log('FE sN tN', sourceNode, targetNode)
+  // console.log('FE s t', sourceHandle, targetHandle)
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
     targetX: tx,
     targetY: ty,
-    sourcePosition,
-    targetPosition,
+    sourcePosition: sourcePos,
+    targetPosition: targetPos,
   })
+
+  const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
+  const inputSize = useMemo(
+    () =>
+      edgeLabel.length <= 18
+        ? edgeLabel.length === 0
+          ? 10
+          : edgeLabel.length
+        : 20,
+    [edgeLabel]
+  )
 
   return (
     <>
@@ -55,48 +90,37 @@ export default function FloatingEdge({
         markerEnd={markerEnd as string}
         style={style}
         class='react-flow__edge-path'
-      />
-
-      <EdgeLabelRenderer>
-        {/* data.isHighlighted will be true if the edge should be highlighted. */}
-
-        <EdgeLabel
-          label={(label as string)?.replace('_', ' ')}
-          transform={`translate(-50%, -50%) translate(${labelX}px,${labelY}px)`}
-        />
-        {/* <div
-          style={{
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            borderRadius: 5,
-            fontSize: 12,
-            fontWeight: 700,
-          }}
-          className="nodrag nopan absolute  text-slate-400/95 p-1"
-        >
-          {label}
-        </div> */}
-      </EdgeLabelRenderer>
-      {/* <path */}
-      {/* /> */}
-    </>
-  )
-}
-
-function EdgeLabel({ transform, label }: { transform: string; label: string }) {
-  // TODO: On select show edge toolbar (view/edit properties panel)
-  // TODO: Implement draggable edge labels
-  return (
-    <>
-      {label && (
-        <div
-          style={{ transform }}
-          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/30 p-px text-[0.6rem] leading-none font-semibold text-slate-400/50 backdrop-blur-xs hover:text-slate-400'
-        >
-          <p className='flex cursor-pointer items-center justify-between'>
-            {label}
-          </p>
-        </div>
-      )}
+      >
+        <EdgeLabelRenderer>
+          <div class='group pointer-events-auto relative flex items-center justify-between'>
+            <input
+              value={edgeLabel}
+              onBlur={(event) =>
+                updateEdge(id, { label: event.currentTarget.value })
+              }
+              onChange={(event) => {
+                setEdgeLabel(event.currentTarget.value)
+              }}
+              placeholder='No label found'
+              size={inputSize}
+              type='text'
+              class='nopan hover:outline-mirage-500/70 outline-mirage-600/45 focus-visible:outline-primary pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-200 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/40 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/40 focus:text-slate-400 focus:placeholder:text-slate-800'
+              style={{
+                transform: `translate(-50%, 0%) translate(${labelX}px,${labelY}px)`,
+              }}
+            />
+            <button
+              style={{
+                transform: `translate(-50%, -105%) translate(${labelX}px,${labelY}px)`,
+              }}
+              onClick={() => removeEdge(id)}
+              class='hover:text-danger bg-slate-925/60 hover:border-danger pointer-events-auto absolute flex items-center justify-center rounded-full border border-slate-900 p-px text-slate-600 opacity-0 backdrop-blur-xs transition-colors duration-75 ease-in group-hover:opacity-100 hover:bg-slate-950/70'
+            >
+              <Icon icon='trash' className='h-3 w-3 p-0.5 text-inherit' />
+            </button>
+          </div>
+        </EdgeLabelRenderer>
+      </BaseEdge>
     </>
   )
 }

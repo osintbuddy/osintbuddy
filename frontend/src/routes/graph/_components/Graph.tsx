@@ -13,6 +13,7 @@ import {
   NodeMouseHandler,
   ConnectionMode,
   IsValidConnection,
+  reconnectEdge,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -39,7 +40,6 @@ interface ProjectGraphProps {
   sendJsonMessage: (message: any) => void
   onNodesChange?: (changes: any) => void
   onEdgesChange?: (changes: any) => void
-  onConnect?: (connection: any) => void
   setCtxMenu: (ctx: CtxMenu | null) => void
 }
 
@@ -51,7 +51,6 @@ export default function Graph({
   sendJsonMessage,
   onNodesChange,
   onEdgesChange,
-  onConnect,
   ctxMenu,
   setCtxMenu,
 }: ProjectGraphProps) {
@@ -61,6 +60,7 @@ export default function Graph({
     removeEdge,
     setEdges,
     setNodes,
+    onConnect,
   } = useGraphFlowStore()
   const ref = useRef<HTMLDivElement>(null)
   // @todo implement support for multi-select transforms -
@@ -149,7 +149,7 @@ export default function Graph({
 
   const edgeTypes = useMemo(
     () => ({
-      float: FloatingEdge,
+      sfloat: FloatingEdge,
     }),
     []
   )
@@ -201,30 +201,20 @@ export default function Graph({
 
   // edge connection logic, handles deletion when edge is dropped
   // on canavas TODO: Fix edgeupdater target handle area, its always right side, ugh
-  const edgeReconnectSuccessful = useRef(true)
-  const onReconnectStart = useCallback(() => {
-    edgeReconnectSuccessful.current = false
-  }, [])
-
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
-      edgeReconnectSuccessful.current = true
+      // edgeReconnectSuccessful.current = true
+      setEdges(reconnectEdge(oldEdge, newConnection, edges))
       sendJsonMessage({
         action: 'update:edge',
         oldEdge,
         newConnection,
       })
     },
-    []
+    [setEdges, reconnectEdge, edges, sendJsonMessage]
   )
-
-  const onReconnectEnd = useCallback((_, edge: Edge) => {
-    if (!edgeReconnectSuccessful.current) {
-      removeEdge(edge)
-    }
-
-    edgeReconnectSuccessful.current = true
-  }, [])
+  // used for handling edge deletions. e.g. when a user selects
+  // and drags an existing edge to a blank spot on the graph the edge is removed
 
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
@@ -247,6 +237,7 @@ export default function Graph({
     // setEdges(updatedEdges)
     // setNodes(updatedNodes)
   }, [])
+
   return (
     <ReactFlow
       // defaultMarkerColor='#394778'
@@ -265,9 +256,7 @@ export default function Graph({
       onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
-      onReconnectStart={onReconnectStart}
       onReconnect={onReconnect}
-      onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
       onNodeClick={onNodeClick}

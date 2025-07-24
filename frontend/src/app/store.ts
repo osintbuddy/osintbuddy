@@ -1,22 +1,41 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { graphsApi, Graph,UpdateGraphPayload, DeleteGraphPayload, FavoriteGraphPayload, entitiesApi, Entity, CreateEntityPayload, UpdateEntityPayload, DeleteEntityPayload, FavoriteEntityPayload, authApi, LoginCredentials, RegisterCredentials, Registered,  Paginate, CreateGraphPayload} from './api';
-import { jwtParse } from './utilities';
-import { 
-  addEdge, 
-  applyNodeChanges, 
+import {
+  graphsApi,
+  Graph,
+  UpdateGraphPayload,
+  DeleteGraphPayload,
+  FavoriteGraphPayload,
+  entitiesApi,
+  Entity,
+  CreateEntityPayload,
+  UpdateEntityPayload,
+  DeleteEntityPayload,
+  FavoriteEntityPayload,
+  authApi,
+  LoginCredentials,
+  RegisterCredentials,
+  Registered,
+  Paginate,
+  CreateGraphPayload,
+} from './api'
+import { jwtParse } from './utilities'
+import {
+  addEdge,
+  applyNodeChanges,
   applyEdgeChanges,
   Node,
   Edge,
   Connection,
   NodeChange,
   EdgeChange,
-  MarkerType
+  MarkerType,
+  EdgeTypes,
 } from '@xyflow/react'
+import { edges } from 'slate'
 
-
-// Auth store 
-type UserRoles = 'user' | 'admin';
+// Auth store
+type UserRoles = 'user' | 'admin'
 export interface User {
   email: string
   ctime: string
@@ -56,17 +75,17 @@ export const useAuthStore = create<AuthState>()(
           const response = await authApi.login(credentials)
           const { access_token, refresh_token } = response
           const user = jwtParse(access_token)
-          set({ 
-            user, 
+          set({
+            user,
             access_token,
             refresh_token,
-            isAuthenticated: true, 
-            isLoading: false 
+            isAuthenticated: true,
+            isLoading: false,
           })
         } catch (error: any) {
-          set({ 
+          set({
             error: error.message,
-            isLoading: false 
+            isLoading: false,
           })
           throw error
         }
@@ -78,36 +97,40 @@ export const useAuthStore = create<AuthState>()(
           set({ isRegistering: false })
           return registeredUser
         } catch (error) {
-          set({ 
+          set({
             error: error.message,
-            isRegistering: false 
+            isRegistering: false,
           })
           throw error
         }
       },
       logout: async () => {
         set({ isLoading: true, error: null })
-        await authApi.logout({
-          access_token: get().access_token as string,
-          refresh_token: get().refresh_token as string,
-          token_type: "bearer"
-        }).then(() => set({ 
-          user: null, 
-          refresh_token: null, 
-          access_token: null, 
-          isAuthenticated: false, 
-          isLoading: false 
-        })).catch(err => {
-          set({ 
-            user: null, 
-            refresh_token: null, 
-            access_token: null, 
-            isAuthenticated: false, 
-            isLoading: false,
-            error: err.message
+        await authApi
+          .logout({
+            access_token: get().access_token as string,
+            refresh_token: get().refresh_token as string,
+            token_type: 'bearer',
           })
-        });
-          
+          .then(() =>
+            set({
+              user: null,
+              refresh_token: null,
+              access_token: null,
+              isAuthenticated: false,
+              isLoading: false,
+            })
+          )
+          .catch((err) => {
+            set({
+              user: null,
+              refresh_token: null,
+              access_token: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: err.message,
+            })
+          })
       },
     }),
     {
@@ -123,12 +146,11 @@ export const useAuthStore = create<AuthState>()(
   )
 )
 
-
 interface GraphState {
   graph: Graph | null
   vertices_count: number | null
   edges_count: number | null
-  degree2_count:number | null
+  degree2_count: number | null
   isLoading: boolean
   isError: boolean
   error: string | null
@@ -139,22 +161,21 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   graph: null,
   vertices_count: null,
   edges_count: null,
-  degree2_count:null,
+  degree2_count: null,
   isLoading: true,
   isError: false,
   error: null,
   getGraph: async (id: string) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const data = await graphsApi.getById(id, token)
       set({ ...data, isLoading: false, isError: false, error: null })
     } catch (error) {
-      set({  error: error.message, isLoading: false, graph: null })
+      set({ error: error.message, isLoading: false, graph: null })
     }
   },
 }))
-
 
 // Graphs store
 interface GraphsState {
@@ -184,7 +205,7 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   fetchGraphs: async (payload: Paginate) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const { graphs, favorites } = await graphsApi.list(payload, token)
       set({ graphs, favorites, isLoading: false })
     } catch (error) {
@@ -195,9 +216,9 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   createGraph: async (payload: CreateGraphPayload) => {
     set({ isCreating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const newGraph = await graphsApi.create(payload, token)
-      
+
       // Add the new graph to the graphs list
       const currentGraphs = get().graphs
       set({ graphs: [...currentGraphs, newGraph], isCreating: false })
@@ -210,19 +231,23 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   updateGraph: async (payload: UpdateGraphPayload) => {
     set({ isUpdating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const updatedGraph = await graphsApi.update(payload, token)
-      
+
       // Update the graphs list if the updated graph is in it
       const currentGraphs = get().graphs
-      const updatedGraphs = currentGraphs.map(graph => 
-        graph.id === updatedGraph.id.toString() 
-          ? { ...graph, label: updatedGraph.label, description: updatedGraph.description }
+      const updatedGraphs = currentGraphs.map((graph) =>
+        graph.id === updatedGraph.id.toString()
+          ? {
+              ...graph,
+              label: updatedGraph.label,
+              description: updatedGraph.description,
+            }
           : graph
       )
-      
+
       set({ graphs: updatedGraphs, isUpdating: false })
-      
+
       return updatedGraph
     } catch (error) {
       set({ error: error.message, isUpdating: false })
@@ -232,15 +257,15 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   deleteGraph: async (payload: DeleteGraphPayload) => {
     set({ isDeleting: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       await graphsApi.delete(payload, token)
-      
+
       // Remove the deleted graph from the graphs list
       const currentGraphs = get().graphs
-      const filteredGraphs = currentGraphs.filter(graph => 
-        graph.id !== payload.id.toString()
+      const filteredGraphs = currentGraphs.filter(
+        (graph) => graph.id !== payload.id.toString()
       )
-      
+
       set({ graphs: filteredGraphs, isDeleting: false })
     } catch (error) {
       set({ error: error.message, isDeleting: false })
@@ -249,7 +274,7 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   },
   favoriteGraph: async (payload: FavoriteGraphPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       await graphsApi.favorite({ ...payload, is_favorite: true }, token)
       const currentFavorites = get().favorites
       if (!currentFavorites.includes(payload.graph_id)) {
@@ -262,17 +287,18 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   },
   unfavoriteGraph: async (payload: FavoriteGraphPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       await graphsApi.favorite({ ...payload, is_favorite: false }, token)
       const currentFavorites = get().favorites
-      set({ favorites: currentFavorites.filter(id => id !== payload.graph_id) })
+      set({
+        favorites: currentFavorites.filter((id) => id !== payload.graph_id),
+      })
     } catch (error) {
       set({ error: error.message })
       throw error
     }
   },
 }))
-
 
 interface EntityState {
   entity: Entity | null
@@ -288,13 +314,13 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
   getEntity: async (id: string) => {
     set({ isLoading: true })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const entity = await entitiesApi.getById(id, token)
       set({ entity, isLoading: false })
     } catch (error) {
       set({ error: error.message, isLoading: false, entity: null })
     }
-  }
+  },
 }))
 interface Transform {
   label: string
@@ -345,18 +371,22 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   fetchEntities: async (payload: Paginate) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const response = await entitiesApi.list(payload, token)
-      set({ entities: response.entities, favorites: response.favorites, isLoading: false })
+      set({
+        entities: response.entities,
+        favorites: response.favorites,
+        isLoading: false,
+      })
     } catch (error) {
       set({ error: error.message, isLoading: false })
     }
   },
-  setPlugins: async (plugins) =>  set({ plugins }),
+  setPlugins: async (plugins) => set({ plugins }),
   fetchTransforms: async (label: string) => {
     set({ isLoadingTransforms: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const transforms = await entitiesApi.getEntityTransforms(label, token)
       set({ transforms, isLoadingTransforms: false })
     } catch (error) {
@@ -365,66 +395,73 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   clearTransforms: async () => {
     const transforms: Transform[] = []
-    set({transforms})
+    set({ transforms })
   },
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const newEntity = await entitiesApi.create(payload, token)
-      
+
       // Add the new entity to the entities list
       const currentEntities = get().entities
       set({ entities: [...currentEntities, newEntity], isCreating: false })
       return newEntity
     } catch (error) {
-      set({  error: error.message, isCreating: false })
+      set({ error: error.message, isCreating: false })
       throw error
     }
   },
   updateEntity: async (payload: UpdateEntityPayload) => {
     set({ isUpdating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       const updatedEntity = await entitiesApi.update(payload, token)
-      
+
       // Update the entities list if the updated entity is in it
       const currentEntities = get().entities
-      const updatedEntities = currentEntities.map(entity => 
-        entity.id === updatedEntity.id 
-          ? updatedEntity
-          : entity
+      const updatedEntities = currentEntities.map((entity) =>
+        entity.id === updatedEntity.id ? updatedEntity : entity
       )
-      set({ entities: updatedEntities, currentEntity: updatedEntity, isUpdating: false })
+      set({
+        entities: updatedEntities,
+        currentEntity: updatedEntity,
+        isUpdating: false,
+      })
       return updatedEntity
     } catch (error) {
-      set({  error: error.message, isUpdating: false })
+      set({ error: error.message, isUpdating: false })
       throw error
     }
   },
   deleteEntity: async ({ id }: DeleteEntityPayload) => {
     set({ isDeleting: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string;
-      await entitiesApi.delete({ id  }, token)
-      
+      const token = useAuthStore.getState().access_token as string
+      await entitiesApi.delete({ id }, token)
+
       // Remove the deleted entity from the entities list
       const currentEntities = get().entities
-      const filteredEntities = currentEntities.filter(entity => 
-        entity.id !== id
+      const filteredEntities = currentEntities.filter(
+        (entity) => entity.id !== id
       )
       // Clear currentEntity if it's the one being deleted
       const currentEntity = get().currentEntity
-      const updatedCurrentEntity = currentEntity?.id === id ? null : currentEntity
-      set({ entities: filteredEntities, currentEntity: updatedCurrentEntity, isDeleting: false })
+      const updatedCurrentEntity =
+        currentEntity?.id === id ? null : currentEntity
+      set({
+        entities: filteredEntities,
+        currentEntity: updatedCurrentEntity,
+        isDeleting: false,
+      })
     } catch (error) {
-      set({  error: error.message, isDeleting: false })
+      set({ error: error.message, isDeleting: false })
       throw error
     }
   },
   favoriteEntity: async (payload: FavoriteEntityPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       await entitiesApi.favorite({ ...payload, is_favorite: true }, token)
       const currentFavorites = get().favorites
       if (!currentFavorites.includes(payload.entity_id)) {
@@ -437,10 +474,12 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   unfavoriteEntity: async (payload: FavoriteEntityPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string;
+      const token = useAuthStore.getState().access_token as string
       await entitiesApi.favorite({ ...payload, is_favorite: false }, token)
       const currentFavorites = get().favorites
-      set({ favorites: currentFavorites.filter(id => id !== payload.entity_id) })
+      set({
+        favorites: currentFavorites.filter((id) => id !== payload.entity_id),
+      })
     } catch (error) {
       set({ error: error.message })
       throw error
@@ -448,25 +487,23 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
 }))
 
-type LoaderType = 'screen' | 'bar';
+type LoaderType = 'screen' | 'bar'
 
 // Global loader store
 interface LoaderState {
-    isLoading: boolean;
-    type: LoaderType
-    setIsLoading: (isLoading: boolean) => void;
+  isLoading: boolean
+  type: LoaderType
+  setIsLoading: (isLoading: boolean) => void
 }
 
 export const useLoaderStore = create<LoaderState>()((set) => ({
-    isLoading: false,
-    type: 'screen',
-    setIsLoading: (
-        isLoading: boolean,
-        type: LoaderType = 'bar'
-    ) => set({ isLoading, type }),
-}));
+  isLoading: false,
+  type: 'screen',
+  setIsLoading: (isLoading: boolean, type: LoaderType = 'bar') =>
+    set({ isLoading, type }),
+}))
 
-// App settings store 
+// App settings store
 type SettingsPage = 'account' | 'plugins'
 export interface SettingsState {
   showSidebar: boolean
@@ -475,16 +512,13 @@ export interface SettingsState {
   setSidebar: (value?: boolean) => void
 }
 
-
-
 export const useAppStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       showSidebar: true,
       settingsPage: 'account',
-      toggleSidebar: () =>
-        set({ showSidebar: !get().showSidebar }),
-      setSidebar: (value) => set({ showSidebar: value})
+      toggleSidebar: () => set({ showSidebar: !get().showSidebar }),
+      setSidebar: (value) => set({ showSidebar: value }),
     }),
     {
       name: 'settings',
@@ -505,14 +539,16 @@ export interface GraphFlowState {
   setEdges: (edges: Edge[]) => void
   addNode: (node: Node) => void
   addEdge: (edge: Edge) => void
-  removeEdge: (edge: Edge) => void,
+  removeEdge: (id: Edge['id']) => void
   removeNode: (nodeId: string) => void
   updateNode: (nodeId: string, updates: Partial<Node>) => void
   clearGraph: () => void
   setPositionMode: (mode: PositionMode) => void
   enableEntityEdit: (nodeId: string) => void
   disableEntityEdit: (nodeId: string) => void
+  updateEdge: (id: string, edgeUpdate: Partial<Edge>) => void
 }
+
 // Initial empty state
 const initialNodes: Node[] = []
 const initialEdges: Edge[] = []
@@ -523,94 +559,111 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   edges: initialEdges,
   positionMode: 'manual',
   setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
-  onNodesChange: (changes: NodeChange[]) => {
+  onNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     })
   },
-  
-  onEdgesChange: (changes: EdgeChange[]) => {
+
+  onEdgesChange: (changes) => {
     set({
       edges: applyEdgeChanges(changes, get().edges),
     })
   },
-  
-  onConnect: (connection: Connection) => {
+
+  onConnect: (connection) => {
     set({
-      edges: addEdge({
-        ...connection,
-        type: 'float',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: "var(--color-mirage-50)",
-          width: 20,
-          height: 20,
+      edges: addEdge(
+        {
+          ...connection,
+          type: 'sfloat',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: 'var(--color-mirage-50)',
+            width: 20,
+            height: 20,
+          },
+          style: {
+            strokeWidth: 2,
+            stroke: '#394778',
+          },
         },
-        style: {
-          strokeWidth: 2,
-          stroke: "#394778"
-        }
-      }, get().edges),
+        get().edges
+      ),
     })
   },
-  
-  setNodes: (nodes: Node[]) => {
+
+  setNodes: (nodes) => {
     set({ nodes })
   },
-  
-  setEdges: (edges: Edge[]) => {
+
+  setEdges: (edges) => {
     set({ edges })
   },
-  
-  addNode: (node: Node) => {
+  updateEdge: (id, update) => {
     set({
-      nodes: [...get().nodes, node]
+      edges: get().edges.map((edge) => {
+        if (edge.id === id) {
+          return {
+            ...edge,
+            ...update,
+          }
+        }
+        return edge
+      }),
     })
   },
-  
-  addEdge: (edge: Edge) => {
+  addNode: (node) => {
     set({
-      edges: [...get().edges, edge]
+      nodes: [...get().nodes, node],
     })
   },
-  removeEdge: (edge: Edge) => {
-    set({ edges: get().edges.filter((e) => e.id !== edge.id) })
-  },
-  removeNode: (nodeId: string) => {
+
+  addEdge: (edge) => {
     set({
-      nodes: get().nodes.filter(node => node.id !== nodeId),
-      edges: get().edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId)
+      edges: [...get().edges, edge],
     })
   },
-  
-  updateNode: (nodeId: string, updates: Partial<Node>) => {
+  removeEdge: (id) => {
+    set({ edges: get().edges.filter((e) => e.id !== id) })
+  },
+  removeNode: (nodeId) => {
     set({
-      nodes: get().nodes.map(node => 
+      nodes: get().nodes.filter((node) => node.id !== nodeId),
+      edges: get().edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      ),
+    })
+  },
+
+  updateNode: (nodeId, updates) => {
+    set({
+      nodes: get().nodes.map((node) =>
         node.id === nodeId ? { ...node, ...updates } : node
-      )
+      ),
     })
   },
-  
+
   clearGraph: () => {
-    set({ 
-      nodes: [], 
-      edges: [] 
+    set({
+      nodes: [],
+      edges: [],
     })
   },
-  
-  enableEntityEdit: (nodeId: string) => {
+
+  enableEntityEdit: (nodeId) => {
     set({
-      nodes: get().nodes.map((node) => 
+      nodes: get().nodes.map((node) =>
         node.id === nodeId ? { ...node, type: 'edit' } : node
-      )
+      ),
     })
   },
-  
-  disableEntityEdit: (nodeId: string) => {
+
+  disableEntityEdit: (nodeId) => {
     set({
-      nodes: get().nodes.map((node) => 
+      nodes: get().nodes.map((node) =>
         node.id === nodeId ? { ...node, type: 'view' } : node
-      )
+      ),
     })
-  }
+  },
 }))

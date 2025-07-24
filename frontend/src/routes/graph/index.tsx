@@ -83,7 +83,6 @@ export default function Graphing() {
     clearGraph,
     onNodesChange,
     onEdgesChange,
-    onConnect,
     setPositionMode,
     positionMode,
   } = useGraphFlowStore()
@@ -400,7 +399,6 @@ export default function Graphing() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
             graphInstance={graphInstance}
             setGraphInstance={setGraphInstance}
             sendJsonMessage={sendJsonMessage}

@@ -8,14 +8,10 @@ import {
 import { getEdgeParams } from './utils'
 
 export default function NewConnectionLine({
-  fromX,
-  fromY,
   toX,
   toY,
   connectionStatus,
   fromNode,
-  fromPosition,
-  toPosition,
 }: ConnectionLineComponentProps) {
   // Create a mock target node at the cursor position
   const targetNode = {
