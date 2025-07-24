@@ -56,7 +56,6 @@ export default function FloatingEdge({
       updateEdge(id, {
         sourceHandle: sourceNodeHandle?.id,
         targetHandle: targetNodeHandle?.id,
-        label: 'new',
       })
     }
   }, [sourcePos, sourceNode, sourceHandle, targetPos, targetNode, targetHandle])
@@ -104,14 +103,23 @@ export default function FloatingEdge({
               placeholder='No label found'
               size={inputSize}
               type='text'
-              class='nopan hover:outline-mirage-500/70 outline-mirage-600/45 focus-visible:outline-primary pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-200 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/40 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/40 focus:text-slate-400 focus:placeholder:text-slate-800'
+              class='nopan hover:outline-mirage-500/70 outline-mirage-600/10 focus-visible:outline-primary pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/40 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/40 focus:text-slate-400 focus:placeholder:text-slate-800'
               style={{
                 transform: `translate(-50%, 0%) translate(${labelX}px,${labelY}px)`,
               }}
             />
             <button
               style={{
-                transform: `translate(-50%, -105%) translate(${labelX}px,${labelY}px)`,
+                transform: `translate(100%, -110%) translate(${labelX}px,${labelY}px)`,
+              }}
+              onClick={() => removeEdge(id)}
+              class='hover:text-danger bg-slate-925/60 hover:border-danger pointer-events-auto absolute mx-4 flex scale-1 items-center justify-center rounded-full border border-slate-900 p-px text-slate-600 opacity-0 backdrop-blur-xs transition-colors duration-75 ease-in group-hover:opacity-100 hover:scale-100 hover:bg-slate-950/70'
+            >
+              <Icon icon='trash' className='h-3 w-3 p-0.5 text-inherit' />
+            </button>
+            <button
+              style={{
+                transform: `translate(-50%, -110%) translate(${labelX}px,${labelY}px)`,
               }}
               onClick={() => removeEdge(id)}
               class='hover:text-danger bg-slate-925/60 hover:border-danger pointer-events-auto absolute flex items-center justify-center rounded-full border border-slate-900 p-px text-slate-600 opacity-0 backdrop-blur-xs transition-colors duration-75 ease-in group-hover:opacity-100 hover:bg-slate-950/70'
