@@ -3,7 +3,6 @@ services:
     container_name: "ui"
     tty: true
     command: sh -c "cd /app/ && yarn dev"
-    # npm i --global serve && yarn build && serve -s build
     env_file:
       - .env
     image: node:20-alpine3.18
@@ -36,5 +35,5 @@ services:
       - ob-obj-data:/data
 
 volumes:
-    ob-db-data:
-    ob-obj-data:
+  ob-db-data:
+  ob-obj-data:
