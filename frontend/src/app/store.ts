@@ -543,6 +543,8 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: "var(--color-mirage-50)",
+          width: 20,
+          height: 20,
         },
         style: {
           strokeWidth: 2,

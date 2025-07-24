@@ -341,20 +341,16 @@ input[type='number'] {
   stroke-width: 2;
 }
 .react-flow__handle.react-flow__handle-left {
-  left: -10px;
+  left: -8px;
 }
 .react-flow__handle.react-flow__handle-right {
-  left: calc(100% - 6px);
+  left: calc(100% - 4px);
 }
 .react-flow__handle.react-flow__handle-top {
-  top: -10px;
+  top: -8px;
 }
 .react-flow__handle.react-flow__handle-bottom {
-  top:  calc(100% - 6px);
-}
-.x {
-  color: var(--color-green-600);
-  background-color:  #00a63e;
+  top:  calc(100% - 4px);
 }
 .validationflow .react-flow__handle.connectingto {
   border-color:  var(--color-red-600);
@@ -366,12 +362,12 @@ input[type='number'] {
   border-width: 1.75px;
   border-color: #282e8399;
   background-color: #0c0c32;
-  transition: color ease-in 150ms;
+  transition: background-color ease-in 75ms, border-color ease-in 75ms;
  }
 .react-flow__handle.connectionindicator:hover {
   pointer-events: all;
   border-color: var(--color-primary-500);
-  background-color: #0c0c32;
+  background-color: #1524ea;
 }
 .react-flow__handle.connectionindicator:focus,
 .react-flow__handle.connectingfrom,
@@ -388,11 +384,17 @@ input[type='number'] {
 @keyframes glowPulse {
   0%, 100% {
     filter: url(#glow);
-    opacity: 0.45;   /* ↓ less intense */
+    opacity: 0.45;
   }
   50% {
     filter: url(#glow);
-    opacity: 1;   /* ↓ peak intensity */
+    opacity: 1; 
+  }
+}
+
+@keyframes dashingLines {
+  to {
+    stroke-dashoffset: -150;
   }
 }
 /* end react flow style overrides */
