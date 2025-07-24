@@ -4,7 +4,7 @@ import { NodeToolbar, Position } from '@xyflow/react'
 export default function EntityToolbar() {
   return (
     <NodeToolbar position={Position.Top}>
-      <div className='relative -top-6 flex gap-x-2'>
+      <div className='relative -top-3 flex gap-x-2'>
         <button
           title='Open properties'
           class='bg-slate-925/60 hover:border-primary-350 hover:text-primary-350 relative top-3 flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 p-px text-slate-600 backdrop-blur-xs transition-colors duration-75 ease-in hover:bg-slate-950/70'
