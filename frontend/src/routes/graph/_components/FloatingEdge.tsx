@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEdgeParams } from './utils'
 import {
   BaseEdge,
@@ -10,6 +10,9 @@ import {
 } from '@xyflow/react'
 import { Icon } from '@/components/icons'
 import { useGraphFlowStore } from '@/app/store'
+
+const EMPTY_LABEL_SIZE = 10
+const MAX_LABEL_SIZE = 32
 
 export default function FloatingEdge({
   id,
@@ -23,6 +26,17 @@ export default function FloatingEdge({
   data,
 }: Edge) {
   const { removeEdge } = useGraphFlowStore()
+  const [showEdgePanel, setShowEdgePanel] = useState(false)
+  const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
+  const inputSize = useMemo(
+    () =>
+      edgeLabel.length <= 18
+        ? edgeLabel.length === 0
+          ? EMPTY_LABEL_SIZE
+          : edgeLabel.length
+        : MAX_LABEL_SIZE,
+    [edgeLabel]
+  )
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
   )
@@ -69,18 +83,26 @@ export default function FloatingEdge({
     sourcePosition: sourcePos,
     targetPosition: targetPos,
   })
-
-  const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
-  const inputSize = useMemo(
-    () =>
-      edgeLabel.length <= 18
-        ? edgeLabel.length === 0
-          ? 10
-          : edgeLabel.length
-        : 20,
-    [edgeLabel]
-  )
-
+  console.log(showEdgePanel)
+  const panelCancelRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    const handler: EventListener = (event) => {
+      if (!panelCancelRef.current) {
+        return
+      }
+      // if click was not inside of the element. "!" means not
+      // in other words, if click is outside the modal element
+      if (!panelCancelRef.current.contains(event.target as Node)) {
+        setShowEdgePanel(false)
+      }
+    }
+    // the key is using the `true` option
+    // `true` will enable the `capture` phase of event handling by browser
+    document.addEventListener('click', handler, true)
+    return () => {
+      document.removeEventListener('click', handler)
+    }
+  }, [])
   return (
     <>
       <BaseEdge
@@ -91,41 +113,60 @@ export default function FloatingEdge({
         class='react-flow__edge-path'
       >
         <EdgeLabelRenderer>
-          <div class='group pointer-events-auto relative flex items-center justify-between'>
-            <input
-              value={edgeLabel}
-              onBlur={(event) =>
-                updateEdge(id, { label: event.currentTarget.value })
-              }
-              onChange={(event) => {
-                setEdgeLabel(event.currentTarget.value)
-              }}
-              placeholder='No label found'
-              size={inputSize}
-              type='text'
-              class='nopan hover:outline-mirage-500/70 outline-mirage-600/10 focus-visible:outline-primary pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/40 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/40 focus:text-slate-400 focus:placeholder:text-slate-800'
-              style={{
-                transform: `translate(-50%, 0%) translate(${labelX}px,${labelY}px)`,
-              }}
-            />
-            <button
-              style={{
-                transform: `translate(100%, -110%) translate(${labelX}px,${labelY}px)`,
-              }}
-              onClick={() => removeEdge(id)}
-              class='hover:text-danger bg-slate-925/60 hover:border-danger pointer-events-auto absolute mx-4 flex scale-1 items-center justify-center rounded-full border border-slate-900 p-px text-slate-600 opacity-0 backdrop-blur-xs transition-colors duration-75 ease-in group-hover:opacity-100 hover:scale-100 hover:bg-slate-950/70'
-            >
-              <Icon icon='trash' className='h-3 w-3 p-0.5 text-inherit' />
-            </button>
-            <button
-              style={{
-                transform: `translate(-50%, -110%) translate(${labelX}px,${labelY}px)`,
-              }}
-              onClick={() => removeEdge(id)}
-              class='hover:text-danger bg-slate-925/60 hover:border-danger pointer-events-auto absolute flex items-center justify-center rounded-full border border-slate-900 p-px text-slate-600 opacity-0 backdrop-blur-xs transition-colors duration-75 ease-in group-hover:opacity-100 hover:bg-slate-950/70'
-            >
-              <Icon icon='trash' className='h-3 w-3 p-0.5 text-inherit' />
-            </button>
+          <div id='FAK' className=''>
+            <div className='absolute z-20 h-screen w-screen'></div>
+            <div id='fkme' class='group flex items-center justify-between'>
+              <input
+                ref={panelCancelRef}
+                onClick={() => setShowEdgePanel(true)}
+                value={edgeLabel.replace('_', ' ')}
+                onBlur={(event) =>
+                  updateEdge(id, { label: event.currentTarget.value })
+                }
+                onChange={(event) => {
+                  setEdgeLabel(event.currentTarget.value)
+                }}
+                placeholder='No label found'
+                size={inputSize}
+                type='text'
+                class='nopan hover:outline-mirage-500/70 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
+                style={{
+                  transform: `translate(-50%, 0%) translate(${labelX}px,${labelY}px)`,
+                }}
+              />
+              <div
+                title='Edit relationship properties'
+                className={`nopan pointer-events-auto absolute -left-[3.15rem] mt-12 flex origin-bottom-right ${!showEdgePanel && 'invisible hidden'}`}
+              >
+                <button
+                  style={{
+                    transform: `translate(${labelX}px,${labelY}px)`,
+                  }}
+                  onClick={() => console.log('TODO')}
+                  class='bg-slate-925/60 hover:outline-mirage-500/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-l-xs bg-gradient-to-br from-black/10 to-black/15 pl-1 text-[0.45rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/85 focus:placeholder:text-slate-800'
+                >
+                  Properties
+                  <Icon
+                    icon='braces'
+                    className='mx-0.5 h-3.5 w-3.5 p-0.5 text-inherit'
+                  />
+                </button>
+                <button
+                  title={`Delete ${label} relationship`}
+                  style={{
+                    transform: `translate(${labelX}px,${labelY}px)`,
+                  }}
+                  onClick={() => removeEdge(id)}
+                  class='hover:text-danger-500 bg-slate-925/60 hover:outline-mirage-500/70 outline-mirage-950/70 focus:outline-mirage-500 focus:text-danger-600 x pointer-events-auto flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-r-xs bg-gradient-to-br from-black/10 to-black/15 pl-1 text-[0.45rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:placeholder:text-slate-800'
+                >
+                  Delete
+                  <Icon
+                    icon='trash'
+                    className='mx-0.5 h-3.5 w-3.5 p-0.5 text-inherit'
+                  />
+                </button>
+              </div>
+            </div>
           </div>
         </EdgeLabelRenderer>
       </BaseEdge>
