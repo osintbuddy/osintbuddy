@@ -11,17 +11,21 @@ import {
   ReactFlow,
   OnNodeDrag,
   NodeMouseHandler,
+  ConnectionMode,
+  IsValidConnection,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
 import ViewEntityNode from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
-import SimpleFloatingEdge from './SimpleFloatingEdge'
+import FloatingEdge from './FloatingEdge'
 import { useGraphFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import { CtxMenu, CtxPosition } from '..'
 
+const MIN_ZOOM = 0.1
+const MAX_ZOOM = 2.0
 const viewOptions: FitViewOptions = {
   padding: 50,
 }
@@ -51,7 +55,13 @@ export default function Graph({
   ctxMenu,
   setCtxMenu,
 }: ProjectGraphProps) {
-  const { enableEntityEdit, disableEntityEdit } = useGraphFlowStore()
+  const {
+    enableEntityEdit,
+    disableEntityEdit,
+    removeEdge,
+    setEdges,
+    setNodes,
+  } = useGraphFlowStore()
   const ref = useRef<HTMLDivElement>(null)
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
@@ -88,17 +98,6 @@ export default function Graph({
 
   const onPaneClick = useCallback(() => setCtxMenu({ entity: null }), [])
 
-  const onReconnect = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => {
-      // Handle edge update through websocket or API call
-      sendJsonMessage({
-        action: 'update:edge',
-        oldEdge,
-        newConnection,
-      })
-    },
-    []
-  )
   const { hid } = useParams()
 
   const onDragOver: DragEventHandler<HTMLDivElement> = useCallback((event) => {
@@ -150,7 +149,7 @@ export default function Graph({
 
   const edgeTypes = useMemo(
     () => ({
-      float: SimpleFloatingEdge,
+      float: FloatingEdge,
     }),
     []
   )
@@ -199,16 +198,63 @@ export default function Graph({
     }
     setClickDelta(newDelta)
   }
+
+  // edge connection logic, handles deletion when edge is dropped
+  // on canavas TODO: Fix edgeupdater target handle area, its always right side, ugh
+  const edgeReconnectSuccessful = useRef(true)
+  const onReconnectStart = useCallback(() => {
+    edgeReconnectSuccessful.current = false
+  }, [])
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      edgeReconnectSuccessful.current = true
+      sendJsonMessage({
+        action: 'update:edge',
+        oldEdge,
+        newConnection,
+      })
+    },
+    []
+  )
+
+  const onReconnectEnd = useCallback((_, edge: Edge) => {
+    if (!edgeReconnectSuccessful.current) {
+      removeEdge(edge)
+    }
+
+    edgeReconnectSuccessful.current = true
+  }, [])
+
+  const isValidConnection: IsValidConnection = (connection) =>
+    connection.target !== connection.source
+
+  const onNodeMouseEnter: NodeMouseHandler<Node> = useCallback((_, { id }) => {
+    // const { nodes: updatedNodes, edges: updatedEdges } =
+    //   highlightNodesAndEdges(nodes, edges, {
+    //     activeEntityId: undefined,
+    //     hoverEntityId: id,
+    //   })
+    // setEdges(updatedEdges)
+    // setNodes(updatedNodes)
+  }, [])
+  const onNodeMouseLeave: NodeMouseHandler<Node> = useCallback((_, { id }) => {
+    // const { nodes: updatedNodes, edges: updatedEdges } =
+    //   highlightNodesAndEdges(nodes, edges, {
+    //     activeEntityId: undefined,
+    //     hoverEntityId: undefined,
+    //   })
+    // setEdges(updatedEdges)
+    // setNodes(updatedNodes)
+  }, [])
   return (
     <ReactFlow
-      // TODO:
-      // onCopy={}
-      defaultMarkerColor='#394778'
+      // defaultMarkerColor='#394778'
       ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
-      minZoom={0.1}
-      maxZoom={2.0}
+      minZoom={MIN_ZOOM}
+      maxZoom={MAX_ZOOM}
       zoomOnScroll={true}
       zoomOnPinch={true}
       zoomOnDoubleClick={false}
@@ -219,7 +265,9 @@ export default function Graph({
       onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
+      onReconnectStart={onReconnectStart}
       onReconnect={onReconnect}
+      onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
       onNodeClick={onNodeClick}
@@ -234,6 +282,12 @@ export default function Graph({
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
+      connectionMode={ConnectionMode.Loose}
+      isValidConnection={isValidConnection}
+      onNodeMouseEnter={onNodeMouseEnter}
+      onNodeMouseLeave={onNodeMouseLeave}
+      // TODO: If osintbuddy makes enough $$$ for a reactflow sub, subscribe :)
+      proOptions={{ hideAttribution: true }}
     >
       <Background
         color='#394778'

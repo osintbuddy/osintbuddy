@@ -134,6 +134,9 @@
   --color-cod-950: #02020c;
 }
 
+/* TODO: Improve me... this gradient and grid background is such a pain
+in the ass to make look nice, maybe animate some other bg for landing page,
+or improve colors, idk, I  */
 html {
   --grid-a: 1px;
   --grid-gap: 2px;
@@ -209,12 +212,15 @@ svg.icon {
 p {
   font-family: var(--font-sans);
 }
+input[type='file'] {
+  display: none;
+}
 
 .transition-opacity-transform {
   transition: transform 200s, opacity 5s;
 }
 
-/* fix autofill bg for the shittiest browser in the world (chrome) */
+/* fix autofill bg for the shittiest browser in the world (chrome) P.S. use firefox, adblock works on it */
 input:-webkit-autofill,
 input:-webkit-autofill:focus {
     transition: background-color 600000s 0s, color 600000s 0s;
@@ -329,91 +335,57 @@ input[type='number'] {
 /* end hide number inputs */
 
 /* start react flow style overrides */
-.react-flow__attribution {
-  @apply invisible;
-}
 
 .react-flow__edge-path {
-  stroke: #394778 !important;
-  stroke-width: 2 !important;
+  stroke: var(--color-mirage-50) ;
+  stroke-width: 2;
+}
+.react-flow__handle.react-flow__handle-left {
+  left: -10px;
+}
+.react-flow__handle.react-flow__handle-right {
+  left: calc(100% - 6px);
+}
+.react-flow__handle.react-flow__handle-top {
+  top: -10px;
+}
+.react-flow__handle.react-flow__handle-bottom {
+  top:  calc(100% - 6px);
 }
 
-/* .react-flow__edge {
-  cursor: grab !important;
-  pointer-events: none !important;
-} */
-.react-flow__node {
-  cursor: default !important;
+.validationflow .react-flow__handle.connectingto {
+  border-color:  #fb2c36 !important;
 }
-
-.react-flow__background #pattern-1undefined {
-  width: 100px;
-  height: 100px;
+.validationflow .react-flow__handle.valid {
+  border-color: #55dd99 !important;
 }
-
-/* .react-flow__pane, .react-flow__renderer {
-  top: 13rem !important;
-  bottom: 0;
-} */
-/* .react-flow__background {
-  bottom: 0;
-  top: none !important;
-} */
+.react-flow__handle.connectionindicator {
+  border-width: 1.75px;
+  border-color: #282e8381;
+  background-color: #0c0c3240;
+  transition: color ease-in 150ms;
+ }
+.react-flow__handle.connectionindicator:hover {
+  pointer-events: all;
+  border-color: #0215FF;
+  background-color: #0c0c3299;
+}
+.react-flow__handle.connectionindicator:focus,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  border-color: #0215FF;
+  background-color: #0c0c32;
+}
+ 
+.react-flow__edge.selectable:hover .react-flow__edge-path,
+.react-flow__edge.selectable.selected .react-flow__edge-path {
+  stroke: var(--xy-theme-edge-hover);
+}
 /* end react flow style overrides */
-
-input[type='file'] {
-  display: none;
-}
-
-/* @import './nodes.css'; */
-/* @import './loaders.css'; */
-
-/* /docs/ hero codeblock */
-/* pre[class*='language-'] {
-  @apply text-slate-300
-}
-.token.tag,
-.token.class-name,
-.token.selector,
-.token.selector .class,
-.token.selector.class,
-.token.function {
-  @apply text-teal-300;
-}
-.token.attr-name,
-.token.keyword,
-.token.rule,
-.token.pseudo-class,
-.token.important {
-  @apply text-purple-400;
-}
-.token.module {
-  @apply text-pink-400;
-}
-.token.attr-value,
-.token.class,
-.token.string,
-.token.property {
-  @apply text-radiance-300;
-}
-.token.punctuation,
-.token.attr-equals {
-  @apply text-slate-500;
-}
-.token.unit,
-.language-css .token.function {
-  @apply text-green-300;
-}
-.token.comment,
-.token.operator,
-.token.combinator {
-  @apply text-pink-400;
-} */
-/* end hero codeblock */
 
 /* start react-grid-layout and codemirror */
 .react-grid-item > .react-resizable-handle::after {
-  border-color: var(--color-slate-400);
+  border-color: var(--color-slate-600);
   height: 8px;
   width: 8px;
 }

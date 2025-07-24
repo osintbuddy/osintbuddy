@@ -61,8 +61,6 @@ pub struct GraphEdge {
     pub id: String,
     pub source: String,
     pub target: String,
-    pub source_handle: String,
-    pub target_handle: String,
     pub edge_type: String,
 }
 
@@ -266,13 +264,16 @@ pub async fn read_graph(
                 "id": id.to_string(),
                 "source": start_id.to_string(),
                 "target": end_id.to_string(),
-                "sourceHandle": "r1",
-                "targetHandle": "l2",
                 "type": "float",
                 "label": label,
                 "markerEnd": {
                     "type": "arrowclosed",
-                }
+                    "color": "var(--color-mirage-50)"
+                },
+                "style": {
+                    "strokeWidth": 2,
+                    "stroke": "#394778"
+                },
             })
         })
         .collect();
@@ -790,16 +791,16 @@ pub async fn graphing_websocket_handler(
                                                         "id": format!("{}_{}", source_id, target_id),
                                                         "source": source_id.to_string(),
                                                         "target": target_id.to_string(),
-                                                        "sourceHandle": "r1",
-                                                        "targetHandle": "l2",
                                                         "type": "float",
                                                         "label": edge_label,
                                                         "markerEnd": {
                                                             "type": "arrowclosed",
+                                                            "color": "var(--color-mirage-50)"
                                                         },
                                                         "style": {
                                                             "strokeWidth": 2,
-                                                          },
+                                                            "stroke": "#394778"
+                                                        },
                                                     });
 
                                                     message

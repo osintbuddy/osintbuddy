@@ -1,7 +1,7 @@
 import type { JSX } from 'preact'
 import { HeroBackground } from '@/components/docs/HeroBackground'
 import Button from '@/components/buttons'
-import { useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/icons'
 import { Callout } from '@/components/docs/Callout'
 import { useAuthStore } from '@/app/store'
@@ -32,10 +32,10 @@ export default function LandingPage(): JSX.Element {
               <br /> Strategic Insights from Public Data
             </h2>
             <p class='text-md max-w-2xl px-3 pt-1 text-slate-300 md:px-0 md:text-lg'>
-              Hi, I'm jerlendds and I created OSINTBuddy, an open source tool
-              for collecting, processing, and visualizing connections between
+              Hi, I'm jerlendds, creator of OSINTBuddy, an open source tool for
+              collecting, processing, and visualizing connections between
               entities through a Python plugin system. You can identify
-              relationships like what links to a given domain.
+              relationships like what relates to a given domain.
             </p>
 
             <div class='mt-4 flex justify-center gap-4'>
@@ -78,7 +78,7 @@ export default function LandingPage(): JSX.Element {
         </div>
       </div>
       <div className='absolute top-0 left-4.5 *:mx-0 *:my-2 *:mr-4 lg:top-auto lg:bottom-3 lg:max-w-lg'>
-        <Callout type='warning' title='Experimental Software (Alpha)'>
+        <Callout type='warning' title='Experimental Software (v0.3.0)'>
           <p>
             Please note that OSINTBuddy is currently experimental software. We
             do not recommend using this project for anything serious!
@@ -91,20 +91,20 @@ export default function LandingPage(): JSX.Element {
             {atfQuote}
           </h1>
           <p class='mb-2 text-slate-300'>
-            Email me at
+            Email me at&nbsp;
             <a
               href='mailto:oss@osintbuddy.com'
-              class='hover:text-primary-50 active:text-primary-50 text-primary-100 font-sans transition-all duration-100 ease-in-out'
+              class='text-primary-50 font-sans transition-all duration-100 ease-in-out hover:underline'
             >
-              &nbsp;oss@osintbuddy.com&nbsp;
+              oss@osintbuddy.com
             </a>
-            to share ideas or{' '}
-            <a
-              href='#todo-redirect-to-security.mdx-page'
-              class='mx-px border-b-2 border-b-transparent font-sans transition-all duration-100 ease-in-out hover:border-b-red-600/40'
+            &nbsp;to share ideas, bugs, and or{' '}
+            <NavLink
+              to='/docs/contrib/bugs-security'
+              class='hover:text-danger-500 mx-px font-sans transition-colors duration-100 ease-in-out after:content-[".."] hover:underline hover:after:content-["?"]'
             >
-              security concerns.
-            </a>
+              security concerns
+            </NavLink>
           </p>
         </section>
       </section>

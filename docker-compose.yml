@@ -33,7 +33,8 @@ services:
       - 9000:9000
       - 9001:9001
     volumes:
-      - /home/$USER/minio/data:/data
+      - ob-obj-data:/data
 
 volumes:
     ob-db-data:
+    ob-obj-data:

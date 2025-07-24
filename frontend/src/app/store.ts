@@ -10,7 +10,8 @@ import {
   Edge,
   Connection,
   NodeChange,
-  EdgeChange
+  EdgeChange,
+  MarkerType
 } from '@xyflow/react'
 
 
@@ -504,6 +505,7 @@ export interface GraphFlowState {
   setEdges: (edges: Edge[]) => void
   addNode: (node: Node) => void
   addEdge: (edge: Edge) => void
+  removeEdge: (edge: Edge) => void,
   removeNode: (nodeId: string) => void
   updateNode: (nodeId: string, updates: Partial<Node>) => void
   clearGraph: () => void
@@ -535,7 +537,18 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   
   onConnect: (connection: Connection) => {
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge({
+        ...connection,
+        type: 'float',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--color-mirage-50)",
+        },
+        style: {
+          strokeWidth: 2,
+          stroke: "#394778"
+        }
+      }, get().edges),
     })
   },
   
@@ -558,8 +571,9 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
       edges: [...get().edges, edge]
     })
   },
-  
-
+  removeEdge: (edge: Edge) => {
+    set({ edges: get().edges.filter((e) => e.id !== edge.id) })
+  },
   removeNode: (nodeId: string) => {
     set({
       nodes: get().nodes.filter(node => node.id !== nodeId),

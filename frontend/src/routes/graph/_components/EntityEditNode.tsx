@@ -13,6 +13,8 @@ import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { Handle, Position } from '@xyflow/react'
 import { FixedSizeList as List } from 'react-window'
+import EntityToolbar from './EntityToolbar'
+import EntityHandles from './EntityHandles'
 // Use useRef instead of global variables to avoid memory leaks
 let dropdownKeyRef = { current: 0 }
 let nodeKeyRef = { current: 0 }
@@ -136,63 +138,8 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   )
   return (
     <>
-      <Handle
-        position={Position.Right}
-        id='r1'
-        key='r1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t1'
-        key='t1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b1'
-        key='b1'
-        type='source'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l1'
-        key='l1'
-        type='source'
-        style={handleStyle}
-      />
-
-      <Handle
-        position={Position.Right}
-        id='r2'
-        key='r2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Top}
-        id='t2'
-        key='t2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Bottom}
-        id='b2'
-        key='b2'
-        type='target'
-        style={handleStyle}
-      />
-      <Handle
-        position={Position.Left}
-        id='l2'
-        key='l2'
-        type='target'
-        style={handleStyle}
-      />
+      <EntityHandles />
+      <EntityToolbar />
       <div className='node container'>
         <div
           // 99 === 0.6 opacity
@@ -308,7 +255,7 @@ export function TextArea({
     <div className='flex w-full flex-col'>
       <label
         onClick={() => setShowMonospace(!showMonospace)}
-        className='font-display flex items-center justify-between text-xs leading-5 font-semibold text-slate-400'
+        className='font-display flex items-center justify-between text-[0.55rem] leading-4 font-medium text-slate-400'
       >
         {label}
         <Icon

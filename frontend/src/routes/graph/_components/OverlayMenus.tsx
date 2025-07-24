@@ -93,7 +93,7 @@ export default function OverlayMenus({
     w: 7,
     h: 57,
     x: 34,
-    y: 0,
+    y: 4,
     minW: 2,
     maxW: 44,
     minH: 3,
@@ -104,7 +104,7 @@ export default function OverlayMenus({
 
   const [appbarLayout, setAppbarLayout] = useState<Layout>({
     i: 'toolbar',
-    w: 33,
+    w: 44,
     h: 4,
     x: 0,
     y: 0,
@@ -176,30 +176,45 @@ export default function OverlayMenus({
               <Icon icon='lock' className='h-5 w-5 text-inherit' />
             )}
           </button>
-          <h5
+          <div
             title={graph?.description ?? ''}
-            className='relative w-72 justify-between truncate pl-3 font-sans font-bold whitespace-nowrap'
+            className='relative w-96 justify-between truncate overflow-hidden pl-3 font-sans font-bold overflow-ellipsis whitespace-nowrap'
           >
-            <span className='relative text-slate-400'>{graph?.label}</span>
+            <h4 className='relative max-w-72 overflow-hidden overflow-ellipsis text-slate-400'>
+              {graph?.label}
+            </h4>
             <button
-              disabled={readyState === ReadyState.OPEN}
-              onClick={() => window.location.reload()}
-              className={`absolute top-1.5 right-1.5 z-20 h-3 w-3 rounded-full ${
-                readyState === ReadyState.OPEN
-                  ? 'bg-success-700'
-                  : readyState === ReadyState.CONNECTING
-                    ? 'animate-pulse bg-yellow-500'
-                    : 'bg-danger-500'
-              }`}
               title={
                 readyState === ReadyState.OPEN
-                  ? 'Connected'
-                  : readyState === ReadyState.CONNECTING
-                    ? 'Connecting...'
-                    : 'Disconnected'
+                  ? 'You have an active graph connection!'
+                  : 'Refresh the active case'
               }
-            />
-          </h5>
+              disabled={readyState === ReadyState.OPEN}
+              onClick={() => window.location.reload()}
+              className={`absolute top-0.5 right-1.5 rounded-sm px-2 py-0.5 pr-5 text-xs lowercase ${
+                readyState === ReadyState.OPEN
+                  ? 'bg-success-700/20 text-green-400/80'
+                  : readyState === ReadyState.CONNECTING
+                    ? 'animate-pulse bg-yellow-500/20 text-yellow-400/80'
+                    : 'bg-danger-500/20 text-red-500/80'
+              }`}
+            >
+              <span
+                className={`absolute top-1 right-1 z-20 h-3 w-3 rounded-full text-slate-400 ${
+                  readyState === ReadyState.OPEN
+                    ? 'bg-green-400'
+                    : readyState === ReadyState.CONNECTING
+                      ? 'animate-pulse bg-yellow-500'
+                      : 'bg-danger-500'
+                }`}
+              />
+              {readyState === ReadyState.OPEN
+                ? 'Online'
+                : readyState === ReadyState.CONNECTING
+                  ? 'Loading'
+                  : 'Offline'}
+            </button>
+          </div>
 
           <div className='mr-auto flex items-center'>
             <button

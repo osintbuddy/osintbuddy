@@ -103,10 +103,10 @@ To start using OSINTBuddy, follow these simple installation steps:
 ### Installation
 1. Clone the repo and submodules
    ```sh
-   git clone --recurse-submodules https://github.com/osintbuddy/osintbuddy.git
+   git clone https://github.com/osintbuddy/osintbuddy.git
    cd osintbuddy
    # using ssh?
-   # git clone --recurse-submodules git@github.com:osintbuddy/osintbuddy.git 
+   # git clone git@github.com:osintbuddy/osintbuddy.git 
    ```
 
 2. [Install Docker & Compose](https://docs.docker.com/get-started/get-docker/)
@@ -115,19 +115,14 @@ To start using OSINTBuddy, follow these simple installation steps:
    ```sh
    python3 -m venv venv
    . ./venv/bin/activate
-   pip install osintbuddy
+   pip install ./osintbuddy-plugins/
    ob init
-   docker compose up
+   docker compose up db ui
    ```
-
-  - **Login into OSINTBuddy with**:
-    - *username:* `osintbuddy`
-    - *password:* `osintbuddy`
-
----
 
 - URLs
   - Frontend: *`http://localhost:5173`*
+  - Docs: *`http://localhost:5173/docs/overview`*
   - Backend: *`http://localhost:48997/api`*
 
 Access OSINTBuddy through the URLs provided for the frontend, backend, and documentation.
@@ -135,9 +130,13 @@ Access OSINTBuddy through the URLs provided for the frontend, backend, and docum
 
 ## Introducing the Rust Rewrite
 
-Welcome to the Rust backend! OSINTBuddy is a platform that helps you dig through the internet for information. Built with Rust and modern web technologies. Originally built in Python, this Rust rewrite exists because Igot tired of Python being slow and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*. 
+Welcome to the Rust backend! OSINTBuddy is a platform that helps you dig through the internet for information. Originally built in Python, this Rust rewrite exists because I got tired of Python and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*. 
 
-### Development
+### Download the latest release 
+
+Once we iron out a few more bugs and a few more features we intend to setup a github actions workflow to build and package up the built frontend and Rust server. Stay tuned...
+
+### Development instructions
 
 1. Install
    ```bash
@@ -149,15 +148,15 @@ Welcome to the Rust backend! OSINTBuddy is a platform that helps you dig through
    ```bash
    docker compose up db ui
    sqlx migrate run
-   # run and watch server
+   # ensure your Python venv with osintbuddy is activated and plugins initialized...
+   # . ./venv/bin/activate
+   # now we can run and watch the Rust server
    cargo watch -q -c -w src/ -x run
    ```
 
 3. Visit the app
    - frontend: http://localhost:5173
    - backend: http://localhost:48997/api
-
-
 
 ## [↑](#introducing-osintbuddy)Roadmap
 
@@ -169,6 +168,34 @@ for a list of requested features (and known issues).
 We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL)
 
 *Note: the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their plugins developed in-house.*
+
+## [↑](#introducing-osintbuddy)Related Projects
+
+> Empowering investigators & cybersecurity enthusiasts to uncover truths, fight injustice, and create a safer world.
+> - https://phantomhelix.com/product/sierra
+> - https://phantomhelix.com/download
+
+---
+
+> Start with one lead.
+> Close cases 12x faster with OSINT.
+> - https://www.maltego.com/
+
+---
+
+> Discover and deliver actionable intelligence.
+> - https://i2group.com/solutions/i2-analysts-notebook
+
+---
+
+> a browser extension that offers a real-time, on-page approach to analyzing web content – completely content and site agnostic
+> - https://www.osint-tool.com/
+
+---
+
+> LinkScope allows you to perform online investigations by representing information as discrete pieces of data, called Entities.
+> - https://github.com/AccentuSoft/LinkScope_Client
+
 
 ## [↑](#introducing-osintbuddy)Contact
 

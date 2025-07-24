@@ -1,8 +1,10 @@
 import { Header } from '@/components/headers'
 
 const secondaryNavigation = [
-  { name: 'Account', href: '#', current: true },
-  { name: 'Plugins', href: '#', current: false },
+  { name: 'Account', href: '#todo', current: true },
+  { name: 'Team', href: '#todo', current: false },
+  { name: 'Shared', href: '#todo', current: false },
+  { name: 'Plugins', href: '#todo', current: false },
 ]
 
 export default function SettingsPage() {
@@ -10,12 +12,12 @@ export default function SettingsPage() {
     <>
       <header class='border-mirage-700/20 z-10 border-b bg-gradient-to-br from-black/50 from-10% to-black/40 shadow-xl backdrop-blur-md'>
         <nav class='flex overflow-x-auto py-4'>
-          <ul class='flex min-w-full flex-none gap-x-6 px-4 text-sm leading-6 font-semibold text-gray-400 sm:px-6 lg:px-8'>
+          <ul class='flex min-w-full flex-none gap-x-6 px-4 text-sm leading-6 font-semibold text-slate-900 sm:px-6 lg:px-8'>
             {secondaryNavigation.map((item) => (
               <li key={item.name}>
                 <a
                   href={item.href}
-                  class={`font-display ${item.current ? 'text-primary-300' : 'text-slate-400/30 hover:text-slate-400/50'}`}
+                  class={`font-display transition-colors duration-150 ${item.current ? 'text-primary-300' : 'text-slate-600 hover:text-slate-500'}`}
                 >
                   {item.name}
                 </a>

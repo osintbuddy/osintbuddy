@@ -1,40 +1,23 @@
 import { useCallback } from 'react'
-
 import { getEdgeParams } from './utils'
-import { Icon } from '@/components/icons'
 import {
   BaseEdge,
   EdgeLabelRenderer,
   useStore,
   getBezierPath,
+  Edge,
 } from '@xyflow/react'
 
-function EdgeLabel({ transform, label }: { transform: string; label: string }) {
-  // TODO: On click open properties panel the edge can be updated by
-  return (
-    <>
-      {label && (
-        <div
-          style={{ transform }}
-          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/30 p-px text-[0.6rem] leading-none font-semibold text-slate-400/50 backdrop-blur-xs hover:text-slate-400'
-        >
-          <p className='flex cursor-pointer items-center justify-between'>
-            {label}{' '}
-          </p>
-        </div>
-      )}
-    </>
-  )
-}
-
-function SimpleFloatingEdge({
+export default function FloatingEdge({
   id,
   source,
   target,
   markerEnd,
   style,
   label,
-}: JSONObject) {
+  selected,
+  data,
+}: Edge) {
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
   )
@@ -46,34 +29,39 @@ function SimpleFloatingEdge({
     return null
   }
 
-  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
-    sourceNode,
-    targetNode
-  )
+  const {
+    sx,
+    sy,
+    tx,
+    ty,
+    sourcePos: sourcePosition,
+    targetPos: targetPosition,
+  } = getEdgeParams(sourceNode, targetNode)
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
-    sourcePosition: sourcePos,
-    targetPosition: targetPos,
     targetX: tx,
     targetY: ty,
+    sourcePosition,
+    targetPosition,
   })
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        markerEnd={markerEnd}
-        style={{
-          ...style,
-          cursor: 'grab',
-        }}
+        markerEnd={markerEnd as string}
+        style={style}
+        class='react-flow__edge-path'
       />
 
       <EdgeLabelRenderer>
+        {/* data.isHighlighted will be true if the edge should be highlighted. */}
+
         <EdgeLabel
-          label={label?.replace('_', ' ')}
+          label={(label as string)?.replace('_', ' ')}
           transform={`translate(-50%, -50%) translate(${labelX}px,${labelY}px)`}
         />
         {/* <div
@@ -94,4 +82,21 @@ function SimpleFloatingEdge({
   )
 }
 
-export default SimpleFloatingEdge
+function EdgeLabel({ transform, label }: { transform: string; label: string }) {
+  // TODO: On select show edge toolbar (view/edit properties panel)
+  // TODO: Implement draggable edge labels
+  return (
+    <>
+      {label && (
+        <div
+          style={{ transform }}
+          className='font-display pointer-events-auto absolute flex cursor-grab items-center justify-between rounded-xs bg-slate-950/30 p-px text-[0.6rem] leading-none font-semibold text-slate-400/50 backdrop-blur-xs hover:text-slate-400'
+        >
+          <p className='flex cursor-pointer items-center justify-between'>
+            {label}
+          </p>
+        </div>
+      )}
+    </>
+  )
+}
