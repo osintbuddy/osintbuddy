@@ -19,11 +19,7 @@ function ViewEntityNode({ ctx }: JSONObject) {
       <div class='node container !h-18 !w-18 !rounded-full'>
         <EntityToolbar />
         <div
-          style={{
-            // xxxxxx99 === 0.6 hex opacity
-            backgroundColor:
-              entity?.color?.length === 7 ? `${entity.color}99` : entity?.color,
-          }}
+          style={{ backgroundColor: entity.color }}
           class='header !rounded-full !p-2'
         >
           <Icon

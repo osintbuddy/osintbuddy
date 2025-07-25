@@ -147,7 +147,6 @@ export default function Graphing() {
           clearGraph()
         }
       },
-
       onReconnectStop: (numAttempts) => {
         console.error(
           'WebSocket failed to reconnect after',

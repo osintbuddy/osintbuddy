@@ -74,6 +74,7 @@ export default function NewConnectionLine({
         strokeWidth={2}
         d={edgePath}
         style={{
+       cursor: 'cell',
           filter: 'url(#glow)',
           animation:
             'glowPulse 2s ease-in-out infinite, dashingLines 16s linear',
@@ -117,13 +118,14 @@ export default function NewConnectionLine({
         {/* Background circle with glow */}
         <circle
           r='12'
-          fill='none'
+          fill='transparent'
           cx={12}
           cy={12}
           stroke={statusColor}
           strokeWidth='2'
           stroke-dasharray='17 8'
           stroke-linecap='round'
+          style={{ cursor: 'cell' }}
         >
           <animate
             attributeName='rotate'

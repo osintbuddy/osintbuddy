@@ -8,8 +8,9 @@ import {
   Edge,
   useReactFlow,
 } from '@xyflow/react'
-import { Icon } from '@/components/icons'
+import { GripIcon, Icon } from '@/components/icons'
 import { useGraphFlowStore } from '@/app/store'
+import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
 const EMPTY_LABEL_SIZE = 10
 const MAX_LABEL_SIZE = 32
@@ -23,17 +24,18 @@ export default function FloatingEdge({
   label,
   sourceHandle,
   targetHandle,
-  data,
 }: Edge) {
-  const { removeEdge } = useGraphFlowStore()
+  const { updateEdge } = useReactFlow()
+  const panelCancelRef = useRef<HTMLInputElement>(null)
+
   const [showEdgePanel, setShowEdgePanel] = useState(false)
   const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
-  const inputSize = useMemo(
+  const edgeInputSize = useMemo(
     () =>
       edgeLabel.length <= 18
         ? edgeLabel.length === 0
           ? EMPTY_LABEL_SIZE
-          : edgeLabel.length
+          : edgeLabel.length - 2
         : MAX_LABEL_SIZE,
     [edgeLabel]
   )
@@ -52,7 +54,22 @@ export default function FloatingEdge({
     sourceNode,
     targetNode
   )
-  const { updateEdge } = useReactFlow()
+
+  // console.log('FE sN tN', sourceNode, targetNode)
+  // console.log('FE s t', sourceHandle, targetHandle)
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+    sourcePosition: sourcePos,
+    targetPosition: targetPos,
+  })
+
+  const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
+    labelX,
+    labelY
+  )
 
   useEffect(() => {
     const sourceNodeHandle = sourceNode?.internals?.handleBounds?.source?.find(
@@ -73,103 +90,88 @@ export default function FloatingEdge({
       })
     }
   }, [sourcePos, sourceNode, sourceHandle, targetPos, targetNode, targetHandle])
-  // console.log('FE sN tN', sourceNode, targetNode)
-  // console.log('FE s t', sourceHandle, targetHandle)
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX: sx,
-    sourceY: sy,
-    targetX: tx,
-    targetY: ty,
-    sourcePosition: sourcePos,
-    targetPosition: targetPos,
-  })
-  console.log(showEdgePanel)
-  const panelCancelRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
-    const handler: EventListener = (event) => {
+    const handleClickOutsideEdgePanel: EventListener = (event) => {
       if (!panelCancelRef.current) {
         return
       }
-      // if click was not inside of the element. "!" means not
-      // in other words, if click is outside the modal element
       if (!panelCancelRef.current.contains(event.target as Node)) {
         setShowEdgePanel(false)
       }
     }
-    // the key is using the `true` option
-    // `true` will enable the `capture` phase of event handling by browser
-    document.addEventListener('click', handler, true)
+    document.addEventListener('click', handleClickOutsideEdgePanel, true)
     return () => {
-      document.removeEventListener('click', handler)
+      document.removeEventListener('click', handleClickOutsideEdgePanel)
     }
   }, [])
+
   return (
     <>
-      <BaseEdge
-        id={id}
-        path={edgePath}
+      <path
         markerEnd={markerEnd as string}
-        style={style}
         class='react-flow__edge-path'
-      >
-        <EdgeLabelRenderer>
-          <div id='FAK' className=''>
-            <div className='absolute z-20 h-screen w-screen'></div>
-            <div id='fkme' class='group flex items-center justify-between'>
-              <input
-                ref={panelCancelRef}
-                onClick={() => setShowEdgePanel(true)}
-                value={edgeLabel.replace('_', ' ')}
-                onBlur={(event) =>
-                  updateEdge(id, { label: event.currentTarget.value })
-                }
-                onChange={(event) => {
-                  setEdgeLabel(event.currentTarget.value)
-                }}
-                placeholder='No label found'
-                size={inputSize}
-                type='text'
-                class='nopan hover:outline-mirage-500/70 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
-                style={{
-                  transform: `translate(-50%, 0%) translate(${labelX}px,${labelY}px)`,
-                }}
+        ref={edgePathRef}
+        d={edgePath}
+        style={{ ...style, strokeWidth: 2, stroke: '#373c8300' }}
+      />
+      <EdgeLabelRenderer>
+        <div
+          className='relative ml-4 flex max-w-30'
+          ref={draggableEdgeLabelRef}
+        >
+          <div class='group relative' ref={panelCancelRef}>
+            <button
+              onMouseDown={() => setShowEdgePanel(false)}
+              tabIndex={2}
+              className='nopan nodrag pointer-events-auto relative flex items-center justify-center bg-transparent text-slate-700 opacity-20 transition-opacity duration-100 ease-in hover:bg-slate-950/10 hover:text-slate-600 hover:opacity-100 active:text-slate-600 active:opacity-100'
+            >
+              <GripIcon
+                id='grippysocks'
+                className='absolute mt-3 -ml-6 h-5.5 w-4.5 text-inherit'
               />
+            </button>
+            <input
+              tabIndex={-1}
+              value={edgeLabel.replace('_', ' ')}
+              onBlur={(event) =>
+                updateEdge(id, { label: event.currentTarget.value })
+              }
+              onChange={(event) => {
+                setEdgeLabel(event.currentTarget.value)
+              }}
+              onFocus={(event) => {
+                setShowEdgePanel(true)
+              }}
+              onMouseDown={(event) => {
+                if (!event.shiftKey) {
+                  setShowEdgePanel(true)
+                }
+              }}
+              placeholder='No label found'
+              size={edgeInputSize}
+              type='text'
+              class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 !cursor-text items-center justify-center rounded-xs bg-slate-950/10 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
+            />{' '}
+            {showEdgePanel && (
               <div
-                title='Edit relationship properties'
-                className={`nopan pointer-events-auto absolute -left-[3.15rem] mt-12 flex origin-bottom-right ${!showEdgePanel && 'invisible hidden'}`}
+                title='View and edit this edges properties'
+                className={`nopan pointer-events-auto absolute -mt-7 items-end`}
               >
                 <button
-                  style={{
-                    transform: `translate(${labelX}px,${labelY}px)`,
+                  onClick={() => {
+                    console.log('TODO: setShowVertexPropsPanel(true)')
+                    setShowEdgePanel(false)
                   }}
-                  onClick={() => console.log('TODO')}
-                  class='bg-slate-925/60 hover:outline-mirage-500/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-l-xs bg-gradient-to-br from-black/10 to-black/15 pl-1 text-[0.45rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/85 focus:placeholder:text-slate-800'
+                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-sm bg-gradient-to-br from-black/10 to-black/15 p-1 text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
                 >
-                  Properties
-                  <Icon
-                    icon='braces'
-                    className='mx-0.5 h-3.5 w-3.5 p-0.5 text-inherit'
-                  />
-                </button>
-                <button
-                  title={`Delete ${label} relationship`}
-                  style={{
-                    transform: `translate(${labelX}px,${labelY}px)`,
-                  }}
-                  onClick={() => removeEdge(id)}
-                  class='hover:text-danger-500 bg-slate-925/60 hover:outline-mirage-500/70 outline-mirage-950/70 focus:outline-mirage-500 focus:text-danger-600 x pointer-events-auto flex field-sizing-content max-w-30 cursor-grab items-center justify-center rounded-r-xs bg-gradient-to-br from-black/10 to-black/15 pl-1 text-[0.45rem] leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-sm transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:placeholder:text-slate-800'
-                >
-                  Delete
-                  <Icon
-                    icon='trash'
-                    className='mx-0.5 h-3.5 w-3.5 p-0.5 text-inherit'
-                  />
+                  <Icon icon='pencil' className='h-4 w-4 p-px text-inherit' />
                 </button>
               </div>
-            </div>
+            )}
           </div>
-        </EdgeLabelRenderer>
-      </BaseEdge>
+        </div>
+      </EdgeLabelRenderer>
     </>
   )
 }

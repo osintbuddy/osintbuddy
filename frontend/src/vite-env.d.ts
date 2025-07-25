@@ -108,20 +108,7 @@ type NodeTypes =
   | 'copy-code'
   | 'empty';
 
-interface NodeInput {
-  type: NodeTypes;
-  label: string;
-  style: React.CSSProperties;
-  placeholder: string;
-  options?: DropdownOption[];
-  value?: string;
-  icon?: any;
-  title?: string;
-  subtitle?: string;
-  text?: string;
-  dispatch: () => void;
-  sendJsonMessage: () => void;
-}
+
 
 interface DropdownOption {
   label: string;

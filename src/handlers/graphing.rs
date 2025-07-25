@@ -268,13 +268,8 @@ pub async fn read_graph(
                 "label": label,
                 "markerEnd": {
                     "type": "arrowclosed",
-                    "color": "var(--color-mirage-50)",
-                    "width": 20,
-                    "height": 20,
-                },
-                "style": {
-                    "strokeWidth": 2,
-                    "stroke": "#394778"
+                    "width": 18,
+                    "height": 18,
                 },
             })
         })
@@ -797,13 +792,8 @@ pub async fn graphing_websocket_handler(
                                                         "label": edge_label,
                                                         "markerEnd": {
                                                             "type": "arrowclosed",
-                                                            "color": "var(--color-mirage-50)",
-                                                            "width": 20,
-                                                            "height": 20,
-                                                        },
-                                                        "style": {
-                                                            "strokeWidth": 2,
-                                                            "stroke": "#394778"
+                                                            "width": 18,
+                                                            "height": 18,
                                                         },
                                                     });
 

@@ -1,22 +1,23 @@
 import { HTMLAttributes } from 'preact/compat'
 import Sprite from '../assets/images/tabler-sprite.svg'
 
-interface TablerIconProps extends HTMLAttributes<SVGSVGElement> {
+interface IconProps extends HTMLAttributes<SVGSVGElement> {
+  className?: string
+}
+
+// TODO: Swap out tabler-icons for osib-icons
+// (osib-icons aka an osintbuddy tabler-icons fork with more additions)
+interface OsibProps extends IconProps {
   icon: string
   className?: string
 }
 
-interface IconProps {
-  className?: string
-}
-
-export function Icon(props: TablerIconProps) {
-  const { icon, className, ...svgProps } = props
+export function Icon({ icon, className, ...props }: OsibProps) {
   return (
     <>
       <svg
-        {...svgProps}
-        className={` ${className ?? 'h-5 w-5 text-inherit'}`}
+        {...props}
+        className={`${className ?? 'h-5 w-5 text-inherit'}`}
         fill='none'
         stroke='currentColor'
       >
@@ -25,12 +26,12 @@ export function Icon(props: TablerIconProps) {
     </>
   )
 }
-
+// TODO: Swap out for horizontal grip on tabler-icons
 export function GripIcon({ className }: IconProps) {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
-      className={className}
+      className={`${className ?? 'h-5 w-5 text-inherit'}`}
       width='24'
       height='24'
       strokeWidth='2'

@@ -11,23 +11,11 @@ import {
 import { Fragment, memo } from 'preact/compat'
 import { GripIcon, Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
-import { Handle, Position } from '@xyflow/react'
+import { Handle, Position, useReactFlow } from '@xyflow/react'
 import { FixedSizeList as List } from 'react-window'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
-// Use useRef instead of global variables to avoid memory leaks
-let dropdownKeyRef = { current: 0 }
-let nodeKeyRef = { current: 0 }
-
-const getDropdownKey = () => {
-  dropdownKeyRef.current += 1
-  return `k_${dropdownKeyRef.current}`
-}
-
-const getNodeKey = () => {
-  nodeKeyRef.current += 1
-  return `k_${nodeKeyRef.current}`
-}
+import { useGraphFlowStore } from '@/app/store'
 
 const handleStyle = {
   borderColor: '#1C233B',
@@ -37,96 +25,112 @@ const handleStyle = {
   height: 10,
 }
 
+interface NodeInput {
+  type: NodeTypes
+  label: string
+  style: React.CSSProperties
+  placeholder: string
+  options?: DropdownOption[]
+  value?: string
+  icon?: any
+  title?: string
+  subtitle?: string
+  text?: string
+  dispatch: () => void
+  sendJsonMessage: () => void
+}
+
 type NodeElement = NodeInput & {
   nodeId: string
-  editState: EditState
+}
+
+function getNodeElement(
+  id: string,
+  sendJsonMessage: (message: any) => void,
+  element: NodeInput,
+  key: string
+) {
+  switch (element.type) {
+    case 'dropdown':
+      return (
+        <DropdownInput
+          key={key}
+          nodeId={id}
+          options={element.options || []}
+          label={element.label}
+          value={element.value as string}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+
+    case 'text':
+      return (
+        <TextInput
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          value={element.value}
+          icon={element?.icon || 'ballpen'}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+
+    case 'upload':
+      return (
+        <UploadFileInput
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          initialValue={element?.value || ''}
+          icon={element?.icon || 'file-upload'}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'title':
+      return (
+        <Title
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          value={element?.value || ''}
+        />
+      )
+
+    case 'section':
+      return (
+        <Text
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          value={element?.value || ''}
+        />
+      )
+    case 'textarea':
+      return (
+        <TextArea
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          value={element?.value || ''}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'copy-text':
+      return (
+        <CopyText
+          key={key}
+          nodeId={id}
+          label={element?.label}
+          value={element?.value || ''}
+        />
+      )
+    case 'empty':
+      return <input className='pointer-events-none h-0 bg-transparent' />
+  }
 }
 
 function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
   const node = ctx.data
-
-  const getNodeElement = useCallback(
-    (element: NodeInput, key: string | null = getNodeKey()) => {
-      switch (element.type) {
-        case 'dropdown':
-          return (
-            <DropdownInput
-              key={key}
-              nodeId={ctx.id}
-              options={element.options || []}
-              label={element.label}
-              value={element.value as string}
-              sendJsonMessage={sendJsonMessage}
-            />
-          )
-
-        case 'text':
-          return (
-            <TextInput
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              value={element.value}
-              icon={element?.icon || 'ballpen'}
-              sendJsonMessage={sendJsonMessage}
-            />
-          )
-
-        case 'upload':
-          return (
-            <UploadFileInput
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              initialValue={element?.value || ''}
-              icon={element?.icon || 'file-upload'}
-              sendJsonMessage={sendJsonMessage}
-            />
-          )
-        case 'title':
-          return (
-            <Title
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              value={element?.value || ''}
-            />
-          )
-
-        case 'section':
-          return (
-            <Text
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              value={element?.value || ''}
-            />
-          )
-        case 'textarea':
-          return (
-            <TextArea
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              value={element?.value || ''}
-              sendJsonMessage={sendJsonMessage}
-            />
-          )
-        case 'copy-text':
-          return (
-            <CopyText
-              key={key}
-              nodeId={ctx.id}
-              label={element?.label}
-              value={element?.value || ''}
-            />
-          )
-        case 'empty':
-          return <input className='pointer-events-none h-0 bg-transparent' />
-      }
-    },
-    [ctx.id, sendJsonMessage]
-  )
 
   const columnsCount = useMemo(
     () =>
@@ -187,13 +191,20 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
                 >
                   {element.map((elm, i: number) => (
                     <Fragment key={i.toString()}>
-                      {getNodeElement(elm, `${elm.label}-${elm.id}-${ctx.id}`)}
+                      {getNodeElement(
+                        ctx.id,
+                        sendJsonMessage,
+                        elm,
+                        `${elm.label}-${elm.id}-${ctx.id}`
+                      )}
                     </Fragment>
                   ))}
                 </div>
               )
             }
             return getNodeElement(
+              ctx.id,
+              sendJsonMessage,
               element,
               `${element.label}-${element.id}-${ctx.id}`
             )
@@ -419,149 +430,407 @@ interface DropdownOption {
   tooltip: string
   value: string
 }
+// TODO: move me to utils
+const createFuzzySearch = function (key, ratio = 0.5) {
+  // OLD FUZZY, TODO: abstract me into a search class for multiple search settings...
+  // Returns a method that you can use to create your own reusable fuzzy search.
+  // return function (query) {
+  //   var words = query.toLowerCase().split(' ')
+
+  //   return items.filter(function (item) {
+  //     var normalizedTerm = item[key].toLowerCase()
+
+  //     return words.every(function (word) {
+  //       return normalizedTerm.indexOf(word) > -1
+  //     })
+  //   })
+  // }
+  // ---
+  return function (query, item) {
+    // Ensure the item has the key and it's a string
+    if (!item || typeof item[key] !== 'string') {
+      return false // Or handle non-string/missing keys as needed
+    }
+
+    const queryLower = query.toLowerCase().trim()
+    const itemValueLower = item[key].toLowerCase()
+
+    // Exact match or partial match shortcut
+    if (itemValueLower.includes(queryLower)) {
+      return true
+    }
+
+    // Handle empty query
+    if (queryLower === '') {
+      return true // Or decide if empty query matches everything/ nothing
+    }
+
+    // Fuzzy matching logic based on character occurrences
+    let matches = 0
+    const queryChars = queryLower.split('')
+
+    for (let i = 0; i < queryChars.length; i++) {
+      const char = queryChars[i]
+      // Check if the character from the query exists in the item value
+      if (itemValueLower.includes(char)) {
+        matches += 1
+      } else {
+        // Optional: Penalize for missing characters
+        // matches -= 1;
+        // The original logic decremented, but this can lead to negative scores
+        // which might not align well with the ratio check.
+        // Sticking closer to the original, but consider if penalty is needed.
+      }
+    }
+
+    // Calculate the match ratio based on query length
+    // Handle potential division by zero if query somehow became empty after trim
+    const matchRatio = queryLower.length > 0 ? matches / queryLower.length : 0
+
+    // Return true if the calculated ratio meets or exceeds the required ratio
+    return matchRatio >= ratio
+  }
+  // return function (query) {
+  //   var string = query.toLowerCase().split(' ')
+  //   var compare = term[key].toLowerCase()
+  //   var matches = 0
+  //   if (string.indexOf(compare) > -1) return true // covers basic partial matches
+  //   for (var i = 0; i < compare.length; i++) {
+  //     string.indexOf(compare[i]) > -1 ? (matches += 1) : (matches -= 1)
+  //   }
+  //   return matches / query.length >= ratio || term[key] == ''
+  //   //
+
+  //   var words = query.toLowerCase().split(' ')
+
+  //   return items.filter(function (item) {
+  //     var normalizedTerm = item[key].toLowerCase()
+
+  //     return words.every(function (word) {
+  //       return normalizedTerm.indexOf(word) > -1
+  //     })
+  //   })
+  // }
+}
 
 export function DropdownInput({
   options,
   label,
   nodeId,
   sendJsonMessage,
-  value: activeValue,
+  value,
 }: NodeElement) {
   const [query, setQuery] = useState('')
-  const dropdownRef = useRef(200)
+  const [displayValue, setDisplayValue] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const comboboxRef = useRef<HTMLDivElement>(null)
+  const isScrollingOrMouseDownOnListRef = useRef(null)
+  // TODO: Fix this broken fuzzy search
   const filteredOptions = useMemo(
     () =>
-      query === ''
-        ? ([...options].sort((a, b) => a.label.localeCompare(b.label)) ?? [])
-        : ([...options]
-            ?.sort((a, b) => a.label.localeCompare(b.label))
-            .filter((option: DropdownOption) =>
-              option?.label.toLowerCase().includes(query.toLowerCase())
-            ) ?? []),
-    [query]
+      query === '' || !isOpen
+        ? options
+        : options.filter((option: DropdownOption) => {
+            const fuzzySearch = createFuzzySearch(
+              option?.label && option?.label.length !== 0 ? 'label' : 'value',
+              0.6
+            )
+            // option?.label.toLowerCase().includes(query.toLowerCase())
+            return fuzzySearch(query)
+          }),
+    [query, options, isOpen]
   )
+
   const activeOption = options.find(
-    (option) => option.value === activeValue || option.label === activeValue
+    (option) => option.value === value || option.label === value
   ) ?? {
     label: '',
     value: '',
     tooltip: '',
   }
 
-  const DropdownCell = useCallback(
-    ({ index, key, isScrolling, isVisible, style }) => {
-      return (
-        <div
-          key={key}
-          style={style}
-          className={`overflow-y-none nowheel nodrag flex cursor-default flex-col justify-center px-2 select-none ${activeOption.label === filteredOptions[index].label || activeOption.value === filteredOptions[index].value ? 'bg-black/65 text-slate-400' : 'text-slate-500'}`}
-        >
-          <span
-            className='block truncate text-xs'
-            title={
-              options[index].tooltip !== filteredOptions[index].label
-                ? filteredOptions[index].tooltip
-                : 'No description found'
-            }
-          >
-            {filteredOptions[index].label}
-          </span>
-          {filteredOptions[index]?.value && (
-            <span
-              className='flex truncate text-[0.5rem] leading-3'
-              title={
-                filteredOptions[index].tooltip !== filteredOptions[index].label
-                  ? filteredOptions[index].tooltip
-                  : 'No description found'
-              }
-            >
-              {filteredOptions[index].value}
-            </span>
-          )}
-          {/* </Combobox.Option > */}
-        </div>
-      )
+  const { updateNodeData, getNode } = useReactFlow()
+  const { elements } = getNode(nodeId)?.data
+
+  const selectOption = useCallback(
+    (event, option: DropdownOption) => {
+      const optionValue =
+        option?.value && option.value.length > 0 ? option.value : option.label
+      setIsOpen(false)
+      setActiveIndex(-1)
+      setQuery('')
+      setDisplayValue(option.label)
+
+      const newElements = elements.map((elm) => {
+        if (Array.isArray(elm)) {
+          return elm.map((e) => {
+            if (e.label === label) e.value = optionValue
+            return e
+          })
+        } else {
+          if (elm.label === label) elm.value = optionValue
+          return elm
+        }
+      })
+
+      updateNodeData(nodeId, {
+        elements: newElements,
+      })
+      sendJsonMessage({
+        action: 'update:entity',
+        entity: {
+          id: Number(nodeId),
+          [label]: optionValue,
+        },
+      })
     },
-    []
+    [elements, label, nodeId, updateNodeData, sendJsonMessage]
   )
 
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!isOpen) {
+        if (
+          event.key === 'ArrowDown' ||
+          event.key === 'Enter' ||
+          event.key === ' '
+        ) {
+          setIsOpen(true)
+          setActiveIndex(0)
+          event.preventDefault()
+        }
+        return
+      }
+
+      switch (event.key) {
+        case 'ArrowDown':
+          setActiveIndex((prev) =>
+            prev < filteredOptions.length - 1 ? prev + 1 : 0
+          )
+          break
+        case 'ArrowUp':
+          setActiveIndex((prev) =>
+            prev > 0 ? prev - 1 : filteredOptions.length - 1
+          )
+          event.preventDefault()
+          break
+        case 'Enter':
+          if (activeIndex >= 0 && filteredOptions[activeIndex]) {
+            selectOption(event, filteredOptions[activeIndex])
+          }
+          break
+        case 'Escape':
+          setIsOpen(false)
+          setActiveIndex(-1)
+          inputRef.current?.blur()
+          event.preventDefault()
+          break
+        case 'Tab':
+          setActiveIndex((prev) => {
+            if (prev === filteredOptions.length - 1) {
+              setIsOpen(false)
+              return -1
+            }
+            return prev < filteredOptions.length - 1 ? prev + 1 : 0
+          })
+          event.preventDefault()
+          break
+      }
+    },
+    [isOpen, activeIndex, filteredOptions, selectOption]
+  )
+
+  const handleInputChange = useCallback((event: Event) => {
+    setQuery(event.currentTarget.value)
+    setActiveIndex(-1)
+  }, [])
+
+  const handleInputFocus = useCallback(
+    (clearQuery = true) => {
+      setIsOpen(true)
+      if (clearQuery) setQuery('')
+      // Find the current active option index when opening
+      const currentIndex = options.findIndex(
+        (opt) => opt.value === value || opt.label === value
+      )
+      setActiveIndex(currentIndex >= 0 ? currentIndex : 0)
+    },
+    [options, value]
+  )
+
+  const handleInputBlur = useCallback((event: FocusEvent) => {
+    const relatedTarget = event.relatedTarget as Node | null // Ensure correct typing
+    console.log(
+      'related inputBlur',
+      isScrollingOrMouseDownOnListRef.current || relatedTarget === null
+    )
+    if (isScrollingOrMouseDownOnListRef.current || relatedTarget === null) {
+      // Reset the flag
+      isScrollingOrMouseDownOnListRef.current = false
+
+      // Optional: Add a very slight delay and re-focus the input if it's still supposed to be open
+      // This handles cases where focus might be fleeting
+      // However, often just preventing the close is enough.
+      // If needed, you could add:
+      setTimeout(() => {
+        if (isOpen && inputRef.current) {
+          // Don't force focus back, just prevent closing for now
+          console.log('timeout', inputRef.current)
+          setIsOpen(false)
+          // inputRef.current.blur()
+        }
+      }, 0)
+
+      // Crucially, prevent the dropdown from closing in this scenario
+      return
+    }
+    console.log('blur', comboboxRef.current?.contains(relatedTarget))
+    // Original blur logic: Check if focus moved outside the combobox container
+    if (!comboboxRef.current?.contains(relatedTarget)) {
+      return // Focus moved within the combobox, don't close
+    }
+    setActiveIndex(-1)
+    setQuery('')
+  }, [])
+
+  const handleToggle = useCallback(() => {
+    if (isOpen) {
+      setIsOpen(false)
+      setActiveIndex(-1)
+      setQuery('')
+      inputRef.current?.blur()
+    } else {
+      setIsOpen(true)
+      setQuery('')
+      const currentIndex = options.findIndex(
+        (opt) => opt.value === value || opt.label === value
+      )
+      setActiveIndex(currentIndex >= 0 ? currentIndex : 0)
+      inputRef.current?.focus()
+    }
+  }, [isOpen, options, value, setIsOpen])
+
   useEffect(() => {
-    /**
-     * Alert if clicked on outside of element
-     */
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowOptions(false)
+    if (activeOption?.label) {
+      setDisplayValue(activeOption.label)
+    }
+  }, [activeOption])
+  useEffect(() => {
+    if (isOpen && activeIndex >= 0 && listRef.current) {
+      // Use requestAnimationFrame or setTimeout to defer scrolling until after render
+      // Ensure listRef.current is still valid
+      if (
+        !listRef.current ||
+        !listRef.current.children ||
+        listRef.current.children.length === 0
+      ) {
+        return
+      }
+      const activeElement = listRef.current.children[activeIndex] as
+        | HTMLElement
+        | undefined
+
+      if (activeElement) {
+        // minimal snappy scrolling to keep active keyboard selection visible
+        activeElement.scrollIntoView({
+          behavior: 'instant',
+          block: 'nearest',
+          inline: 'nearest',
+        })
       }
     }
-    // Bind the event listener
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      // Unbind the event listener on clean up
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [dropdownRef])
-  const [showOptions, setShowOptions] = useState(false)
+  }, [isOpen, activeIndex])
+
   return (
-    <>
-      <div
-        className='dropdown-input w-full'
-        as='div'
-        value={activeOption}
-        onChange={(option) => {
-          sendJsonMessage({
-            action: 'update:entity',
-            entity: {
-              id: Number(nodeId),
-              [label]: option?.value ? option.value : option.label,
-            },
-          })
-        }}
-      >
-        <label>
-          <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
-            {label}
-          </p>
-        </label>
-        <div ref={dropdownRef} className='node-field dropdown relative !px-0'>
-          <input
-            onChange={(event) => setQuery(event.target.value)}
-            displayValue={(option: DropdownOption) => option.label}
-            className='nodrag focus:ring-info-400 mr-4 w-full px-2 outline-hidden'
+    <div ref={comboboxRef} className='dropdown-input w-full'>
+      <label>
+        <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
+          {label}
+        </p>
+      </label>
+      <div className='node-field dropdown relative !px-0'>
+        <input
+          ref={inputRef}
+          role='combobox'
+          aria-expanded={isOpen}
+          aria-haspopup='listbox'
+          aria-autocomplete='list'
+          aria-controls={`${nodeId}-${label}-listbox`}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          value={isOpen ? query : displayValue}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          className='nodrag mr-4 w-full px-2 outline-hidden'
+        />
+        <button
+          type='button'
+          tabIndex={1}
+          onClick={handleToggle}
+          className='group text-primary absolute inset-y-0 right-0 z-[99] h-5 w-5 focus:outline-hidden'
+          aria-label={isOpen ? 'Close options' : 'Open options'}
+        >
+          <Icon
+            icon={isOpen ? 'x' : 'chevron-down'}
+            className='h-5 w-5 text-inherit'
           />
-          <button
-            onClick={() => setShowOptions(!showOptions)}
-            className='group absolute inset-y-0 right-0 z-[99] h-8 w-5 focus:outline-hidden'
+        </button>
+        {isOpen && (
+          <div
+            ref={listRef}
+            role='listbox'
+            id={`${nodeId}-${label}-listbox`}
+            className='nodrag nowheel absolute z-[999] mt-1 mr-1 max-h-52 w-full overflow-y-auto rounded-b-md bg-gradient-to-br from-black/30 from-30% to-black/35 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
           >
-            <Icon
-              icon={showOptions ? 'x' : 'chevron-down'}
-              className={`${showOptions && '!text-slate-500'} h-5 w-5 text-slate-600 group-hover:!text-slate-400`}
-              aria-hidden='true'
-            />
-          </button>
-          {showOptions && (
-            <div className='nodrag nowheel absolute z-[999] mr-1 max-h-80 w-full overflow-hidden rounded-b-md bg-gradient-to-br from-black/65 from-30% to-black/55 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'>
-              <List
-                itemSize={34}
-                itemCount={filteredOptions?.length ?? 0}
-                rowCount={filteredOptions?.length ?? 0}
-                width={dropdownRef?.current?.clientWidth}
-                height={
-                  filteredOptions?.length <= 3
-                    ? filteredOptions?.length * 54
-                    : 260
-                }
-                rowHeight={({ index }) =>
-                  filteredOptions[index]?.value ? 54 : 40
-                }
-              >
-                {DropdownCell}
-              </List>
-            </div>
-          )}
-        </div>
+            {filteredOptions.length === 0 ? (
+              <div className='px-2 py-2 text-xs text-slate-500'>
+                No options found
+              </div>
+            ) : (
+              filteredOptions.map((option, index) => (
+                <button
+                  key={`${option.label}-${index}`}
+                  role='option'
+                  onClick={(event) => selectOption(event, option)}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  className={`overflow-y-none nowheel nodrag relative flex w-full cursor-pointer flex-col items-start justify-items-start border-l-2 bg-black/15 px-2 py-1 hover:bg-black/30 ${
+                    activeOption.label === option.label &&
+                    activeOption.value === option.value // if option is currently selected
+                      ? 'border-primary bg-black/50 text-slate-500 hover:bg-black/65 hover:text-slate-500'
+                      : index === activeIndex // else if current potential option being hovered
+                        ? 'border-primary-300 text-slate-350 border-l-2 bg-black/75'
+                        : 'border-transparent text-slate-600'
+                  }`}
+                >
+                  <span
+                    className='font-display block truncate text-[0.6rem] font-medium'
+                    title={
+                      option.tooltip !== option.label ? option.tooltip : ''
+                    }
+                  >
+                    {option.label}
+                  </span>
+                  {option?.value && (
+                    <span
+                      className={`flex truncate text-[0.5rem] leading-3 ${index === activeIndex && 'text-slate-400'}`}
+                    >
+                      {option.value}
+                    </span>
+                  )}
+                  {activeOption.label === option.label &&
+                    activeOption.value === option.value && (
+                      <div class='bg-primary absolute top-2 right-3 h-1.5 w-1.5 rounded-full' />
+                    )}
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }
 

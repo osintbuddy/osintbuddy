@@ -1,0 +1,260 @@
+import { RefObject } from 'preact'
+import { useEffect, useRef } from 'preact/hooks'
+
+type Point = { x: number; y: number }
+
+const EDGE_DIVIDER = 100
+const FLOATING_POINT_LIMIT = 2
+
+const useDraggableEdgeLabel = (
+  labelX: number,
+  labelY: number,
+  labelPosition?: number
+): [RefObject<SVGPathElement>, RefObject<HTMLDivElement>] => {
+  const edgePathRef = useRef<SVGPathElement>(null)
+  const draggableEdgeLabelRef = useRef<HTMLDivElement>(null)
+  const pathPoints = useRef<Point[]>([])
+  const currentPointIndex = useRef(Math.floor(EDGE_DIVIDER / 2))
+  const dragState = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialIndex: 0,
+  })
+
+  // Generate points along the SVG path
+  const generatePathPoints = (): Point[] => {
+    if (!edgePathRef.current) return []
+
+    const path = edgePathRef.current
+    const pathLength = path.getTotalLength()
+    const points: Point[] = []
+
+    for (let i = 0; i <= EDGE_DIVIDER; i++) {
+      const distance = (pathLength / EDGE_DIVIDER) * i
+      const point = path.getPointAtLength(distance)
+      points.push({
+        x: parseFloat(point.x.toFixed(FLOATING_POINT_LIMIT)),
+        y: parseFloat(point.y.toFixed(FLOATING_POINT_LIMIT)),
+      })
+    }
+
+    return points
+  }
+
+  // Calculate position along path as offset from center
+  const getPathPositionOffset = (pathIndex: number): Point => {
+    if (!edgePathRef.current || pathPoints.current.length === 0) {
+      return { x: 0, y: 0 }
+    }
+
+    // Get the center point (where labelX, labelY should be)
+    const centerIndex = Math.floor(EDGE_DIVIDER / 2)
+    const centerPoint = pathPoints.current[centerIndex]
+    const targetPoint = pathPoints.current[pathIndex]
+
+    if (!centerPoint || !targetPoint) {
+      return { x: 0, y: 0 }
+    }
+
+    // Calculate offset from center in SVG coordinates
+    return {
+      x: targetPoint.x - centerPoint.x,
+      y: targetPoint.y - centerPoint.y,
+    }
+  }
+
+  // Calculate path direction vector at current position
+  const getPathDirection = (index: number): Point => {
+    if (
+      pathPoints.current.length === 0 ||
+      index < 0 ||
+      index >= pathPoints.current.length
+    ) {
+      return { x: 1, y: 0 } // Default horizontal direction
+    }
+
+    // Get direction from previous to next point (or use adjacent points)
+    const prevIndex = Math.max(0, index - 1)
+    const nextIndex = Math.min(pathPoints.current.length - 1, index + 1)
+
+    const prevPoint = pathPoints.current[prevIndex]
+    const nextPoint = pathPoints.current[nextIndex]
+
+    if (!prevPoint || !nextPoint) return { x: 1, y: 0 }
+
+    // Calculate direction vector
+    const dirX = nextPoint.x - prevPoint.x
+    const dirY = nextPoint.y - prevPoint.y
+
+    // Normalize the vector
+    const length = Math.sqrt(dirX * dirX + dirY * dirY)
+    return length > 0 ? { x: dirX / length, y: dirY / length } : { x: 1, y: 0 }
+  }
+
+  // Calculate path index based on movement along path direction
+  const calculatePathIndexFromMovement = (
+    mouseX: number,
+    mouseY: number
+  ): number => {
+    if (pathPoints.current.length === 0) {
+      return currentPointIndex.current
+    }
+
+    // Calculate movement delta from drag start
+    const deltaX = mouseX - dragState.current.startX
+    const deltaY = mouseY - dragState.current.startY
+
+    // Get the path direction at current position
+    const pathDir = getPathDirection(currentPointIndex.current)
+
+    // Project the mouse movement onto the path direction
+    const projectedMovement = deltaX * pathDir.x + deltaY * pathDir.y
+
+    // Map projected movement to path progression
+    const sensitivity = 0.16 // Adjust as needed for responsiveness
+    const indexDelta = Math.round(projectedMovement * sensitivity)
+
+    // Calculate new index from initial position
+    const newIndex = dragState.current.initialIndex + indexDelta
+
+    // Clamp to valid range
+    return Math.max(0, Math.min(pathPoints.current.length - 1, newIndex))
+  }
+
+  const setLabelPosition = (pathIndex?: number) => {
+    if (!draggableEdgeLabelRef.current) return
+
+    const index =
+      pathIndex !== undefined ? pathIndex : currentPointIndex.current
+    const offset = getPathPositionOffset(index)
+
+    // Position relative to React Flow's calculated center point
+    const x = labelX + offset.x
+    const y = labelY + offset.y
+
+    draggableEdgeLabelRef.current.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`
+  }
+
+  // Handle mouse events for dragging
+  const handleMouseDown = (e: MouseEvent) => {
+    if (!draggableEdgeLabelRef.current || !e.shiftKey) {
+      dragState.current.isDragging = false
+      return
+    }
+
+    dragState.current.isDragging = true
+    dragState.current.startX = e.clientX
+    dragState.current.startY = e.clientY
+    dragState.current.initialIndex = currentPointIndex.current
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!dragState.current.isDragging || !draggableEdgeLabelRef.current) return
+
+    // Calculate path index based on cursor movement
+    const index = calculatePathIndexFromMovement(e.clientX, e.clientY)
+
+    // Update current position and snap to path
+    currentPointIndex.current = index
+    setLabelPosition(index)
+  }
+
+  const handleMouseUp = () => {
+    if (!dragState.current.isDragging) return
+
+    dragState.current.isDragging = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+
+  // Handle touch events for mobile
+  const handleTouchStart = (e: TouchEvent) => {
+    if (!draggableEdgeLabelRef.current || !e.touches[0] || !e.shiftKey) return
+
+    dragState.current.isDragging = true
+    dragState.current.startX = e.touches[0].clientX
+    dragState.current.startY = e.touches[0].clientY
+    dragState.current.initialIndex = currentPointIndex.current
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false })
+    document.addEventListener('touchend', handleTouchEnd)
+  }
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (
+      !dragState.current.isDragging ||
+      !e.touches[0] ||
+      !draggableEdgeLabelRef.current
+    )
+      return
+
+    e.preventDefault()
+
+    // Calculate path index based on touch movement
+    const index = calculatePathIndexFromMovement(
+      e.touches[0].clientX,
+      e.touches[0].clientY
+    )
+
+    // Update current position and snap to path
+    currentPointIndex.current = index
+    setLabelPosition(index)
+  }
+
+  const handleTouchEnd = () => {
+    if (!dragState.current.isDragging) return
+
+    dragState.current.isDragging = false
+    document.removeEventListener('touchmove', handleTouchMove)
+    document.removeEventListener('touchend', handleTouchEnd)
+  }
+
+  useEffect(() => {
+    // Generate path points when path is available
+    if (edgePathRef.current) {
+      pathPoints.current = generatePathPoints()
+    }
+
+    // Initial positioning
+    setLabelPosition()
+
+    // Add event listeners
+    if (draggableEdgeLabelRef.current) {
+      draggableEdgeLabelRef.current.addEventListener(
+        'mousedown',
+        handleMouseDown
+      )
+      draggableEdgeLabelRef.current.addEventListener(
+        'touchstart',
+        handleTouchStart,
+        { passive: false }
+      )
+    }
+
+    // Cleanup
+    return () => {
+      if (draggableEdgeLabelRef.current) {
+        draggableEdgeLabelRef.current.removeEventListener(
+          'mousedown',
+          handleMouseDown
+        )
+        draggableEdgeLabelRef.current.removeEventListener(
+          'touchstart',
+          handleTouchStart
+        )
+      }
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [labelX, labelY, edgePathRef.current])
+
+  return [edgePathRef, draggableEdgeLabelRef]
+}
+
+export default useDraggableEdgeLabel

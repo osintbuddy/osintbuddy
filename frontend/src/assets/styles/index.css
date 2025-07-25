@@ -14,6 +14,7 @@
   --font-sans: "Lato";
   --font-display: "Onest";
   --font-code: "Fira Code", "monospace";
+  --color-x: #25295f;
 
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
@@ -177,14 +178,6 @@ body {
   z-index: -99;
 }
 
-button {
-  cursor: pointer;
-}
-
-:disabled {
-  cursor: default;
-}
-
 .btn-icon {
   @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
 }
@@ -331,14 +324,35 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
   margin: 0;
+  color: #8d0a6199;
 }
 /* end hide number inputs */
 
 /* start react flow style overrides */
+:root {
+	--xy-edge-stroke-default: #b1b1b7;
+	--xy-edge-stroke-width-default: 2;
+	--xy-edge-stroke-selected-default: #555;
+	--xy-connectionline-stroke-default: #b1b1b7;
+	--xy-connectionline-stroke-width-default: 1.5;
+	--xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.08);
+	--xy-node-boxshadow-selected-default: 0 0 0 0.5px #1a192b;
+	--xy-node-border-radius-default: 3px;
 
-.react-flow__edge-path {
-  stroke: var(--color-mirage-50) ;
+	--xy-handle-background-color-default: #1a192b;
+	--xy-handle-border-color-default: #fff;
+
+	--xy-selection-background-color-default: rgba(0, 89, 220, 0.08);
+	--xy-selection-border-default: 1px dotted rgba(0, 89, 220, 0.8);
+
+  --xy-background-color-props: #0d101a91;
+}
+.react-flow__edge .react-flow__edge-path {
+  stroke: #373c83 !important;
   stroke-width: 2;
+}
+.react-flow__handle.connectingto {
+  cursor: cell
 }
 .react-flow__handle.react-flow__handle-left {
   left: -8px;
@@ -361,11 +375,10 @@ input[type='number'] {
 .react-flow__handle.connectionindicator {
   border-width: 1.75px;
   border-color: #282e8399;
-  background-color: #0c0c32;
+  background-color: #0c0c3238;
   transition: background-color ease-in 75ms, border-color ease-in 75ms;
  }
 .react-flow__handle.connectionindicator:hover {
-  pointer-events: all;
   border-color: var(--color-primary-500);
   background-color: #1524ea;
 }
@@ -374,11 +387,12 @@ input[type='number'] {
 .react-flow__handle.connectingto {
   border-color:  var(--color-primary-400);
   background-color: var(--color-primary-400);
+  cursor: cell;
 }
  
 .react-flow__edge.selectable:hover .react-flow__edge-path,
 .react-flow__edge.selectable.selected .react-flow__edge-path {
-  stroke: var(--color-mirage-50);
+  stroke: #3b419eee;
 }
 
 @keyframes glowPulse {

@@ -199,11 +199,16 @@ export default function Graph({
     setClickDelta(newDelta)
   }
 
-  // edge connection logic, handles deletion when edge is dropped
-  // on canavas TODO: Fix edgeupdater target handle area, its always right side, ugh
+  // used for handling edge deletions. e.g. when a user
+  // selects and drags  an existing connectionline/edge
+  // to a blank spot on the graph the edge is removed
+  const edgeReconnectSuccessful = useRef(true)
+  const onReconnectStart = useCallback(() => {
+    edgeReconnectSuccessful.current = false
+  }, [])
   const onReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
-      // edgeReconnectSuccessful.current = true
+      edgeReconnectSuccessful.current = true
       setEdges(reconnectEdge(oldEdge, newConnection, edges))
       sendJsonMessage({
         action: 'update:edge',
@@ -213,9 +218,12 @@ export default function Graph({
     },
     [setEdges, reconnectEdge, edges, sendJsonMessage]
   )
-  // used for handling edge deletions. e.g. when a user selects
-  // and drags an existing edge to a blank spot on the graph the edge is removed
-
+  const onReconnectEnd = useCallback((_, edge) => {
+    if (!edgeReconnectSuccessful.current) {
+      removeEdge(edge.id)
+    }
+    edgeReconnectSuccessful.current = true
+  }, [])
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
 
@@ -240,7 +248,7 @@ export default function Graph({
 
   return (
     <ReactFlow
-      // defaultMarkerColor='#394778'
+      defaultMarkerColor='#3b419eee'
       ref={ref}
       onlyRenderVisibleElements={true}
       nodeDragThreshold={2}
@@ -256,7 +264,10 @@ export default function Graph({
       onEdgesChange={onEdgeChange}
       edgeTypes={edgeTypes}
       onDragOver={onDragOver}
+      isValidConnection={isValidConnection}
+      onReconnectStart={onReconnectStart}
       onReconnect={onReconnect}
+      onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
       onNodesChange={onNodesChange}
       onNodeClick={onNodeClick}
@@ -272,15 +283,14 @@ export default function Graph({
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
       connectionMode={ConnectionMode.Loose}
-      isValidConnection={isValidConnection}
       onNodeMouseEnter={onNodeMouseEnter}
       onNodeMouseLeave={onNodeMouseLeave}
       // TODO: If osintbuddy makes enough $$$ for a reactflow sub, subscribe :)
       proOptions={{ hideAttribution: true }}
     >
       <Background
-        color='#394778'
-        bgColor='#0D101A30'
+        id='BGTIME'
+        color='#5b609bee'
         variant={BackgroundVariant.Dots}
       />
 
