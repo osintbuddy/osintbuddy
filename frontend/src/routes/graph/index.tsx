@@ -134,7 +134,9 @@ export default function Graphing() {
     read: (data) => {
       console.log('REAAAADING TIME', data)
       setNodes(data.nodes || [])
+      setNodesBeforeLayout(data.nodes || [])
       setEdges(data.edges || [])
+      setEdgesBeforeLayout(data.edges || [])
       toast.dismiss('graph')
       fitView()
     },
@@ -253,14 +255,17 @@ export default function Graphing() {
 
   const handlePositionChange = useCallback(() => {
     if (positionMode === 'manual') {
-      setNodesBeforeLayout(nodes)
-      setEdgesBeforeLayout(edges)
+      setNodes(nodesBeforeLayout)
+      setEdges(edgesBeforeLayout)
     }
-  }, [positionMode, setNodesBeforeLayout, setEdgesBeforeLayout, nodes, edges])
+    fitView({ duration: 300 })
+  }, [positionMode, setNodes, setEdges])
 
   useEffect(() => {
-    handlePositionChange()
-  }, [handlePositionChange])
+    if (positionMode === 'manual') {
+      handlePositionChange()
+    }
+  }, [handlePositionChange, positionMode])
 
   return (
     <>
