@@ -5,6 +5,7 @@ import { Icon } from '@/components/icons'
 import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
 import { ReadyState } from 'react-use-websocket'
+import { toast } from 'react-toastify'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -44,7 +45,6 @@ interface OverlayMenusProps {
   positionMode: PositionMode
   graph: Graph | null
   setElkLayout: Function
-  toggleForceLayout: Function
   fitView: Function
   clearGraph: Function
   readyState: ReadyState
@@ -56,7 +56,6 @@ export default function OverlayMenus({
   positionMode,
   setElkLayout,
   graph,
-  toggleForceLayout,
   fitView,
   clearGraph,
   readyState,
@@ -103,7 +102,7 @@ export default function OverlayMenus({
   })
 
   const [appbarLayout, setAppbarLayout] = useState<Layout>({
-    i: 'toolbar',
+    i: 'appbar',
     w: 44,
     h: 4,
     x: 0,
@@ -124,7 +123,7 @@ export default function OverlayMenus({
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='pointer-events-none absolute inset-0 z-10'
+      className='pointer-events-none absolute inset-0 z-10 h-screen w-screen'
       style={{ width: '100%', height: '100%' }}
       rowHeight={4}
       resizeHandles={['se']}
@@ -141,7 +140,7 @@ export default function OverlayMenus({
       }}
       onLayoutChange={(layout, layouts) => {
         setAppbarLayout({
-          ...(layouts.lg.find((layout) => layout.i === 'toolbar') as Layout),
+          ...(layouts.lg.find((layout) => layout.i === 'appbar') as Layout),
           isDraggable: isPositionsDraggable,
           isBounded: true,
         })
@@ -153,7 +152,7 @@ export default function OverlayMenus({
       }}
     >
       <div
-        key='toolbar'
+        key='appbar'
         className='pointer-events-auto flex w-full flex-col rounded-md border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
       >
         <div className='flex w-full items-center justify-center'>
@@ -228,7 +227,8 @@ export default function OverlayMenus({
           <button
             onClick={() => {
               setIsForceActive(false)
-              toggleForceLayout && toggleForceLayout(false)
+
+              // toggleForceLayout && toggleForceLayout(false)
               setPositionMode('manual')
             }}
             title='Set entities to your manual layout'
@@ -249,7 +249,9 @@ export default function OverlayMenus({
             title='Toggle entities to a force layout'
             onClick={() => {
               setPositionMode('force')
-              toggleForceLayout && toggleForceLayout(!isForceActive)
+              toast.warn(
+                'Force layout mode is currently disabled until we find a more performant solution. Sorry!'
+              )
               setIsForceActive(!isForceActive)
             }}
             type='button'
@@ -271,7 +273,7 @@ export default function OverlayMenus({
           <button
             title='Set entities to an elk right tree layout'
             onClick={() => {
-              toggleForceLayout && toggleForceLayout(false)
+              // toggleForceLayout && toggleForceLayout(false)
               // setElkLayout({ 'elk.algorithm': 'org.eclipse.elk.radial', })
               // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'DOWN' })
               // setElkLayout({ 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT' })
@@ -298,7 +300,7 @@ export default function OverlayMenus({
             title='Set entities to an elk down tree layout'
             onClick={() => {
               setIsForceActive(false)
-              toggleForceLayout && toggleForceLayout(false)
+              // toggleForceLayout && toggleForceLayout(false)
               setPositionMode('elk')
               setElkLayout({
                 'elk.algorithm': 'layered',
@@ -319,7 +321,7 @@ export default function OverlayMenus({
           </button>
         </div>
       </div>
-
+      {/* TODO: clear entity searchfield input value onBlur */}
       <div
         className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='entities'

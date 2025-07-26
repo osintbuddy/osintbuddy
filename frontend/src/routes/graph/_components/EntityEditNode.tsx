@@ -153,7 +153,7 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           }}
           className='text-slate-350 flex h-full w-full cursor-grab items-center justify-between rounded-t-md px-1 py-2 active:cursor-grabbing'
         >
-          <GripIcon class='h-6 w-6' />
+          <Icon icon='grip-vertical' class='h-7 w-7' />
           <div className='flex w-full flex-col px-2 font-medium'>
             <p className='whitespace-wrap font-display text-slate-350 flex text-[0.4rem] font-black'>
               <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-extralight text-inherit'>

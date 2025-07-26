@@ -13,7 +13,7 @@ function ViewEntityNode({ ctx }: JSONObject) {
         : entity.elements[0]?.value,
     [entity.elements]
   )
-
+  console.log('onNodeMove::render')
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>

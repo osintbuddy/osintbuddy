@@ -30,9 +30,7 @@ import {
   NodeChange,
   EdgeChange,
   MarkerType,
-  EdgeTypes,
 } from '@xyflow/react'
-import { edges } from 'slate'
 
 // Auth store
 type UserRoles = 'user' | 'admin'
@@ -326,13 +324,18 @@ interface Transform {
   label: string
   icon: string
 }
+
+interface Transforms {
+  [any: string]: Transform[]
+}
+
 // Entities store
 interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
   currentEntity: Entity | null
-  transforms: Transform[]
+  transforms: Transforms
   isLoading: boolean
   isLoadingEntity: boolean
   isLoadingPlugins: boolean
@@ -358,7 +361,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   favorites: [],
   plugins: [],
   currentEntity: null,
-  transforms: [],
+  transforms: {},
   isLoading: false,
   isLoadingEntity: false,
   isLoadingPlugins: false,
@@ -384,18 +387,29 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   setPlugins: async (plugins) => set({ plugins }),
   fetchTransforms: async (label: string) => {
-    set({ isLoadingTransforms: true, error: null })
-    try {
-      const token = useAuthStore.getState().access_token as string
-      const transforms = await entitiesApi.getEntityTransforms(label, token)
-      set({ transforms, isLoadingTransforms: false })
-    } catch (error) {
-      set({ error: error.message, isLoadingTransforms: false, transforms: [] })
+    const existingTransforms = get().transforms
+    if (!existingTransforms[label]) {
+      set({ isLoadingTransforms: true, error: null })
+      try {
+        const token = useAuthStore.getState().access_token as string
+        const response = await entitiesApi.getEntityTransforms(label, token)
+        set({
+          transforms: {
+            ...existingTransforms,
+            [label]: response,
+          },
+          isLoadingTransforms: false,
+        })
+      } catch (error) {
+        set({
+          error: error.message,
+          isLoadingTransforms: false,
+        })
+      }
     }
   },
   clearTransforms: async () => {
-    const transforms: Transform[] = []
-    set({ transforms })
+    set({ transforms: {} })
   },
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
@@ -532,8 +546,8 @@ export interface GraphFlowState {
   nodes: Node[]
   edges: Edge[]
   positionMode: PositionMode
-  onNodesChange: (changes: NodeChange[]) => void
-  onEdgesChange: (changes: EdgeChange[]) => void
+  handleNodesChange: (changes: NodeChange[]) => void
+  handleEdgesChange: (changes: EdgeChange[]) => void
   onConnect: (connection: Connection) => void
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
@@ -559,13 +573,13 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   edges: initialEdges,
   positionMode: 'manual',
   setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
-  onNodesChange: (changes) => {
+  handleNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     })
   },
 
-  onEdgesChange: (changes) => {
+  handleEdgesChange: (changes) => {
     set({
       edges: applyEdgeChanges(changes, get().edges),
     })

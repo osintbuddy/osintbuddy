@@ -3,14 +3,6 @@ import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
 import { useParams, useLocation, useBlocker } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
-import {
-  forceSimulation,
-  forceLink,
-  forceManyBody,
-  forceX,
-  forceY,
-} from 'd3-force'
-import OverlayMenus from './_components/OverlayMenus'
 import { toast } from 'react-toastify'
 import Graph from './_components/Graph'
 import ELK from 'elkjs/lib/elk.bundled.js'
@@ -48,30 +40,15 @@ interface SocketActions {
   error: (data: any) => void
 }
 
-export interface CtxPosition {
-  top: number
-  left: number
-  right: number
-  bottom: number
-}
-
-export interface CtxMenu {
-  entity?: Node | null
-  position?: CtxPosition
-}
-
 export default function Graphing() {
   const { hid } = useParams()
   const location = useLocation()
+
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
     useTour()
-
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
-
-  // Track if we're intentionally navigating away
-  const isNavigatingAway = useRef(false)
 
   const {
     nodes,
@@ -81,42 +58,30 @@ export default function Graphing() {
     addNode,
     addEdge,
     clearGraph,
-    onNodesChange,
-    onEdgesChange,
     setPositionMode,
     positionMode,
   } = useGraphFlowStore()
-
+  const { clearTransforms } = useEntitiesStore()
+  // handle initial graph loading
   useEffect(() => {
-    if (location.state?.showGuide) {
-      setCurrentTourStep(0)
-      setIsTourOpen(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    clearGraph()
     toast.loading('Please wait while we load your graph...', {
       closeButton: true,
       isLoading: true,
       toastId: 'graph',
     })
     getGraph(hid as string)
-  }, [])
-
-  const isSuccess = !isLoading && !isError && graph
-
-  useEffect(() => {
+    if (location.state?.showGuide) {
+      setCurrentTourStep(0)
+      setIsTourOpen(true)
+    }
     setPositionMode('manual')
-  }, [graph?.id])
-
-  useEffect(() => {
     return () => {
       // Dismiss any connection-related toasts on navigation
       toast.dismiss('connection-lost')
       toast.dismiss('connection-error')
       toast.dismiss('reconnect-failed')
       clearGraph()
+      clearTransforms()
     }
   }, [])
 
@@ -132,20 +97,12 @@ export default function Graphing() {
       reconnectInterval: (attemptNumber) =>
         Math.min(1000 + attemptNumber * 1000, 1000),
       onOpen: () => {
-        isNavigatingAway.current = false
-        // Dismiss any existing connection warnings
         toast.dismiss('connection-lost')
         toast.dismiss('connection-error')
         sendJsonMessage({
           action: 'auth',
           token: access_token,
         })
-      },
-      onClose: (event) => {
-        // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
-        if (event.code === 1000 || event.code === 1008) {
-          clearGraph()
-        }
       },
       onReconnectStop: (numAttempts) => {
         console.error(
@@ -175,8 +132,11 @@ export default function Graphing() {
       toast.dismiss('connection-lost')
     },
     read: (data) => {
+      console.log('REAAAADING TIME', data)
       setNodes(data.nodes || [])
+      setNodesBeforeLayout(data.nodes || [])
       setEdges(data.edges || [])
+      setEdgesBeforeLayout(data.edges || [])
       toast.dismiss('graph')
       fitView()
     },
@@ -231,28 +191,8 @@ export default function Graphing() {
     },
   }
 
-  useEffect(() => {
-    let action: ActionTypes = lastJsonMessage?.action
-    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
-  }, [lastJsonMessage])
-
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
-  const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
-
-  useEffect(() => {
-    if (positionMode === 'manual') {
-      setNodesBeforeLayout(nodes)
-      setEdgesBeforeLayout(edges)
-    }
-  }, [nodes, edges, positionMode])
-
-  useEffect(() => {
-    if (positionMode === 'manual') {
-      setNodes(nodesBeforeLayout)
-      setEdges(edgesBeforeLayout)
-    }
-  }, [positionMode])
 
   // TODO: Also implement d3-hierarchy, entitree-flex, dagre, webcola, and graphology layout modes
   //       Once implemented measure performance and deprecate whatever performs worse
@@ -307,124 +247,46 @@ export default function Graphing() {
 
   const { setElkLayout } = useElkLayoutElements()
 
-  const useForceLayoutElements = () => {
-    const nodesInitialized = nodes.every(
-      (node: any) => node.measured?.width && node.measured?.height
-    )
+  useEffect(() => {
+    let action: ActionTypes = lastJsonMessage?.action
+    console.log('SOCKET MSG', action, socketActions[action])
+    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
+  }, [lastJsonMessage])
 
-    return useMemo(() => {
-      const simulation = forceSimulation()
-        .force('charge', forceManyBody().strength(-4000))
-        .force('x', forceX().x(0).strength(0.05))
-        .force('y', forceY().y(0).strength(0.05))
-        .alphaTarget(0.01)
-        .stop()
+  const handlePositionChange = useCallback(() => {
+    if (positionMode === 'manual') {
+      setNodes(nodesBeforeLayout)
+      setEdges(edgesBeforeLayout)
+    }
+    fitView({ duration: 300 })
+  }, [positionMode, setNodes, setEdges])
 
-      let forceNodes = nodes.map((node: any) => ({
-        ...node,
-        x: node.position.x,
-        y: node.position.y,
-      }))
-      let forceEdges = structuredClone(edges)
-
-      const forceSimOff = [
-        false,
-        { toggleForceLayout: (setForce?: boolean) => null } as any,
-      ]
-      // if no width or height or no nodes in the flow, can't run the simulation!
-      if (!nodesInitialized || forceNodes.length === 0) return forceSimOff
-      let running = false
-      try {
-        simulation.nodes(forceNodes).force(
-          'link',
-          forceLink(forceEdges)
-            .id((d: any) => d.id)
-            .strength(0.05)
-            .distance(42)
-        )
-
-        // The tick function is called every animation frame while the simulation is
-        // running and progresses the simulation one step forward each time.
-        const tick = () => {
-          simulation.tick()
-          setNodes(
-            forceNodes.map((node: any) => ({
-              ...node,
-              position: { x: node.x, y: node.y },
-            }))
-          )
-          window.requestAnimationFrame(() => {
-            if (running) {
-              tick()
-            }
-          })
-        }
-
-        const toggleForceLayout = (setForce?: boolean) => {
-          if (typeof setForce === 'boolean') {
-            running = setForce
-          } else {
-            running = !running
-          }
-          running && window.requestAnimationFrame(tick)
-        }
-        return [true, { toggleForceLayout, isForceRunning: running }]
-      } catch (e) {
-        console.warn(e)
-      }
-      return forceSimOff
-    }, [nodesBeforeLayout])
-  }
-
-  const [, { toggleForceLayout }] = useForceLayoutElements()
-
-  // Prevents layout bugs from occurring on navigate away and returning to a graph
-  // https://reactrouter.com/en/main/hooks/use-blocker
-  useBlocker(
-    useCallback(
-      (tx: any) => tx.historyAction && toggleForceLayout(false),
-      [toggleForceLayout]
-    )
-  )
+  useEffect(() => {
+    if (positionMode === 'manual') {
+      handlePositionChange()
+    }
+  }, [handlePositionChange, positionMode])
 
   return (
     <>
-      {/* TODO: Add loading screen fade out transition */}
-      {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
-      {isSuccess && (
-        <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
-          <Graph
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            graphInstance={graphInstance}
-            setGraphInstance={setGraphInstance}
-            sendJsonMessage={sendJsonMessage}
-            ctxMenu={ctxMenu}
-            setCtxMenu={setCtxMenu}
-          />
-
-          {/* Overlay EntityOptions on top of the ReactFlow graph */}
-          <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
-            <OverlayMenus
-              readyState={readyState}
-              positionMode={positionMode}
-              toggleForceLayout={toggleForceLayout}
-              graph={graph}
-              setElkLayout={setElkLayout}
-              fitView={fitView}
-              clearGraph={clearGraph}
-            />
-          </div>
-        </div>
-      )}
-      {isSuccess && (
-        <>
-          {isError && <h2>Error</h2>}
-          {isLoading && <RoundLoader />}
-        </>
-      )}
+      {/* TODO: Add screen fade in transition on load */}
+      <>
+        {isError && <h2>Error</h2>}
+        {isLoading && <RoundLoader />}
+      </>
+      <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
+        <Graph
+          nodes={nodes}
+          edges={edges}
+          graphInstance={graphInstance}
+          setGraphInstance={setGraphInstance}
+          sendJsonMessage={sendJsonMessage}
+          readyState={readyState}
+          graph={graph}
+          setElkLayout={setElkLayout}
+          fitView={fitView}
+        />
+      </div>
     </>
   )
 }
