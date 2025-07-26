@@ -66,9 +66,13 @@ export default function FloatingEdge({
     targetPosition: targetPos,
   })
 
+  const { positionMode } = useGraphFlowStore()
+  
   const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
     labelX,
-    labelY
+    labelY,
+    undefined,
+    positionMode
   )
 
   useEffect(() => {

@@ -1,18 +1,44 @@
 import { RefObject } from 'preact'
-import { useEffect, useRef } from 'preact/hooks'
+import { useEffect, useRef, useCallback, useMemo } from 'preact/hooks'
 
 type Point = { x: number; y: number }
 
 const EDGE_DIVIDER = 100
 const FLOATING_POINT_LIMIT = 2
 
-// Generate points along the SVG path
-const generatePathPoints = (edgePathRef): Point[] => {
-  if (!edgePathRef.current) return []
+const useDraggableEdgeLabel = (
+  labelX: number,
+  labelY: number,
+  labelPosition?: number,
+  positionMode?: string
+): [RefObject<SVGPathElement>, RefObject<HTMLDivElement>] => {
+  const edgePathRef = useRef<SVGPathElement>(null)
+  const draggableEdgeLabelRef = useRef<HTMLDivElement>(null)
+  const pathPoints = useRef<Point[]>([])
+  const currentPointIndex = useRef(Math.floor(EDGE_DIVIDER / 2))
+  const dragState = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialIndex: 0,
+  })
+  const lastPathLength = useRef<number>(0)
+  const pathUpdateScheduled = useRef<boolean>(false)
 
-  const path = edgePathRef.current
-  const pathLength = path.getTotalLength()
-  const points: Point[] = []
+  // Generate points along the SVG path (memoized and throttled)
+  const generatePathPoints = useCallback((): Point[] => {
+    if (!edgePathRef.current) return []
+
+    const path = edgePathRef.current
+    const pathLength = path.getTotalLength()
+    
+    // Skip expensive recalculation if path length hasn't changed significantly
+    if (Math.abs(pathLength - lastPathLength.current) < 1) {
+      return pathPoints.current
+    }
+    
+    lastPathLength.current = pathLength
+    const points: Point[] = []
 
   for (let i = 0; i <= EDGE_DIVIDER; i++) {
     const distance = (pathLength / EDGE_DIVIDER) * i
@@ -23,8 +49,8 @@ const generatePathPoints = (edgePathRef): Point[] => {
     })
   }
 
-  return points
-}
+    return points
+  }, [])
 
 // Calculate path index based on movement along path direction
 const calculatePathIndexFromMovement = (
@@ -124,7 +150,7 @@ const useDraggableEdgeLabel = (
     }
   }
 
-  const setLabelPosition = (pathIndex?: number) => {
+  const setLabelPosition = useCallback((pathIndex?: number) => {
     if (!draggableEdgeLabelRef.current) return
 
     const index =
@@ -136,10 +162,10 @@ const useDraggableEdgeLabel = (
     const y = labelY + offset.y
 
     draggableEdgeLabelRef.current.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`
-  }
+  }, [labelX, labelY])
 
-  // Handle mouse events for dragging
-  const handleMouseDown = (e: MouseEvent) => {
+  // Handle mouse events for dragging (memoized)
+  const handleMouseDown = useCallback((e: MouseEvent) => {
     if (!draggableEdgeLabelRef.current || !e.shiftKey) {
       dragState.current.isDragging = false
       return
@@ -156,9 +182,9 @@ const useDraggableEdgeLabel = (
 
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
-  }
+  }, [])
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!dragState.current.isDragging || !draggableEdgeLabelRef.current) return
 
     // Prevent event from interfering with graph panning
@@ -184,18 +210,18 @@ const useDraggableEdgeLabel = (
     // Update current position and snap to path
     currentPointIndex.current = index
     setLabelPosition(index)
-  }
+  }, [setLabelPosition])
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (!dragState.current.isDragging) return
 
     dragState.current.isDragging = false
     document.removeEventListener('mousemove', handleMouseMove)
     document.removeEventListener('mouseup', handleMouseUp)
-  }
+  }, [])
 
-  // Handle touch events for mobile
-  const handleTouchStart = (e: TouchEvent) => {
+  // Handle touch events for mobile (memoized)
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     if (!draggableEdgeLabelRef.current || !e.touches[0] || !e.shiftKey) return
 
     // Prevent event from bubbling to React Flow
@@ -209,9 +235,9 @@ const useDraggableEdgeLabel = (
 
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', handleTouchEnd)
-  }
+  }, [])
 
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (
       !dragState.current.isDragging ||
       !e.touches[0] ||
@@ -235,56 +261,60 @@ const useDraggableEdgeLabel = (
     // Update current position and snap to path
     currentPointIndex.current = index
     setLabelPosition(index)
-  }
+  }, [setLabelPosition])
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     if (!dragState.current.isDragging) return
 
     dragState.current.isDragging = false
     document.removeEventListener('touchmove', handleTouchMove)
     document.removeEventListener('touchend', handleTouchEnd)
-  }
+  }, [])
 
+  // Throttled path points update
+  const updatePathPointsThrottled = useCallback(() => {
+    if (pathUpdateScheduled.current || !edgePathRef.current) return
+    
+    pathUpdateScheduled.current = true
+    requestAnimationFrame(() => {
+      pathPoints.current = generatePathPoints()
+      pathUpdateScheduled.current = false
+    })
+  }, [generatePathPoints])
+
+  // Setup event listeners once
   useEffect(() => {
-    // Generate path points when path is available
-    if (edgePathRef.current) {
-      pathPoints.current = generatePathPoints(edgePathRef)
-    }
+    const element = draggableEdgeLabelRef.current
+    if (!element) return
 
-    // Initial positioning
-    setLabelPosition()
+    element.addEventListener('mousedown', handleMouseDown)
+    element.addEventListener('touchstart', handleTouchStart, { passive: false })
 
-    // Add event listeners
-    if (draggableEdgeLabelRef.current) {
-      draggableEdgeLabelRef.current.addEventListener(
-        'mousedown',
-        handleMouseDown
-      )
-      draggableEdgeLabelRef.current.addEventListener(
-        'touchstart',
-        handleTouchStart,
-        { passive: false }
-      )
-    }
-
-    // Cleanup
     return () => {
-      if (draggableEdgeLabelRef.current) {
-        draggableEdgeLabelRef.current.removeEventListener(
-          'mousedown',
-          handleMouseDown
-        )
-        draggableEdgeLabelRef.current.removeEventListener(
-          'touchstart',
-          handleTouchStart
-        )
-      }
+      element.removeEventListener('mousedown', handleMouseDown)
+      element.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
       document.removeEventListener('touchmove', handleTouchMove)
       document.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [labelX, labelY, edgePathRef.current])
+  }, [handleMouseDown, handleTouchStart, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd])
+
+  // Update path points when path changes or position mode changes
+  useEffect(() => {
+    if (edgePathRef.current) {
+      updatePathPointsThrottled()
+    }
+  }, [edgePathRef.current, updatePathPointsThrottled, positionMode])
+
+  // Update position when coordinates change or position mode changes (throttled)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setLabelPosition()
+    }, 16) // ~60fps throttling
+    
+    return () => clearTimeout(timeoutId)
+  }, [labelX, labelY, setLabelPosition, positionMode])
 
   return [edgePathRef, draggableEdgeLabelRef]
 }
