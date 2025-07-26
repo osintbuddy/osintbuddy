@@ -390,12 +390,6 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   setPlugins: async (plugins) => set({ plugins }),
   fetchTransforms: async (label: string) => {
     const existingTransforms = get().transforms
-    console.log(
-      'in store',
-      existingTransforms,
-      label,
-      !existingTransforms[label]
-    )
     if (!existingTransforms[label]) {
       set({ isLoadingTransforms: true, error: null })
       try {
