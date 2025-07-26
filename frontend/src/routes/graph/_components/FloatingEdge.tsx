@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getEdgeParams } from './utils'
 import {
-  BaseEdge,
   EdgeLabelRenderer,
   useStore,
   getBezierPath,
   Edge,
   useReactFlow,
 } from '@xyflow/react'
-import { GripIcon, Icon } from '@/components/icons'
+import { Icon } from '@/components/icons'
 import { useGraphFlowStore } from '@/app/store'
 import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
@@ -76,12 +75,13 @@ export default function FloatingEdge({
     if (
       sourceNodeHandle &&
       targetNodeHandle &&
-      (sourceNodeHandle?.id !== sourceHandle ||
+      (sourceNodeHandle.id !== sourceHandle ||
         targetNodeHandle.id !== targetHandle)
     ) {
+      console.log()
       updateEdge(id, {
-        sourceHandle: sourceNodeHandle?.id,
-        targetHandle: targetNodeHandle?.id,
+        sourceHandle: sourceNodeHandle.id,
+        targetHandle: targetNodeHandle.id,
       })
     }
   }, [
