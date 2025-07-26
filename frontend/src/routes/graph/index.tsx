@@ -88,13 +88,6 @@ export default function Graphing() {
   } = useGraphFlowStore()
 
   useEffect(() => {
-    if (location.state?.showGuide) {
-      setCurrentTourStep(0)
-      setIsTourOpen(true)
-    }
-  }, [])
-
-  useEffect(() => {
     clearGraph()
     toast.loading('Please wait while we load your graph...', {
       closeButton: true,
@@ -102,13 +95,14 @@ export default function Graphing() {
       toastId: 'graph',
     })
     getGraph(hid as string)
+    if (location.state?.showGuide) {
+      setCurrentTourStep(0)
+      setIsTourOpen(true)
+    }
+    setPositionMode('manual')
   }, [])
 
-  const isSuccess = !isLoading && !isError && graph
-
-  useEffect(() => {
-    setPositionMode('manual')
-  }, [graph?.id])
+  useEffect(() => {}, [graph?.id])
 
   useEffect(() => {
     return () => {
@@ -389,42 +383,31 @@ export default function Graphing() {
 
   return (
     <>
-      {/* TODO: Add loading screen fade out transition */}
-      {!isSuccess && <h2 class='text-4xl text-slate-400'>LOADING...</h2>}
-      {isSuccess && (
-        <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
-          <Graph
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            graphInstance={graphInstance}
-            setGraphInstance={setGraphInstance}
-            sendJsonMessage={sendJsonMessage}
-            ctxMenu={ctxMenu}
-            setCtxMenu={setCtxMenu}
-          />
-
-          {/* Overlay EntityOptions on top of the ReactFlow graph */}
-          <div className='pointer-events-none absolute top-0 right-0 h-screen w-screen'>
-            <OverlayMenus
-              readyState={readyState}
-              positionMode={positionMode}
-              toggleForceLayout={toggleForceLayout}
-              graph={graph}
-              setElkLayout={setElkLayout}
-              fitView={fitView}
-              clearGraph={clearGraph}
-            />
-          </div>
-        </div>
-      )}
-      {isSuccess && (
-        <>
-          {isError && <h2>Error</h2>}
-          {isLoading && <RoundLoader />}
-        </>
-      )}
+      {/* TODO: Add screen fade in transition on load */}
+      <>
+        {isError && <h2>Error</h2>}
+        {isLoading && <RoundLoader />}
+      </>
+      <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
+        <Graph
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          graphInstance={graphInstance}
+          setGraphInstance={setGraphInstance}
+          sendJsonMessage={sendJsonMessage}
+          ctxMenu={ctxMenu}
+          setCtxMenu={setCtxMenu}
+          readyState={readyState}
+          positionMode={positionMode}
+          toggleForceLayout={toggleForceLayout}
+          graph={graph}
+          setElkLayout={setElkLayout}
+          fitView={fitView}
+          clearGraph={clearGraph}
+        />
+      </div>
     </>
   )
 }

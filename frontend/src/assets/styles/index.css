@@ -227,7 +227,7 @@ input[data-autocompleted] {
 */
 * {
   scrollbar-width: 12px;
-  scrollbar-color: #0c0927 #040511;
+  scrollbar-color: #0c092754 #0405115d;
 }
 @supports (not (-moz-appearance:button)) and (contain:paint) and (-webkit-appearance:none){
   /* ugh,  failed web standards, this targets the shitty chrome browser - https://stackoverflow.com/a/73264364 */

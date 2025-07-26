@@ -14,6 +14,7 @@ import {
   ConnectionMode,
   IsValidConnection,
   reconnectEdge,
+  Panel,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -24,6 +25,7 @@ import FloatingEdge from './FloatingEdge'
 import { useGraphFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import { CtxMenu, CtxPosition } from '..'
+import OverlayMenus from './OverlayMenus'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 2.0
@@ -53,6 +55,13 @@ export default function Graph({
   onEdgesChange,
   ctxMenu,
   setCtxMenu,
+  readyState,
+  positionMode,
+  toggleForceLayout,
+  graph,
+  setElkLayout,
+  fitView,
+  clearGraph,
 }: ProjectGraphProps) {
   const {
     enableEntityEdit,
@@ -294,14 +303,25 @@ export default function Graph({
         variant={BackgroundVariant.Dots}
       />
 
-      {ctxMenu && (
-        <ContextMenu
-          sendJsonMessage={sendJsonMessage}
-          selection={ctxMenu.entity}
-          position={ctxMenu.position as CtxPosition}
-          closeMenu={() => setCtxMenu(null)}
+      <Panel position='top-left'>
+        {/* Overlay EntityOptions on top of the ReactFlow graph */}
+
+        <OverlayMenus
+          readyState={readyState}
+          positionMode={positionMode}
+          toggleForceLayout={toggleForceLayout}
+          graph={graph}
+          setElkLayout={setElkLayout}
+          fitView={fitView}
+          clearGraph={clearGraph}
         />
-      )}
+      </Panel>
+      <ContextMenu
+        sendJsonMessage={sendJsonMessage}
+        selection={ctxMenu?.entity}
+        position={ctxMenu?.position as CtxPosition}
+        closeMenu={() => setCtxMenu(null)}
+      />
     </ReactFlow>
   )
 }

@@ -89,7 +89,7 @@ export default function Subpanel({
         </>
       )}
       <div
-        class={`overflow-y-scroll pr-2.5 pl-0.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
+        class={`overflow-y-auto pr-2.5 pl-0.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
       >
         {items.map((item) => {
           return (

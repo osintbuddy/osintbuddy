@@ -6,10 +6,90 @@ type Point = { x: number; y: number }
 const EDGE_DIVIDER = 100
 const FLOATING_POINT_LIMIT = 2
 
+// Generate points along the SVG path
+const generatePathPoints = (edgePathRef): Point[] => {
+  if (!edgePathRef.current) return []
+
+  const path = edgePathRef.current
+  const pathLength = path.getTotalLength()
+  const points: Point[] = []
+
+  for (let i = 0; i <= EDGE_DIVIDER; i++) {
+    const distance = (pathLength / EDGE_DIVIDER) * i
+    const point = path.getPointAtLength(distance)
+    points.push({
+      x: parseFloat(point.x.toFixed(FLOATING_POINT_LIMIT)),
+      y: parseFloat(point.y.toFixed(FLOATING_POINT_LIMIT)),
+    })
+  }
+
+  return points
+}
+
+// Calculate path index based on movement along path direction
+const calculatePathIndexFromMovement = (
+  mouseX: number,
+  mouseY: number,
+  currentPointIndex,
+  dragState,
+  pathPoints
+): number => {
+  if (pathPoints.current.length === 0) {
+    return currentPointIndex.current
+  }
+
+  // Calculate movement delta from drag start
+  const deltaX = mouseX - dragState.current.startX
+  const deltaY = mouseY - dragState.current.startY
+
+  // Get the path direction at current position
+  const pathDir = getPathDirection(currentPointIndex.current, pathPoints)
+
+  // Project the mouse movement onto the path direction
+  const projectedMovement = deltaX * pathDir.x + deltaY * pathDir.y
+
+  // Map projected movement to path progression
+  const sensitivity = 0.16 // Adjust as needed for responsiveness
+  const indexDelta = Math.round(projectedMovement * sensitivity)
+
+  // Calculate new index from initial position
+  const newIndex = dragState.current.initialIndex + indexDelta
+
+  // Clamp to valid range
+  return Math.max(0, Math.min(pathPoints.current.length - 1, newIndex))
+}
+
+// Calculate path direction vector at current position
+const getPathDirection = (index: number, pathPoints): Point => {
+  if (
+    pathPoints.current.length === 0 ||
+    index < 0 ||
+    index >= pathPoints.current.length
+  ) {
+    return { x: 1, y: 0 } // Default horizontal direction
+  }
+
+  // Get direction from previous to next point (or use adjacent points)
+  const prevIndex = Math.max(0, index - 1)
+  const nextIndex = Math.min(pathPoints.current.length - 1, index + 1)
+
+  const prevPoint = pathPoints.current[prevIndex]
+  const nextPoint = pathPoints.current[nextIndex]
+
+  if (!prevPoint || !nextPoint) return { x: 1, y: 0 }
+
+  // Calculate direction vector
+  const dirX = nextPoint.x - prevPoint.x
+  const dirY = nextPoint.y - prevPoint.y
+
+  // Normalize the vector
+  const length = Math.sqrt(dirX * dirX + dirY * dirY)
+  return length > 0 ? { x: dirX / length, y: dirY / length } : { x: 1, y: 0 }
+}
+
 const useDraggableEdgeLabel = (
   labelX: number,
-  labelY: number,
-  labelPosition?: number
+  labelY: number
 ): [RefObject<SVGPathElement>, RefObject<HTMLDivElement>] => {
   const edgePathRef = useRef<SVGPathElement>(null)
   const draggableEdgeLabelRef = useRef<HTMLDivElement>(null)
@@ -21,26 +101,6 @@ const useDraggableEdgeLabel = (
     startY: 0,
     initialIndex: 0,
   })
-
-  // Generate points along the SVG path
-  const generatePathPoints = (): Point[] => {
-    if (!edgePathRef.current) return []
-
-    const path = edgePathRef.current
-    const pathLength = path.getTotalLength()
-    const points: Point[] = []
-
-    for (let i = 0; i <= EDGE_DIVIDER; i++) {
-      const distance = (pathLength / EDGE_DIVIDER) * i
-      const point = path.getPointAtLength(distance)
-      points.push({
-        x: parseFloat(point.x.toFixed(FLOATING_POINT_LIMIT)),
-        y: parseFloat(point.y.toFixed(FLOATING_POINT_LIMIT)),
-      })
-    }
-
-    return points
-  }
 
   // Calculate position along path as offset from center
   const getPathPositionOffset = (pathIndex: number): Point => {
@@ -64,64 +124,6 @@ const useDraggableEdgeLabel = (
     }
   }
 
-  // Calculate path direction vector at current position
-  const getPathDirection = (index: number): Point => {
-    if (
-      pathPoints.current.length === 0 ||
-      index < 0 ||
-      index >= pathPoints.current.length
-    ) {
-      return { x: 1, y: 0 } // Default horizontal direction
-    }
-
-    // Get direction from previous to next point (or use adjacent points)
-    const prevIndex = Math.max(0, index - 1)
-    const nextIndex = Math.min(pathPoints.current.length - 1, index + 1)
-
-    const prevPoint = pathPoints.current[prevIndex]
-    const nextPoint = pathPoints.current[nextIndex]
-
-    if (!prevPoint || !nextPoint) return { x: 1, y: 0 }
-
-    // Calculate direction vector
-    const dirX = nextPoint.x - prevPoint.x
-    const dirY = nextPoint.y - prevPoint.y
-
-    // Normalize the vector
-    const length = Math.sqrt(dirX * dirX + dirY * dirY)
-    return length > 0 ? { x: dirX / length, y: dirY / length } : { x: 1, y: 0 }
-  }
-
-  // Calculate path index based on movement along path direction
-  const calculatePathIndexFromMovement = (
-    mouseX: number,
-    mouseY: number
-  ): number => {
-    if (pathPoints.current.length === 0) {
-      return currentPointIndex.current
-    }
-
-    // Calculate movement delta from drag start
-    const deltaX = mouseX - dragState.current.startX
-    const deltaY = mouseY - dragState.current.startY
-
-    // Get the path direction at current position
-    const pathDir = getPathDirection(currentPointIndex.current)
-
-    // Project the mouse movement onto the path direction
-    const projectedMovement = deltaX * pathDir.x + deltaY * pathDir.y
-
-    // Map projected movement to path progression
-    const sensitivity = 0.16 // Adjust as needed for responsiveness
-    const indexDelta = Math.round(projectedMovement * sensitivity)
-
-    // Calculate new index from initial position
-    const newIndex = dragState.current.initialIndex + indexDelta
-
-    // Clamp to valid range
-    return Math.max(0, Math.min(pathPoints.current.length - 1, newIndex))
-  }
-
   const setLabelPosition = (pathIndex?: number) => {
     if (!draggableEdgeLabelRef.current) return
 
@@ -143,6 +145,10 @@ const useDraggableEdgeLabel = (
       return
     }
 
+    // Prevent event from bubbling to React Flow (which would trigger panning)
+    e.preventDefault()
+    e.stopPropagation()
+
     dragState.current.isDragging = true
     dragState.current.startX = e.clientX
     dragState.current.startY = e.clientY
@@ -155,8 +161,25 @@ const useDraggableEdgeLabel = (
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragState.current.isDragging || !draggableEdgeLabelRef.current) return
 
+    // Prevent event from interfering with graph panning
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Additional check: ensure shift is still held during drag
+    if (!e.shiftKey) {
+      // If shift is released, stop dragging
+      handleMouseUp()
+      return
+    }
+
     // Calculate path index based on cursor movement
-    const index = calculatePathIndexFromMovement(e.clientX, e.clientY)
+    const index = calculatePathIndexFromMovement(
+      e.clientX,
+      e.clientY,
+      currentPointIndex,
+      dragState,
+      pathPoints
+    )
 
     // Update current position and snap to path
     currentPointIndex.current = index
@@ -175,6 +198,10 @@ const useDraggableEdgeLabel = (
   const handleTouchStart = (e: TouchEvent) => {
     if (!draggableEdgeLabelRef.current || !e.touches[0] || !e.shiftKey) return
 
+    // Prevent event from bubbling to React Flow
+    e.preventDefault()
+    e.stopPropagation()
+
     dragState.current.isDragging = true
     dragState.current.startX = e.touches[0].clientX
     dragState.current.startY = e.touches[0].clientY
@@ -192,12 +219,17 @@ const useDraggableEdgeLabel = (
     )
       return
 
+    // Prevent event from interfering with graph interactions
     e.preventDefault()
+    e.stopPropagation()
 
     // Calculate path index based on touch movement
     const index = calculatePathIndexFromMovement(
       e.touches[0].clientX,
-      e.touches[0].clientY
+      e.touches[0].clientY,
+      currentPointIndex,
+      dragState,
+      pathPoints
     )
 
     // Update current position and snap to path
@@ -216,7 +248,7 @@ const useDraggableEdgeLabel = (
   useEffect(() => {
     // Generate path points when path is available
     if (edgePathRef.current) {
-      pathPoints.current = generatePathPoints()
+      pathPoints.current = generatePathPoints(edgePathRef)
     }
 
     // Initial positioning

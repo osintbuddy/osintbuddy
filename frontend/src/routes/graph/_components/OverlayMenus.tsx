@@ -124,7 +124,7 @@ export default function OverlayMenus({
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='pointer-events-none absolute inset-0 z-10'
+      className='pointer-events-none absolute inset-0 z-10 h-screen w-screen'
       style={{ width: '100%', height: '100%' }}
       rowHeight={4}
       resizeHandles={['se']}

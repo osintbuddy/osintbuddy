@@ -93,10 +93,10 @@ export default function FloatingEdge({
 
   useEffect(() => {
     const handleClickOutsideEdgePanel: EventListener = (event) => {
-      if (!panelCancelRef.current) {
+      if (!draggableEdgeLabelRef.current) {
         return
       }
-      if (!panelCancelRef.current.contains(event.target as Node)) {
+      if (!draggableEdgeLabelRef.current.contains(event.target as Node)) {
         setShowEdgePanel(false)
       }
     }
@@ -120,8 +120,9 @@ export default function FloatingEdge({
           className='relative ml-4 flex max-w-30'
           ref={draggableEdgeLabelRef}
         >
-          <div class='group relative' ref={panelCancelRef}>
+          <div class='group relative'>
             <button
+              title='Hold down shift to reposition this edge label'
               onMouseDown={() => setShowEdgePanel(false)}
               tabIndex={2}
               className='nopan nodrag pointer-events-auto relative flex items-center justify-center bg-transparent text-slate-700 opacity-20 transition-opacity duration-100 ease-in hover:bg-slate-950/10 hover:text-slate-600 hover:opacity-100 active:text-slate-600 active:opacity-100'
@@ -156,16 +157,19 @@ export default function FloatingEdge({
             {showEdgePanel && (
               <div
                 title='View and edit this edges properties'
-                className={`nopan pointer-events-auto absolute -mt-7 items-end`}
+                className={`nopan pointer-events-auto absolute -mt-5 items-end`}
               >
                 <button
                   onClick={() => {
                     console.log('TODO: setShowVertexPropsPanel(true)')
                     setShowEdgePanel(false)
                   }}
-                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-sm bg-gradient-to-br from-black/10 to-black/15 p-1 text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
+                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-0.5 text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
                 >
-                  <Icon icon='pencil' className='h-4 w-4 p-px text-inherit' />
+                  <Icon
+                    icon='braces'
+                    className='h-3.5 w-3.5 p-px text-inherit'
+                  />
                 </button>
               </div>
             )}
