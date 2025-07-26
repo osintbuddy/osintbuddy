@@ -374,13 +374,13 @@ input[type='number'] {
 }
 .react-flow__handle.connectionindicator {
   border-width: 1.75px;
-  border-color: #282e8399;
-  background-color: #0c0c3238;
+  border-color: #24296e99;
+  background-color: #0c0c1f9f;
   transition: background-color ease-in 75ms, border-color ease-in 75ms;
  }
 .react-flow__handle.connectionindicator:hover {
   border-color: var(--color-primary-500);
-  background-color: #1524ea;
+  background-color: var(--color-primary-500);
 }
 .react-flow__handle.connectionindicator:focus,
 .react-flow__handle.connectingfrom,
