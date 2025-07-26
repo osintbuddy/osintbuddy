@@ -63,15 +63,12 @@ export interface CtxMenu {
 export default function Graphing() {
   const { hid } = useParams()
   const location = useLocation()
+
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
     useTour()
-
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins } = useEntitiesStore()
   const { access_token } = useAuthStore()
-
-  // Track if we're intentionally navigating away
-  const isNavigatingAway = useRef(false)
 
   const {
     nodes,
@@ -81,14 +78,12 @@ export default function Graphing() {
     addNode,
     addEdge,
     clearGraph,
-    onNodesChange,
-    onEdgesChange,
     setPositionMode,
     positionMode,
   } = useGraphFlowStore()
 
+  // handle initial graph loading
   useEffect(() => {
-    clearGraph()
     toast.loading('Please wait while we load your graph...', {
       closeButton: true,
       isLoading: true,
@@ -100,11 +95,6 @@ export default function Graphing() {
       setIsTourOpen(true)
     }
     setPositionMode('manual')
-  }, [])
-
-  useEffect(() => {}, [graph?.id])
-
-  useEffect(() => {
     return () => {
       // Dismiss any connection-related toasts on navigation
       toast.dismiss('connection-lost')
@@ -126,20 +116,12 @@ export default function Graphing() {
       reconnectInterval: (attemptNumber) =>
         Math.min(1000 + attemptNumber * 1000, 1000),
       onOpen: () => {
-        isNavigatingAway.current = false
-        // Dismiss any existing connection warnings
         toast.dismiss('connection-lost')
         toast.dismiss('connection-error')
         sendJsonMessage({
           action: 'auth',
           token: access_token,
         })
-      },
-      onClose: (event) => {
-        // Only clear graph if it's an intentional close (code 1000) or auth failure (code 1008)
-        if (event.code === 1000 || event.code === 1008) {
-          clearGraph()
-        }
       },
       onReconnectStop: (numAttempts) => {
         console.error(
@@ -225,28 +207,9 @@ export default function Graphing() {
     },
   }
 
-  useEffect(() => {
-    let action: ActionTypes = lastJsonMessage?.action
-    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
-  }, [lastJsonMessage])
-
   const [nodesBeforeLayout, setNodesBeforeLayout] = useState(nodes)
   const [edgesBeforeLayout, setEdgesBeforeLayout] = useState(edges)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
-
-  useEffect(() => {
-    if (positionMode === 'manual') {
-      setNodesBeforeLayout(nodes)
-      setEdgesBeforeLayout(edges)
-    }
-  }, [nodes, edges, positionMode])
-
-  useEffect(() => {
-    if (positionMode === 'manual') {
-      setNodes(nodesBeforeLayout)
-      setEdges(edgesBeforeLayout)
-    }
-  }, [positionMode])
 
   // TODO: Also implement d3-hierarchy, entitree-flex, dagre, webcola, and graphology layout modes
   //       Once implemented measure performance and deprecate whatever performs worse
@@ -381,6 +344,24 @@ export default function Graphing() {
     )
   )
 
+  useEffect(() => {
+    if (positionMode === 'manual') {
+      setNodesBeforeLayout(nodes)
+      setEdgesBeforeLayout(edges)
+    }
+  }, [nodes, edges, positionMode])
+
+  useEffect(() => {
+    if (positionMode === 'manual') {
+      setNodes(nodesBeforeLayout)
+      setEdges(edgesBeforeLayout)
+    }
+  }, [positionMode])
+  useEffect(() => {
+    let action: ActionTypes = lastJsonMessage?.action
+    if (action && socketActions[action]) socketActions[action](lastJsonMessage)
+  }, [lastJsonMessage])
+
   return (
     <>
       {/* TODO: Add screen fade in transition on load */}
@@ -392,8 +373,6 @@ export default function Graphing() {
         <Graph
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
           graphInstance={graphInstance}
           setGraphInstance={setGraphInstance}
           sendJsonMessage={sendJsonMessage}

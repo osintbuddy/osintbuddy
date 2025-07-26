@@ -26,6 +26,9 @@ import { useGraphFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import { CtxMenu, CtxPosition } from '..'
 import OverlayMenus from './OverlayMenus'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+
+const DBL_CLICK_THRESHOLD = 340
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 2.0
@@ -36,13 +39,11 @@ const viewOptions: FitViewOptions = {
 interface ProjectGraphProps {
   nodes: Node[]
   edges: Edge[]
-  graphInstance?: ReactFlowInstance
   ctxMenu: CtxMenu | null
-  setGraphInstance: (flow: ReactFlowInstance) => void
-  sendJsonMessage: (message: any) => void
-  onNodesChange?: (changes: any) => void
-  onEdgesChange?: (changes: any) => void
   setCtxMenu: (ctx: CtxMenu | null) => void
+  graphInstance?: ReactFlowInstance
+  setGraphInstance: (value: ReactFlowInstance) => void
+  sendJsonMessage: SendJsonMessage
 }
 
 export default function Graph({
@@ -51,8 +52,6 @@ export default function Graph({
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
-  onNodesChange,
-  onEdgesChange,
   ctxMenu,
   setCtxMenu,
   readyState,
@@ -68,8 +67,9 @@ export default function Graph({
     disableEntityEdit,
     removeEdge,
     setEdges,
-    setNodes,
     onConnect,
+    handleEdgesChange,
+    handleNodesChange,
   } = useGraphFlowStore()
   const ref = useRef<HTMLDivElement>(null)
   // @todo implement support for multi-select transforms -
@@ -92,12 +92,17 @@ export default function Graph({
       setCtxMenu({
         entity: node,
         position: {
-          top: event.clientY < bounds.height - 250 && event.clientY,
-          left: event.clientX < bounds.width - 250 && event.clientX,
+          top:
+            ((event.clientY < bounds.height - 250) as unknown as number) &&
+            event.clientY,
+          left:
+            ((event.clientX < bounds.width - 250) as unknown as number) &&
+            event.clientX,
           right:
-            event.clientX >= bounds.width - 250 && bounds.width - event.clientX,
+            ((event.clientX >= bounds.width - 250) as unknown as number) &&
+            bounds.width - event.clientX,
           bottom:
-            event.clientY >= bounds.height - 250 &&
+            ((event.clientY >= bounds.height - 250) as unknown as number) &&
             bounds.height - event.clientY + 180,
         },
       })
@@ -163,22 +168,18 @@ export default function Graph({
     []
   )
 
-  const doubleClickThreshold = 320
   const [clickDelta, setClickDelta] = useState(0)
 
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_, node) => {
-      // Debounce position updates to reduce WebSocket traffic
-      setTimeout(() => {
-        sendJsonMessage({
-          action: 'update:entity',
-          entity: {
-            id: Number(node.id),
-            x: node.position.x,
-            y: node.position.y,
-          },
-        })
-      }, 100)
+      sendJsonMessage({
+        action: 'update:entity',
+        entity: {
+          id: Number(node.id),
+          x: node.position.x,
+          y: node.position.y,
+        },
+      })
     },
     [sendJsonMessage]
   )
@@ -186,31 +187,30 @@ export default function Graph({
   const onEdgeChange = useCallback(
     (changes: any) => {
       // Use the store handler if provided, otherwise fallback to WebSocket
-      if (onEdgesChange) {
-        onEdgesChange(changes)
-      } else {
-        sendJsonMessage({
-          action: 'update:edges',
-          changes,
-        })
-      }
+      handleEdgesChange(changes)
+      sendJsonMessage({
+        action: 'update:edges',
+        changes,
+      })
     },
-    [onEdgesChange]
+    [handleEdgesChange]
   )
 
+  // on double click toggle between entity types
+  // (rectangular editable entity vs circlular view entity)
   const onNodeClick: NodeMouseHandler = (_, node) => {
     const newDelta = new Date().getTime()
-    const isDouble = newDelta - clickDelta < doubleClickThreshold
-    if (isDouble) {
+    setClickDelta(newDelta)
+    // if double click, toggle entity/node type
+    if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
       if (node.type === 'view') enableEntityEdit(node.id)
       else disableEntityEdit(node.id)
     }
-    setClickDelta(newDelta)
   }
 
   // used for handling edge deletions. e.g. when a user
   // selects and drags  an existing connectionline/edge
-  // to a blank spot on the graph the edge is removed
+  // to a blank spot on the graph, the edge will be removed
   const edgeReconnectSuccessful = useRef(true)
   const onReconnectStart = useCallback(() => {
     edgeReconnectSuccessful.current = false
@@ -236,25 +236,6 @@ export default function Graph({
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
 
-  const onNodeMouseEnter: NodeMouseHandler<Node> = useCallback((_, { id }) => {
-    // const { nodes: updatedNodes, edges: updatedEdges } =
-    //   highlightNodesAndEdges(nodes, edges, {
-    //     activeEntityId: undefined,
-    //     hoverEntityId: id,
-    //   })
-    // setEdges(updatedEdges)
-    // setNodes(updatedNodes)
-  }, [])
-  const onNodeMouseLeave: NodeMouseHandler<Node> = useCallback((_, { id }) => {
-    // const { nodes: updatedNodes, edges: updatedEdges } =
-    //   highlightNodesAndEdges(nodes, edges, {
-    //     activeEntityId: undefined,
-    //     hoverEntityId: undefined,
-    //   })
-    // setEdges(updatedEdges)
-    // setNodes(updatedNodes)
-  }, [])
-
   return (
     <ReactFlow
       defaultMarkerColor='#3b419eee'
@@ -278,7 +259,7 @@ export default function Graph({
       onReconnect={onReconnect}
       onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
-      onNodesChange={onNodesChange}
+      onNodesChange={handleNodesChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       nodeTypes={nodeTypes}
@@ -292,20 +273,11 @@ export default function Graph({
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
       connectionMode={ConnectionMode.Loose}
-      onNodeMouseEnter={onNodeMouseEnter}
-      onNodeMouseLeave={onNodeMouseLeave}
       // TODO: If osintbuddy makes enough $$$ for a reactflow sub, subscribe :)
       proOptions={{ hideAttribution: true }}
     >
-      <Background
-        id='BGTIME'
-        color='#5b609bee'
-        variant={BackgroundVariant.Dots}
-      />
-
+      <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
       <Panel position='top-left'>
-        {/* Overlay EntityOptions on top of the ReactFlow graph */}
-
         <OverlayMenus
           readyState={readyState}
           positionMode={positionMode}

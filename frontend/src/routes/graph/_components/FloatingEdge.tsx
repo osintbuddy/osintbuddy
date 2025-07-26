@@ -67,11 +67,10 @@ export default function FloatingEdge({
   })
 
   const { positionMode } = useGraphFlowStore()
-  
+
   const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
     labelX,
     labelY,
-    undefined,
     positionMode
   )
 
@@ -131,9 +130,9 @@ export default function FloatingEdge({
               tabIndex={2}
               className='nopan nodrag pointer-events-auto relative flex items-center justify-center bg-transparent text-slate-700 opacity-20 transition-opacity duration-100 ease-in hover:bg-slate-950/10 hover:text-slate-600 hover:opacity-100 active:text-slate-600 active:opacity-100'
             >
-              <GripIcon
-                id='grippysocks'
-                className='absolute mt-3 -ml-6 h-5.5 w-4.5 text-inherit'
+              <Icon
+                icon='grip-vertical'
+                className='absolute mt-4 -ml-4 h-5.5 w-4.5 text-inherit'
               />
             </button>
             <input
@@ -142,22 +141,14 @@ export default function FloatingEdge({
               onBlur={(event) =>
                 updateEdge(id, { label: event.currentTarget.value })
               }
-              onChange={(event) => {
-                setEdgeLabel(event.currentTarget.value)
-              }}
-              onFocus={(event) => {
-                setShowEdgePanel(true)
-              }}
-              onMouseDown={(event) => {
-                if (!event.shiftKey) {
-                  setShowEdgePanel(true)
-                }
-              }}
+              onChange={(event) => setEdgeLabel(event.currentTarget.value)}
+              onFocus={() => setShowEdgePanel(true)}
+              onMouseDown={(event) => !event.shiftKey && setShowEdgePanel(true)}
               placeholder='No label found'
               size={edgeInputSize}
               type='text'
               class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 !cursor-text items-center justify-center rounded-xs bg-slate-950/10 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
-            />{' '}
+            />
             {showEdgePanel && (
               <div
                 title='View and edit this edges properties'
