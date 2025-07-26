@@ -25,8 +25,8 @@ export default function FloatingEdge({
   sourceHandle,
   targetHandle,
 }: Edge) {
+  const { positionMode } = useGraphFlowStore()
   const { updateEdge } = useReactFlow()
-  const panelCancelRef = useRef<HTMLInputElement>(null)
 
   const [showEdgePanel, setShowEdgePanel] = useState(false)
   const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
@@ -66,14 +66,6 @@ export default function FloatingEdge({
     targetPosition: targetPos,
   })
 
-  const { positionMode } = useGraphFlowStore()
-
-  const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
-    labelX,
-    labelY,
-    positionMode
-  )
-
   useEffect(() => {
     const sourceNodeHandle = sourceNode?.internals?.handleBounds?.source?.find(
       ({ position }) => position === sourcePos
@@ -92,7 +84,21 @@ export default function FloatingEdge({
         targetHandle: targetNodeHandle?.id,
       })
     }
-  }, [sourcePos, sourceNode, sourceHandle, targetPos, targetNode, targetHandle])
+  }, [
+    sourcePos,
+    sourceNode,
+    sourceHandle,
+    targetPos,
+    targetNode,
+    targetHandle,
+    positionMode,
+  ])
+
+  const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
+    labelX,
+    labelY,
+    positionMode
+  )
 
   useEffect(() => {
     const handleClickOutsideEdgePanel: EventListener = (event) => {
@@ -159,12 +165,9 @@ export default function FloatingEdge({
                     console.log('TODO: setShowVertexPropsPanel(true)')
                     setShowEdgePanel(false)
                   }}
-                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-0.5 text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
+                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-px text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
                 >
-                  <Icon
-                    icon='braces'
-                    className='h-3.5 w-3.5 p-px text-inherit'
-                  />
+                  <Icon icon='braces' className='h-3 w-3 p-px text-inherit' />
                 </button>
               </div>
             )}
