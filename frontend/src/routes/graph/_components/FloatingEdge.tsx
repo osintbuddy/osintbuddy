@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, memo } from 'react'
 import { getEdgeParams } from './utils'
 import {
   EdgeLabelRenderer,
@@ -14,7 +14,7 @@ import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 const EMPTY_LABEL_SIZE = 10
 const MAX_LABEL_SIZE = 32
 
-export default function FloatingEdge({
+function FloatingEdge({
   id,
   source,
   target,
@@ -45,25 +45,30 @@ export default function FloatingEdge({
     useCallback((store) => store.nodeLookup.get(target), [target])
   )
 
-  if (!sourceNode || !targetNode) {
+  const edgeParams = useMemo(() => {
+    if (!sourceNode || !targetNode) return null
+    return getEdgeParams(sourceNode, targetNode)
+  }, [sourceNode, targetNode])
+
+  const pathData = useMemo(() => {
+    if (!edgeParams) return null
+    const { sx, sy, tx, ty, sourcePos, targetPos } = edgeParams
+    const [edgePath, labelX, labelY] = getBezierPath({
+      sourceX: sx,
+      sourceY: sy,
+      targetX: tx,
+      targetY: ty,
+      sourcePosition: sourcePos,
+      targetPosition: targetPos,
+    })
+    return { edgePath, labelX, labelY, sourcePos, targetPos }
+  }, [edgeParams])
+
+  if (!edgeParams || !pathData) {
     return null
   }
 
-  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
-    sourceNode,
-    targetNode
-  )
-
-  // console.log('FE sN tN', sourceNode, targetNode)
-  // console.log('FE s t', sourceHandle, targetHandle)
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX: sx,
-    sourceY: sy,
-    targetX: tx,
-    targetY: ty,
-    sourcePosition: sourcePos,
-    targetPosition: targetPos,
-  })
+  const { edgePath, labelX, labelY, sourcePos, targetPos } = pathData
 
   useEffect(() => {
     const sourceNodeHandle = sourceNode?.internals?.handleBounds?.source?.find(
@@ -78,28 +83,26 @@ export default function FloatingEdge({
       (sourceNodeHandle.id !== sourceHandle ||
         targetNodeHandle.id !== targetHandle)
     ) {
-      console.log()
       updateEdge(id, {
         sourceHandle: sourceNodeHandle.id,
         targetHandle: targetNodeHandle.id,
       })
     }
   }, [
+    id,
     sourcePos,
     sourceNode,
     sourceHandle,
     targetPos,
     targetNode,
     targetHandle,
-    positionMode,
+    updateEdge,
   ])
-  console.log('labelX', labelX)
-  console.log('labelY', labelY)
   const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
     labelX,
     labelY,
     positionMode,
-    edgePath // Pass the edge path as dependency to force refresh when it changes
+    edgePath
   )
 
   useEffect(() => {
@@ -113,10 +116,9 @@ export default function FloatingEdge({
     }
     document.addEventListener('click', handleClickOutsideEdgePanel, true)
     return () => {
-      document.removeEventListener('click', handleClickOutsideEdgePanel)
+      document.removeEventListener('click', handleClickOutsideEdgePanel, true)
     }
-  }, [])
-  console.log('FloatingEdge::render')
+  }, [draggableEdgeLabelRef])
   return (
     <>
       <path
@@ -179,3 +181,5 @@ export default function FloatingEdge({
     </>
   )
 }
+
+export default memo(FloatingEdge)
