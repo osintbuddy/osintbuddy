@@ -326,13 +326,18 @@ interface Transform {
   label: string
   icon: string
 }
+
+interface Transforms {
+  [any: string]: Transform[]
+}
+
 // Entities store
 interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
   currentEntity: Entity | null
-  transforms: Transform[]
+  transforms: Transforms
   isLoading: boolean
   isLoadingEntity: boolean
   isLoadingPlugins: boolean
@@ -358,7 +363,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   favorites: [],
   plugins: [],
   currentEntity: null,
-  transforms: [],
+  transforms: {},
   isLoading: false,
   isLoadingEntity: false,
   isLoadingPlugins: false,
@@ -384,13 +389,31 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   setPlugins: async (plugins) => set({ plugins }),
   fetchTransforms: async (label: string) => {
-    set({ isLoadingTransforms: true, error: null })
-    try {
-      const token = useAuthStore.getState().access_token as string
-      const transforms = await entitiesApi.getEntityTransforms(label, token)
-      set({ transforms, isLoadingTransforms: false })
-    } catch (error) {
-      set({ error: error.message, isLoadingTransforms: false, transforms: [] })
+    const existingTransforms = get().transforms
+    console.log(
+      'in store',
+      existingTransforms,
+      label,
+      !existingTransforms[label]
+    )
+    if (!existingTransforms[label]) {
+      set({ isLoadingTransforms: true, error: null })
+      try {
+        const token = useAuthStore.getState().access_token as string
+        const response = await entitiesApi.getEntityTransforms(label, token)
+        set({
+          transforms: {
+            ...existingTransforms,
+            [label]: response,
+          },
+          isLoadingTransforms: false,
+        })
+      } catch (error) {
+        set({
+          error: error.message,
+          isLoadingTransforms: false,
+        })
+      }
     }
   },
   clearTransforms: async () => {
