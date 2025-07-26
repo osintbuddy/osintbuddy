@@ -93,11 +93,13 @@ export default function FloatingEdge({
     targetHandle,
     positionMode,
   ])
-
+  console.log('labelX', labelX)
+  console.log('labelY', labelY)
   const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
     labelX,
     labelY,
-    positionMode
+    positionMode,
+    edgePath // Pass the edge path as dependency to force refresh when it changes
   )
 
   useEffect(() => {
@@ -114,7 +116,7 @@ export default function FloatingEdge({
       document.removeEventListener('click', handleClickOutsideEdgePanel)
     }
   }, [])
-
+  console.log('FloatingEdge::render')
   return (
     <>
       <path
@@ -153,7 +155,7 @@ export default function FloatingEdge({
               placeholder='No label found'
               size={edgeInputSize}
               type='text'
-              class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 !cursor-text items-center justify-center rounded-xs bg-slate-950/10 bg-gradient-to-br p-px px-1 text-[0.6rem] leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
+              class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-30 !cursor-text items-center justify-center rounded-xs bg-slate-950/10 bg-gradient-to-br p-px px-1 text-sm leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 transition-colors duration-75 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
             />
             {showEdgePanel && (
               <div
@@ -165,7 +167,7 @@ export default function FloatingEdge({
                     console.log('TODO: setShowVertexPropsPanel(true)')
                     setShowEdgePanel(false)
                   }}
-                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-px text-xs leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
+                  class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-64 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-px leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs transition-colors duration-75 ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
                 >
                   <Icon icon='braces' className='h-3 w-3 p-px text-inherit' />
                 </button>

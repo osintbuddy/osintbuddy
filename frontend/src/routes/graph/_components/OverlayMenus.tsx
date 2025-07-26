@@ -103,7 +103,7 @@ export default function OverlayMenus({
   })
 
   const [appbarLayout, setAppbarLayout] = useState<Layout>({
-    i: 'toolbar',
+    i: 'appbar',
     w: 44,
     h: 4,
     x: 0,
@@ -141,7 +141,7 @@ export default function OverlayMenus({
       }}
       onLayoutChange={(layout, layouts) => {
         setAppbarLayout({
-          ...(layouts.lg.find((layout) => layout.i === 'toolbar') as Layout),
+          ...(layouts.lg.find((layout) => layout.i === 'appbar') as Layout),
           isDraggable: isPositionsDraggable,
           isBounded: true,
         })
@@ -153,7 +153,7 @@ export default function OverlayMenus({
       }}
     >
       <div
-        key='toolbar'
+        key='appbar'
         className='pointer-events-auto flex w-full flex-col rounded-md border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
       >
         <div className='flex w-full items-center justify-center'>
@@ -319,7 +319,7 @@ export default function OverlayMenus({
           </button>
         </div>
       </div>
-
+      {/* TODO: clear entity searchfield input value onBlur */}
       <div
         className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='entities'
