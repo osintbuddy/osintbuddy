@@ -532,8 +532,8 @@ export interface GraphFlowState {
   nodes: Node[]
   edges: Edge[]
   positionMode: PositionMode
-  onNodesChange: (changes: NodeChange[]) => void
-  onEdgesChange: (changes: EdgeChange[]) => void
+  handleNodesChange: (changes: NodeChange[]) => void
+  handleEdgesChange: (changes: EdgeChange[]) => void
   onConnect: (connection: Connection) => void
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
@@ -559,13 +559,13 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
   edges: initialEdges,
   positionMode: 'manual',
   setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
-  onNodesChange: (changes) => {
+  handleNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     })
   },
 
-  onEdgesChange: (changes) => {
+  handleEdgesChange: (changes) => {
     set({
       edges: applyEdgeChanges(changes, get().edges),
     })
