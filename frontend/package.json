@@ -23,7 +23,6 @@
     "@uiw/react-codemirror": "^4.23.10",
     "@uiw/react-json-view": "^2.0.0-alpha.33",
     "@xyflow/react": "^12.6.0",
-    "d3-force": "^3.0.0",
     "dagre": "^0.8.5",
     "elkjs": "^0.10.0",
     "graphology": "^0.26.0",

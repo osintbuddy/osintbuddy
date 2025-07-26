@@ -30,9 +30,7 @@ import {
   NodeChange,
   EdgeChange,
   MarkerType,
-  EdgeTypes,
 } from '@xyflow/react'
-import { edges } from 'slate'
 
 // Auth store
 type UserRoles = 'user' | 'admin'
@@ -411,8 +409,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     }
   },
   clearTransforms: async () => {
-    const transforms: Transform[] = []
-    set({ transforms })
+    set({ transforms: {} })
   },
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
