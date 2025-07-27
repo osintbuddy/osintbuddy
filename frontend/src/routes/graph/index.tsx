@@ -132,7 +132,6 @@ export default function Graphing() {
       toast.dismiss('connection-lost')
     },
     read: (data) => {
-      console.log('REAAAADING TIME', data)
       setNodes(data.nodes || [])
       setNodesBeforeLayout(data.nodes || [])
       setEdges(data.edges || [])
@@ -249,7 +248,6 @@ export default function Graphing() {
 
   useEffect(() => {
     let action: ActionTypes = lastJsonMessage?.action
-    console.log('SOCKET MSG', action, socketActions[action])
     if (action && socketActions[action]) socketActions[action](lastJsonMessage)
   }, [lastJsonMessage])
 

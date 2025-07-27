@@ -1,0 +1,76 @@
+import DropdownInput from '../elements/DropdownInput'
+import TextInput from '../elements/TextInput'
+import UploadFileInput from '../elements/FileInput'
+import Title from '../elements/Title'
+import TextArea from '../elements/TextArea'
+import Text from '../elements/Text'
+import CopyText from '../elements/CopyText'
+import { memo } from 'preact/compat'
+import { ElementProps } from '@/types/graph'
+
+export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
+  const { label, value, icon } = element
+  switch (element.type) {
+    case 'dropdown':
+      return (
+        <DropdownInput
+          key={key}
+          id={id}
+          options={element.options || []}
+          label={label}
+          value={value}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'text':
+      return (
+        <TextInput
+          key={key}
+          id={id}
+          label={label}
+          value={value}
+          icon={icon ?? 'ballpen'}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'upload':
+      return (
+        <UploadFileInput
+          key={key}
+          id={id}
+          label={label}
+          initialValue={value || ''}
+          icon={icon ?? 'file-upload'}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'title':
+      return <Title key={key} id={id} label={label} value={value || ''} />
+    case 'section':
+      return (
+        <Text
+          key={key}
+          id={id}
+          label={element?.label}
+          value={element?.value || ''}
+        />
+      )
+    case 'textarea':
+      return (
+        <TextArea
+          key={key}
+          id={id}
+          label={label}
+          value={value || ''}
+          sendJsonMessage={sendJsonMessage}
+        />
+      )
+    case 'copy-text':
+      return <CopyText key={key} id={id} label={label} value={value || ''} />
+    case 'empty':
+      return <input className='pointer-events-none h-0 bg-transparent' />
+  }
+}
+
+const NodeElement = memo(Element)
+export default NodeElement

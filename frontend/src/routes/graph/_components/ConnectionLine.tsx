@@ -5,7 +5,7 @@ import {
   Position,
   getStraightPath,
 } from '@xyflow/react'
-import { getEdgeParams } from './utils'
+import { getEdgeParams } from '../utils'
 
 export default function NewConnectionLine({
   toX,
@@ -74,7 +74,7 @@ export default function NewConnectionLine({
         strokeWidth={2}
         d={edgePath}
         style={{
-       cursor: 'cell',
+          cursor: 'cell',
           filter: 'url(#glow)',
           animation:
             'glowPulse 2s ease-in-out infinite, dashingLines 16s linear',
