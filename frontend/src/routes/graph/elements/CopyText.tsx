@@ -1,4 +1,6 @@
+import { Icon } from '@/components/icons'
 import { memo } from 'preact/compat'
+import { toast } from 'react-toastify'
 
 export function CopyText({
   nodeId,

@@ -1,13 +1,13 @@
 import { CSSProperties } from 'preact/compat'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
-export interface DropdownOptionProps {
+interface DropdownOptionProps {
   label: string
   tooltip: string
   value: string
 }
 
-export type NodeTypes =
+type NodeTypes =
   | 'dropdown'
   | 'text'
   | 'upload'
@@ -17,7 +17,7 @@ export type NodeTypes =
   | 'copy-text'
   | 'empty'
 
-export interface NodeInputProps {
+interface NodeInputProps {
   type: NodeTypes
   label: string
   style: CSSProperties
@@ -29,16 +29,27 @@ export interface NodeInputProps {
   subtitle?: string
   text?: string
   dispatch: () => void
-  sendJsonMessage: () => void
+  sendJsonMessage: SendJsonMessage
 }
 
-export type NodeElementProps = NodeInputProps & {
+type NodeElementProps = NodeInputProps & {
   nodeId: string
 }
 
-export interface ElementProps {
+interface ElementProps {
   id: string
   sendJsonMessage: SendJsonMessage
   element: NodeInputProps
   key: string
+}
+
+interface TextElement {
+  nodeId: string
+  label: string
+  value: string
+  icon?: string
+}
+
+interface HTMLFileEvent extends Event {
+  target: HTMLInputElement & EventTarget
 }

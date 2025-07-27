@@ -1,14 +1,15 @@
 import { Icon } from '@/components/icons'
-import { memo, useState } from 'preact/compat'
+import { NodeElementProps } from '@/types/graph'
+import { ChangeEvent, memo, useState } from 'preact/compat'
+
 export function TextInput({
   nodeId,
   label,
   sendJsonMessage,
   icon,
   value: initValue,
-}: NodeElement) {
+}: NodeElementProps) {
   const [value, setValue] = useState(initValue)
-
   return (
     <>
       <div className='flex flex-col'>
@@ -19,13 +20,13 @@ export function TextInput({
           <input
             id={`${nodeId}-${label}`}
             type='text'
-            onBlur={(event) => {
+            onBlur={() => {
               sendJsonMessage({
                 action: 'update:entity',
                 entity: { id: Number(nodeId), [label]: value },
               })
             }}
-            onChange={(event: InputEvent) =>
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
               setValue(event.currentTarget.value)
             }
             value={value ?? initValue}

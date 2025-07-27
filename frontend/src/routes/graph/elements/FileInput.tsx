@@ -1,5 +1,6 @@
-import { ChangeEvent, useState } from 'preact/compat'
+import { useState } from 'preact/compat'
 import { Icon } from '@/components/icons'
+import { HTMLFileEvent } from '@/types/graph'
 
 export function UploadFileInput({
   nodeId,
@@ -16,8 +17,8 @@ export function UploadFileInput({
 }) {
   const [value, setValue] = useState<File>(initialValue as any)
 
-  const updateValue = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event?.target?.files && event?.target?.files?.length > 0) {
+  const updateValue = (event: HTMLFileEvent) => {
+    if (event?.target?.files && event.target.files?.length > 0) {
       const file = event.target.files[0]
       setValue(file)
       sendJsonMessage({

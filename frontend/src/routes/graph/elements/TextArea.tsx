@@ -1,26 +1,27 @@
 import { Icon } from '@/components/icons'
+import { NodeElementProps } from '@/types/graph'
 import { memo, useState } from 'preact/compat'
 
 export function TextArea({
   nodeId,
   label,
   sendJsonMessage,
-  icon,
   value: initValue,
-}: NodeElement) {
+}: NodeElementProps) {
   const [value, setValue] = useState(initValue)
   const [showMonospace, setShowMonospace] = useState(true)
 
   return (
     <div className='flex w-full flex-col'>
       <label
+        title='Click to toggle the displayed font'
         onClick={() => setShowMonospace(!showMonospace)}
         className='font-display flex items-center justify-between text-[0.55rem] leading-4 font-medium text-slate-400'
       >
         {label}
         <Icon
           icon={showMonospace ? 'brackets-angle' : 'brackets-angle-off'}
-          className='h-4 w-4 text-slate-500'
+          className='h-3 w-3 text-slate-600 hover:text-slate-400'
         />
       </label>
       <div className='hover:border-mirage-200/50 focus-within:!border-primary-350 border-mirage-200/30 w-full rounded-sm border focus-within:from-black/25 focus-within:to-black/20'>

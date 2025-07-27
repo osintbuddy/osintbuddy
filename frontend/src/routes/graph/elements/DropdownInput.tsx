@@ -1,12 +1,23 @@
-import { memo, useMemo, useRef, useState } from 'preact/compat'
+import { Icon } from '@/components/icons'
+import { DropdownOptionProps, NodeElementProps } from '@/types/graph'
+import { useReactFlow } from '@xyflow/react'
+import {
+  ChangeEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/compat'
 
 function DropdownInput({
-  options,
+  options = [],
   label,
   nodeId,
   sendJsonMessage,
   value,
-}: NodeElement) {
+}: NodeElementProps) {
   const [query, setQuery] = useState('')
   const [displayValue, setDisplayValue] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -14,13 +25,13 @@ function DropdownInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const comboboxRef = useRef<HTMLDivElement>(null)
-  const isScrollingOrMouseDownOnListRef = useRef(null)
+  const isScrollingOrMouseDownOnListRef = useRef<boolean | null>(null)
   // TODO: Fix this broken fuzzy search
   const filteredOptions = useMemo(
     () =>
       query === '' || !isOpen
         ? options
-        : options.filter((option: DropdownOption) => {
+        : options.filter((option: DropdownOptionProps) => {
             const fuzzySearch = createFuzzySearch(
               option?.label && option?.label.length !== 0 ? 'label' : 'value',
               0.6
@@ -33,17 +44,13 @@ function DropdownInput({
 
   const activeOption = options.find(
     (option) => option.value === value || option.label === value
-  ) ?? {
-    label: '',
-    value: '',
-    tooltip: '',
-  }
+  )
 
   const { updateNodeData, getNode } = useReactFlow()
   const { elements } = getNode(nodeId)?.data
 
   const selectOption = useCallback(
-    (event, option: DropdownOption) => {
+    (option: DropdownOptionProps) => {
       const optionValue =
         option?.value && option.value.length > 0 ? option.value : option.label
       setIsOpen(false)
@@ -106,7 +113,7 @@ function DropdownInput({
           break
         case 'Enter':
           if (activeIndex >= 0 && filteredOptions[activeIndex]) {
-            selectOption(event, filteredOptions[activeIndex])
+            selectOption(filteredOptions[activeIndex])
           }
           break
         case 'Escape':
@@ -130,23 +137,23 @@ function DropdownInput({
     [isOpen, activeIndex, filteredOptions, selectOption]
   )
 
-  const handleInputChange = useCallback((event: Event) => {
-    setQuery(event.currentTarget.value)
-    setActiveIndex(-1)
-  }, [])
-
-  const handleInputFocus = useCallback(
-    (clearQuery = true) => {
-      setIsOpen(true)
-      if (clearQuery) setQuery('')
-      // Find the current active option index when opening
-      const currentIndex = options.findIndex(
-        (opt) => opt.value === value || opt.label === value
-      )
-      setActiveIndex(currentIndex >= 0 ? currentIndex : 0)
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setQuery(event?.currentTarget.value)
+      setActiveIndex(-1)
     },
-    [options, value]
+    []
   )
+
+  const handleInputFocus = useCallback(() => {
+    setIsOpen(true)
+    setQuery('')
+    // Find the current active option index when opening
+    const currentIndex = options.findIndex(
+      (option) => option.value === value || option.label === value
+    )
+    setActiveIndex(currentIndex >= 0 ? currentIndex : 0)
+  }, [options, value])
 
   const handleInputBlur = useCallback((event: FocusEvent) => {
     const relatedTarget = event.relatedTarget as Node | null // Ensure correct typing
@@ -191,7 +198,7 @@ function DropdownInput({
       setIsOpen(true)
       setQuery('')
       const currentIndex = options.findIndex(
-        (opt) => opt.value === value || opt.label === value
+        (option) => option.value === value || option.label === value
       )
       setActiveIndex(currentIndex >= 0 ? currentIndex : 0)
       inputRef.current?.focus()
@@ -279,11 +286,11 @@ function DropdownInput({
                 <button
                   key={`${option.label}-${index}`}
                   role='option'
-                  onClick={(event) => selectOption(event, option)}
+                  onClick={() => selectOption(option)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={`overflow-y-none nowheel nodrag relative flex w-full cursor-pointer flex-col items-start justify-items-start border-l-2 bg-black/15 px-2 py-1 hover:bg-black/30 ${
-                    activeOption.label === option.label &&
-                    activeOption.value === option.value // if option is currently selected
+                    activeOption?.label === option.label &&
+                    activeOption?.value === option.value // if option is currently selected
                       ? 'border-primary bg-black/50 text-slate-500 hover:bg-black/65 hover:text-slate-500'
                       : index === activeIndex // else if current potential option being hovered
                         ? 'border-primary-300 text-slate-350 border-l-2 bg-black/75'
@@ -305,8 +312,8 @@ function DropdownInput({
                       {option.value}
                     </span>
                   )}
-                  {activeOption.label === option.label &&
-                    activeOption.value === option.value && (
+                  {activeOption?.label === option.label &&
+                    activeOption?.value === option.value && (
                       <div class='bg-primary absolute top-2 right-3 h-1.5 w-1.5 rounded-full' />
                     )}
                 </button>
