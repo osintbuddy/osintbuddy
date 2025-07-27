@@ -1,9 +1,9 @@
-import { useState } from 'preact/compat'
+import { memo, useState } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import { HTMLFileEvent } from '@/types/graph'
 
 export function UploadFileInput({
-  nodeId,
+  id,
   initialValue,
   label,
   sendJsonMessage,
@@ -24,7 +24,7 @@ export function UploadFileInput({
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(nodeId),
+          id: Number(id),
           [label]: file,
           name: file?.name || 'unknown',
         },
@@ -43,7 +43,7 @@ export function UploadFileInput({
           <label className={`ml-5 w-52 ${value?.name && 'text-slate-400'}`}>
             <input
               data-label={label}
-              id={`${nodeId}-${label}`}
+              id={`${id}-${label}`}
               type='file'
               className='nodrag'
               onChange={(event: any) => updateValue(event)}
@@ -55,3 +55,5 @@ export function UploadFileInput({
     </>
   )
 }
+
+export default memo(UploadFileInput)

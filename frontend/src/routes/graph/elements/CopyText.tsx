@@ -1,20 +1,13 @@
 import { Icon } from '@/components/icons'
+import { NodeElementProps } from '@/types/graph'
 import { memo } from 'preact/compat'
 import { toast } from 'react-toastify'
 
-export function CopyText({
-  nodeId,
-  label,
-  value,
-}: {
-  nodeId: string
-  label: string
-  value: string
-}) {
+export function CopyText({ id, label, value }: NodeElementProps) {
   return (
     <div
       onClick={() => {
-        navigator.clipboard.writeText(value)
+        navigator.clipboard.writeText(value as string)
         toast.success(`Copied ${label} to clipboard!`)
       }}
       className='text-info-300 flex max-w-xs items-center'
@@ -31,7 +24,7 @@ export function CopyText({
         type='text'
         className='hidden'
         data-label={label}
-        id={`${nodeId}-${label}`}
+        id={`${id}-${label}`}
         value={value}
         readOnly
       />

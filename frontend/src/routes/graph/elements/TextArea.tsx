@@ -3,7 +3,7 @@ import { NodeElementProps } from '@/types/graph'
 import { memo, useState } from 'preact/compat'
 
 export function TextArea({
-  nodeId,
+  id,
   label,
   sendJsonMessage,
   value: initValue,
@@ -34,7 +34,7 @@ export function TextArea({
           onBlur={() => {
             sendJsonMessage({
               action: 'update:entity',
-              entity: { id: Number(nodeId), [label]: value },
+              entity: { id: Number(id), [label]: value },
             })
           }}
         />

@@ -1,23 +1,24 @@
 import DropdownInput from '../elements/DropdownInput'
-import { TextInput } from '../elements/TextInput'
-import { UploadFileInput } from '../elements/FileInput'
-import { Title } from '../elements/Title'
-import { TextArea } from '../elements/TextArea'
-import { Text } from '../elements/Text'
-import { CopyText } from '../elements/CopyText'
+import TextInput from '../elements/TextInput'
+import UploadFileInput from '../elements/FileInput'
+import Title from '../elements/Title'
+import TextArea from '../elements/TextArea'
+import Text from '../elements/Text'
+import CopyText from '../elements/CopyText'
 import { memo } from 'preact/compat'
 import { ElementProps } from '@/types/graph'
 
-function Element({ id, sendJsonMessage, element, key }: ElementProps) {
+export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
+  const { label, value, icon } = element
   switch (element.type) {
     case 'dropdown':
       return (
         <DropdownInput
           key={key}
-          nodeId={id}
+          id={id}
           options={element.options || []}
-          label={element.label}
-          value={element.value as string}
+          label={label}
+          value={value}
           sendJsonMessage={sendJsonMessage}
         />
       )
@@ -25,10 +26,10 @@ function Element({ id, sendJsonMessage, element, key }: ElementProps) {
       return (
         <TextInput
           key={key}
-          nodeId={id}
-          label={element?.label}
-          value={element.value}
-          icon={element?.icon || 'ballpen'}
+          id={id}
+          label={label}
+          value={value}
+          icon={icon ?? 'ballpen'}
           sendJsonMessage={sendJsonMessage}
         />
       )
@@ -36,27 +37,20 @@ function Element({ id, sendJsonMessage, element, key }: ElementProps) {
       return (
         <UploadFileInput
           key={key}
-          nodeId={id}
-          label={element?.label}
-          initialValue={element?.value || ''}
-          icon={element?.icon || 'file-upload'}
+          id={id}
+          label={label}
+          initialValue={value || ''}
+          icon={icon ?? 'file-upload'}
           sendJsonMessage={sendJsonMessage}
         />
       )
     case 'title':
-      return (
-        <Title
-          key={key}
-          nodeId={id}
-          label={element?.label}
-          value={element?.value || ''}
-        />
-      )
+      return <Title key={key} id={id} label={label} value={value || ''} />
     case 'section':
       return (
         <Text
           key={key}
-          nodeId={id}
+          id={id}
           label={element?.label}
           value={element?.value || ''}
         />
@@ -65,23 +59,18 @@ function Element({ id, sendJsonMessage, element, key }: ElementProps) {
       return (
         <TextArea
           key={key}
-          nodeId={id}
-          label={element?.label}
-          value={element?.value || ''}
+          id={id}
+          label={label}
+          value={value || ''}
           sendJsonMessage={sendJsonMessage}
         />
       )
     case 'copy-text':
-      return (
-        <CopyText
-          key={key}
-          nodeId={id}
-          label={element?.label}
-          value={element?.value || ''}
-        />
-      )
+      return <CopyText key={key} id={id} label={label} value={value || ''} />
     case 'empty':
       return <input className='pointer-events-none h-0 bg-transparent' />
   }
 }
-export const NodeElement = memo(Element)
+
+const NodeElement = memo(Element)
+export default NodeElement

@@ -1,7 +1,7 @@
 import { memo } from 'preact/compat'
 
 export function Title({
-  nodeId,
+  id,
   label,
   value,
 }: {

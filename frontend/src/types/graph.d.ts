@@ -33,7 +33,7 @@ interface NodeInputProps {
 }
 
 type NodeElementProps = NodeInputProps & {
-  nodeId: string
+  id: string
 }
 
 interface ElementProps {

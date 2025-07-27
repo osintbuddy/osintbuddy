@@ -3,7 +3,7 @@ import { NodeElementProps } from '@/types/graph'
 import { ChangeEvent, memo, useState } from 'preact/compat'
 
 export function TextInput({
-  nodeId,
+  id,
   label,
   sendJsonMessage,
   icon,
@@ -18,12 +18,12 @@ export function TextInput({
         </label>
         <div className='node-field nodrag'>
           <input
-            id={`${nodeId}-${label}`}
+            id={`${id}-${label}`}
             type='text'
             onBlur={() => {
               sendJsonMessage({
                 action: 'update:entity',
-                entity: { id: Number(nodeId), [label]: value },
+                entity: { id: Number(id), [label]: value },
               })
             }}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>

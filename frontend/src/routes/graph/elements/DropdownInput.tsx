@@ -14,7 +14,7 @@ import {
 function DropdownInput({
   options = [],
   label,
-  nodeId,
+  id,
   sendJsonMessage,
   value,
 }: NodeElementProps) {
@@ -47,7 +47,7 @@ function DropdownInput({
   )
 
   const { updateNodeData, getNode } = useReactFlow()
-  const { elements } = getNode(nodeId)?.data
+  const { elements } = getNode(id)?.data
 
   const selectOption = useCallback(
     (option: DropdownOptionProps) => {
@@ -70,18 +70,18 @@ function DropdownInput({
         }
       })
 
-      updateNodeData(nodeId, {
+      updateNodeData(id, {
         elements: newElements,
       })
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(nodeId),
+          id: Number(id),
           [label]: optionValue,
         },
       })
     },
-    [elements, label, nodeId, updateNodeData, sendJsonMessage]
+    [elements, label, id, updateNodeData, sendJsonMessage]
   )
 
   const handleKeyDown = useCallback(
@@ -157,10 +157,7 @@ function DropdownInput({
 
   const handleInputBlur = useCallback((event: FocusEvent) => {
     const relatedTarget = event.relatedTarget as Node | null // Ensure correct typing
-    console.log(
-      'related inputBlur',
-      isScrollingOrMouseDownOnListRef.current || relatedTarget === null
-    )
+
     if (isScrollingOrMouseDownOnListRef.current || relatedTarget === null) {
       // Reset the flag
       isScrollingOrMouseDownOnListRef.current = false
@@ -250,7 +247,7 @@ function DropdownInput({
           aria-expanded={isOpen}
           aria-haspopup='listbox'
           aria-autocomplete='list'
-          aria-controls={`${nodeId}-${label}-listbox`}
+          aria-controls={`${id}-${label}-listbox`}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           value={isOpen ? query : displayValue}
@@ -274,7 +271,7 @@ function DropdownInput({
           <div
             ref={listRef}
             role='listbox'
-            id={`${nodeId}-${label}-listbox`}
+            id={`${id}-${label}-listbox`}
             className='nodrag nowheel absolute z-[999] mt-1 mr-1 max-h-52 w-full overflow-y-auto rounded-b-md bg-gradient-to-br from-black/30 from-30% to-black/35 py-1 text-[0.6rem] shadow-lg backdrop-blur-lg focus:outline-hidden sm:text-sm'
           >
             {filteredOptions.length === 0 ? (
