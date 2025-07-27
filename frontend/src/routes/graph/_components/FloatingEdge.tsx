@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, memo } from 'react'
-import { getEdgeParams } from './utils'
+import { getEdgeParams } from '../utils'
 import {
   EdgeLabelRenderer,
   useStore,

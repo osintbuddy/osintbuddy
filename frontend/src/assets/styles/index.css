@@ -184,8 +184,8 @@ body {
 
 ::-moz-selection,
 ::selection {
-  color: var(--color-green-200);
-  background-color:  color-mix(in srgb, var(--color-green-400) 15%, transparent);
+  color: var(--color-teal-200);
+  background-color:  color-mix(in srgb, var(--color-teal-400) 15%, transparent);
   opacity: .1
 }
 
