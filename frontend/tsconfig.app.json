@@ -31,5 +31,5 @@
     "noUncheckedSideEffectImports": true,
     "useUnknownInCatchVariables": false
   },
-  "include": ["src", "src/markdoc", "**/*.d.ts"]
+  "include": ["src", "src/markdoc", "src/types/*.d.ts"]
 }
