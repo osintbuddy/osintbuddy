@@ -133,7 +133,7 @@ function FloatingEdge({
         >
           <div class='group relative'>
             <button
-              title='Hold down shift to reposition this edge label'
+              title='Shift+click and drag to reposition this edge label'
               onMouseDown={() => setShowEdgePanel(false)}
               tabIndex={2}
               className='nopan nodrag pointer-events-auto relative flex items-center justify-center bg-transparent text-slate-700 opacity-20 transition-opacity duration-100 ease-in focus-within:text-slate-600 focus-within:opacity-100 hover:bg-slate-950/10 hover:text-slate-600 hover:opacity-100 focus:text-slate-600 focus:opacity-100 active:text-slate-600 active:opacity-100'
