@@ -31,7 +31,7 @@ export default function LandingPage(): JSX.Element {
               Elevate your Research with
               <br /> Strategic Insights from Public Data
             </h2>
-            <p class='text-md max-w-2xl px-3 pt-1 text-slate-300 md:px-0 md:text-lg'>
+            <p class='text-md text-slate-350 max-w-2xl px-3 pt-1 md:px-0 md:text-lg'>
               Hi, I'm jerlendds, creator of OSINTBuddy, an open source tool for
               collecting, processing, and visualizing connections between
               entities through a Python plugin system. You can identify
@@ -87,10 +87,10 @@ export default function LandingPage(): JSX.Element {
       </div>
       <section class='relative bottom-0 mt-auto flex flex-col justify-center px-4 md:mx-auto md:items-center md:px-0'>
         <section className='flex flex-col items-center'>
-          <h1 class='font-display text-2xl tracking-tight text-slate-300'>
+          <h1 class='font-display text-slate-350 text-2xl tracking-tight'>
             {atfQuote}
           </h1>
-          <p class='mb-2 text-slate-300'>
+          <p class='text-slate-350 mb-2'>
             Email me at&nbsp;
             <a
               href='mailto:oss@osintbuddy.com'

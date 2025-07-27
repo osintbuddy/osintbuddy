@@ -11,7 +11,7 @@ import {
   useState,
 } from 'preact/compat'
 
-function DropdownInput({
+export function DropdownInput({
   options = [],
   label,
   id,

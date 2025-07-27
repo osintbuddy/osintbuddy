@@ -170,11 +170,11 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, lch(3.54% 19.49 285.3 / 0.055) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(3, 1, 44, 0.103) 1%, #04001609 99%),
+    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, rgba(1, 11, 39, 0.055) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 15, 0.322) 1%, rgba(4, 0, 22, 0.035) 99%),
     radial-gradient(142% 91% at 83% 7%, hsla(251, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
     radial-gradient(142% 91% at -6% 74%, rgba(150, 5, 179, 0.192) 1%, rgba(0, 80, 253, 0.219) 99%),
-    radial-gradient(142% 91% at 111% 84%, #000e5c0e 25%, rgba(0, 8, 116, 0.151) 95%);
+    radial-gradient(142% 91% at 111% 84%, rgba(0, 0, 0, 0.158) 25%, rgba(0, 8, 116, 0.151) 95%);
   z-index: -99;
 }
 
@@ -347,7 +347,7 @@ input[type='number'] {
 
   --xy-background-color-props: #0d101a91;
 }
-.react-flow__panel.top {
+.react-flow__panel {
   width: 100%;
   height: 100%;
   pointer-events: none;

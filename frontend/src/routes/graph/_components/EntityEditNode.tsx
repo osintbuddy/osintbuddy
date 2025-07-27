@@ -15,6 +15,7 @@ import { Handle, Position, useReactFlow } from '@xyflow/react'
 import { FixedSizeList as List } from 'react-window'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
+import Element from './Element'
 import { useGraphFlowStore } from '@/app/store'
 
 const handleStyle = {
@@ -87,7 +88,7 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
                 >
                   {element.map((elm, i: number) => (
                     <Fragment key={i.toString()}>
-                      <NodeElement
+                      <Element
                         id={ctx.id}
                         sendJsonMessage={sendJsonMessage}
                         element={elm}
@@ -100,7 +101,7 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             }
 
             return (
-              <NodeElement
+              <Element
                 id={ctx.id}
                 sendJsonMessage={sendJsonMessage}
                 element={element}

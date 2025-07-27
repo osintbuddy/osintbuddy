@@ -1,13 +1,14 @@
-import DropdownInput from '../elements/DropdownInput'
-import TextInput from '../elements/TextInput'
-import UploadFileInput from '../elements/FileInput'
-import Title from '../elements/Title'
-import TextArea from '../elements/TextArea'
-import Text from '../elements/Text'
-import CopyText from '../elements/CopyText'
+import { DropdownInput } from '../elements/DropdownInput'
+import { TextInput } from '../elements/TextInput'
+import { UploadFileInput } from '../elements/FileInput'
+import { Title } from '../elements/Title'
+import { TextArea } from '../elements/TextArea'
+import { Text } from '../elements/Text'
+import { CopyText } from '../elements/CopyText'
 import { memo } from 'preact/compat'
 import { ElementProps } from '@/types/graph'
 
+// TODO: Fix types
 export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
   const { label, value, icon } = element
   switch (element.type) {
@@ -72,5 +73,4 @@ export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
   }
 }
 
-const NodeElement = memo(Element)
-export default NodeElement
+export default memo(Element)
