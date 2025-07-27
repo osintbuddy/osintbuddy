@@ -35,7 +35,6 @@ function FloatingEdge({
         ? EMPTY_LABEL_SIZE
         : edgeLabel.length - 2
       : MAX_LABEL_SIZE
-  console.log(edgeInputSize)
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
   )
@@ -117,6 +116,7 @@ function FloatingEdge({
       document.removeEventListener('click', handleClickOutsideEdgePanel, true)
     }
   }, [draggableEdgeLabelRef])
+
   return (
     <>
       <path
