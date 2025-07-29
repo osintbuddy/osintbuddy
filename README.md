@@ -96,7 +96,7 @@ What are the technical frameworks that ensure that a technology is open and equi
 
 > [!CAUTION] 
 >
-> **⚠️ Experimental Software (Alpha) ⚠️** 
+> **⚠️ Experimental Software (pre-alpha) ⚠️** 
 >
 > OSINTBuddy is currently experimental software. It's not quite ready for use *yet*! If you're interested in development you'll need the `plugins` docker service cloned: `git clone https://github.com/osintbuddy/plugins osintbuddy-plugins` to the root of this repo
 
