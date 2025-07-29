@@ -141,7 +141,7 @@ This Rust rewrite exists because I got tired of Python and I decided to rewrite 
 
 If you want to start developing for OSINTBuddy, create or pick up an [issue](https://github.com/jerlendds/osintbuddy/issues) and follow these steps:
 
-1. Clone the repo and submodules
+1. Clone the repo
    ```sh
    git clone https://github.com/osintbuddy/osintbuddy.git
    cd osintbuddy
