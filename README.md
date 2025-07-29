@@ -160,9 +160,9 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
    ```
 4. Start the stack
-  ```
-  docker compose up db ui
-  ```
+   ```
+   docker compose up db ui
+   ```
 
 5. Migrate db and build and start web server with watch
    ```bash
