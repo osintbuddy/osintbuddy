@@ -151,7 +151,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 2. [Install Docker & Compose](https://docs.docker.com/get-started/get-docker/)
 
-3. [Initialize core plugins](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSINTBuddy and start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml):
+3. [Initialize core plugins](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSINTBuddy:
    ```sh
    python3 -m venv venv
    . ./venv/bin/activate
@@ -159,7 +159,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    ob init
 
    ```
-4. Start the stack
+4. Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)
    ```
    docker compose up db ui
    ```
