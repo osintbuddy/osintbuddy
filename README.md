@@ -178,7 +178,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 6. Access OSINTBuddy through the URLs provided for the frontend, backend, and documentation.
 
 - URLs
-  - Frontend: [`http://localhost:56173`](http://localhost:56173)
+  - Frontend: [`http://localhost:55173`](http://localhost:55173)
   - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
   - Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
 
