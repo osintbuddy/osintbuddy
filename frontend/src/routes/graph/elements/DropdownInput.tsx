@@ -47,8 +47,9 @@ export function DropdownInput({
   )
 
   const { updateNodeData, getNode } = useReactFlow()
-  const { elements } = getNode(id)?.data
-
+  const wtf = getNode(id)
+  console.log('WTF dropdowninput', wtf)
+  const elements: any[] = []
   const selectOption = useCallback(
     (option: DropdownOptionProps) => {
       const optionValue =

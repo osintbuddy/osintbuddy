@@ -20,17 +20,18 @@ import {
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
-import ViewEntityNode from './EntityViewNode'
+import { ViewEntityNode } from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import FloatingEdge from './FloatingEdge'
-import { useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import OverlayMenus from './OverlayMenus'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import { ReadyState } from 'react-use-websocket'
 import { Graph as GraphState } from '@/app/api'
 import { ElkLayoutArguments } from 'elkjs/lib/elk-api'
+import { toSnakeCase } from '../utils'
 
 export interface CtxPosition {
   top: number
@@ -44,9 +45,14 @@ export interface CtxMenu {
   position?: CtxPosition
 }
 
+interface Blueprint {
+  [any: string]: {
+    [any: string]: any
+    value?: string
+  }
+}
+
 interface ProjectGraphProps {
-  nodes: Node[]
-  edges: Edge[]
   graphInstance?: ReactFlowInstance
   setGraphInstance: (value: ReactFlowInstance) => void
   sendJsonMessage: SendJsonMessage
@@ -54,6 +60,7 @@ interface ProjectGraphProps {
   readyState: ReadyState
   graph: GraphState | null
   fitView: (fitViewOptions?: FitViewOptions | undefined) => void
+  blueprints: Blueprint
 }
 
 const DBL_CLICK_THRESHOLD = 340
@@ -65,8 +72,6 @@ const viewOptions: FitViewOptions = {
 }
 
 export default function Graph({
-  nodes,
-  edges,
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
@@ -74,6 +79,7 @@ export default function Graph({
   graph,
   setElkLayout,
   fitView,
+  blueprints,
 }: ProjectGraphProps) {
   const {
     enableEntityEdit,
@@ -85,7 +91,10 @@ export default function Graph({
     handleNodesChange,
     positionMode,
     clearGraph,
+    nodes,
+    edges,
   } = useGraphFlowStore()
+
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
 
@@ -93,9 +102,7 @@ export default function Graph({
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
   const onMultiSelectionCtxMenu = useCallback(
-    (event: MouseEvent, nodes: Node[]) => {
-      event.preventDefault()
-    },
+    (event: MouseEvent, _: Node[]) => event.preventDefault(),
     []
   )
 
@@ -170,19 +177,34 @@ export default function Graph({
 
   const nodeTypes = useMemo(
     () => ({
-      edit: (data: JSONObject) => (
-        <EditEntityNode ctx={data} sendJsonMessage={sendJsonMessage} />
+      edit: (entity: JSONObject) => (
+        <EditEntityNode
+          ctx={entity}
+          blueprint={blueprints[toSnakeCase(entity.data.label)]}
+          sendJsonMessage={sendJsonMessage}
+        />
       ),
-      view: (data: JSONObject) => <ViewEntityNode ctx={data} />,
+      view: (entity: JSONObject) => (
+        <ViewEntityNode
+          ctx={entity}
+          blueprint={blueprints[toSnakeCase(entity.data.label)]}
+        />
+      ),
     }),
-    [sendJsonMessage]
+    [sendJsonMessage, Object.keys(blueprints).length !== 0]
   )
-
+  const [showEdges, setShowEdges] = useState(false)
   const edgeTypes = useMemo(
     () => ({
-      sfloat: FloatingEdge,
+      sfloat: (edge: Edge) => (
+        <FloatingEdge
+          {...edge}
+          showEdges={showEdges}
+          setShowEdges={setShowEdges}
+        />
+      ),
     }),
-    []
+    [showEdges]
   )
 
   const [clickDelta, setClickDelta] = useState(0)
@@ -210,7 +232,7 @@ export default function Graph({
         changes,
       })
     },
-    [handleEdgesChange]
+    [handleEdgesChange, showEdges]
   )
 
   // on double click toggle between entity types
@@ -262,24 +284,22 @@ export default function Graph({
   // the connecting edges handle  will be either red, green, or the primary color
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
-
   return (
     <ReactFlow
-      defaultMarkerColor='#3b419eee'
       ref={ref}
-      onlyRenderVisibleElements={true}
-      nodeDragThreshold={2}
-      minZoom={MIN_ZOOM}
-      maxZoom={MAX_ZOOM}
       zoomOnScroll={true}
       zoomOnPinch={true}
+      nodeDragThreshold={2}
       zoomOnDoubleClick={false}
+      minZoom={MIN_ZOOM}
+      maxZoom={MAX_ZOOM}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
       onConnect={onConnect}
       onEdgesChange={onEdgeChange}
-      edgeTypes={edgeTypes}
       onDragOver={onDragOver}
       isValidConnection={isValidConnection}
       onReconnectStart={onReconnectStart}
@@ -289,7 +309,6 @@ export default function Graph({
       onNodesChange={handleNodesChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
-      nodeTypes={nodeTypes}
       panActivationKeyCode='Space'
       onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
@@ -301,9 +320,11 @@ export default function Graph({
       elevateNodesOnSelect={true}
       connectionMode={ConnectionMode.Loose}
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
+      defaultMarkerColor='#3b419eee'
+      onlyRenderVisibleElements={true}
     >
       <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
-      <Panel position='top-left'>
+      <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
         <OverlayMenus
           readyState={readyState}
           positionMode={positionMode}

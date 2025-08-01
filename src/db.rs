@@ -1,8 +1,9 @@
 use crate::{
-    config::{self, CONFIG},
+    config::{self, CFG},
     schemas::errors::{AppError, ErrorKind},
 };
-use actix_web::web::Data;
+use actix_web::{cookie::time::error, web::Data};
+use futures_util::{future::BoxFuture, io};
 use log::error;
 use regex::Regex;
 use sqlx::Postgres;
@@ -18,12 +19,31 @@ pub type PoolResult = Result<PgPool, sqlx::Error>;
 
 pub static DB: OnceCell<PoolResult> = OnceCell::const_new();
 
-pub async fn get_pool() -> PoolResult {
-    let cfg = CONFIG.get_or_init(config::get).await;
-    PgPoolOptions::new()
-        .max_connections(128)
-        .connect(&cfg.database_url)
-        .await
+pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
+    Box::pin(async move {
+        let cfg = CFG.get_or_init(config::cfg).await;
+        match PgPoolOptions::new()
+            .max_connections(128)
+            .connect(&cfg.database_url)
+            .await
+        {
+            Ok(pool) => {
+                // Run migrations
+                if let Err(e) = sqlx::migrate!("./migrations").run(&pool).await {
+                    error!("Migration failed: {}", e);
+                }
+                pool
+            }
+            Err(err) => {
+                let attempts = attempts.unwrap_or(0);
+                error!(
+                    "Error connecting to pool, {:?} attempts failed. error: {}:",
+                    attempts, err
+                );
+                return db_pool(Some(attempts + 1)).await;
+            }
+        }
+    })
 }
 // #151345 -> #101c43
 

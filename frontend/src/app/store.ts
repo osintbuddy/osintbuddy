@@ -329,11 +329,21 @@ interface Transforms {
   [any: string]: Transform[]
 }
 
+// TODO: type me better
+interface Blueprint {
+  // TODO: type frfr
+  [any: string]: {
+    [any: string]: any
+    value: string
+  }
+}
+
 // Entities store
 interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
+  blueprints: Blueprint
   currentEntity: Entity | null
   transforms: Transforms
   isLoading: boolean
@@ -352,6 +362,8 @@ interface EntitiesState {
   favoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
   unfavoriteEntity: (payload: FavoriteEntityPayload) => Promise<void>
   setPlugins: (payload: any) => Promise<void>
+  setBlueprints: (payload: any) => Promise<void>
+  getBlueprint: (label: string) => any
   fetchTransforms: (label: string) => Promise<void>
   clearTransforms: () => Promise<void>
 }
@@ -359,6 +371,7 @@ interface EntitiesState {
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
   favorites: [],
+  blueprints: [],
   plugins: [],
   currentEntity: null,
   transforms: {},
@@ -386,6 +399,8 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     }
   },
   setPlugins: async (plugins) => set({ plugins }),
+  setBlueprints: async (blueprints) => set({ blueprints }),
+  getBlueprint: (label) => ({ ...get().blueprints[label] }),
   fetchTransforms: async (label: string) => {
     const existingTransforms = get().transforms
     if (!existingTransforms[label]) {
