@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub backend_port: u16,
     pub backend_cors: String,
     pub jwt_maxage: u64,
+    pub max_connections: u32,
     #[confik(secret)]
     pub jwt_secret: String,
 
@@ -20,16 +21,16 @@ pub struct AppConfig {
     pub serve_build: Option<bool>,
 }
 
-pub static CONFIG: OnceCell<AppConfig> = OnceCell::const_new();
+pub static CFG: OnceCell<AppConfig> = OnceCell::const_new();
 
-pub async fn get() -> AppConfig {
+pub async fn cfg() -> AppConfig {
     dotenvy::dotenv().ok();
     AppConfig::builder()
         .override_with(EnvSource::new().allow_secrets())
         .try_build()
         .unwrap_or_else(|err| {
-            error!("Using default config! Error loading env: {}", err);
-            AppConfig {
+            let default_cfg = AppConfig {
+                max_connections: 16,
                 environment: String::from("development"),
                 serve_build: Some(false),
                 database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
@@ -41,6 +42,11 @@ pub async fn get() -> AppConfig {
                 jwt_secret: String::from(
                     "03d2394fc289b30660772ea8d444540ff64z066631063d823b41444e1bdef086",
                 ),
-            }
+            };
+            error!(
+                "No `.env` file found, using default configuration: {:?}\nerror loading env: {}",
+                &default_cfg, err
+            );
+            default_cfg
         })
 }

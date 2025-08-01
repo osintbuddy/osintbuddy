@@ -47,7 +47,7 @@ export default function Graphing() {
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
     useTour()
   const { graph, getGraph, isLoading, isError } = useGraphStore()
-  const { setPlugins } = useEntitiesStore()
+  const { setPlugins, setBlueprints, blueprints } = useEntitiesStore()
   const { access_token } = useAuthStore()
 
   const {
@@ -128,6 +128,7 @@ export default function Graphing() {
   const socketActions: SocketActions = {
     authenticated: (data) => {
       setPlugins(data.plugins)
+      setBlueprints(data.blueprints)
       sendJsonMessage({ action: 'read:graph' })
       toast.dismiss('connection-lost')
     },
@@ -274,8 +275,6 @@ export default function Graphing() {
       </>
       <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
         <Graph
-          nodes={nodes}
-          edges={edges}
           graphInstance={graphInstance}
           setGraphInstance={setGraphInstance}
           sendJsonMessage={sendJsonMessage}
@@ -283,6 +282,7 @@ export default function Graphing() {
           graph={graph}
           setElkLayout={setElkLayout}
           fitView={fitView}
+          blueprints={blueprints}
         />
       </div>
     </>

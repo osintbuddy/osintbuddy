@@ -348,9 +348,9 @@ async fn get_entity_transforms(
     query: Query<TransformQuery>,
 ) -> Result<HttpResponse, AppError> {
     use std::process::Command;
-    
+
     let output = Command::new("ob")
-        .args(&["ls", "-l", &query.label])
+        .args(&["ls", "transforms", "-L", &query.label])
         .output()
         .map_err(|err| {
             error!("Error running 'ob ls -l {}': {}", query.label, err);
@@ -362,10 +362,10 @@ async fn get_entity_transforms(
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        error!("Command 'ob ls -l {}' failed: {}", query.label, stderr);
+        error!("OB command 'ls -L {}' failed: {}", query.label, stderr);
         return Err(AppError {
             kind: ErrorKind::Critical,
-            message: "Command 'ob ls -l' execution failed.",
+            message: "Command 'ob ls -L' execution failed.",
         });
     }
 

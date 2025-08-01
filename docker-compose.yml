@@ -9,7 +9,7 @@ services:
     volumes:
       - ./frontend/:/app/
     ports:
-      - "${FRONTEND_PORT-55173}:5173"
+      - "${FRONTEND_PORT-55173}:55173"
 
   db:
     container_name: "db"

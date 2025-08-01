@@ -51,7 +51,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.10.1",
+    "@preact/preset-vite": "^2.10.2",
     "@tanstack/eslint-plugin-query": "^5.78.0",
     "@types/d3-force": "^3.0.10",
     "@types/node": "^22.14.1",

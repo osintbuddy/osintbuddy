@@ -8,13 +8,23 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [preact(), tailwindcss(), dynamicImport(), mdPlugin({ mode: [Mode.MARKDOWN] }), tsconfigPaths()],
+  plugins: [
+    preact(),
+    tailwindcss(),
+    dynamicImport(),
+    mdPlugin({ mode: [Mode.MARKDOWN] }),
+    tsconfigPaths(),
+  ],
   resolve: {
     alias: [
       {
         find: '@',
-        replacement: fileURLToPath(new URL('./src', import.meta.url))
-      }
-    ]
-  }
+        replacement: fileURLToPath(new URL('./src', import.meta.url)),
+      },
+    ],
+  },
+  server: {
+    port: 55173,
+    host: true,
+  },
 })

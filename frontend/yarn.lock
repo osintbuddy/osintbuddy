@@ -716,7 +716,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@preact/preset-vite@^2.10.1":
+"@preact/preset-vite@^2.10.2":
   version "2.10.2"
   resolved "https://registry.yarnpkg.com/@preact/preset-vite/-/preset-vite-2.10.2.tgz#7fdf94e523bab2588054858c3ecd4d253fdbcea9"
   integrity sha512-K9wHlJOtkE+cGqlyQ5v9kL3Ge0Ql4LlIZjkUTL+1zf3nNdF88F9UZN6VTV8jdzBX9Fl7WSzeNMSDG7qECPmSmg==

@@ -1,10 +1,10 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import '../../../node_modules/react-grid-layout/css/styles.css';
 @import '../../../node_modules/@xyflow/react/dist/style.css';
 @import './fonts.css';
 @import './nodes.css';
 @import './loaders.css';
+@plugin "@tailwindcss/typography";
 
 @custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
 @custom-variant theme-blueprint {  &:where([data-theme="blueprint"] *) {    @slot;  }}
@@ -57,7 +57,7 @@
   --color-mirage-700: #111523;
   --color-mirage-800: #0F1320;
   --color-mirage-900: #0D111C;
-  --color-mirage-950: #0D101A;
+  --color-mirage-950: #0e111b;
 
   --color-gray-50: #3D3D3D;
   --color-gray-100: #383838;
@@ -347,12 +347,8 @@ input[type='number'] {
 
   --xy-background-color-props: #0d101a91;
 }
-.react-flow__panel {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  margin: 0px;
-}
+
+
 .react-flow__edge .react-flow__edge-path {
   stroke: #373c83 !important;
   stroke-width: 2;

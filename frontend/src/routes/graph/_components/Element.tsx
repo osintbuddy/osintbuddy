@@ -10,14 +10,15 @@ import { ElementProps } from '@/types/graph'
 
 // TODO: Fix types
 export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
-  const { label, value, icon } = element
+  const { label, value, icon, options = [] } = element
   switch (element.type) {
     case 'dropdown':
+      console.log('INSIDE ELEMENTINBFGA', element)
       return (
         <DropdownInput
           key={key}
           id={id}
-          options={element.options || []}
+          options={options || []}
           label={label}
           value={value}
           sendJsonMessage={sendJsonMessage}
