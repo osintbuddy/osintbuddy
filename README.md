@@ -19,7 +19,7 @@
 
 <span style="display: inline-block; width:830px"> </span>
 
-  🚧 ⚠️ <ins> **Work in progress - not ready for use _yet_** </ins> ⚠️  🚧
+  🚧 ⚠️ <ins> **Work in progress; Not ready for use, _yet_** </ins> ⚠️  🚧
 
   ## Introducing OSINTBuddy
 
