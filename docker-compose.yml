@@ -33,7 +33,6 @@ services:
       retries: 5
       start_period: 30s
 
-
   worker:
     container_name: "worker"
     build:
@@ -88,16 +87,6 @@ services:
   #   ports:
   #     - "55432:5432"
 
-  # cache:
-  #   container_name: "cache"
-  #   image: "redis:8.2.1-alpine"
-  #   volumes:
-  #     - "ob-cache-data:${REDIS_VOLUME-/data}"
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "55432:5432"
-
   # store:
   #   container_name: "store"
   #   image: quay.io/minio/minio
@@ -113,6 +102,5 @@ services:
 
 volumes:
   ob-db-data:
-  # ob-cache-data:
   ob-queue-data:
   # ob-store-data:
