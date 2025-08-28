@@ -40,3 +40,4 @@ tokio = { version = "1.43", features = [
     "full"
 ] }
 firecracker-rs-sdk = { version = "0.1.0", features = ["_rt-tokio"] }
+actix-limitation = "0.5.1"
