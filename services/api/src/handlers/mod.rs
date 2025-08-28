@@ -8,7 +8,7 @@ mod graphs;
 mod organization;
 mod user;
 
-#[get("/status")]
+#[get("/health")]
 pub async fn healthcheck_handler() -> impl Responder {
     HttpResponse::Ok().json(Notification { message: "pong" })
 }

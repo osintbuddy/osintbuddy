@@ -45,19 +45,14 @@
 <b>Table of Contents</b>
 </summary>
   <ol>
-    <li>
-      <a href="#what-is-osintbuddycom">What is OSINTBuddy</a>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#what-is-osintbuddycom">What is OSINTBuddy</a></li>
+    <li><a href="#project-status">Project Status</a></li>
+    <li><a href="#key-alpha-features">Alpha Features 🚧</a></li>
+    <li><a href="#a-vision">Our Vision</a></li>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#related-projects">Related Projects</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#sponsor-osintbuddy">Sponsor OSINTBuddy</a></li>
   </ol>
 </details>
 
@@ -100,20 +95,20 @@ What are the technical frameworks that ensure that a technology is open and equi
 >
 > OSINTBuddy is currently experimental software. It's not quite ready for use *yet*! If you're interested in development you'll need the `plugins` docker service cloned: `git clone https://github.com/osintbuddy/plugins osintbuddy-plugins` to the root of this repo
 
-| Repository | Description | Language | ETA |
-|------------|-------------|----------|-----|
-| [`osintbuddy`](https://github.com/osintbuddy/osintbuddy) |The main web application and backend *(you are here)* | Rust, TypeScript/Preact | 3-6 months from alpha |
-| [`plugins`](https://github.com/osintbuddy/plugins) | the Python plugin system package that's on PyPi | Python | 3-6 months |
-| [`entities`](https://github.com/osintbuddy/entities) | The default OSIB entity definitions | Python | 4-7 months |
+| Repository | Description | Language | Purpose | ETA |
+|------------|-------------|----------|---------|-----|
+| [`osintbuddy`](https://github.com/osintbuddy/osintbuddy) | The core application *(this repo)* | Rust, TypeScript/Preact |  Web interface and backend services | 3-5 months from alpha |
+| [`plugins`](https://github.com/osintbuddy/plugins) | The Python plugin system package on PyPi | Python |  Extensible data collection framework | 3-5 months |
+| [`entities`](https://github.com/osintbuddy/entities) | The default OSIB entity definitions | Python  | Default entity types and schemas | 4-6 months |
 
 ### Key Alpha Features
 
+- ~~Works most of the time :)~~ We're currently in the process of finishing up the rewrite, stay tuned!
 - **Visual Intelligence Made Simple**: Intuitive graph-based interface transforms complex data relationships into clear, interactive visualizations.
 - **Extensible Plugin Architecture**: a Python-based plugin system allows custom entities to pull from any data source.
 - **Self-hosted**: Your data can stay under your control with full privacy and security
 - **Cost-Effective**: Ditch the enterprise pricing, access advanced OSINT capabilities with free open source software.
 - **Open for contributions**.
-- ~~Works most of the time :)~~ We're currently in the process of finishing up the rewrite, stay tuned!
 - And check out the [open issues](https://github.com/jerlendds/osintbuddy/issues) for a list of requested features (and known bugs).
 
 
@@ -126,13 +121,27 @@ We aspire to become more than just a data aggregation tool:
 - **History Graphs** - Browser extension for seamless web exploration
 - **AI Integration** - Swarm intelligence, sentiment analysis, and evolutionary algorithms
 
+## Installation
 
+### Prerequisites
 
+- [Git](https://git-scm.com/downloads)
+- [Docker](https://www.docker.com/get-started/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Python 3.12+](https://github.com/pyenv/pyenv)
+- [Rust](https://rustup.rs/)
+- [KVM](https://linux-kvm.org/page/Main_Page) _(optional - only required for dispatching worker jobs to firecracker)_.
 
+### Configuration
+
+- **Configure environment** _(optional - by default we launch a dev environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
+    - `cp .env.example .env` 
+
+---
 
 ### Download the latest release 
 
-Once we iron out a few more bugs and a few more features we intend to setup a github actions workflow to build and package up the built frontend and Rust server. Stay tuned...
+Once we iron out a few more bugs and a few more features we intend to setup a github actions workflow to build and package up the built frontend and Rust services. Follow the project [on discord](https://discord.gg/b8vW4J4skv) for the latest updates :)
 
 
 ### Development
@@ -141,7 +150,7 @@ This Rust rewrite exists because I got tired of Python and I decided to rewrite 
 
 If you want to start developing for OSINTBuddy, create or pick up an [issue](https://github.com/jerlendds/osintbuddy/issues) and follow these steps:
 
-1. Clone the repo
+1. **Clone the repo**
    ```sh
    git clone https://github.com/osintbuddy/osintbuddy.git
    cd osintbuddy
@@ -149,45 +158,57 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    # git clone git@github.com:osintbuddy/osintbuddy.git 
    ```
 
-2. [Install Docker & Compose](https://docs.docker.com/get-started/get-docker/)
+2. [**Install Docker & Compose**](https://docs.docker.com/get-started/get-docker/)
 
-3. [Initialize core plugins](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSINTBuddy:
+3. [**Initialize default entities** _(aka plugins)_](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSIB:
    ```sh
    python3 -m venv venv
    . ./venv/bin/activate
    pip install ./osintbuddy-plugins/
    ob init
-
-   ```
-4. Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)
-   ```
-   docker compose up db ui
    ```
 
-5. Migrate db and build and start web server with watch
+4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
+   ```
+   docker compose up db ui queue worker
+   ```
+
+5. **Migrate database** and build and start web server with watch.
    ```bash
    cargo install sqlx-cli --no-default-features --features native-tls,postgres
    cargo install cargo-watch
    sqlx migrate run
-   # ensure your Python venv with osintbuddy is activated and the default plugins initialized...
-   # . ./venv/bin/activate
-   # now we can run and watch the Rust server
-   cargo watch -q -c -w src/ -x run
    ```
-
-6. Access OSINTBuddy through the URLs provided for the frontend, backend, and documentation.
+   - for development ensure your Python venv with osintbuddy is activated and the default plugins initialized...
+   - `. ./venv/bin/activate`
+   - Now we can run and watch the Rust web server
+   ```bash
+   cargo watch -q -c -w services/api -x "run -p api"
+   ```
+    - To launch worker outside of docker run:
+      - `cargo watch -q -c -w services/worker -x "run -p worker"` 
+      - **note**: you will need to update the amqp url by changing `queue` to `localhost` when running the worker outside of docker
+6. **Access OSINTBuddy** through the URLs provided for the frontend, backend, and documentation.
 
 - URLs
   - Frontend: [`http://localhost:55173`](http://localhost:55173)
-  - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
   - Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
+  - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
+
+
+#### Shutting down OSIB
+
+- **To stop OSINTBuddy**: `Ctrl+C`, then `docker compose down` to clean up.
+- **To delete *all* OSINTBuddy data**: Data removal is an **irreversible** operation!  **DO NOT** run this command if you do not want to lose **all** of your data! To remove all the data stored in your OSINTBuddy server run `docker compose down --volumes`. 
+
+---
 
 
 ## [↑](#introducing-osintbuddy)License
 
 We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL) as we want to guarantee freedom of use, reuse, copy, modification and re-publication of modifications. This is a technopolitical decision encoded into the social contract. Suffice to say here that the Affero GPLv3 licence legally binds the service providers to give direct access to any user to the computer code that runs in a given instance.
 
-*Note: the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their plugins developed in-house.*
+- **Note**: *the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their custom plugins.*
 
 
 ## [↑](#introducing-osintbuddy)Related Projects
@@ -207,7 +228,6 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 
 ---
 
-
 > LinkScope allows you to perform online investigations by representing information as discrete pieces of data, called Entities.
 
 + https://github.com/AccentuSoft/LinkScope_Client
@@ -217,12 +237,6 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 > Discover and deliver actionable intelligence.
 
 + https://i2group.com/solutions/i2-analysts-notebook
-
----
-
-> a browser extension that offers a real-time, on-page approach to analyzing web content – completely content and site agnostic
-
-+ https://www.osint-tool.com/
 
 
 

@@ -19,6 +19,7 @@ pub struct AppConfig {
     #[confik(secret)]
     pub sqids_alphabet: String,
     pub serve_build: Option<bool>,
+    pub amqp_url: String,
 }
 
 pub static CFG: OnceCell<AppConfig> = OnceCell::const_new();
@@ -30,6 +31,7 @@ pub async fn cfg() -> AppConfig {
         .try_build()
         .unwrap_or_else(|err| {
             let default_cfg = AppConfig {
+                amqp_url: String::from("amqp://guest:guest@queue:5672//"),
                 max_connections: 16,
                 environment: String::from("development"),
                 serve_build: Some(false),
