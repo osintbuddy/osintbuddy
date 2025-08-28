@@ -48,13 +48,13 @@ Jobs are JSON objects published to the `jobs` queue:
 
 ### Quick Start
 
-Docker Compose (recommended)
+Run the compose worker:
 
 ```bash
 docker compose up worker
 ```
 
-Run with Docker directly
+Run the worker with Docker directly:
 
 ```bash
 docker build -f services/worker/Dockerfile -t osib-worker:latest .
@@ -69,7 +69,7 @@ docker run --rm \
   osib-worker:latest
 ```
 
-Run with Cargo (host)
+Run with Cargo _(host)_
 
 ```bash
 sudo RUST_LOG=info AMQP_URL=amqp://guest:guest@localhost:5672// cargo run -p worker
@@ -103,6 +103,6 @@ sudo RUST_LOG=info AMQP_URL=amqp://guest:guest@localhost:5672// cargo run -p wor
 
 ### Links
 
-- Root README: `../..`/README.md
-- Compose service: `docker-compose.yml` → `services.worker`
-- Entry point: `services/worker/src/main.rs`
+- [docker-compose.yml](../../docker-compose.yml)
+- [Worker entrypoint](./src/main.rs)
+- [OSIB README](../../README.md)

@@ -30,11 +30,11 @@ This crate provides the HTTP API for the OSINTBuddy stack. It is a minimal Actix
 
 ### Endpoints
 
-- GET `/health` → `{"status":"ok"}` (liveness)
+- GET `/api/health` → `{"message":"pong"}` (liveness)
 
 ### Quick Start
 
-Docker Compose (recommended during development)
+Run with Docker Compose _(recommended during development)_:
 
 ```bash
 docker compose up api
@@ -42,31 +42,32 @@ docker compose up api
 curl http://localhost:${BACKEND_PORT-48997}/health
 ```
 
-Run with Docker directly
+Run with Docker directly:
 
 ```bash
 docker build -f services/api/Dockerfile -t osib-api:latest .
 docker run --rm -e RUST_LOG=info -p 48997:48997 osib-api:latest
 ```
 
-Run with Cargo (host)
+Run with Cargo _(host)_:
 
 ```bash
 cargo run -p api
-curl http://localhost:48997/health
+curl http://localhost:48997/api/health
 ```
 
 ### Configuration
 
-- PORT: fixed at `48997` in the binary/Dockerfile; Compose maps `${BACKEND_PORT:-48997}` → 48997.
-- RUST_LOG: log level (default `info`). Example: `RUST_LOG=debug`.
-- DATABASE_URL, AMQP_URL: passed through by Compose for setting up queue.
+- **PORT**: fixed at `48997` in the binary/Dockerfile; Compose maps `${BACKEND_PORT:-48997}` → 48997.
+- **RUST_LOG**: log level (default `info`). Example: `RUST_LOG=debug`.
+- **DATABASE_URL**, **AMQP_URL**: passed through by Compose for setting up queue and postgres connection.
 
 ### Development
 
-- Entry point: `services/api/src/main.rs` (Actix‑Web 4).
-- Workspace: participates in the root Cargo workspace and uses shared dependencies.
-- Typical workflow:
+- [actix-web backend entrypoint](./src/main.rs).
+
+#### Typical workflow:
+
 
 ```bash
 sqlx migrate run 
@@ -80,6 +81,6 @@ cargo watch -q -c -w services/api -x 'run -p api'
 
 ### Links
 
-- [Root README](../../README.md)
 - [Compose service](../../docker-compose.yml)
 - [actix-web entrypoint](./src/lib.rs)
+- [OSIB README](../../README.md)

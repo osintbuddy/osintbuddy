@@ -4,10 +4,6 @@
 
 This document provides an overview of the OSIB backend services and how they fit together.
 
-> [!CAUTION]
-> ⚠️ Experimental (pre‑alpha) ⚠️
->
-> Interfaces and behavior may change.
 
 </p>
 
@@ -24,6 +20,8 @@ This document provides an overview of the OSIB backend services and how they fit
 
 </details>
 
+
+
 ### Overview
 
 This directory contains the Rust service crates that power the OSINTBuddy stack:
@@ -33,45 +31,59 @@ This directory contains the Rust service crates that power the OSINTBuddy stack:
 
 See each service README for detailed configuration and usage.
 
-### Architecture
+### Status 
+
+> [!CAUTION]
+> ⚠️ Experimental (pre‑alpha) ⚠️
+>
+> Interfaces and behavior may change drastically.
+
+
+### Architecture Overview
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'text': '#ffffff', 'lineColor': '#000', 'edgeColor':
+'#000' }}}%%
 architecture-beta
-    group api(cloud)[OSIB Backend]
+    group api(cloud)[OSIB Services]
 
-    service web(server)[TypeScript Preact client] in api
+    service web(internet)[TypeScript Preact client] in api
     service db(database)[PostgreSQL 17] in api
     service server(server)[Rust API] in api
     service queue(server)[RabbitMQ] in api
     service worker(server)[Rust Worker] in api
-    service vm(server)[Firecracker MicroVMs] in api
+    service vm(disk)[Firecracker MicroVMs] in api
 
-    db:L <-- R:server
+    db:L <--> R:server
     web:R <--> L:server
     server:T --> B:queue
     queue:T --> B:worker
-    worker:T -- B:vm
+    worker:R --> L:vm
+
 ```
 
-### Services
+### Docker Services
 
-- api: Minimal HTTP service exposing `/health` on port `48997`. Designed to grow with backend features.
-- worker: Consumes AMQP messages from `jobs`, launches short‑lived Firecracker microVMs to process work.
-- rabbitmq: Message broker for job dispatch (`jobs` queue).
-- db: PostgreSQL with Apache AGE for graph capabilities.
+- **api**: Rust actix-web service exposing `/api/health` and the OSIB application endpoints on port `48997`.
+- **worker**: Rust worker consumes AMQP messages from `RabbitMQ`, launches short‑lived Firecracker microVMs to process Python/Node/Bash transform jobs.
+- **queue**: RabbitMQ message broker for transforms job dispatch
+- **db**: PostgreSQL 17 with primitive event-sourcing built 
+- **ui**: TypeScript/Preact client
+
 
 ### Quick Start
 
-Use Docker Compose from the repository root:
+Use Docker Compose from the root of the repository:
 
 ```bash
-docker compose up api worker queue db
+docker compose up api worker queue db ui
 ```
 
-Ports (defaults via `.env`):
+Ports _(defaults via `.env`)_:
 
 - Frontend: `55173`
 - Backend API: `48997`
+  - _(the backend serves the production frontend build if you choose to run `yarn build` in the `frontend/` directory)_
 - RabbitMQ: `5672`
 - Postgres: `55432 -> 5432`
 
@@ -97,4 +109,5 @@ Optional runtime features:
 - [API service](./api/README.md)
 - [Worker service](./worker/README.md)
 - [firecracker/docs/getting-started.md](https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md)
-- [lapin](https://github.com/amqp-rs/lapin)
+- [lapin](https://github.com/amqp-rs/lapin) _(async rabbitmq library)_
+- [OSIB README](../README.md)
