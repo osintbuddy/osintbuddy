@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "uuid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "author",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "source",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "visibility",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "org_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "ctime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "mtime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "owner_id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "b2d9ec76069a828a256a6af6552895e1602d07b326caa42e1d5e41ad3cf41844"
+}

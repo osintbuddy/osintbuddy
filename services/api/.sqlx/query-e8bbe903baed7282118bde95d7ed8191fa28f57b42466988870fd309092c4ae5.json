@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            u.id, u.name, u.email, u.password, u.verified, u.user_type, u.org_id, u.ctime, u.mtime,\n            o.subscription_level, o.max_cases, o.max_entities, o.can_export, o.can_share\n        FROM users u \n        JOIN organizations o ON u.org_id = o.id \n        WHERE u.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "user_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "org_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "ctime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "mtime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "subscription_level",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "max_cases",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "max_entities",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "can_export",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "can_share",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "e8bbe903baed7282118bde95d7ed8191fa28f57b42466988870fd309092c4ae5"
+}
