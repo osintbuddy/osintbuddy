@@ -92,18 +92,6 @@ sudo RUST_LOG=info AMQP_URL=amqp://guest:guest@localhost:5672// cargo run -p wor
 - VSOCK_GUEST_CID: Guest vsock CID. Default `3`.
 - RUST_LOG: Log level (e.g., `info`, `debug`).
 
-### Runtime Requirements
-
-- Access to `/dev/kvm`; container runs as `root` in Compose to allow device access.
-- If networking is required: `/dev/net/tun` and `--cap-add NET_ADMIN`.
-- Kernel/rootfs artifacts must be present at the configured paths.
-
-### Troubleshooting
-
-- Permission denied on `/dev/kvm`: ensure KVM is enabled and passed through; try running as `root` or adjust device permissions.
-- AMQP connection failures: verify `rabbitmq` is reachable and `AMQP_URL` is correct.
-- Missing artifacts: ensure `vmlinux.bin` and `rootfs.ext4` are mounted to `/artifacts/`.
-
 ### Links
 
 - [docker-compose.yml](../../docker-compose.yml)
