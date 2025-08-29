@@ -34,7 +34,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD-guest}
     command: ["/bin/bash", "/init/rabbitmq.sh"]
     ports:
-      - "5672:5672"
+      - "55672:5672"
     volumes:
       - ob-queue-data:/var/lib/rabbitmq
       - ./services/rabbitmq.sh:/init/rabbitmq.sh:ro
