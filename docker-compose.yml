@@ -15,15 +15,19 @@ services:
     container_name: "api"
     build:
       context: .
-      dockerfile: services/api/Dockerfile
+      dockerfile: services/api/dev.Dockerfile
     env_file:
       - .env
+    volumes:
+      - "./services/api:/app/api"
     depends_on:
       queue:
         condition: service_healthy
       db:
         condition: service_started
-
+    ports:
+      - 48997:48997
+    
   queue:
     container_name: "queue"
     image: "rabbitmq:3.13-alpine"
@@ -67,10 +71,10 @@ services:
     volumes:
       - /dev/kvm:/dev/kvm
       - /dev/net/tun:/dev/net/tun
-      - ./vmlinux.bin:/artifacts/vmlinux.bin:ro
-      - ./rootfs.ext4:/artifacts/rootfs.ext4:ro
-      - ./vm_config.json:/artifacts/vm_config.json:ro
-      - ./sockets:${VSOCK_DIR-/sockets}
+      # - ./vmlinux.bin:/artifacts/vmlinux.bin:ro
+      # - ./rootfs.ext4:/artifacts/rootfs.ext4:ro
+      # - ./vm_config.json:/artifacts/vm_config.json:ro
+      # - ./sockets:${VSOCK_DIR-/sockets}
     depends_on:
       queue:
         condition: service_healthy
@@ -78,7 +82,6 @@ services:
         condition: service_started
     cap_add:
       - NET_ADMIN
-
 
   db:
     container_name: "db"
