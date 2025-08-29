@@ -58,7 +58,7 @@ architecture-beta
 
 ```
 
-### Docker Services
+### Services
 
 - **api**: Rust actix-web service exposing `/api/health` and the OSIB application endpoints on port `48997`.
 - **worker**: Rust worker consumes AMQP messages from `RabbitMQ`, launches short‑lived Firecracker microVMs to process Python/Node/Bash transform jobs.
@@ -72,7 +72,9 @@ architecture-beta
 Use Docker Compose from the root of the repository:
 
 ```bash
-docker compose up api worker queue db ui
+docker compose up api queue db ui
+# once queue starts
+docker compose up worker
 ```
 
 Ports _(defaults via `.env`)_:
@@ -85,20 +87,7 @@ Ports _(defaults via `.env`)_:
 
 ### Message Flow
 
-Jobs are published to `jobs` (RabbitMQ). The worker consumes, configures a microVM (kernel, rootfs, optional networking/vsock), runs briefly, tears down, then ack/nack. See `worker/README.md` for the JSON schema and environment configuration.
-
-### Artifacts
-
-The worker expects kernel and rootfs images mounted in the container:
-
-- Kernel: `./vmlinux.bin` → `/artifacts/vmlinux.bin`
-- Rootfs: `./rootfs.ext4` → `/artifacts/rootfs.ext4`
-
-Optional runtime features:
-
-- KVM: `/dev/kvm` device pass‑through (required for Firecracker).
-- TAP networking: `/dev/net/tun` + `--cap-add NET_ADMIN` (if `TAP_NAME` is set).
-- Vsock: host directory for Unix sockets (default `/sockets`).
+Jobs are published to `jobs` (RabbitMQ). The worker consumes, configures a microVM (kernel, rootfs, networking/vsock), runs briefly, tears down, then ack/nack. See [`worker/README.md`](./worker/README.md) for more details.
 
 ### Links
 

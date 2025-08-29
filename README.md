@@ -188,6 +188,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
     - To launch worker outside of docker run:
       - `cargo watch -q -c -w services/worker -x "run -p worker"` 
       - **note**: you will need to update the amqp url by changing `queue` to `localhost` when running the worker outside of docker
+
 6. **Access OSINTBuddy** through the URLs provided for the frontend, backend, and documentation.
 
 - URLs
@@ -203,10 +204,9 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 ---
 
-
 ## [↑](#introducing-osintbuddy)License
 
-We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL) as we want to guarantee freedom of use, reuse, copy, modification and re-publication of modifications. This is a technopolitical decision encoded into the social contract. Suffice to say here that the Affero GPLv3 licence legally binds the service providers to give direct access to any user to the computer code that runs in a given instance.
+We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL) as we want to guarantee freedom of use, reuse, copy, modification and re-publication of modifications. This is a technopolitical decision encoded into the social contract. Suffice to say here that the Affero GPLv3 license legally binds the service providers to give direct access to any user to the computer code that runs in a given instance.
 
 - **Note**: *the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their custom plugins.*
 
