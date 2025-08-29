@@ -1,13 +1,8 @@
-<p>
 
 ## OSINTBuddy Worker Service
 
-> AMQP‑backed job worker that launches Firecracker microVMs to execute sandboxed tasks.
+AMQP‑backed job worker that launches Firecracker microVMs to execute sandboxed tasks.
 
-> [!CAUTION]
-> ⚠️ Experimental (pre‑alpha). Requires KVM. Interfaces and behavior may change.
-
-</p>
 
 <details open="open">
 <summary><b>Table of Contents</b></summary>
@@ -26,6 +21,14 @@
 ### What is this?
 
 An async Rust service that consumes jobs from RabbitMQ and spins up ephemeral Firecracker microVMs to process them. It uses `tokio`, `lapin` for AMQP, and `firecracker-rs-sdk` to configure/start the VM.
+
+### Status
+
+> [!CAUTION]
+> ⚠️ Experimental (pre‑alpha) ⚠️
+>
+> Currently requires KVM. Interfaces and behavior may change.
+
 
 ### Responsibilities
 
@@ -77,7 +80,7 @@ sudo RUST_LOG=info AMQP_URL=amqp://guest:guest@localhost:5672// cargo run -p wor
 
 ### Configuration
 
-- AMQP_URL: AMQP connection string. Default `amqp://guest:guest@rabbitmq:5672//`.
+- AMQP_URL: AMQP connection string. Default `amqp://guest:guest@queue:5672//`.
 - FIRECRACKER_BIN: Path to Firecracker binary. Default `/usr/bin/firecracker`.
 - KERNEL_IMAGE: Path to kernel image. Default `/artifacts/vmlinux.bin`.
 - ROOTFS_IMAGE: Path to rootfs image. Default `/artifacts/rootfs.ext4`.
