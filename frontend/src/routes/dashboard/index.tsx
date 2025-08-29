@@ -84,8 +84,8 @@ export default function DashboardPage() {
     <>
       <div class='flex'>
         <aside class='relative flex h-screen max-w-80 min-w-80 flex-col items-start overflow-y-clip rounded border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-3.5 shadow-2xl shadow-black/25 backdrop-blur-md'>
-          <Input.TransparentIcon
-            icon={<Icon icon='search' className='relative h-6 w-6' />}
+          <Input.AltIcon
+            icon={<Icon icon='search' className='transparent-icon' />}
             onBtnClick={() => console.log('Todo search')}
             type='text'
             className='mx-2 mb-1.5 w-full'
@@ -115,7 +115,7 @@ export default function DashboardPage() {
                 Market
               </Link>
               <div
-                class={`${currentPanelTab === 1 ? '!translate-x-[111px]' : currentPanelTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} from-primary-350 to-primary-400 border-mirage-400/60 absolute top-0 left-0 z-[0] mr-auto min-h-[35px] min-w-[95px] cursor-pointer rounded border bg-gradient-to-br transition-all duration-200 ease-out`}
+                class={`${currentPanelTab === 1 ? '!translate-x-[108px]' : currentPanelTab !== 0 ? 'translate-x-[213px]' : 'translate-x-[6px]'} from-primary-350 to-primary-400 border-mirage-400/60 absolute top-0 left-0 z-[0] mr-auto min-h-[35px] min-w-[95px] cursor-pointer rounded border bg-gradient-to-br transition-all duration-200 ease-out`}
               />
             </section>
           </div>
@@ -280,7 +280,7 @@ function CreateEntityModal({
           </div>
         </section>
         <div class='mt-3 grid w-full grid-cols-1 gap-y-2'>
-          <Input.Transparent
+          <Input.AltText
             placeholder='Your entity name...'
             className='w-full'
             name='label'
@@ -292,7 +292,7 @@ function CreateEntityModal({
             name='description'
             label='Description'
           />
-          <Input.Transparent
+          <Input.AltText
             placeholder='Entity authors name...'
             className='mb-6 w-full'
             name='author'
@@ -382,7 +382,7 @@ export function CreateGraphModal({
           </div>
         </section>
         <div class='mt-3 grid w-full grid-cols-1 gap-y-2'>
-          <Input.Transparent
+          <Input.AltText
             name='label'
             label='Label'
             placeholder='Enter a name for your graph...'

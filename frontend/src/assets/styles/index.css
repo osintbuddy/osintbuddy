@@ -170,8 +170,8 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, rgba(1, 11, 39, 0.055) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 15, 0.322) 1%, rgba(4, 0, 22, 0.035) 99%),
+    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.0) 0%, rgba(1, 11, 39, 0.155) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 15, 0.0) 1%, rgba(4, 0, 22, 0.035) 99%),
     radial-gradient(142% 91% at 83% 7%, hsla(251, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
     radial-gradient(142% 91% at -6% 74%, rgba(150, 5, 179, 0.192) 1%, rgba(0, 80, 253, 0.219) 99%),
     radial-gradient(142% 91% at 111% 84%, rgba(0, 0, 0, 0.158) 25%, rgba(0, 8, 116, 0.151) 95%);
@@ -182,10 +182,14 @@ body {
   @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
 }
 
+.transparent-icon {
+  @apply group-hover:text-primary-350 group-focus-within:group-hover:text-primary-400 group-focus-within:text-primary-400 group-active:text-primary-400 relative right-4 h-6 w-6
+}
+
 ::-moz-selection,
 ::selection {
-  color: var(--color-teal-200);
-  background-color:  color-mix(in srgb, var(--color-teal-400) 15%, transparent);
+  color: var(--color-slate-50);
+  background-color:  color-mix(in srgb, var(--color-radiance-700) 80%, transparent);
   opacity: .1
 }
 

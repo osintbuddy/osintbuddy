@@ -3,14 +3,13 @@ import { memo } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
-import { useEntitiesStore } from '@/app/store'
 
 export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
   const { color: backgroundColor, icon, elements } = blueprint
   const displayValue = useMemo(
     () =>
       Array.isArray(elements[0]) ? elements[0][0]?.value : elements[0]?.value,
-    []
+    [elements]
   )
   return (
     <>

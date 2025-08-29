@@ -42,7 +42,7 @@ interface GraphPanelProps {
     favorites: string[]
   }
   isLoading: boolean
-isError: boolean
+  isError: boolean
   isSuccess: boolean
   favoriteGraph: (graphId: string) => void
   unfavoriteGraph: (graphId: string) => void
@@ -111,7 +111,7 @@ export function GraphPanel({
         to='/dashboard/graph'
       />
       <Subpanel
-        label='All graphs'
+        label='All cases'
         showError={isError}
         show={showAllGraphs}
         setShow={() => setShowAllGraphs(!showAllGraphs)}

@@ -64,7 +64,7 @@ export default function ContextMenu({
             {selection?.id ? selection.id : '?!'}
           </button>
           {selection && (
-            <Input.TransparentIcon
+            <Input.AltIcon
               onChange={(e) => setQuery(e.currentTarget.value)}
               className='h-8 !rounded-none !px-1.5 !py-1 !outline-none'
               icon={<Icon icon='search' className='relative right-0 h-4 w-4' />}

@@ -72,7 +72,7 @@ export default function RegisterPage(): JSX.Element {
             onSubmit={onSubmit}
             class='grid w-full max-w-2xs gap-y-2 px-2 md:px-0'
           >
-            <Input.Transparent
+            <Input.AltText
               name='username'
               label='Username'
               type='text'
@@ -80,7 +80,7 @@ export default function RegisterPage(): JSX.Element {
               placeholder='Your username'
               required
             />
-            <Input.Transparent
+            <Input.AltText
               name='email'
               label='Email'
               type='email'
@@ -88,14 +88,14 @@ export default function RegisterPage(): JSX.Element {
               placeholder='you@provider.com'
               required
             />
-            <Input.TransparentPassword
+            <Input.AltPassword
               name='password'
               label='Password'
               className='w-full'
               placeholder='*******'
               required
             />
-            <Input.Transparent
+            <Input.AltText
               name='confirm'
               label='Confirm Password'
               type='password'
