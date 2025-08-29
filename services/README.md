@@ -63,8 +63,8 @@ architecture-beta
 - **api**: Rust actix-web service exposing `/api/health` and the OSIB application endpoints on port `48997`.
 - **worker**: Rust worker consumes AMQP messages from `RabbitMQ`, launches short‑lived Firecracker microVMs to process Python/Node/Bash transform jobs.
 - **queue**: RabbitMQ message broker for transforms job dispatch
-- **db**: PostgreSQL 17 with primitive event-sourcing built 
-- **ui**: TypeScript/Preact client
+- **db**: PostgreSQL 17 with primitive event-sourcing built only for the `case entities` models/domain
+- **ui**: TypeScript/Preact client (*performs better on Chrome, looks better on Firefox, I personally use Firefox*)
 
 
 ### Quick Start
