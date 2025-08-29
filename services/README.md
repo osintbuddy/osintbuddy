@@ -1,11 +1,7 @@
-<p>
-
 ## OSINTBuddy Services
 
 This document provides an overview of the OSIB backend services and how they fit together.
 
-
-</p>
 
 <details open="open">
 <summary><b>Table of Contents</b></summary>

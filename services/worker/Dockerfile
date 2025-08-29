@@ -34,8 +34,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates tzdata && \
-    rm -rf /var/lib/apt/lists/* && \
-    useradd -r -s /usr/sbin/nologin ${APP_USER}
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/worker /usr/local/bin/worker
 # Run as root to allow /dev/kvm and TAP management; tighten via compose if desired.
