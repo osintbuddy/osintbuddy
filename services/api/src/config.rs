@@ -35,7 +35,7 @@ pub async fn cfg() -> AppConfig {
                 max_connections: 16,
                 environment: String::from("development"),
                 serve_build: Some(false),
-                database_url: String::from("postgresql://postgres:password@127.0.0.1:55432/app"),
+                database_url: String::from("postgresql://postgres:password@db:55432/app"),
                 backend_port: 48997,
                 backend_addr: String::from("localhost"),
                 backend_cors: String::from("http://localhost:5173"),

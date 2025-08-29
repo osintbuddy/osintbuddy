@@ -11,25 +11,37 @@ services:
     ports:
       - "${FRONTEND_PORT-55173}:55173"
 
+  api:
+    container_name: "api"
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      queue:
+        condition: service_healthy
+      db:
+        condition: service_started
+
   queue:
     container_name: "queue"
-    image: "rabbitmq:3.13-management-alpine"
+    image: "rabbitmq:3.13-alpine"
     env_file:
       - .env
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER-guest}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD-guest}
-    command: ["/bin/bash", "/init/rabbitmq-init.sh"]
+    command: ["/bin/bash", "/init/rabbitmq.sh"]
     ports:
       - "5672:5672"
-      - "15672:15672"
     volumes:
       - ob-queue-data:/var/lib/rabbitmq
-      - ./rabbitmq.sh:/init/rabbitmq-init.sh:ro
+      - ./services/rabbitmq.sh:/init/rabbitmq.sh:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 30s
-      timeout: 10s
+      interval: 16s
+      timeout: 12s
       retries: 5
       start_period: 30s
 
@@ -67,6 +79,7 @@ services:
     cap_add:
       - NET_ADMIN
 
+
   db:
     container_name: "db"
     image: apache/age
@@ -77,6 +90,9 @@ services:
     ports:
       - "55432:5432"
 
+  # TODO: Swap out age for more event-sourcing like approach
+  # this helps maintain auditability, traceability, and provides history
+  # for a case graph/case table/aka set of entities of optionally entity relationships
   # db:
   #   container_name: "db"
   #   image: "postgres:17.6-alpine3.22"

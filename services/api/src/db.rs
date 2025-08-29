@@ -4,7 +4,7 @@ use crate::{
 };
 use actix_web::{cookie::time::error, web::Data};
 use futures_util::{future::BoxFuture, io};
-use log::error;
+use log::{error, info};
 use regex::Regex;
 use sqlx::Postgres;
 use sqlx::Row;
@@ -22,6 +22,7 @@ pub static DB: OnceCell<PoolResult> = OnceCell::const_new();
 pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
     Box::pin(async move {
         let cfg = CFG.get_or_init(config::cfg).await;
+        info!("Attempting to establish connection to PostgreSQL...");
         match PgPoolOptions::new()
             .max_connections(128)
             .connect(&cfg.database_url)
@@ -37,7 +38,7 @@ pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
             Err(err) => {
                 let attempts = attempts.unwrap_or(0);
                 error!(
-                    "Error connecting to pool, {:?} attempts failed. error: {}:",
+                    "Error connecting to postgres pool, {:?} attempts failed. error: {}:",
                     attempts, err
                 );
                 return db_pool(Some(attempts + 1)).await;

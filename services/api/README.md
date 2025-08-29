@@ -32,6 +32,7 @@ This crate provides the HTTP API for the OSINTBuddy stack. It is a minimal Actix
 
 - GET `/api/health` → `{"message":"pong"}` (liveness)
 
+
 ### Quick Start
 
 Run with Docker Compose _(recommended during development)_:
