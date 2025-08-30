@@ -94,5 +94,5 @@ cargo build --release
 
 printf "${PURPLE}OSINTBuddy is starting!\nKilling old process and starting the server!\n${iYELLOW}(Did you remember to update your rs/.env file?)${NC}:\n\n"
 printf "${GREEN}killall osib && ./rs/target/release/osib &${NC}\n"
-killall osib
+killall -q osib
 ./target/release/osib &
