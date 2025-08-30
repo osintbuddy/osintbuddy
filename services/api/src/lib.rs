@@ -3,7 +3,9 @@ pub mod config;
 pub mod db;
 pub mod handlers;
 pub mod middleware;
+pub mod models;
 pub mod schemas;
+pub mod utils;
 
 use actix_cors::Cors;
 use actix_files::{Files, NamedFile};

@@ -1,9 +1,7 @@
-use crate::AppState;
 use crate::db::{Database, age_tx, with_cypher};
 use crate::middleware::auth::decode_jwt;
-use crate::schemas::errors::{AppError, ErrorKind};
-use actix_web::dev::AppConfig;
-use actix_web::{Error, HttpRequest, HttpResponse, Result, web};
+use crate::schemas::errors::AppError;
+use actix_web::{HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
 use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
@@ -11,11 +9,10 @@ use log::{error, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use tokio::fs::rename;
 use tokio::time::{Duration, sleep};
 use uuid::Uuid;
 
-use serde_json::{Map, Number, Value, json};
+use serde_json::{Map, Value, json};
 use sqids::Sqids;
 use sqlx::PgPool;
 use std::collections::HashMap;
@@ -73,91 +70,19 @@ pub struct GraphEdge {
     pub edge_type: String,
 }
 
-fn dict_to_opencypher(value: &Value) -> String {
-    let mut properties = "{".to_string();
-
-    if let Some(obj) = value.as_object() {
-        for (k, v) in obj {
-            properties.push_str(&format!("{}: ", k));
-            match v {
-                Value::String(s) => properties.push_str(&format!("'{}', ", s)),
-                Value::Object(obj) => {
-                    if let Some(dropdown_value) = obj.get("value") {
-                        properties.push_str(&format!("'{}', ", dropdown_value));
-                    }
-                }
-                _ => properties.push_str(&format!("{}, ", v)),
-            }
-        }
-    }
-
-    if properties.ends_with(", ") {
-        properties.truncate(properties.len() - 2);
-    }
-    properties.push('}');
-
-    properties
-}
-
-fn to_camel_case(value: &str) -> String {
-    let value = value.replace(' ', "_");
-    let value = value.to_lowercase();
-    let value_list: Vec<&str> = value.split('_').collect();
-
-    if value_list.is_empty() {
-        return String::new();
-    }
-
-    let mut result = value_list[0].to_string();
-    for part in &value_list[1..] {
-        if !part.is_empty() {
-            let mut chars = part.chars();
-            if let Some(first) = chars.next() {
-                result.push(first.to_uppercase().next().unwrap_or(first));
-                result.push_str(&chars.collect::<String>());
-            }
-        }
-    }
-
-    result
-}
-
-fn to_snake_case(name: &str) -> String {
-    // First convert hyphens and dots to underscores and convert to camel case
-    let name = to_camel_case(&name.replace('-', "_").replace('.', "_"));
-
-    // Apply regex transformations
-    let re1 = Regex::new(r"(.)([A-Z][a-z]+)").unwrap();
-    let name = re1.replace_all(&name, "${1}_${2}");
-
-    let re2 = Regex::new(r"__([A-Z])").unwrap();
-    let name = re2.replace_all(&name, "_${1}");
-
-    let re3 = Regex::new(r"([a-z0-9])([A-Z])").unwrap();
-    let name = re3.replace_all(&name, "${1}_${2}");
-
-    name.to_lowercase()
-}
-
 pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError> {
     let output = Command::new("ob")
         .args(&["blueprints"])
         .output()
         .map_err(|err| {
             error!("Error running 'ob ls entities': {}", err);
-            AppError {
-                message: "",
-                kind: ErrorKind::Critical,
-            }
+            AppError { message: "" }
         })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         error!("Command 'ob ls entities' failed: {}", stderr);
-        return Err(AppError {
-            message: "",
-            kind: ErrorKind::Critical,
-        });
+        return Err(AppError { message: "" });
     };
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -525,7 +450,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
         error!("Entity is not a valid JSON object: {}", entity);
         AppError {
             message: "Invalid entity format",
-            kind: ErrorKind::Invalid,
         }
     })?;
 
@@ -533,7 +457,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
         error!("Entity missing valid id field: {}", entity);
         AppError {
             message: "Entity missing valid id",
-            kind: ErrorKind::Invalid,
         }
     })?;
 
@@ -564,7 +487,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
             error!("Failed to update node property {}: {}", key, err);
             AppError {
                 message: "Failed to update node property",
-                kind: ErrorKind::Database,
             }
         })?;
     }
@@ -574,7 +496,6 @@ pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Re
         error!("Failed to commit node updates: {err}");
         AppError {
             message: "Failed to save node updates",
-            kind: ErrorKind::Database,
         }
     })?;
 
@@ -614,10 +535,7 @@ pub async fn remove_node(
     let _ = with_cypher(delete_query, tx.as_mut()).await;
     tx.commit().await.map_err(|err| {
         error!("{err}");
-        AppError {
-            message: "()",
-            kind: ErrorKind::Database,
-        }
+        AppError { message: "()" }
     })?;
     session
         .text(
@@ -630,10 +548,7 @@ pub async fn remove_node(
         .await
         .map_err(|err| {
             error!("{err}");
-            AppError {
-                message: "",
-                kind: ErrorKind::Database,
-            }
+            AppError { message: "" }
         })?;
 
     Ok(())
@@ -662,10 +577,7 @@ pub async fn save_node_on_drop(
     .into_iter()
     .next() else {
         error!("Entity drop failed!");
-        return Err(AppError {
-            message: "",
-            kind: ErrorKind::Database,
-        });
+        return Err(AppError { message: "" });
     };
 
     // Commit the transaction to save the new entity to the database
@@ -673,7 +585,6 @@ pub async fn save_node_on_drop(
         error!("Failed to commit new entity: {err}");
         AppError {
             message: "Failed to save new entity",
-            kind: ErrorKind::Database,
         }
     })?;
 
@@ -692,10 +603,7 @@ pub async fn graphing_websocket_handler(
     app: crate::AppData,
 ) -> Result<HttpResponse, AppError> {
     let Ok((response, mut session, mut msg_stream)) = actix_ws::handle(&req, stream) else {
-        return Err(AppError {
-            message: "(1)",
-            kind: ErrorKind::Critical,
-        });
+        return Err(AppError { message: "(1)" });
     };
     // We'll authenticate when we receive the first message
     let mut authenticated = false;
@@ -710,10 +618,7 @@ pub async fn graphing_websocket_handler(
             let _ = session
                 .close(Some(actix_ws::CloseCode::Policy.into()))
                 .await;
-            return Err(AppError {
-                message: "()",
-                kind: ErrorKind::Critical,
-            });
+            return Err(AppError { message: "()" });
         }
     };
     let decoded_id = *decoded_id as i64;

@@ -5,7 +5,7 @@ use crate::{
     middleware::auth::{AuthMiddleware, get_header_auth},
     schemas::{
         Notification,
-        errors::{AppError, ErrorKind},
+        errors::AppError,
         organization::Organization,
         user::{LoginUser, LogoutUser, RefreshClaims, RegisterUser, Token, TokenClaims, User},
     },
@@ -33,7 +33,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
             error!("{err}");
             AppError {
                 message: "We ran into an error registering your account.",
-                kind: ErrorKind::Database,
             }
         })?;
     if exists {
@@ -51,7 +50,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
             error!("{err}");
             AppError {
                 message: "Invalid password.",
-                kind: ErrorKind::Invalid,
             }
         })?;
 
@@ -59,7 +57,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     let mut tx = pool.begin().await.map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error starting the registration transaction.",
         }
     })?;
@@ -77,7 +74,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error creating your team.",
         }
     })?;
@@ -97,7 +93,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error creating this account.",
         }
     })?;
@@ -106,7 +101,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     tx.commit().await.map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error completing your registration.",
         }
     })?;
@@ -141,7 +135,6 @@ async fn login_user_handler(
         error!("{err}");
         AppError {
             message: "Invalid email or password.",
-            kind: ErrorKind::Invalid,
         }
     })?
     .ok_or(AppError {
@@ -152,7 +145,6 @@ async fn login_user_handler(
         error!("{err}");
         AppError {
             message: "Invalid email or password.",
-            kind: ErrorKind::Invalid,
         }
     })?;
     Argon2::default()
@@ -161,7 +153,6 @@ async fn login_user_handler(
             error!("{err}");
             AppError {
                 message: "Invalid email or password.",
-                kind: ErrorKind::Invalid,
             }
         })?;
     let now = Utc::now();
@@ -173,7 +164,6 @@ async fn login_user_handler(
     let sub = sqids.encode(&[user_org_info.id as u64]).map_err(|err| {
         error!("Error encoding sub with sqids: {err}");
         AppError {
-            kind: ErrorKind::Critical,
             message: "Invalid login.",
         }
     })?;
@@ -209,7 +199,6 @@ async fn login_user_handler(
         error!("{err}");
         AppError {
             message: "Invalid login.",
-            kind: ErrorKind::Invalid,
         }
     })?;
 
@@ -227,7 +216,6 @@ async fn login_user_handler(
         error!("{err}");
         AppError {
             message: "Invalid login.",
-            kind: ErrorKind::Invalid,
         }
     })
 }
@@ -251,7 +239,6 @@ async fn get_me_handler(auth: AuthMiddleware, pool: db::Database) -> Result<User
             error!("{err}");
             AppError {
                 message: "We ran into an error fetching your account information!",
-                kind: ErrorKind::Database,
             }
         })
 }
@@ -265,13 +252,11 @@ async fn refresh_handler(
 ) -> Result<Token, AppError> {
     let refresh_token = get_header_auth(&req).map_err(|_| AppError {
         message: "Missing refresh token",
-        kind: ErrorKind::Invalid,
     })?;
 
     if app.blacklist.contains_key(refresh_token) {
         return Err(AppError {
             message: "Invalid refresh token",
-            kind: ErrorKind::Invalid,
         });
     }
 
@@ -282,7 +267,6 @@ async fn refresh_handler(
     )
     .map_err(|_| AppError {
         message: "Invalid refresh token",
-        kind: ErrorKind::Invalid,
     })?
     .claims;
 
@@ -290,13 +274,11 @@ async fn refresh_handler(
     if user_ids.is_empty() {
         return Err(AppError {
             message: "Invalid refresh token",
-            kind: ErrorKind::Invalid,
         });
     }
 
     let user_id = user_ids.first().ok_or(AppError {
         message: "Invalid refresh token",
-        kind: ErrorKind::Invalid,
     })?;
 
     // Fetch user and organization information for refresh
@@ -317,12 +299,10 @@ async fn refresh_handler(
         error!("{err}");
         AppError {
             message: "Invalid refresh token",
-            kind: ErrorKind::Invalid,
         }
     })?
     .ok_or(AppError {
         message: "Invalid refresh token",
-        kind: ErrorKind::Invalid,
     })?;
 
     let now = Utc::now();
@@ -333,7 +313,6 @@ async fn refresh_handler(
     let sub = sqids.encode(&[user_org_info.id as u64]).map_err(|err| {
         error!("Error encoding sub with sqids: {err}");
         AppError {
-            kind: ErrorKind::Critical,
             message: "Invalid refresh token.",
         }
     })?;
@@ -370,7 +349,6 @@ async fn refresh_handler(
         error!("{err}");
         AppError {
             message: "Error generating refresh token",
-            kind: ErrorKind::Critical,
         }
     })?;
 
@@ -388,7 +366,6 @@ async fn refresh_handler(
         error!("{err}");
         AppError {
             message: "Error generating access token",
-            kind: ErrorKind::Critical,
         }
     })
 }

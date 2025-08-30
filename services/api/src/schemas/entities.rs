@@ -74,7 +74,6 @@ impl CreateEntitySchema {
         if self.label.trim().is_empty() {
             return Err(AppError {
                 message: "Missing entity label.",
-                kind: ErrorKind::Invalid,
             }); // Adjust error type as needed
         }
         Ok(self)

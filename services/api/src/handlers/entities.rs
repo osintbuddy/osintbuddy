@@ -43,7 +43,6 @@ async fn create_entity_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error creating this entity.",
         }
     })
@@ -70,7 +69,6 @@ async fn update_entity_handler(
   .map_err(|err| {
     error!("{err}");
     AppError {
-      kind: ErrorKind::Database,
       message: "We ran into an error updating this entity.",
   }})
 }
@@ -87,7 +85,6 @@ async fn delete_entity_handler(
     let decoded_id = entity_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", body.id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid entity ID.",
         }
     })? as &u64;
@@ -101,7 +98,6 @@ async fn delete_entity_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error deleting this entity.",
             }
         })
@@ -126,7 +122,6 @@ async fn list_entities_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error listing your entities.",
         }
     })?;
@@ -140,7 +135,6 @@ async fn list_entities_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error listing your favorite entities.",
         }
     })?;
@@ -151,7 +145,6 @@ async fn list_entities_handler(
         let sqid = sqids.encode(&[favorite_id as u64]).map_err(|err| {
             error!("Error encoding favorite sqid: {err}");
             AppError {
-                kind: ErrorKind::Critical,
                 message: "We ran into an error encoding favorite ID.",
             }
         })?;
@@ -164,7 +157,6 @@ async fn list_entities_handler(
         let sqid = sqids.encode(&[entity.id as u64]).map_err(|err| {
             error!("Error encoding entity sqid: {err}");
             AppError {
-                kind: ErrorKind::Critical,
                 message: "We ran into an error encoding entity ID.",
             }
         })?;
@@ -197,7 +189,6 @@ async fn get_entity_handler(
     let decoded_id = entity_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", entity_id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid entity ID.",
         }
     })? as &u64;
@@ -213,7 +204,6 @@ async fn get_entity_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error getting this entity.",
         }
     })
@@ -231,7 +221,6 @@ async fn favorite_entity_handler(
     let entity_id = entity_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", body.entity_id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid entity ID.",
         }
     })? as &u64;
@@ -247,7 +236,6 @@ async fn favorite_entity_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error getting this entity.",
         }
     })?;
@@ -265,7 +253,6 @@ async fn favorite_entity_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error favoriting this entity.",
             }
         })
@@ -282,7 +269,6 @@ async fn favorite_entity_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error unfavoriting this entity.",
             }
         })
@@ -321,7 +307,6 @@ async fn get_blueprint(label: &str) -> Result<Value, AppError> {
         .map_err(|err| {
             error!("Error fetching blueprint: {}", err);
             AppError {
-                kind: ErrorKind::Network,
                 message: "Failed to fetch blueprint from plugins service.",
             }
         })?;
@@ -329,7 +314,6 @@ async fn get_blueprint(label: &str) -> Result<Value, AppError> {
     let blueprint: Value = response.json().await.map_err(|err| {
         error!("Error parsing blueprint response: {}", err);
         AppError {
-            kind: ErrorKind::Network,
             message: "Failed to parse blueprint response.",
         }
     })?;
@@ -355,7 +339,6 @@ async fn get_entity_transforms(
         .map_err(|err| {
             error!("Error running 'ob ls -l {}': {}", query.label, err);
             AppError {
-                kind: ErrorKind::Critical,
                 message: "Failed to execute 'ob ls -l' command.",
             }
         })?;
@@ -364,7 +347,6 @@ async fn get_entity_transforms(
         let stderr = String::from_utf8_lossy(&output.stderr);
         error!("OB command 'ls -L {}' failed: {}", query.label, stderr);
         return Err(AppError {
-            kind: ErrorKind::Critical,
             message: "Command 'ob ls -L' execution failed.",
         });
     }
@@ -373,7 +355,6 @@ async fn get_entity_transforms(
     let transforms: Value = serde_json::from_str(&stdout).map_err(|err| {
         error!("Error parsing transforms JSON: {}", err);
         AppError {
-            kind: ErrorKind::Critical,
             message: "Failed to parse transforms JSON output.",
         }
     })?;
@@ -394,7 +375,6 @@ async fn get_entity_details(
         .map_err(|err| {
             error!("Error fetching entity details: {}", err);
             AppError {
-                kind: ErrorKind::Network,
                 message: "Failed to fetch entity details from plugins service.",
             }
         })?;
@@ -402,7 +382,6 @@ async fn get_entity_details(
     let mut entity: Value = response.json().await.map_err(|err| {
         error!("Error parsing entity response: {}", err);
         AppError {
-            kind: ErrorKind::Network,
             message: "Failed to parse entity response.",
         }
     })?;
@@ -425,7 +404,6 @@ async fn get_entity_details(
             .map_err(|err| {
                 error!("Error fetching transforms: {}", err);
                 AppError {
-                    kind: ErrorKind::Network,
                     message: "Failed to fetch transforms from plugins service.",
                 }
             })?;
@@ -433,7 +411,6 @@ async fn get_entity_details(
         let transforms: Value = transforms_response.json().await.map_err(|err| {
             error!("Error parsing transforms response: {}", err);
             AppError {
-                kind: ErrorKind::Network,
                 message: "Failed to parse transforms response.",
             }
         })?;
@@ -458,7 +435,6 @@ async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse
         .map_err(|err| {
             error!("Error running 'ob ls entities': {}", err);
             AppError {
-                kind: ErrorKind::Critical,
                 message: "Failed to execute 'ob ls entities' command.",
             }
         })?;
@@ -467,7 +443,6 @@ async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse
         let stderr = String::from_utf8_lossy(&output.stderr);
         error!("Command 'ob ls entities' failed: {}", stderr);
         return Err(AppError {
-            kind: ErrorKind::Critical,
             message: "Command 'ob ls entities' execution failed.",
         });
     }
@@ -476,7 +451,6 @@ async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse
     let entities: Value = serde_json::from_str(&stdout).map_err(|err| {
         error!("Error parsing entities JSON: {}", err);
         AppError {
-            kind: ErrorKind::Critical,
             message: "Failed to parse entities JSON output.",
         }
     })?;

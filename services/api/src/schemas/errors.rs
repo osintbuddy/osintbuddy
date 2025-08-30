@@ -8,21 +8,9 @@ use serde_json::json;
 
 #[derive(Debug, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "snake_case")]
-pub enum ErrorKind {
-    Exists,
-    Invalid,
-    Critical,
-    #[serde(rename = "data")]
-    Database,
-    Unauthorized,
-    Forbidden,
-    Network,
-}
-
 #[derive(Debug, Serialize)]
 pub struct AppError {
     pub message: &'static str,
-    pub kind: ErrorKind,
 }
 
 impl error::ResponseError for AppError {
@@ -33,15 +21,7 @@ impl error::ResponseError for AppError {
     }
 
     fn status_code(&self) -> StatusCode {
-        match self.kind {
-            ErrorKind::Invalid => StatusCode::UNPROCESSABLE_ENTITY,
-            ErrorKind::Exists => StatusCode::CONFLICT,
-            ErrorKind::Critical => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::Database => StatusCode::SERVICE_UNAVAILABLE,
-            ErrorKind::Unauthorized => StatusCode::UNAUTHORIZED,
-            ErrorKind::Forbidden => StatusCode::FORBIDDEN,
-            ErrorKind::Network => StatusCode::BAD_GATEWAY,
-        }
+        StatusCode::UNPROCESSABLE_ENTITY
     }
 }
 

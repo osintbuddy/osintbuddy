@@ -3,7 +3,7 @@ use crate::{
     middleware::auth::AuthMiddleware,
     schemas::{
         Paginate,
-        errors::{AppError, ErrorKind},
+        errors::AppError,
         graphs::{
             CreateGraph, DbGraph, DeleteGraph, FavoriteGraphRequest, Graph, GraphStats,
             ListGraphsResponse, UpdateGraph,
@@ -51,7 +51,6 @@ async fn create_graph_handler(
         .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
         .ok_or(AppError {
             message: "We ran into a missing graph id error!",
-            kind: ErrorKind::Critical,
         })?;
     let mut tx = age_tx(pool.as_ref()).await?;
 
@@ -65,7 +64,6 @@ async fn create_graph_handler(
     .map_err(|err| {
         error!("Error creating age graph: {err}");
         AppError {
-            kind: ErrorKind::Critical,
             message: "We ran into an error creating your Age graph.",
         }
     })?;
@@ -73,7 +71,6 @@ async fn create_graph_handler(
     tx.commit().await.map_err(|err| {
         error!("Error committing age graph transaction: {err}");
         AppError {
-            kind: ErrorKind::Critical,
             message: "We ran into an error committing the age graph transaction.",
         }
     })?;
@@ -118,7 +115,6 @@ async fn update_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-        kind: ErrorKind::Database,
         message: "We ran into an error updating this graph.",
     }})
 }
@@ -135,7 +131,6 @@ async fn delete_graph_handler(
     let decoded_id = graph_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", body.id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid graph ID.",
         }
     })? as &u64;
@@ -149,7 +144,6 @@ async fn delete_graph_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error deleting this graph.",
             }
         })
@@ -174,7 +168,6 @@ async fn list_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error listing your graphs.",
         }
     })?;
@@ -188,7 +181,6 @@ async fn list_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error listing your favorite graphs.",
         }
     })?;
@@ -199,7 +191,6 @@ async fn list_graph_handler(
         let sqid = sqids.encode(&[graph.id as u64]).map_err(|err| {
             error!("Error encoding sqid: {err}");
             AppError {
-                kind: ErrorKind::Critical,
                 message: "We ran into an error encoding graph ID.",
             }
         })?;
@@ -218,7 +209,6 @@ async fn list_graph_handler(
         let sqid = sqids.encode(&[favorite_id as u64]).map_err(|err| {
             error!("Error encoding favorite sqid: {err}");
             AppError {
-                kind: ErrorKind::Critical,
                 message: "We ran into an error encoding favorite ID.",
             }
         })?;
@@ -242,7 +232,6 @@ async fn get_graph_handler(
     let decoded_id = graph_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", graph_id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid graph ID.",
         }
     })? as &u64;
@@ -258,7 +247,6 @@ async fn get_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error getting this graph.",
         }
     })?;
@@ -268,7 +256,6 @@ async fn get_graph_handler(
         .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
         .ok_or(AppError {
             message: "We ran into a missing graph id error!",
-            kind: ErrorKind::Critical,
         })?;
     let mut tx = age_tx(pool.as_ref()).await?;
     let vertices = with_cypher(
@@ -299,7 +286,6 @@ async fn get_graph_handler(
         error!("{err}");
         AppError {
             message: "We ran into an error commiting the age transaction!",
-            kind: ErrorKind::Critical,
         }
     })?;
 
@@ -329,7 +315,6 @@ async fn favorite_graph_handler(
     let graph_id = graph_ids.first().ok_or_else(|| {
         error!("Error decoding sqid: {}", body.graph_id);
         AppError {
-            kind: ErrorKind::Invalid,
             message: "Invalid graph ID.",
         }
     })? as &u64;
@@ -345,7 +330,6 @@ async fn favorite_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error getting this graph.",
         }
     })?;
@@ -363,7 +347,6 @@ async fn favorite_graph_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error favoriting this graph.",
             }
         })
@@ -380,7 +363,6 @@ async fn favorite_graph_handler(
         .map_err(|err| {
             error!("{err}");
             AppError {
-                kind: ErrorKind::Database,
                 message: "We ran into an error unfavoriting this graph.",
             }
         })
