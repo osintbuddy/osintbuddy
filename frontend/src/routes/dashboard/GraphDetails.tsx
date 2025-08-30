@@ -9,6 +9,37 @@ interface GraphHeaderProps {
   graph: any
 }
 
+interface ActionButtonProps {
+  action: () => void
+  label: string
+  disabled?: boolean
+  icon: string
+  title?: string
+}
+
+function ActionButton({
+  action,
+  label,
+  disabled = false,
+  icon,
+  title,
+}: ActionButtonProps) {
+  return (
+    <button
+      title={title}
+      onClick={action}
+      class={`font-display group text-slate-350 before:bg-primary-300 relative flex h-full items-center bg-black/10 px-4 py-2 font-semibold transition-all duration-300 before:absolute before:bottom-0 before:left-1/2 before:flex before:h-0.5 before:w-0 before:-translate-1/2 before:items-center before:transition-all before:duration-200 before:content-[""] hover:bg-black/40 hover:text-slate-300 hover:before:w-full disabled:text-slate-600 disabled:before:content-none disabled:hover:bg-black/10`}
+      disabled={disabled}
+    >
+      <Icon
+        icon={icon}
+        className='group-hover:text-primary-300 text-primary-300 group-hover:animate-wiggle mr-2 h-5 w-5 group-disabled:text-slate-600'
+      />
+      <span className={``}>{label}</span>
+    </button>
+  )
+}
+
 function GraphHeader({ graph }: GraphHeaderProps) {
   const navigate = useNavigate()
   const { deleteGraph, isDeleting } = useGraphsStore()
@@ -20,38 +51,74 @@ function GraphHeader({ graph }: GraphHeaderProps) {
   }
 
   return (
-    <div className='flex w-full flex-col'>
-      <div className='from-cod-900/60 to-cod-950/40 flex h-min w-full flex-col overflow-hidden rounded-sm border-2 border-slate-950/50 bg-gradient-to-br py-2 shadow-2xl shadow-black/25 backdrop-blur-sm'>
-        <ol className='text-slate-350 relative flex px-4 text-sm select-none'>
-          <div className='flex w-full items-center justify-between space-x-4'>
-            <div class='flex gap-x-4'>
-              <Button.Solid
-                variant='primary'
-                onClick={() => navigate(`/graph/${graph?.id}`)}
-              >
-                View graph
-                <Icon icon='chart-dots-3' className='btn-icon' />
-              </Button.Solid>
-              <Button.Solid
-                variant='primary'
-                onClick={() => navigate(`/graph/${graph?.id}`)}
-                className=''
-              >
-                View table
-                <Icon icon='table' className='btn-icon' />
-              </Button.Solid>
-            </div>
-            <Button.Ghost
-              onClick={handleDeleteGraph}
-              className=''
-              variant='danger'
-              disabled={isDeleting}
+    <div className='flex w-full flex-col px-4'>
+      <div className='from-cod-900/60 to-cod-950/40 flex h-min w-full flex-col overflow-hidden rounded-md border-2 border-slate-950/50 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+        <div className='text-slate-350 relative flex text-sm select-none'>
+          <div className='relative flex w-full items-center'>
+            <button
+              title='Delete this case investigation'
+              class='font-display text-danger-500 hover:text-danger-600 group mr-auto flex h-full items-center bg-black/20 px-4 py-2 font-semibold hover:bg-black/60'
             >
+              <Icon
+                icon='trash'
+                className='text-danger-500 group-hover:text-danger-600 group-hover:animate-wiggle-8 mr-2 h-5 w-5'
+              />
               {isDeleting ? 'Deleting...' : 'Delete case'}
-              <Icon icon='trash' className='!text-danger-500 ml-2 h-5 w-5' />
-            </Button.Ghost>
+            </button>
+            <ActionButton
+              title="This feature isn't ready for use yet! Give us time to build it out"
+              action={() =>
+                toast.warn("This functionality isn't ready for use yet.")
+              }
+              label='Alerts'
+              disabled={true}
+              icon='alert-hexagon'
+            />
+            <ActionButton
+              title="This feature isn't ready for use yet! Give us time to build it out"
+              action={() =>
+                toast.warn("This functionality isn't ready for use yet.")
+              }
+              label='Feeds'
+              disabled={true}
+              icon='rss'
+            />
+            <ActionButton
+              title="This feature isn't ready for use yet! Give us time to build it out"
+              action={() =>
+                toast.warn("This functionality isn't ready for use yet.")
+              }
+              label='Attachments'
+              disabled={true}
+              icon='file'
+            />
+            <ActionButton
+              title="This feature isn't ready for use yet! Give us time to build it out"
+              action={() =>
+                toast.warn("This functionality isn't ready for use yet.")
+              }
+              label='Graph view'
+              disabled={true}
+              icon='chart-dots-3'
+            />
+
+            <ActionButton
+              title='View and edit the flow graph'
+              action={() => () => navigate(`/graph/${graph?.id}`)}
+              label='Flow view'
+              icon='chart-dots-3'
+            />
+            <ActionButton
+              title="This feature isn't ready for use yet! Give us time to build it out"
+              action={() =>
+                toast.warn("This functionality isn't ready for use yet.")
+              }
+              label='Table view'
+              disabled={true}
+              icon='table'
+            />
           </div>
-        </ol>
+        </div>
       </div>
     </div>
   )
@@ -64,11 +131,11 @@ export default function GraphDetails() {
   useEffect(() => getGraph(hid), [hid])
 
   return (
-    <div class='flex h-screen w-full flex-col'>
+    <div class='flex h-full w-full flex-col'>
       <header class='flex w-full'>
         <GraphHeader graph={graph} />
       </header>
-      <li className='text-slate-350 mr-auto flex w-full'>
+      <li className='text-slate-350 mr-auto flex w-full pt-4 pl-4'>
         <section class='w-11/12'>
           <h5 className='font-display flex w-full items-center justify-between truncate font-medium whitespace-nowrap text-inherit'>
             {graph?.label}

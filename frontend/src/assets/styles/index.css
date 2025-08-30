@@ -16,6 +16,9 @@
   --font-code: "Fira Code", "monospace";
   --color-x: #25295f;
 
+ --animate-wiggle: wiggle 1s ease-in-out;
+ --animate-wiggle-8: wiggle 1s ease-in-out infinite;
+
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
   --color-primary-100: #5460FF;
@@ -133,6 +136,14 @@
   --color-cod-800: #070707;
   --color-cod-900: #040416;
   --color-cod-950: #02020c;
+}
+
+@keyframes wiggle {
+    0% { transform: rotate(0deg); }
+   80% { transform: rotate(0deg); }
+   85% { transform: rotate(7deg); }
+   95% { transform: rotate(-7deg); }
+  100% { transform: rotate(0deg); }
 }
 
 /* TODO: Improve me... this gradient and grid background is such a pain

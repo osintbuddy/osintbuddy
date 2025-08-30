@@ -82,8 +82,8 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div class='flex'>
-        <aside class='relative flex h-screen max-w-80 min-w-80 flex-col items-start overflow-y-clip rounded border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-3.5 shadow-2xl shadow-black/25 backdrop-blur-md'>
+      <div class='flex h-full px-4 py-4'>
+        <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-2 shadow-2xl shadow-black/25 backdrop-blur-md'>
           <Input.AltIcon
             icon={<Icon icon='search' className='transparent-icon' />}
             onBtnClick={() => console.log('Todo search')}
@@ -91,7 +91,7 @@ export default function DashboardPage() {
             className='mx-2 mb-1.5 w-full'
             placeholder={`Search...`}
           />
-          <div className='relative my-1'>
+          <div className='relative my-1 ml-[2px]'>
             <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
@@ -119,7 +119,7 @@ export default function DashboardPage() {
               />
             </section>
           </div>
-          <div class='relative my-1 flex h-[calc(90%-80px)] w-full flex-col'>
+          <div class='relative my-1 flex h-[calc(93%-80px)] w-full flex-col'>
             {currentPanelTab === 0 && (
               <GraphPanel
                 graphsData={{ favorites: graphFavorites, graphs }}
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateGraphModal(true)}
-                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+                  className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create case
                   <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateEntityModal(true)}
-                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+                  className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create entity
                   <Icon icon='ghost-3' className='btn-icon !ml-7' />
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           {currentPanelTab === 2 && (
             <Button.Ghost
               variant='primary'
-              className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+              className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
               title='Connect third-party servers providing plugin access'
             >
               Connect server plugins
