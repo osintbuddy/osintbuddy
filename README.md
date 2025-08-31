@@ -175,7 +175,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
    ```
-   docker compose up db ui queue
+   docker compose up db ui
    ```
 
 5. **Migrate database**.
@@ -186,16 +186,14 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    ```
   
 6. **Run OSIB**
+   Run the backend `api` and `worker` on your host system:
    ```bash
-   docker compose up worker api
+   cargo watch -q -c -w crates/api -x "run -p api"
+   # in another terminal run: 
+   cargo watch -q -c -w crates/worker -x "run -p worker"
    ```
-   - Alternatively you can run the backend `api` and `worker` on your host system:
-   ```bash
-   cargo watch -q -c -w services/api -x "run -p api"
-   ```
-   - **note**: you will need to update the amqp url and perhaps some other values when running services outside of docker
 
-6. **Access OSIB** through the URLs provided for the frontend, backend, and documentation:
+7. **Access OSIB** through the URLs provided for the frontend, backend, and documentation:
    - Frontend: [`http://localhost:55173`](http://localhost:55173)
    - Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
    - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
