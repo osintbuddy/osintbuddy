@@ -89,6 +89,8 @@ What are the technical frameworks that ensure that a technology is open and equi
 
 ### Project Status
 
+As is, this project is more of a toy environment that's been useful while prototyping out this idea and gaining insight into the problem space. For this project to be truly successful we must ultimately be able to be used to do serious, original, and creative work. That's the basic test for whether our tools are genuinely working rather than merely telling a good story. Ideally, we want to be the tool where relatively low cost changes in practice produce transformative changes in outcome – non-linear returns and qualitative shifts. Historically, humans have invented many such transformative tools. If we're smart, maybe we can do the same for this problem space. The question we need to be answering is: What powerful, generalizable ideas can we learn from this project? How should the next wave of systems build on this? The system has to be shaped in a way which allows you to ask the questions you want to ask.
+
 > [!CAUTION] 
 >
 > **⚠️ Experimental Software (pre-alpha) ⚠️** 
@@ -114,12 +116,14 @@ What are the technical frameworks that ensure that a technology is open and equi
 
 ## A Vision
 
-We aspire to become more than just a data aggregation tool:
+I have this conviction that a remarkable set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT work but for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work can accomplish. My goal is to expand your thinking beyond what can be achieved using existing tools. To let you engage and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
 
 - **Collective Intelligence** - Collaborative workspaces for global knowledge sharing
-- **Real-time Monitoring** - Automated insights and pattern detection
+- **Real-time Monitoring** - Automated data collection and alerts on changes
 - **History Graphs** - Browser extension for seamless web exploration
-- **AI Integration** - Swarm intelligence, sentiment analysis, and evolutionary algorithms
+- **AI/ML Integrations** - Swarm intelligence, sentiment analysis, LLMs/MCP, evolutionary algorithms, etc
+
+What are your ideas?
 
 ## Installation
 
