@@ -12,4 +12,7 @@ frontend/.env
 CLAUDE.md
 services/id_rsa*
 services/rootfs.ext4
-services/vmlinux.bin
+crates/vmlinux.bin
+crates/id_rsa*
+crates/rootfs.ext4
+crates/vmlinux.bin

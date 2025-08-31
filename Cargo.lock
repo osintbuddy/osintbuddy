@@ -484,6 +484,7 @@ dependencies = [
  "actix-ws",
  "argon2",
  "chrono",
+ "common",
  "confik",
  "dotenvy",
  "env_logger",
@@ -994,6 +995,18 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "regex",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "uuid",
 ]
 
 [[package]]
@@ -5123,6 +5136,7 @@ version = "0.1.0"
 dependencies = [
  "argon2",
  "chrono",
+ "common",
  "confik",
  "dotenvy",
  "env_logger",

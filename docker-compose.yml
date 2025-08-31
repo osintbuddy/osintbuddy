@@ -15,11 +15,11 @@ services:
     container_name: "api"
     build:
       context: .
-      dockerfile: services/api/dev.Dockerfile
+      dockerfile: crates/api/dev.Dockerfile
     env_file:
       - .env
     volumes:
-      - "./services/api:/app/api"
+      - "./crates/api:/app/api"
     depends_on:
       queue:
         condition: service_healthy
@@ -27,33 +27,12 @@ services:
         condition: service_started
     ports:
       - 48997:48997
-    
-  queue:
-    container_name: "queue"
-    image: "rabbitmq:3.13-alpine"
-    env_file:
-      - .env
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER-guest}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD-guest}
-    command: ["/bin/bash", "/init/rabbitmq.sh"]
-    ports:
-      - "55672:5672"
-    volumes:
-      - ob-queue-data:/var/lib/rabbitmq
-      - ./services/rabbitmq.sh:/init/rabbitmq.sh:ro
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 16s
-      timeout: 12s
-      retries: 5
-      start_period: 30s
 
   worker:
     container_name: "worker"
     build:
       context: .
-      dockerfile: services/worker/Dockerfile
+      dockerfile: crates/worker/Dockerfile
     env_file:
       - .env
     environment:
@@ -83,28 +62,27 @@ services:
     cap_add:
       - NET_ADMIN
 
-  db:
-    container_name: "db"
-    image: apache/age
-    volumes:
-      - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
-    env_file:
-      - .env
-    ports:
-      - "55432:5432"
-
-  # TODO: Swap out age for more event-sourcing like approach
-  # this helps maintain auditability, traceability, and provides history
-  # for a case graph/case table/aka set of entities of optionally entity relationships
   # db:
   #   container_name: "db"
-  #   image: "postgres:17.6-alpine3.22"
+  #   image: apache/age
   #   volumes:
   #     - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
   #   env_file:
   #     - .env
   #   ports:
   #     - "55432:5432"
+
+  # TODO: Swap out age for more event-sourcing like approach
+  # this helps maintain auditability, traceability, and provides history
+  db:
+    container_name: "db"
+    image: "postgres:17.6-alpine3.22"
+    volumes:
+      - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
+    env_file:
+      - .env
+    ports:
+      - "55432:5432"
 
   # store:
   #   container_name: "store"
