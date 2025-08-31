@@ -1001,11 +1001,17 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "actix-web",
  "chrono",
+ "confik",
+ "dotenvy",
+ "futures-util",
+ "log",
  "regex",
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
  "uuid",
 ]
 

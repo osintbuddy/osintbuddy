@@ -1,17 +1,14 @@
-use crate::{
-    config::{self, CFG},
-    schemas::errors::{AppError, ErrorKind},
-};
-use actix_web::{cookie::time::error, web::Data};
-use futures_util::{future::BoxFuture, io};
+use crate::config::{self, CFG};
+use actix_web::web::Data;
+use futures_util::future::BoxFuture;
 use log::{error, info};
 use regex::Regex;
-use sqlx::Postgres;
 use sqlx::Row;
 use sqlx::postgres::{PgPoolOptions, PgRow};
-use sqlx::{PgConnection, PgPool, Transaction};
-use std::{str::FromStr, string::String};
+use sqlx::{PgConnection, PgPool, Postgres, Transaction};
 use tokio::sync::OnceCell;
+
+use crate::errors::AppError;
 
 pub type Database = Data<PgPool>;
 
@@ -28,13 +25,7 @@ pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
             .connect(&cfg.database_url)
             .await
         {
-            Ok(pool) => {
-                // Run migrations
-                if let Err(e) = sqlx::migrate!("./migrations").run(&pool).await {
-                    error!("Migration failed: {}", e);
-                }
-                pool
-            }
+            Ok(pool) => pool,
             Err(err) => {
                 let attempts = attempts.unwrap_or(0);
                 error!(
@@ -46,7 +37,6 @@ pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
         }
     })
 }
-// #151345 -> #101c43
 
 pub type PgTx = Transaction<'static, Postgres>;
 pub type AgeTx = Result<PgTx, AppError>;
@@ -56,7 +46,6 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
         log::error!("{err}");
         AppError {
             message: "Error loading Apache Age extension.",
-            kind: ErrorKind::Critical,
         }
     })?;
     let _ = sqlx::raw_sql("CREATE EXTENSION IF NOT EXISTS age;")
@@ -69,8 +58,6 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
     Ok(tx)
 }
 
-// External resources: https://age.apache.org/age-manual/master/intro/types.html#map
-// Expected return must include: serde_json::Value
 pub async fn with_cypher(
     query: String,
     tx: &mut PgConnection,
@@ -82,7 +69,6 @@ pub async fn with_cypher(
             error!("{err}");
             AppError {
                 message: "We ran into a cypher transaction error!",
-                kind: ErrorKind::Critical,
             }
         })?;
     let re = Regex::new(r"(::vertex)|(::edge)").unwrap();
@@ -91,32 +77,26 @@ pub async fn with_cypher(
         .map(|row| {
             let mut json_objs: Vec<serde_json::Value> = Vec::new();
             for (i, _) in row.columns().iter().enumerate() {
-                // Try different ways to extract the agtype value safely
                 let value = match row.try_get::<String, _>(i) {
                     Ok(val) => val,
-                    Err(_) => {
-                        // If String fails, try &str
-                        match row.try_get::<&str, _>(i) {
-                            Ok(val) => val.to_string(),
-                            Err(e) => {
-                                error!("Failed to extract value at column {}: {}", i, e);
-                                continue;
-                            }
+                    Err(_) => match row.try_get::<&str, _>(i) {
+                        Ok(val) => val.to_string(),
+                        Err(e) => {
+                            error!("Failed to extract value at column {}: {}", i, e);
+                            continue;
                         }
-                    }
+                    },
                 };
-
                 let result = re.replace_all(&value, "").to_string();
-                match serde_json::Value::from_str(result.as_str()) {
+                match serde_json::from_str(result.as_str()) {
                     Ok(v) => json_objs.push(v),
                     Err(e) => {
                         error!("Error parsing Age string '{}': {}", result, e);
-                        // Continue processing other columns instead of panicking
                         continue;
                     }
                 }
             }
-            return json_objs;
+            json_objs
         })
         .flatten()
         .collect();

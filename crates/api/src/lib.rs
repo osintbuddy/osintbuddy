@@ -1,11 +1,11 @@
 pub mod abac;
-pub mod config;
-pub mod db;
 pub mod handlers;
 pub mod middleware;
 pub mod models;
 pub mod schemas;
-pub mod utils;
+
+// Re-export common database module to preserve existing imports
+pub use common::db as db;
 
 use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
@@ -14,7 +14,7 @@ use actix_web::middleware::Logger;
 use actix_web::web::Data;
 use actix_web::{App, HttpServer, http::header, web};
 
-use config::AppConfig;
+use common::config::AppConfig;
 use log::{error, info};
 use moka::sync::Cache;
 use sqids::Sqids;
@@ -22,7 +22,7 @@ use sqids::Sqids;
 use std::io;
 use std::time::Duration;
 
-use crate::config::CFG;
+use common::config::CFG;
 
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
@@ -37,8 +37,8 @@ async fn spa_index() -> actix_web::Result<NamedFile> {
 
 pub async fn run() -> io::Result<()> {
     // TTL jwt token (invalid/expire/unauthorized) cache
-    let pool = db::db_pool(Some(0)).await;
-    let cfg = CFG.get_or_init(config::cfg).await;
+    let pool = common::db::db_pool(Some(0)).await;
+    let cfg = CFG.get_or_init(common::config::cfg).await;
     info!(
         "OSIB is listening on: http://{}:{}",
         &cfg.backend_port, &cfg.backend_addr

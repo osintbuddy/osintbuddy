@@ -1,12 +1,12 @@
 use crate::{
-    db,
     middleware::auth::AuthMiddleware,
     schemas::{
         Notification,
-        errors::AppError,
         organization::{Organization, UpdateOrganization},
     },
 };
+use common::db;
+use common::errors::AppError;
 use actix_web::{Result, delete, get, put};
 use log::error;
 

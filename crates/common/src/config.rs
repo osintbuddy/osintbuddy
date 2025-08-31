@@ -52,3 +52,4 @@ pub async fn cfg() -> AppConfig {
             default_cfg
         })
 }
+

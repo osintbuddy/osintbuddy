@@ -8,7 +8,6 @@ use serde_json::json;
 
 #[derive(Debug, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "snake_case")]
-#[derive(Debug, Serialize)]
 pub struct AppError {
     pub message: &'static str,
 }
@@ -30,13 +29,8 @@ impl fmt::Display for AppError {
         write!(
             f,
             "{}",
-            serde_json::to_string(&self).unwrap_or(
-                json!({
-                    "message": "A critical error has occured.",
-                    "kind": "critical".to_string()}
-                )
-                .to_string()
-            )
+            serde_json::to_string(&self)
+                .unwrap_or(json!({ "message": "A critical error has occurred." }).to_string())
         )
     }
 }

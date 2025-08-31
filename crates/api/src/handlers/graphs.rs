@@ -1,15 +1,15 @@
 use crate::{
-    db::{self, age_tx, with_cypher},
     middleware::auth::AuthMiddleware,
     schemas::{
         Paginate,
-        errors::AppError,
         graphs::{
             CreateGraph, DbGraph, DeleteGraph, FavoriteGraphRequest, Graph, GraphStats,
             ListGraphsResponse, UpdateGraph,
         },
     },
 };
+use common::db::{self, age_tx, with_cypher};
+use common::errors::AppError;
 use actix_web::{
     HttpResponse, Result, delete, get,
     http::StatusCode,
@@ -42,7 +42,6 @@ async fn create_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-            kind: ErrorKind::Database,
             message: "We ran into an error creating this graph.",
         }
     })?;
