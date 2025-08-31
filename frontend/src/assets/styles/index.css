@@ -12,13 +12,15 @@
 
 @theme {
   --font-sans: "Lato";
-  --font-display: "Onest";
+  --font-display: "Poppins";
+  /* TODO: Vendor the google fonts in index.html once I figure out what Im sticking with */
+  /* TODO: Saira looks nice, still need to experiment more with font pairings that fit this app */
   --font-art: "Nata Sans";
   --font-code: "Fira Code", "monospace";
   --color-x: #25295f;
 
- --animate-wiggle: wiggle 1s ease-in-out;
- --animate-wiggle-8: wiggle 1s ease-in-out infinite;
+ --animate-wiggle: wiggle 600ms ease-in-out;
+ --animate-wiggle-8: wiggle 750ms ease-in-out infinite;
 
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
@@ -191,7 +193,7 @@ body {
 }
 
 .btn-icon {
-  @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
+  @apply ml-3 w-5 h-5  ease-out transition-all duration-75 group-hover:animate-wiggle
 }
 
 .transparent-icon {

@@ -52,7 +52,7 @@ function AppLayoutSidebar({
 }: SidebarProps) {
   return (
     <div
-      class={`fixed inset-y-0 flex w-64 flex-col border-r border-black/10 bg-gradient-to-br from-black/50 to-black/40 shadow-2xl shadow-black/15 backdrop-blur-sm transition-transform duration-200 ${showSidebar ? 'translate-x-0' : '-translate-x-52 border-r-2'}`}
+      class={`fixed inset-y-0 flex w-52 flex-col border-r border-black/10 bg-gradient-to-br from-black/50 to-black/40 shadow-2xl shadow-black/15 backdrop-blur-sm transition-transform duration-200 ${showSidebar ? 'translate-x-0' : '-translate-x-40 border-r-2'}`}
     >
       <div class='mt-2 flex min-h-0 flex-1 flex-col'>
         <div
@@ -68,7 +68,7 @@ function AppLayoutSidebar({
           />
         </div>
         <div class='flex flex-1 flex-col overflow-y-auto'>
-          <nav class='flex flex-1 flex-col'>
+          <nav class='relative flex flex-1 flex-col'>
             {navigation.map(({ icon, to, name }) => (
               <NavLink
                 key={to}
@@ -79,12 +79,12 @@ function AppLayoutSidebar({
               >
                 <Icon
                   icon={icon}
-                  className={`mr-2 h-6 w-6 shrink-0 text-slate-600/50 transition-all duration-200 ${location.pathname.includes(to) && '!text-primary'} ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
+                  className={`mr-2 h-6 w-6 shrink-0 text-slate-600/50 transition-all duration-200 ${location.pathname.includes(to) && '!text-primary'} ${showSidebar ? 'translate-x-0' : 'translate-x-[9.75rem]'}`}
                 />
                 {name}
               </NavLink>
             ))}
-            <div class='mt-auto'>
+            <div class='relative mt-auto'>
               <NavLink
                 to='/settings'
                 replace
@@ -94,7 +94,7 @@ function AppLayoutSidebar({
               >
                 <Icon
                   icon='settings'
-                  className={`${location.pathname.includes('settings') && '!text-primary'} mr-2 h-6 w-6 shrink-0 text-slate-600/50 transition-all duration-200 ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
+                  className={`${location.pathname.includes('settings') && '!text-primary'} mr-2 h-6 w-6 shrink-0 text-slate-600/50 transition-all duration-200 ${showSidebar ? 'translate-x-0' : 'translate-x-[9.75rem]'}`}
                 />
                 Settings
               </NavLink>
@@ -105,7 +105,7 @@ function AppLayoutSidebar({
               >
                 <Icon
                   icon='brand-github'
-                  className={`mr-2 h-6 w-6 shrink-0 transition-all duration-200 ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
+                  className={`mr-2 h-6 w-6 shrink-0 transition-all duration-200 ${showSidebar ? 'translate-x-0' : 'translate-x-[9.75rem]'}`}
                 />
                 Github
               </a>
@@ -117,7 +117,7 @@ function AppLayoutSidebar({
               >
                 <Icon
                   icon='lock'
-                  className={`mr-2 h-6 w-6 shrink-0 transition-all duration-200 group-hover:text-amber-500/40 ${showSidebar ? 'translate-x-0' : 'translate-x-[12.75rem]'}`}
+                  className={`mr-2 h-6 w-6 shrink-0 transition-all duration-200 group-hover:text-amber-500/40 ${showSidebar ? 'translate-x-0' : 'translate-x-[9.75rem]'}`}
                 />
                 Logout
               </NavLink>
@@ -146,8 +146,8 @@ export default function AppLayout() {
           showSidebar={showSidebar}
         />
         <div
-          style={{ width: `calc(100% - ${showSidebar ? 16 : 3}rem)` }}
-          className={`w-full transition-all duration-200 ${showSidebar ? 'translate-x-64' : 'translate-x-12'}`}
+          style={{ width: `calc(100% - ${showSidebar ? 13 : 3}rem)` }}
+          className={`w-full transition-all duration-200 ${showSidebar ? 'translate-x-52' : 'translate-x-12'}`}
         >
           <main id='main' className='h-screen flex-1'>
             <Outlet />
