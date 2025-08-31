@@ -132,11 +132,11 @@ export default function GraphDetails() {
 
   return (
     <>
-      <div class='flex w-full flex-col pl-4'>
+      <div class='flex w-full flex-col pl-3'>
         <GraphHeader graph={graph} />
         <div className='mt-3 flex h-full flex-col'>
           <div class='flex h-full w-full'>
-            <div class='flex w-5/6 flex-col pr-4'>
+            <div class='flex w-5/6 flex-col pr-3'>
               <div className='flex'>
                 <h2 className='text-slate-600'>
                   Main content in center here. Plan to add some graphs/diagrams
@@ -145,7 +145,7 @@ export default function GraphDetails() {
                   brainstorming this part
                 </h2>
               </div>
-              <div className='bg-teal text-slate-350 from-cod-900/60 to-cod-950/40 group mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 border-slate-950/50 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+              <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 border-slate-950/50 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
                 <h5 className='font-display flex w-full items-center justify-between px-2 py-1 text-lg font-semibold text-inherit'>
                   Recent Case Activity
                 </h5>

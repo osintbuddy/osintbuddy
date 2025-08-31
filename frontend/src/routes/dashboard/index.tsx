@@ -82,7 +82,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div class='flex h-full px-4 py-3'>
+      <div class='flex h-full px-3 py-3'>
         <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
           <Input.AltIcon
             icon={<Icon icon='search' className='transparent-icon' />}
