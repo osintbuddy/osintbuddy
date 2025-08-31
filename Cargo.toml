@@ -25,7 +25,6 @@ env_logger = "0.11.8"
 log = "0.4.27"
 regex = "1.11.1"
 reqwest = { version = "0.11", features = ["json"] }
-minio = "0.3.0"
 futures-util = "0.3"
 tokio = { version = "1.43", features = [
     "net",
@@ -37,5 +36,4 @@ tokio = { version = "1.43", features = [
     "full"
 ] }
 actix-limitation = "0.5.1"
-lapin = "3.2.1"
 firecracker-rs-sdk = { version = "0.1.0", features = ["_rt-tokio"] }
