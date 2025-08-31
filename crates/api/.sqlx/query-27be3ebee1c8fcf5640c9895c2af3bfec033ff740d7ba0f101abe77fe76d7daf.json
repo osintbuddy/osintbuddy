@@ -1,0 +1,73 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE cases SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "uuid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "visibility",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "org_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "ctime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "mtime",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "owner_id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "27be3ebee1c8fcf5640c9895c2af3bfec033ff740d7ba0f101abe77fe76d7daf"
+}

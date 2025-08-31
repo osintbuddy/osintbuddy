@@ -1,0 +1,1 @@
+cargo +nightly watch -q -c -w services/api -x "run -p api"

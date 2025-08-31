@@ -1,0 +1,29 @@
+[package]
+name = "worker"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+argon2 = { workspace = true }
+chrono = { workspace = true }
+confik = { workspace = true }
+dotenvy = { workspace = true }
+env_logger = { workspace = true }
+futures-util = { workspace = true }
+jsonwebtoken = { workspace = true }
+lapin = { workspace = true }
+log = { workspace = true }
+minio = { workspace = true }
+moka = { workspace = true }
+rand_core = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqids = { workspace = true }
+sqlx = { workspace = true }
+firecracker-rs-sdk = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+common = { path = "../common" }
