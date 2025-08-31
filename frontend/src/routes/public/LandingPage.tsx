@@ -27,11 +27,11 @@ export default function LandingPage(): JSX.Element {
       <div class='mx-auto mt-36 items-center md:mt-52'>
         <div class='relative text-center'>
           <section class='relative flex flex-col items-center pb-12'>
-            <h2 class='from-primary-200 to-primary-200 font-display inline max-w-[50rem] bg-gradient-to-br via-blue-500 bg-clip-text px-2 text-center text-2xl font-medium tracking-tight text-transparent md:text-5xl md:leading-14'>
+            <h2 class='from-primary-200 to-primary-200 font-display inline max-w-[50rem] bg-gradient-to-br via-blue-500 bg-clip-text px-2 text-center text-2xl font-medium tracking-tight text-transparent md:text-[2.75rem] md:leading-14'>
               Elevate your Research with
               <br /> Strategic Insights from Public Data
             </h2>
-            <p class='text-md text-slate-350 max-w-2xl px-3 pt-1 md:px-0 md:text-lg'>
+            <p class='text-slate-350 md:text-md max-w-2xl px-3 pt-1 text-lg md:px-0'>
               Hi, I'm jerlendds, creator of OSINTBuddy, an open source tool for
               collecting, processing, and visualizing connections between
               entities through a Python plugin system. You can identify

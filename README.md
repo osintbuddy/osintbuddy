@@ -89,7 +89,7 @@ What are the technical frameworks that ensure that a technology is open and equi
 
 ### Project Status
 
-As is, this project is more of a toy environment that's been useful while prototyping out this idea and gaining insight into the problem space. For this project to be truly successful we must ultimately be able to be used to do serious, original, and creative work. That's the basic test for whether our tools are genuinely working rather than merely telling a good story. Ideally, we want to be the tool where relatively low cost changes in practice produce transformative changes in outcome – non-linear returns and qualitative shifts. Historically, humans have invented many such transformative tools. If we're smart, maybe we can do the same for this problem space. The question we need to be answering is: What powerful, generalizable ideas can we learn from this project? How should the next wave of systems build on this? The system has to be shaped in a way which allows you to ask the questions you want to ask.
+As is, this project is more of a toy environment that's been useful while prototyping out this idea and gaining insight into the problem space. For this project to be truly successful we must ultimately be able to be used to do serious, original, and creative work. That's the basic test for whether our tools are genuinely working rather than merely telling a good story. Ideally, we want to be the tool where relatively low cost changes in practice produce transformative changes in outcome, aka non-linear returns and qualitative shifts. Historically, humans have invented many such transformative tools. If we're smart, maybe we can do the same for this problem space. The question we need to be answering is: What powerful, generalizable ideas can we learn from this project? How should the next wave of systems build on this? The system has to be shaped in a way which allows you to ask the questions you want to ask.
 
 > [!CAUTION] 
 >
@@ -134,11 +134,11 @@ What are your ideas?
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Python 3.12+](https://github.com/pyenv/pyenv)
 - [Rust](https://rustup.rs/)
-- [KVM](https://linux-kvm.org/page/Main_Page) _(optional - only required for dispatching worker jobs to firecracker)_.
+- [KVM](https://linux-kvm.org/page/Main_Page)
 
 ### Configuration
 
-- **Configure environment** _(optional - by default we launch a dev environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
+- **Configure environment** _(optional - by default we launch the docker compose environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
     - `cp .env.example .env` 
 
 ---
@@ -174,31 +174,31 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
    ```
-   docker compose up db ui queue worker
+   docker compose up db ui queue
    ```
 
-5. **Migrate database** and build and start web server with watch.
+5. **Migrate database**.
    ```bash
    cargo install sqlx-cli --no-default-features --features native-tls,postgres
    cargo install cargo-watch
    sqlx migrate run
    ```
-   - for development ensure your Python venv with osintbuddy is activated and the default plugins initialized...
-   - `. ./venv/bin/activate`
-   - Now we can run and watch the Rust web server
+  
+6. Run and watch the Rust `api`
+   ```bash
+   docker compose up worker api
+   ```
+   - Alternatively you can run the backend `api` and `worker` on your host system: 
    ```bash
    cargo watch -q -c -w services/api -x "run -p api"
    ```
-    - To launch worker outside of docker run:
-      - `cargo watch -q -c -w services/worker -x "run -p worker"` 
-      - **note**: you will need to update the amqp url by changing `queue` to `localhost` when running the worker outside of docker
+   - **note**: you will need to update the amqp url and perhaps some other env values when running services outside of docker
 
-6. **Access OSINTBuddy** through the URLs provided for the frontend, backend, and documentation.
+6. **Access OSINTBuddy** through the URLs provided for the frontend, backend, and documentation. URLs:
 
-- URLs
-  - Frontend: [`http://localhost:55173`](http://localhost:55173)
-  - Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
-  - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
+- Frontend: [`http://localhost:55173`](http://localhost:55173)
+- Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
+- Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
 
 
 #### Shutting down OSIB

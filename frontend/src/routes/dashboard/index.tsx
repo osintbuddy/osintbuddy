@@ -82,16 +82,16 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div class='flex h-full px-4 py-4'>
-        <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-2 shadow-2xl shadow-black/25 backdrop-blur-md'>
+      <div class='flex h-full px-4 py-3'>
+        <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
           <Input.AltIcon
             icon={<Icon icon='search' className='transparent-icon' />}
             onBtnClick={() => console.log('Todo search')}
             type='text'
-            className='mx-2 mb-1.5 w-full'
+            className='relative left-px mb-2.5 w-full'
             placeholder={`Search...`}
           />
-          <div className='relative my-1 ml-[2px]'>
+          <div className='relative left-0.5'>
             <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
@@ -119,7 +119,7 @@ export default function DashboardPage() {
               />
             </section>
           </div>
-          <div class='relative my-1 flex h-[calc(93%-80px)] w-full flex-col'>
+          <div class='relative my-1 flex h-[calc(92.5%-80px)] w-full flex-col'>
             {currentPanelTab === 0 && (
               <GraphPanel
                 graphsData={{ favorites: graphFavorites, graphs }}
