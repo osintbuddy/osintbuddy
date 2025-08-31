@@ -116,14 +116,15 @@ As is, this project is more of a toy environment that's been useful while protot
 
 ## A Vision
 
-I have this conviction that a remarkable set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT work but for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work can accomplish. My goal is to expand your thinking beyond what can be achieved using existing tools. To let you engage and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
+I have this conviction that a remarkable set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT work but for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work can accomplish.
+
+My goal is to expand your thinking beyond what can be achieved using existing tools. To let you engage and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
 
 - **Collective Intelligence** - Collaborative workspaces for global knowledge sharing
 - **Real-time Monitoring** - Automated data collection and alerts on changes
 - **History Graphs** - Browser extension for seamless web exploration
 - **AI/ML Integrations** - Swarm intelligence, sentiment analysis, LLMs/MCP, evolutionary algorithms, etc
 
-What are your ideas?
 
 ## Installation
 
@@ -138,7 +139,7 @@ What are your ideas?
 
 ### Configuration
 
-- **Configure environment** _(optional - by default we launch the docker compose environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
+- **Configure environment** _(by default we usually use the docker compose environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
     - `cp .env.example .env` 
 
 ---
@@ -184,21 +185,20 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    sqlx migrate run
    ```
   
-6. Run and watch the Rust `api`
+6. **Run OSIB**
    ```bash
    docker compose up worker api
    ```
-   - Alternatively you can run the backend `api` and `worker` on your host system: 
+   - Alternatively you can run the backend `api` and `worker` on your host system:
    ```bash
    cargo watch -q -c -w services/api -x "run -p api"
    ```
-   - **note**: you will need to update the amqp url and perhaps some other env values when running services outside of docker
+   - **note**: you will need to update the amqp url and perhaps some other values when running services outside of docker
 
-6. **Access OSINTBuddy** through the URLs provided for the frontend, backend, and documentation. URLs:
-
-- Frontend: [`http://localhost:55173`](http://localhost:55173)
-- Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
-- Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
+6. **Access OSIB** through the URLs provided for the frontend, backend, and documentation:
+   - Frontend: [`http://localhost:55173`](http://localhost:55173)
+   - Backend: [`http://localhost:48997/api`](http://localhost:48997/api)
+   - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
 
 
 #### Shutting down OSIB
