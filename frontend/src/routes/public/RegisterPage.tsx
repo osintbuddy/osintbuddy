@@ -107,13 +107,9 @@ export default function RegisterPage(): JSX.Element {
               label={
                 <>
                   I agree to the{' '}
-                  <NavLink
-                    class='border-primary-350 hover:border-primary border-b-3 text-base hover:text-slate-200'
-                    to='/terms'
-                  >
-                    terms and conditions
+                  <NavLink class='link text-sm' to='/terms'>
+                    terms and conditions.
                   </NavLink>
-                  .
                 </>
               }
               name='tos'

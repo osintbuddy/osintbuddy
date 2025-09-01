@@ -200,6 +200,11 @@ body {
   @apply group-hover:text-primary-350 group-focus-within:group-hover:text-primary-400 group-focus-within:text-primary-400 group-active:text-primary-400 relative right-4 h-6 w-6
 }
 
+.link {
+  @apply border-b-primary-300 text-slate-350 inline-flex h-3 border-b-3 hover:border-b-5 leading-0 font-medium transition-all duration-100 ease-in-out hover:text-slate-200
+}
+
+
 ::-moz-selection,
 ::selection {
   color: var(--color-slate-50);
