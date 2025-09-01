@@ -352,7 +352,7 @@ export function CreateGraphModal({
     })
       .then((graph) => {
         closeModal()
-        toast.success('Graph created successfully!')
+        toast.success('Your case was created successfully!')
         if (showGuide) {
           navigate(`/graph/${graph.id}`, { state: { showGuide } })
         }
