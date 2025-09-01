@@ -1402,6 +1402,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hostname"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a56f203cd1c76362b69e3863fd987520ac36cf70a8c92627449b2f64a8cf7d65"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "windows-link",
+]
+
+[[package]]
 name = "http"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3973,6 +3984,7 @@ dependencies = [
  "env_logger",
  "firecracker-rs-sdk",
  "futures-util",
+ "hostname",
  "jsonwebtoken",
  "log",
  "moka",
@@ -3983,6 +3995,7 @@ dependencies = [
  "serde_json",
  "sqids",
  "sqlx",
+ "thiserror 1.0.69",
  "tokio",
  "uuid",
 ]

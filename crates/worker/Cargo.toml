@@ -25,3 +25,5 @@ firecracker-rs-sdk = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 common = { path = "../common" }
+hostname = "0.4"
+thiserror = "1.0"
