@@ -68,6 +68,7 @@ create index on edges_current(kind, src_id, dst_id);
 
 create type job_status as enum ('enqueued','leased','running','failed','completed','canceled','dead');
 
+-- worker jobs (sent to firecracker microVMs)
 CREATE TABLE IF NOT EXISTS jobs (
   job_id         uuid primary key,
   kind           text not null,             -- e.g., 'http_scrape', 'yara_scan'
@@ -144,7 +145,7 @@ CREATE TABLE IF NOT EXISTS users (
     mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
     CONSTRAINT valid_user_type CHECK (user_type IN (
-      'standard', 'owner', 'moderator', 'superadmin'
+      'standard', 'owner', 'moderator', 'sudo'
     ))
 );
 CREATE INDEX users_email_idx ON users (email);
