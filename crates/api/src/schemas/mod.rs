@@ -4,7 +4,6 @@ use actix_web::{
 use serde::{Deserialize, Serialize};
 
 pub mod entities;
-pub mod errors;
 pub mod graphs;
 pub mod organization;
 pub mod user;
