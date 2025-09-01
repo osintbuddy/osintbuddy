@@ -3,10 +3,12 @@ use actix_web::{HttpResponse, Responder, get, web};
 use crate::schemas::Notification;
 
 mod entities;
+mod events;
 mod graphing;
 mod graphs;
 mod organization;
 mod user;
+mod jobs;
 
 #[get("/health")]
 pub async fn healthcheck_handler() -> impl Responder {
@@ -16,11 +18,13 @@ pub async fn healthcheck_handler() -> impl Responder {
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/api")
         .service(healthcheck_handler)
+        .service(events::append_event_handler)
         .service(user::register_user_handler)
         .service(user::login_user_handler)
         .service(user::logout_handler)
         .service(user::refresh_handler)
         .service(user::get_me_handler)
+        .service(jobs::enqueue_job_handler)
         .service(graphs::create_graph_handler)
         .service(graphs::update_graph_handler)
         .service(graphs::delete_graph_handler)

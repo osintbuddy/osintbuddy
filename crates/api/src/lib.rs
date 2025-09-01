@@ -3,6 +3,7 @@ pub mod handlers;
 pub mod middleware;
 pub mod models;
 pub mod schemas;
+mod projector;
 
 // Re-export common database module to preserve existing imports
 pub use common::db as db;
@@ -43,6 +44,14 @@ pub async fn run() -> io::Result<()> {
         "OSIB is listening on: http://{}:{}",
         &cfg.backend_port, &cfg.backend_addr
     );
+    // Start projector loop in the background
+    {
+        let projector_pool = pool.clone();
+        actix_web::rt::spawn(async move {
+            crate::projector::run(projector_pool).await;
+        });
+    }
+
     HttpServer::new(move || {
         let sqids = Sqids::builder()
             .alphabet(cfg.sqids_alphabet.chars().collect())
