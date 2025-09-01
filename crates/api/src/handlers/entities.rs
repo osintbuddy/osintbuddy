@@ -7,9 +7,9 @@ use crate::{
             CreateEntity, DbEntity, DeleteEntity, FavoriteEntityRequest, ListEntitiesResponse,
             UpdateEntity,
         },
-        errors::{AppError, ErrorKind},
     },
 };
+use common::errors::AppError;
 use log::error;
 use serde_json::Value;
 use sqids::Sqids;

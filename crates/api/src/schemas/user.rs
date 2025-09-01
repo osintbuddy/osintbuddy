@@ -4,7 +4,7 @@ use actix_web::{
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::errors::{AppError, ErrorKind};
+use common::errors::AppError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -96,13 +96,11 @@ impl RegisterUserSchema {
         {
             return Err(AppError {
                 message: "Missing username, password, and or email.",
-                kind: ErrorKind::Invalid,
             }); // Adjust error type as needed
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
                 message: "Passwords must be a minimum of 8 characters.",
-                kind: ErrorKind::Invalid,
             });
         }
         Ok(self)
@@ -122,13 +120,11 @@ impl LoginUserSchema {
         if self.email.trim().is_empty() || self.password.trim().is_empty() {
             return Err(AppError {
                 message: "Missing username or password.",
-                kind: ErrorKind::Invalid,
             });
         }
         if self.password.to_string().chars().count() < 8 {
             return Err(AppError {
                 message: "Passwords must be a minimum of 8 characters.",
-                kind: ErrorKind::Invalid,
             });
         }
         Ok(self)

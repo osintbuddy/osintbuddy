@@ -2,9 +2,8 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType, web::Json,
 };
 use chrono::prelude::*;
+use common::errors::AppError;
 use serde::{Deserialize, Serialize};
-
-use super::errors::{AppError, ErrorKind};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Organization {
@@ -50,20 +49,17 @@ impl CreateOrganizationSchema {
         if self.name.trim().is_empty() {
             return Err(AppError {
                 message: "Organization name is required.",
-                kind: ErrorKind::Invalid,
             });
         }
         if self.name.len() > 255 {
             return Err(AppError {
                 message: "Organization name must be 255 characters or less.",
-                kind: ErrorKind::Invalid,
             });
         }
         if let Some(ref email) = self.contact_email {
             if !email.contains('@') {
                 return Err(AppError {
                     message: "Invalid contact email address.",
-                    kind: ErrorKind::Invalid,
                 });
             }
         }
@@ -86,20 +82,17 @@ impl UpdateOrganizationSchema {
         if self.name.trim().is_empty() {
             return Err(AppError {
                 message: "Organization name is required.",
-                kind: ErrorKind::Invalid,
             });
         }
         if self.name.len() > 255 {
             return Err(AppError {
                 message: "Organization name must be 255 characters or less.",
-                kind: ErrorKind::Invalid,
             });
         }
         if let Some(ref email) = self.contact_email {
             if !email.contains('@') {
                 return Err(AppError {
                     message: "Invalid contact email address.",
-                    kind: ErrorKind::Invalid,
                 });
             }
         }

@@ -1,13 +1,12 @@
-use common::db::{Database, age_tx, with_cypher};
 use crate::middleware::auth::decode_jwt;
-use common::errors::AppError;
-use common::utils::to_snake_case;
 use actix_web::{HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
+use common::db::{Database, age_tx, with_cypher};
+use common::errors::AppError;
+use common::utils::{dict_to_opencypher, to_snake_case};
 use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
 use log::{error, info};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tokio::time::{Duration, sleep};
@@ -17,6 +16,22 @@ use serde_json::{Map, Value, json};
 use sqids::Sqids;
 use sqlx::PgPool;
 use std::collections::HashMap;
+
+pub struct GraphingActions {}
+// TODO: Refactor this messy file into this struct
+impl GraphingActions {
+    async fn create_entity() {}
+    async fn update_entity() {}
+    async fn delete_entity() {}
+    async fn read_entity() {}
+
+    async fn create_edge() {}
+    async fn update_edge() {}
+    async fn delete_edge() {}
+    async fn read_edge() {}
+
+    async fn transform() {}
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Position {

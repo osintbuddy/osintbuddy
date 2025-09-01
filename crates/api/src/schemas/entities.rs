@@ -1,11 +1,9 @@
-use crate::schemas::{
-    IdSchema,
-    errors::{AppError, ErrorKind},
-};
+use crate::schemas::IdSchema;
 use actix_web::{
     HttpRequest, HttpResponse, Responder, body::BoxBody, http::header::ContentType, web::Json,
 };
 use chrono::prelude::*;
+use common::errors::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 

@@ -1,4 +1,3 @@
-use chrono::Duration;
 use common::eventstore;
 use common::eventstore::EventRecord;
 use log::{debug, error, info};
@@ -20,14 +19,14 @@ pub async fn run(pool: PgPool) {
         match eventstore::events_after(&pool, last, 500).await {
             Ok(events) if events.is_empty() => {
                 // idle briefly
-                tokio::time::sleep(std::time::Duration::from_millis(750)).await;
+                tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
             }
             Ok(events) => {
                 for ev in events.iter() {
                     if let Err(err) = apply_event(&pool, ev).await {
                         error!("projection apply error at seq {}: {}", ev.seq, err);
                         // back off a bit to avoid hot looping on a poison pill
-                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                         break;
                     }
                     last = ev.seq;
@@ -51,4 +50,3 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
     let _ = pool; // silence unused for now
     Ok(())
 }
-

@@ -1,12 +1,12 @@
 use std::future::{Ready, ready};
 
 use crate::AppData;
-use crate::schemas::errors::{AppError};
 use crate::schemas::user::TokenClaims;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::web::Data;
 use actix_web::{Error as ActixWebError, dev::Payload};
 use actix_web::{FromRequest, HttpRequest, http};
+use common::errors::AppError;
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use log::error;
 use sqids::Sqids;

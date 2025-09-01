@@ -1,11 +1,8 @@
-use std::time::Duration;
-
 use crate::{
     AppData, db,
     middleware::auth::{AuthMiddleware, get_header_auth},
     schemas::{
         Notification,
-        errors::AppError,
         organization::Organization,
         user::{LoginUser, LogoutUser, RefreshClaims, RegisterUser, Token, TokenClaims, User},
     },
@@ -16,10 +13,12 @@ use argon2::{
     password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::prelude::*;
+use common::errors::AppError;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
 use log::error;
 use sqids::Sqids;
 use sqlx::Row;
+use std::time::Duration;
 
 #[post("/auth/register")]
 async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result<User, AppError> {
@@ -38,7 +37,6 @@ async fn register_user_handler(body: RegisterUser, pool: db::Database) -> Result
     if exists {
         return Err(AppError {
             message: "We ran into an error registering your account. Please sign in or try again.",
-            kind: ErrorKind::Database,
         });
     };
 
@@ -139,7 +137,6 @@ async fn login_user_handler(
     })?
     .ok_or(AppError {
         message: "We ran into an error authenticating you. Please try again later.",
-        kind: ErrorKind::Invalid,
     })?;
     let parsed_hash = PasswordHash::new(&user_org_info.password).map_err(|err| {
         error!("{err}");

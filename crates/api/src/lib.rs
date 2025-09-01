@@ -1,12 +1,11 @@
 pub mod abac;
 pub mod handlers;
 pub mod middleware;
-pub mod models;
-pub mod schemas;
 mod projector;
+pub mod schemas;
 
 // Re-export common database module to preserve existing imports
-pub use common::db as db;
+pub use common::db;
 
 use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
@@ -16,7 +15,7 @@ use actix_web::web::Data;
 use actix_web::{App, HttpServer, http::header, web};
 
 use common::config::AppConfig;
-use log::{error, info};
+use log::info;
 use moka::sync::Cache;
 use sqids::Sqids;
 
@@ -42,7 +41,7 @@ pub async fn run() -> io::Result<()> {
     let cfg = CFG.get_or_init(common::config::cfg).await;
     info!(
         "OSIB is listening on: http://{}:{}",
-        &cfg.backend_port, &cfg.backend_addr
+        &cfg.backend_addr, &cfg.backend_port
     );
     // Start projector loop in the background
     {

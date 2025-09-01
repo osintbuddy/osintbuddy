@@ -1,12 +1,10 @@
-use crate::schemas::{
-    errors::{AppError, ErrorKind},
-    user::User,
-};
+use crate::schemas::user::User;
 use chrono;
+use common::errors::AppError;
+use log::error;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::net::IpAddr;
-use log::error;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessContext {
@@ -77,11 +75,11 @@ impl AbacEngine {
 
     pub async fn check_access(&self, context: &AccessContext, pool: &PgPool) -> AccessDecision {
         let decision = self.evaluate_policies(context, pool).await;
-        
+
         if let Err(e) = self.log_access_attempt(context, &decision, pool).await {
             error!("Failed to log access attempt: {}", e);
         }
-        
+
         decision
     }
 
@@ -120,20 +118,32 @@ impl AbacEngine {
     async fn check_create_access(&self, context: &AccessContext) -> AccessDecision {
         match context.resource_type {
             ResourceType::Graph => {
-                let current_count = self.get_user_graph_count(context.user.id).await.unwrap_or(0);
+                let current_count = self
+                    .get_user_graph_count(context.user.id)
+                    .await
+                    .unwrap_or(0);
                 if current_count >= context.org_max_graphs {
                     return AccessDecision {
                         granted: false,
-                        reason: format!("Graph limit exceeded ({}/{})", current_count, context.org_max_graphs),
+                        reason: format!(
+                            "Graph limit exceeded ({}/{})",
+                            current_count, context.org_max_graphs
+                        ),
                     };
                 }
             }
             ResourceType::Entity => {
-                let current_count = self.get_user_entity_count(context.user.id).await.unwrap_or(0);
+                let current_count = self
+                    .get_user_entity_count(context.user.id)
+                    .await
+                    .unwrap_or(0);
                 if current_count >= context.org_max_entities {
                     return AccessDecision {
                         granted: false,
-                        reason: format!("Entity limit exceeded ({}/{})", current_count, context.org_max_entities),
+                        reason: format!(
+                            "Entity limit exceeded ({}/{})",
+                            current_count, context.org_max_entities
+                        ),
                     };
                 }
             }
@@ -145,11 +155,15 @@ impl AbacEngine {
         }
     }
 
-    async fn check_shared_access(&self, context: &AccessContext, pool: &PgPool) -> Result<AccessDecision, AppError> {
+    async fn check_shared_access(
+        &self,
+        context: &AccessContext,
+        pool: &PgPool,
+    ) -> Result<AccessDecision, AppError> {
         let shared_access = sqlx::query_as::<_, (String, Option<chrono::DateTime<chrono::Utc>>)>(
             "SELECT access_level, expires_at FROM resource_shares 
              WHERE resource_type = $1 AND resource_id = $2 AND shared_with_user_id = $3 
-             AND (expires_at IS NULL OR expires_at > NOW())"
+             AND (expires_at IS NULL OR expires_at > NOW())",
         )
         .bind(context.resource_type.as_str())
         .bind(context.resource_id)
@@ -159,7 +173,6 @@ impl AbacEngine {
         .map_err(|err| {
             error!("Database error checking shared access: {}", err);
             AppError {
-                kind: ErrorKind::Database,
                 message: "Error checking shared access",
             }
         })?;
@@ -168,7 +181,9 @@ impl AbacEngine {
             let access_level = &share.0;
             let granted = match context.action {
                 Action::Read => true,
-                Action::Update | Action::Delete => access_level == "write" || access_level == "admin",
+                Action::Update | Action::Delete => {
+                    access_level == "write" || access_level == "admin"
+                }
                 Action::Share => access_level == "admin",
                 Action::Export => context.org_can_export,
                 Action::Create => false,
@@ -186,11 +201,13 @@ impl AbacEngine {
         })
     }
 
-    async fn check_organization_access(&self, context: &AccessContext) -> Result<AccessDecision, AppError> {
-        if let (Some(user_org_id), Some(resource_org_id)) = (
-            Some(context.user.org_id),
-            context.resource_org_id,
-        ) {
+    async fn check_organization_access(
+        &self,
+        context: &AccessContext,
+    ) -> Result<AccessDecision, AppError> {
+        if let (Some(user_org_id), Some(resource_org_id)) =
+            (Some(context.user.org_id), context.resource_org_id)
+        {
             if user_org_id == resource_org_id {
                 let granted = match context.action {
                     Action::Read => true,
@@ -246,7 +263,6 @@ impl AbacEngine {
         .map_err(|err| {
             error!("Failed to log access attempt: {}", err);
             AppError {
-                kind: ErrorKind::Database,
                 message: "Failed to log access attempt",
             }
         })?;
