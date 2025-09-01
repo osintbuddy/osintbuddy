@@ -1,5 +1,115 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Streams provide ordering and tenant/category scoping
+create table if not exists event_streams (
+  stream_id         uuid primary key,
+  category          text not null,           -- e.g., 'entity', 'edge', 'job'
+  key               text not null,           -- e.g., entity_id, edge_id, job_id
+  created_at        timestamptz not null default now(),
+  unique (category, key)
+);
+
+
+-- Append-only events
+create table if not exists events (
+  seq               bigserial primary key,   -- global order (HWM)
+  stream_id         uuid not null references event_store_streams(stream_id) on delete cascade,
+  version           int  not null,           -- per-stream version (optimistic concurrency)
+  event_type        text not null,           -- e.g., 'EntityCreated', 'EdgeAdded', 'JobCompleted'
+  payload           jsonb not null,
+  -- Bi-temporal anchors: valid-time vs system-time
+  valid_from        timestamptz not null,
+  valid_to          timestamptz,
+  recorded_at       timestamptz not null default now(), -- system time (tx-time)
+  causation_id      uuid,                    -- event that caused this (optional)
+  correlation_id    uuid,                    -- request/task correlation
+  idempotency_key   text,                    -- dedupe external retries
+  unique (stream_id, version),
+  unique (idempotency_key)
+);
+
+
+-- Projection checkpoints (high-water marks)
+create table if not exists event_checkpoints (
+  projection_name   text primary key,
+  last_seq          bigint not null default 0,
+  updated_at        timestamptz not null default now()
+);
+
+-- Current entity state (document-y, Marten-style)
+create table if not exists entities_current (
+  entity_id   uuid primary key,
+  doc         jsonb not null,             -- denormalized snapshot for reads
+  valid_from  timestamptz not null,
+  valid_to    timestamptz,                -- null => open-ended
+  sys_from    timestamptz not null,       -- when projector wrote it
+  sys_to      timestamptz                 -- superseded by projector
+);
+
+-- Edge materialization (graph-ish)
+create table if not exists edges_current (
+  edge_id     uuid primary key,
+  src_id      uuid not null,
+  dst_id      uuid not null,
+  kind        text not null,
+  props       jsonb not null default '{}'::jsonb,
+  valid_from  timestamptz not null,
+  valid_to    timestamptz,
+  sys_from    timestamptz not null,
+  sys_to      timestamptz
+);
+
+-- Optional history tables (append-only snapshots per change)
+create table if not exists entities_history (like entities_current including all);
+create table if not exists edges_history    (like edges_current including all);
+
+create index on entities_current using gin ((doc jsonb_path_ops));
+create index on edges_current(kind, src_id, dst_id);
+
+create type job_status as enum ('enqueued','leased','running','failed','completed','canceled','dead');
+
+create table if not exists jobs (
+  job_id         uuid primary key,
+  kind           text not null,             -- e.g., 'http_scrape', 'yara_scan'
+  payload        jsonb not null,
+  status         job_status not null default 'enqueued',
+  priority       int not null default 100,  -- lower = higher prio
+  attempts       int not null default 0,
+  max_attempts   int not null default 3,
+  lease_owner    text,                      -- worker host pod/node id
+  lease_until    timestamptz,               -- soft lease expiration
+  created_at     timestamptz not null default now(),
+  scheduled_at   timestamptz not null default now(),
+  started_at     timestamptz,
+  finished_at    timestamptz,
+  backoff_until  timestamptz,
+  idempotency_key text,
+  unique (idempotency_key)
+);
+
+-- For structured outputs/binaries
+create table if not exists artifacts (
+  artifact_id   uuid primary key,
+  job_id        uuid not null references jobs(job_id) on delete cascade,
+  media_type    text not null default 'application/json',
+  bytes         bytea,          -- small artifacts inline (<= 1-5MB)
+  uri           text,           -- large artifacts offloaded (S3/minio/local fs)
+  meta          jsonb not null default '{}'::jsonb,
+  created_at    timestamptz not null default now()
+);
+
+-- Wake up listeners efficiently
+create or replace function notify_jobs_new() returns trigger language plpgsql as $$
+begin
+  perform pg_notify('jobs_new', '1');
+  return null;
+end $$;
+
+drop trigger if exists trg_jobs_new on jobs;
+create trigger trg_jobs_new after insert on jobs
+for each row execute function notify_jobs_new();
+
+-- tenant (aka teams) discriminator
 CREATE TABLE organizations (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -17,6 +127,11 @@ CREATE TABLE organizations (
 );
 CREATE INDEX organizations_name_idx ON organizations (name);
 
+-- osintbuddy members 
+-- + every member has a default organization created with their name
+-- + this is their default "team"
+-- + TODO: create organization signup flow to allow
+--         customizing initial organization details on new account
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -35,6 +150,7 @@ CREATE TABLE users (
 CREATE INDEX users_email_idx ON users (email);
 CREATE INDEX users_org_id_idx ON users (org_id);
 
+-- Cases are the reference to a specific set entities and their relationships
 CREATE TABLE cases (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
@@ -60,6 +176,8 @@ CREATE TABLE favorite_cases (
 );
 CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 
+-- entity script source code, can be any language (Node/Python) as
+-- long as some simple rules and data structures are followed
 CREATE TABLE entities (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
@@ -88,6 +206,7 @@ CREATE TABLE favorite_entities (
 );
 CREATE INDEX favorite_entities_owner_id_idx ON favorite_entities (owner_id);
 
+-- abac 
 CREATE TABLE resource_shares (
     id BIGSERIAL PRIMARY KEY,
     resource_type VARCHAR(40) NOT NULL,
@@ -130,6 +249,8 @@ CREATE TABLE access_logs (
 CREATE INDEX access_logs_user_id_idx ON access_logs (user_id);
 CREATE INDEX access_logs_resource_idx ON access_logs (resource_type, resource_id);
 
+-- case feed result
+-- TODO: think this out more, want to support RSS, custom post feeds, etc
 CREATE TABLE feeds (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
@@ -149,6 +270,7 @@ CREATE INDEX feeds_org_id_idx ON feeds (org_id);
 CREATE INDEX feeds_owner_id_idx ON feeds (owner_id);
 CREATE INDEX feeds_categories_idx ON feeds USING GIN (categories);
 
+-- feed posts
 CREATE TABLE posts (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
