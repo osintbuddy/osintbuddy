@@ -16,9 +16,7 @@ dotenvy = { workspace = true }
 env_logger = { workspace = true }
 futures-util = { workspace = true }
 jsonwebtoken = { workspace = true }
-lapin = { workspace = true }
 log = { workspace = true }
-minio = { workspace = true }
 moka = { workspace = true }
 rand_core = { workspace = true }
 regex = { workspace = true }
