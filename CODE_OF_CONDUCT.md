@@ -1,4 +1,4 @@
-# Our Code of Conduct
+# OSIB Code of Conduct
 
 ## Hacker Ethics and Our Pledge
 
@@ -17,7 +17,7 @@ It is widely acknowledged that **public debates about such demands should take p
 
 We believe that from ethics, enlightened self-interest, and the commonwealth, our governance will emerge. Our identities may be distributed across many of your jurisdictions. The only law that all our constituent cultures would generally recognize is the [Golden Rule](https://en.wikipedia.org/wiki/Golden_Rule). 
 
-## Our Standards - The ethical principles of hacking - motivation and limits
+## OSIB Standards - The ethical principles of hacking - motivation and limits
 
 * Accept constructive criticism and be respectful of differing viewpoints and experiences while showing empathy towards other.
 * Access to computers - and anything which might teach you something about the way the world really works - should be unlimited and total. Always yield to the Hands-On Imperative!
@@ -29,7 +29,7 @@ We believe that from ethics, enlightened self-interest, and the commonwealth, ou
 * Don't litter other people's data.
 * Make public data available, protect private data.
 
-## Our Responsibilities
+## OSIB Responsibilities
 
 Project maintainers are responsible for clarifying the standards of acceptable
 behavior and are expected to take appropriate and fair corrective action in
