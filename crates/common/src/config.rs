@@ -19,7 +19,7 @@ pub struct AppConfig {
     #[confik(secret)]
     pub sqids_alphabet: String,
     pub serve_build: Option<bool>,
-    pub amqp_url: String,
+
     // worker + firecracker tuning
     pub worker_owner: Option<String>,
     pub worker_lease_seconds: Option<i32>,
@@ -38,11 +38,10 @@ pub async fn cfg() -> AppConfig {
         .try_build()
         .unwrap_or_else(|err| {
             let default_cfg = AppConfig {
-                amqp_url: String::from("amqp://guest:guest@queue:5672//"),
                 max_connections: 16,
                 environment: String::from("development"),
                 serve_build: Some(false),
-                database_url: String::from("postgresql://postgres:password@db:55432/app"),
+                database_url: String::from("postgresql://postgres:password@localhost:55432/app"),
                 backend_port: 48997,
                 backend_addr: String::from("localhost"),
                 backend_cors: String::from("http://localhost:5173"),

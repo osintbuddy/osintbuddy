@@ -1,7 +1,7 @@
 use crate::config::{self, CFG};
 use actix_web::web::Data;
 use futures_util::future::BoxFuture;
-use log::{error, info};
+use log::{debug, error, info};
 use regex::Regex;
 use sqlx::Row;
 use sqlx::postgres::{PgPoolOptions, PgRow};
@@ -20,6 +20,7 @@ pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
     Box::pin(async move {
         let cfg = CFG.get_or_init(config::cfg).await;
         info!("Attempting to establish connection to PostgreSQL...");
+        debug!("PostgreSQL is using URI: {}", &cfg.database_url);
         match PgPoolOptions::new()
             .max_connections(128)
             .connect(&cfg.database_url)
@@ -38,9 +39,10 @@ pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
     })
 }
 
+// TODO: deprecate
 pub type PgTx = Transaction<'static, Postgres>;
 pub type AgeTx = Result<PgTx, AppError>;
-
+// TODO: deprecate
 pub async fn age_tx(pool: &PgPool) -> AgeTx {
     let mut tx = pool.begin().await.map_err(|err| {
         log::error!("{err}");
@@ -57,7 +59,7 @@ pub async fn age_tx(pool: &PgPool) -> AgeTx {
         .await;
     Ok(tx)
 }
-
+// TODO: deprecate
 pub async fn with_cypher(
     query: String,
     tx: &mut PgConnection,
