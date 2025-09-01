@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Streams provide ordering and tenant/category scoping
-create table if not exists event_streams (
+CREATE TABLE IF NOT EXISTS event_streams (
   stream_id         uuid primary key,
   category          text not null,           -- e.g., 'entity', 'edge', 'job'
   key               text not null,           -- e.g., entity_id, edge_id, job_id
@@ -11,7 +11,7 @@ create table if not exists event_streams (
 
 
 -- Append-only events
-create table if not exists events (
+CREATE TABLE IF NOT EXISTS events (
   seq               bigserial primary key,   -- global order (HWM)
   stream_id         uuid not null references event_store_streams(stream_id) on delete cascade,
   version           int  not null,           -- per-stream version (optimistic concurrency)
@@ -30,14 +30,14 @@ create table if not exists events (
 
 
 -- Projection checkpoints (high-water marks)
-create table if not exists event_checkpoints (
+CREATE TABLE IF NOT EXISTS event_checkpoints (
   projection_name   text primary key,
   last_seq          bigint not null default 0,
   updated_at        timestamptz not null default now()
 );
 
 -- Current entity state (document-y, Marten-style)
-create table if not exists entities_current (
+CREATE TABLE IF NOT EXISTS entities_current (
   entity_id   uuid primary key,
   doc         jsonb not null,             -- denormalized snapshot for reads
   valid_from  timestamptz not null,
@@ -47,7 +47,7 @@ create table if not exists entities_current (
 );
 
 -- Edge materialization (graph-ish)
-create table if not exists edges_current (
+CREATE TABLE IF NOT EXISTS edges_current (
   edge_id     uuid primary key,
   src_id      uuid not null,
   dst_id      uuid not null,
@@ -60,15 +60,15 @@ create table if not exists edges_current (
 );
 
 -- Optional history tables (append-only snapshots per change)
-create table if not exists entities_history (like entities_current including all);
-create table if not exists edges_history    (like edges_current including all);
+CREATE TABLE IF NOT EXISTS entities_history (like entities_current including all);
+CREATE TABLE IF NOT EXISTS edges_history    (like edges_current including all);
 
 create index on entities_current using gin ((doc jsonb_path_ops));
 create index on edges_current(kind, src_id, dst_id);
 
 create type job_status as enum ('enqueued','leased','running','failed','completed','canceled','dead');
 
-create table if not exists jobs (
+CREATE TABLE IF NOT EXISTS jobs (
   job_id         uuid primary key,
   kind           text not null,             -- e.g., 'http_scrape', 'yara_scan'
   payload        jsonb not null,
@@ -88,7 +88,7 @@ create table if not exists jobs (
 );
 
 -- For structured outputs/binaries
-create table if not exists artifacts (
+CREATE TABLE IF NOT EXISTS artifacts (
   artifact_id   uuid primary key,
   job_id        uuid not null references jobs(job_id) on delete cascade,
   media_type    text not null default 'application/json',
@@ -110,7 +110,7 @@ create trigger trg_jobs_new after insert on jobs
 for each row execute function notify_jobs_new();
 
 -- tenant (aka teams) discriminator
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -132,7 +132,7 @@ CREATE INDEX organizations_name_idx ON organizations (name);
 -- + this is their default "team"
 -- + TODO: create organization signup flow to allow
 --         customizing initial organization details on new account
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -151,7 +151,7 @@ CREATE INDEX users_email_idx ON users (email);
 CREATE INDEX users_org_id_idx ON users (org_id);
 
 -- Cases are the reference to a specific set entities and their relationships
-CREATE TABLE cases (
+CREATE TABLE IF NOT EXISTS cases (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
     label TEXT NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE cases (
 );
 CREATE INDEX cases_org_id_idx ON cases (org_id);
 
-CREATE TABLE favorite_cases (
+CREATE TABLE IF NOT EXISTS favorite_cases (
     case_id BIGSERIAL NOT NULL,
     owner_id BIGSERIAL NOT NULL,
     PRIMARY KEY (owner_id, case_id),
@@ -178,7 +178,7 @@ CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 
 -- entity script source code, can be any language (Node/Python) as
 -- long as some simple rules and data structures are followed
-CREATE TABLE entities (
+CREATE TABLE IF NOT EXISTS entities (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
     label TEXT NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE entities (
 CREATE INDEX entities_owner_id_idx ON entities (owner_id);
 CREATE INDEX entities_shared_with_org_id_idx ON entities (org_id);
 
-CREATE TABLE favorite_entities (
+CREATE TABLE IF NOT EXISTS favorite_entities (
     entity_id BIGSERIAL NOT NULL,
     owner_id BIGSERIAL NOT NULL,
     PRIMARY KEY (owner_id, entity_id),
@@ -207,7 +207,7 @@ CREATE TABLE favorite_entities (
 CREATE INDEX favorite_entities_owner_id_idx ON favorite_entities (owner_id);
 
 -- abac 
-CREATE TABLE resource_shares (
+CREATE TABLE IF NOT EXISTS resource_shares (
     id BIGSERIAL PRIMARY KEY,
     resource_type VARCHAR(40) NOT NULL,
     resource_id BIGSERIAL NOT NULL,
@@ -231,7 +231,7 @@ CREATE INDEX resource_shares_shared_with_user_idx ON resource_shares (shared_wit
 CREATE INDEX resource_shares_org_id_idx ON resource_shares (org_id);
 CREATE INDEX resource_shares_lookup_idx ON resource_shares (resource_type, resource_id, org_id);
   
-CREATE TABLE access_logs (
+CREATE TABLE IF NOT EXISTS access_logs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGSERIAL NOT NULL,
     resource_type VARCHAR(20) NOT NULL,
@@ -251,7 +251,7 @@ CREATE INDEX access_logs_resource_idx ON access_logs (resource_type, resource_id
 
 -- case feed result
 -- TODO: think this out more, want to support RSS, custom post feeds, etc
-CREATE TABLE feeds (
+CREATE TABLE IF NOT EXISTS feeds (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
@@ -271,7 +271,7 @@ CREATE INDEX feeds_owner_id_idx ON feeds (owner_id);
 CREATE INDEX feeds_categories_idx ON feeds USING GIN (categories);
 
 -- feed posts
-CREATE TABLE posts (
+CREATE TABLE IF NOT EXISTS posts (
     id BIGSERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuid_generate_v4(),
     feed_id BIGSERIAL NOT NULL,
@@ -291,7 +291,7 @@ CREATE INDEX posts_feed_id_idx ON posts (feed_id);
 CREATE INDEX posts_author_id_idx ON posts (author_id);
 CREATE INDEX posts_parent_post_id_idx ON posts (parent_post_id);
 
-CREATE TABLE post_edit_history (
+CREATE TABLE IF NOT EXISTS post_edit_history (
     id BIGSERIAL PRIMARY KEY,
     post_id BIGSERIAL NOT NULL,
     title TEXT NOT NULL,
@@ -307,7 +307,7 @@ CREATE TABLE post_edit_history (
 CREATE INDEX post_edit_history_post_id_idx ON post_edit_history (post_id);
 CREATE INDEX post_edit_history_edited_by_idx ON post_edit_history (edited_by);
 
-CREATE TABLE tags (
+CREATE TABLE IF NOT EXISTS tags (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     color VARCHAR(7),
@@ -321,7 +321,7 @@ CREATE TABLE tags (
 CREATE INDEX tags_org_id_idx ON tags (org_id);
 CREATE INDEX tags_name_idx ON tags (name);
 
-CREATE TABLE post_tags (
+CREATE TABLE IF NOT EXISTS post_tags (
     post_id BIGSERIAL NOT NULL,
     tag_id BIGSERIAL NOT NULL,
     tagged_by BIGSERIAL NOT NULL,
