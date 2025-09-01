@@ -22,8 +22,6 @@ use sqids::Sqids;
 use std::io;
 use std::time::Duration;
 
-use common::config::CFG;
-
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
     pub cfg: &'static AppConfig,
