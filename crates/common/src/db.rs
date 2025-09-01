@@ -19,14 +19,17 @@ pub static DB: OnceCell<PoolResult> = OnceCell::const_new();
 pub fn db_pool(attempts: Option<i16>) -> BoxFuture<'static, PgPool> {
     Box::pin(async move {
         let cfg = CFG.get_or_init(config::cfg).await;
-        info!("Attempting to establish connection to PostgreSQL...");
-        debug!("PostgreSQL is using URI: {}", &cfg.database_url);
+        // debug!("Connecting to PostgreSQL using URI: {}", &cfg.database_url);
+        info!("Attempting PostgreSQL connection.");
         match PgPoolOptions::new()
             .max_connections(128)
             .connect(&cfg.database_url)
             .await
         {
-            Ok(pool) => pool,
+            Ok(pool) => {
+                info!("PostgreSQL connection success!");
+                pool
+            }
             Err(err) => {
                 let attempts = attempts.unwrap_or(0);
                 error!(
