@@ -24,3 +24,6 @@ DROP TABLE IF EXISTS entities_current;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS organizations;
 DROP TABLE IF EXISTS event_streams;
+
+-- Drop enum types created in up
+DROP TYPE IF EXISTS job_status;

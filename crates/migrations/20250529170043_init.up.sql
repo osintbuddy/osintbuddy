@@ -60,13 +60,22 @@ CREATE TABLE IF NOT EXISTS edges_current (
 );
 
 -- Optional history tables (append-only snapshots per change)
-CREATE TABLE IF NOT EXISTS entities_history (like entities_current including all);
-CREATE TABLE IF NOT EXISTS edges_history    (like edges_current including all);
+CREATE TABLE IF NOT EXISTS entities_history (LIKE entities_current including all);
+CREATE TABLE IF NOT EXISTS edges_history    (LIKE edges_current including all);
 
-create index entities_current_doc_gin_idx on entities_current using gin (doc jsonb_path_ops);
-create index on edges_current(kind, src_id, dst_id);
+CREATE INDEX entities_current_doc_gin_idx ON entities_current USING gin (doc jsonb_path_ops);
+CREATE INDEX ON edges_current(kind, src_id, dst_id);
 
-create type job_status as enum ('enqueued','leased','running','failed','completed','canceled','dead');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE t.typname = 'job_status'
+  ) THEN
+    CREATE TYPE job_status AS ENUM ('enqueued','leased','running','failed','completed','canceled','dead');
+  END IF;
+END$$;
 
 -- worker jobs (sent to firecracker microVMs)
 CREATE TABLE IF NOT EXISTS jobs (
@@ -100,15 +109,15 @@ CREATE TABLE IF NOT EXISTS artifacts (
 );
 
 -- Wake up listeners efficiently
-create or replace function notify_jobs_new() returns trigger language plpgsql as $$
-begin
+CREATE OR REPLACE FUNCTION notify_jobs_new() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
   perform pg_notify('jobs_new', '1');
-  return null;
-end $$;
+  RETURN null;
+END $$;
 
-drop trigger if exists trg_jobs_new on jobs;
-create trigger trg_jobs_new after insert on jobs
-for each row execute function notify_jobs_new();
+
+CREATE TRIGGER trg_jobs_new AFTER INSERT ON jobs
+FOR EACH ROW EXECUTE FUNCTION notify_jobs_new();
 
 -- tenant (aka teams) discriminator
 CREATE TABLE IF NOT EXISTS organizations (
