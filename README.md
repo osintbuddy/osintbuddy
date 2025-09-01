@@ -182,7 +182,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    ```bash
    cargo install sqlx-cli --no-default-features --features native-tls,postgres
    cargo install cargo-watch
-   sqlx migrate run
+   cd crates/ && sqlx migrate run && cd ..
    ```
   
 6. **Run OSIB**
