@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS event_streams (
 -- Append-only events
 CREATE TABLE IF NOT EXISTS events (
   seq               bigserial primary key,   -- global order (HWM)
-  stream_id         uuid not null references event_store_streams(stream_id) on delete cascade,
+  stream_id         uuid not null references event_streams(stream_id) on delete cascade,
   version           int  not null,           -- per-stream version (optimistic concurrency)
   event_type        text not null,           -- e.g., 'EntityCreated', 'EdgeAdded', 'JobCompleted'
   payload           jsonb not null,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS edges_current (
 CREATE TABLE IF NOT EXISTS entities_history (like entities_current including all);
 CREATE TABLE IF NOT EXISTS edges_history    (like edges_current including all);
 
-create index on entities_current using gin ((doc jsonb_path_ops));
+create index entities_current_doc_gin_idx on entities_current using gin (doc jsonb_path_ops);
 create index on edges_current(kind, src_id, dst_id);
 
 create type job_status as enum ('enqueued','leased','running','failed','completed','canceled','dead');
