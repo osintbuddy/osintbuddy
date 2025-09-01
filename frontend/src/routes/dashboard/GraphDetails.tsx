@@ -1,3 +1,4 @@
+import { Graph } from '@/app/api'
 import { useGraphStore, useGraphsStore } from '@/app/store'
 import { Icon } from '@/components/icons'
 import { useEffect } from 'preact/hooks'
@@ -56,7 +57,7 @@ function GraphHeader({ graph }: GraphHeaderProps) {
         <div className='text-slate-350 relative flex text-sm select-none'>
           <div className='relative flex w-full items-center'>
             <button
-              title='Delete this case investigation'
+              title='Click to mark this case deleted this case.'
               class='font-display text-danger-500 hover:text-danger-600 group mr-auto flex h-full items-center bg-black/10 px-4 py-2 font-semibold hover:bg-black/40'
             >
               <Icon
@@ -140,6 +141,61 @@ function SimpleStatCard({ value, label }: SimpleStatCardProps) {
   )
 }
 
+function CaseActivity() {
+  return (
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+      <h5 className='font-display flex w-full items-center justify-between px-2 py-1 text-lg font-medium text-inherit'>
+        Recent Case Activity
+      </h5>
+      <hr class='mb-1 border-1 text-slate-900 transition-all duration-200 group-hover:text-slate-800' />
+      <div class='px-2 text-slate-600'>
+        TODO Build out timeline component for case events and comments on the UI
+        and with Rust
+      </div>
+    </div>
+  )
+}
+
+interface CaseOverviewProps {
+  graph: Graph
+}
+
+function CaseOverview({ graph }: CaseOverviewProps) {
+  return (
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-1/5 min-w-1/5 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+      {/* details section: */}
+      <section class='group py-2'>
+        <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
+          {graph?.label}
+        </h5>
+        <hr class='text-primary-300 mb-1 border-1' />
+        <p className='text-md line-clamp-24 max-w-xs px-2 leading-normal'>
+          {graph?.description ? (
+            graph.description
+          ) : (
+            <span class='text-slate-600'>
+              No description could be found for this case. TODO: Double click to
+              create or edit this description.
+            </span>
+          )}
+        </p>
+      </section>
+      {/* stats section: */}
+      <section class='relative z-10 mt-auto flex flex-col'>
+        <section class='group'>
+          <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
+            Case Statistics
+          </h5>
+          <hr class='mb-1 border-1 text-slate-900 transition-all duration-200 group-hover:text-slate-800' />
+          <SimpleStatCard value={0} label='Entities Count' />
+          <SimpleStatCard value={0} label='Edges Count' />
+          <SimpleStatCard value={0} label='Events Count' />
+        </section>
+      </section>
+    </div>
+  )
+}
+
 export default function GraphDetails() {
   const { hid = '' } = useParams()
   const { getGraph, graph, vertices_count, edges_count, degree2_count } =
@@ -166,52 +222,10 @@ export default function GraphDetails() {
                   keep brainstorming for now...
                 </h2>
               </div>
-              <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
-                <h5 className='font-display flex w-full items-center justify-between px-2 py-1 text-lg font-medium text-inherit'>
-                  Recent Case Activity
-                </h5>
-                <hr class='mb-1 border-1 text-slate-900 transition-all duration-200 group-hover:text-slate-800' />
-                <div class='px-2 text-slate-600'>
-                  TODO Build out timeline component for case events and comments
-                  on the UI and with Rust
-                </div>
-              </div>
+              <CaseActivity />
             </div>
             {/* far right dashboard panel */}
-            <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-1/5 min-w-1/5 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
-              {/* details section: */}
-              <section class='group py-2'>
-                <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
-                  {graph?.label}
-                </h5>
-                <hr class='text-primary-300 mb-1 border-1' />
-                <p className='text-md line-clamp-10 max-w-xs px-2 leading-normal'>
-                  {graph?.description ? (
-                    graph.description
-                  ) : (
-                    <span class='text-slate-600'>
-                      No description could be found for this case. TODO: Double
-                      click to create or edit this description.
-                    </span>
-                  )}
-                </p>
-              </section>
-              {/* stats section: */}
-              <section class='relative z-10 mt-auto flex flex-col'>
-                <section class='group'>
-                  <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
-                    Case Statistics
-                  </h5>
-                  <hr class='mb-1 border-1 text-slate-900 transition-all duration-200 group-hover:text-slate-800' />
-                  <SimpleStatCard
-                    value={vertices_count}
-                    label='Entities Count'
-                  />
-                  <SimpleStatCard value={edges_count} label='Edges Count' />
-                  <SimpleStatCard value={degree2_count} label='Events Count' />
-                </section>
-              </section>
-            </div>
+            <CaseOverview graph={graph as Graph} />
           </div>
         </div>
       </div>
