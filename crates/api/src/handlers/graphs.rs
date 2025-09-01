@@ -8,14 +8,14 @@ use crate::{
         },
     },
 };
-use common::db::{self, age_tx, with_cypher};
-use common::errors::AppError;
 use actix_web::{
     HttpResponse, Result, delete, get,
     http::StatusCode,
     patch, post,
     web::{Data, Path},
 };
+use common::db::{self, age_tx, with_cypher};
+use common::errors::AppError;
 use log::error;
 use sqids::Sqids;
 use std::string::String;
@@ -43,34 +43,6 @@ async fn create_graph_handler(
         error!("{err}");
         AppError {
             message: "We ran into an error creating this graph.",
-        }
-    })?;
-    let graph_name = graph
-        .uuid
-        .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
-        .ok_or(AppError {
-            message: "We ran into a missing graph id error!",
-        })?;
-    let mut tx = age_tx(pool.as_ref()).await?;
-
-    sqlx::raw_sql(
-        format!("SELECT create_graph('{}')", graph_name)
-            .to_string()
-            .as_str(),
-    )
-    .execute(tx.as_mut())
-    .await
-    .map_err(|err| {
-        error!("Error creating age graph: {err}");
-        AppError {
-            message: "We ran into an error creating your Age graph.",
-        }
-    })?;
-
-    tx.commit().await.map_err(|err| {
-        error!("Error committing age graph transaction: {err}");
-        AppError {
-            message: "We ran into an error committing the age graph transaction.",
         }
     })?;
 
@@ -256,37 +228,6 @@ async fn get_graph_handler(
         .ok_or(AppError {
             message: "We ran into a missing graph id error!",
         })?;
-    let mut tx = age_tx(pool.as_ref()).await?;
-    let vertices = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH (v) RETURN v $$) as (v agtype)",
-            graph_name
-        ),
-        tx.as_mut(),
-    )
-    .await?;
-    let edges = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH (v)-[e]->() RETURN e $$) as (e agtype)",
-            graph_name
-        ),
-        tx.as_mut(),
-    )
-    .await?;
-    let second_degrees = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH ()-[]->(a)-[]->(v) RETURN v $$) as (v agtype)",
-            graph_name
-        ),
-        tx.as_mut(),
-    )
-    .await?;
-    tx.commit().await.map_err(|err| {
-        error!("{err}");
-        AppError {
-            message: "We ran into an error commiting the age transaction!",
-        }
-    })?;
 
     Ok(GraphStats {
         graph: Graph {
@@ -296,9 +237,10 @@ async fn get_graph_handler(
             ctime: graph.ctime,
             mtime: graph.mtime,
         },
-        vertices_count: vertices.len(),
-        edges_count: edges.len(),
-        second_degrees: second_degrees.len(),
+        // TODO: implement projection for these basic case stats
+        vertices_count: 0,
+        edges_count: 0,
+        second_degrees: 0,
     })
 }
 
