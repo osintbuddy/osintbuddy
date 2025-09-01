@@ -35,10 +35,9 @@ async fn spa_index() -> actix_web::Result<NamedFile> {
     Ok(NamedFile::open("./frontend/dist/index.html")?)
 }
 
-pub async fn run() -> io::Result<()> {
+pub async fn run(cfg: &'static AppConfig) -> io::Result<()> {
     // TTL jwt token (invalid/expire/unauthorized) cache
     let pool = common::db::db_pool(Some(0)).await;
-    let cfg = CFG.get_or_init(common::config::cfg).await;
     info!(
         "OSIB is listening on: http://{}:{}",
         &cfg.backend_addr, &cfg.backend_port

@@ -5,6 +5,7 @@ use tokio::sync::OnceCell;
 #[derive(Debug, Configuration, Clone)]
 pub struct AppConfig {
     pub environment: String,
+    pub log_level: String,
     pub backend_addr: String,
     pub backend_port: u16,
     pub backend_cors: String,
@@ -40,6 +41,7 @@ pub async fn cfg() -> AppConfig {
             let default_cfg = AppConfig {
                 max_connections: 16,
                 environment: String::from("development"),
+                log_level: String::from("debug"),
                 serve_build: Some(false),
                 database_url: String::from("postgresql://postgres:password@localhost:55432/app"),
                 backend_port: 48997,
@@ -58,7 +60,7 @@ pub async fn cfg() -> AppConfig {
                 firecracker_vmroot: Some(String::from("/var/lib/osib/vms")),
             };
             error!(
-                "No `.env` file found, using default configuration: {:?}\nerror loading env: {}",
+                "No `.env` file found, using default configuration: {:?}\nError loading env: {}",
                 &default_cfg, err
             );
             default_cfg
