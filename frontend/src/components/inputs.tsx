@@ -237,7 +237,7 @@ export function Checkbox(props: InputProps) {
     <div
       className={`text-slate-350 relative flex items-center justify-between ${className ?? ''}`}
     >
-      <label for={label?.toString()} class='text-sm hover:text-slate-300'>
+      <label for={label?.toString()} class='text-sm'>
         {label}
       </label>
       <input
