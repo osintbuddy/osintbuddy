@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Streams provide ordering and tenant/category scoping
 CREATE TABLE IF NOT EXISTS event_streams (
   stream_id         uuid primary key,
-  category          text not null,           -- e.g., 'entity', 'edge', 'job'
+  category          text not null,           -- e.g., 'entity', 'edge'
   key               text not null,           -- e.g., entity_id, edge_id, job_id
   created_at        timestamptz not null default now(),
   unique (category, key)
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS events (
   seq               bigserial primary key,   -- global order (HWM)
   stream_id         uuid not null references event_streams(stream_id) on delete cascade,
   version           int  not null,           -- per-stream version (optimistic concurrency)
-  event_type        text not null,           -- e.g., 'EntityCreated', 'EdgeAdded', 'JobCompleted'
+  event_type        text not null,           -- e.g., 'entity:create', 'edge:create', etc
   payload           jsonb not null,
   -- Bi-temporal anchors: valid-time vs system-time
   valid_from        timestamptz not null,

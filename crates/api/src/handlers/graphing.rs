@@ -1,9 +1,9 @@
 use crate::middleware::auth::decode_jwt;
 use actix_web::{HttpRequest, HttpResponse, Result, web};
-use actix_ws::{Message, Session};
-use common::db::{Database, age_tx, with_cypher};
+use actix_ws::Message;
+use common::db::Database;
 use common::errors::AppError;
-use common::utils::{dict_to_opencypher, to_snake_case};
+use common::utils::to_snake_case;
 use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
 use log::{error, info};
@@ -12,26 +12,12 @@ use std::process::Command;
 use tokio::time::{Duration, sleep};
 use uuid::Uuid;
 
-use serde_json::{Map, Value, json};
+use chrono::Utc;
+use common::eventstore::{self, AppendEvent};
+use serde_json::{Value, json};
 use sqids::Sqids;
 use sqlx::PgPool;
 use std::collections::HashMap;
-
-pub struct GraphingActions {}
-// TODO: Refactor this messy file into this struct
-impl GraphingActions {
-    async fn create_entity() {}
-    async fn update_entity() {}
-    async fn delete_entity() {}
-    async fn read_entity() {}
-
-    async fn create_edge() {}
-    async fn update_edge() {}
-    async fn delete_edge() {}
-    async fn read_edge() {}
-
-    async fn transform() {}
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Position {
@@ -64,8 +50,6 @@ pub struct WebSocketResponse {
     pub action: String,
     pub nodes: Option<Vec<Value>>,
     pub edges: Option<Vec<Value>>,
-    pub shouldClose: Option<bool>,
-    pub notificationId: Option<String>,
     pub message: Option<String>,
     pub node: Option<Value>,
 }
@@ -141,486 +125,56 @@ pub fn get_available_plugins() -> BoxFuture<'static, Vec<Value>> {
     })
 }
 
-pub async fn execute_transform(
-    graph_name: &str,
-    entity: &mut Value,
-    session: &mut Session,
-    pool: &Database,
-) {
-    use std::process::Command;
-
-    // Serialize the entity to JSON string for the CLI command (used in dev env)
-    let Ok(entity_json) = serde_json::to_string(entity) else {
-        error!("Error serializing entity': {}", entity);
-        return;
-    };
-
-    // TODO: Handle through RabbitMQ and Firecracker when ENVIRONMENT="production"
-    let output = match Command::new("ob")
-        .args(&["run", "-t", &entity_json])
-        .output()
-    {
-        Ok(dev_output) => dev_output,
-        Err(err) => {
-            error!("Error running transform': {}", err);
-            let error_msg = json!({
-                "todo": "me"
-            });
-            let _ = session.text(error_msg.to_string()).await;
-            return;
-        }
-    };
-
-    if !output.status.success() {
-        error!("Command 'ob run -t' failed: {:?}", output.stderr);
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    // Parse the JSON output from the CLI
-    let Ok(result) = serde_json::from_str::<Value>(&stdout) else {
-        error!("Serializing ob run command failed: {:?}", stdout);
-        return;
-    };
-    info!("result {:?}", result);
-    info!("entity {:?} ", entity);
-    info!("ret result");
-    // If result is a single entity, wrap it in an array
-    let results = vec![result];
-
-    // Create nodes in the graph database and send them back
-    for new_entity in results {
-        // Get the entity label and blueprint
-        if let Some(entity_label) = new_entity
-            .get("data")
-            .and_then(|data| data.get("label"))
-            .and_then(|l| l.as_str())
-        {
-            let snake_case_label = to_snake_case(entity_label);
-
-            let mut entity_data = new_entity.get("data").unwrap().clone();
-
-            // Use position from new entity or default position
-            let position = entity
-                .get("position")
-                .cloned()
-                .unwrap_or(json!({"x": 0, "y": 0}));
-
-            if let Some(x) = position["x"].as_f64() {
-                entity["position"]["x"] = Value::from(x + 500.0)
-            }
-            if let Some(y) = position["y"].as_f64() {
-                entity["position"]["y"] = Value::from(y + 500.0)
-            }
-            entity_data
-                .as_object_mut()
-                .unwrap()
-                .insert("position".to_string(), position);
-
-            // Create the node in the graph database with all data
-            let Ok(saved_entity) = save_new_entity(
-                &pool,
-                graph_name.to_owned(),
-                entity_data.clone(),
-                entity_label,
-            )
-            .await
-            else {
-                error!("Failed to save node with data: {:?}", entity);
-                let message = json!({
-                    "action": "error",
-                    "notification": {
-                        "autoClose": true,
-                        "toastId": entity["id"],
-                        "message": format!("Failed to create {}:", entity_label),
-                        "type": "error",
-                    },
-                });
-                let _ = session.text(message.to_string()).await;
-                continue;
-            };
-
-            // Create the full blueprint entity structure for the frontend
-            let mut processed_entity = vertex_to_blueprint(&saved_entity, &entity_data);
-
-            // Add the full blueprint data structure
-            processed_entity["data"] = new_entity["data"].clone();
-
-            // Save the element data to database properties
-            if let Some(elements) = new_entity["data"]["elements"].as_array() {
-                let entity_id = saved_entity["id"].as_i64().unwrap_or(0);
-                let mut update_tx = age_tx(&pool).await.unwrap();
-
-                for element in elements {
-                    if let (Some(label), Some(value)) = (
-                        element.get("label").and_then(|l| l.as_str()),
-                        element.get("value"),
-                    ) {
-                        let snake_key = to_snake_case(label);
-                        let query = if value.is_string() {
-                            format!(
-                                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
-                                graph_name,
-                                entity_id,
-                                snake_key,
-                                value.as_str().unwrap().replace("'", "''")
-                            )
-                        } else {
-                            format!(
-                                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
-                                graph_name, entity_id, snake_key, value
-                            )
-                        };
-                        let _ = with_cypher(query, update_tx.as_mut()).await;
-                    }
-                }
-                let _ = update_tx.commit().await;
-            }
-
-            // Create edge if edge_label is present and send to UI
-            let mut message = json!({
-                "action": "created",
-                "entity": processed_entity,
-                "notification": {
-                    "toastId": entity["id"],
-                    "message": format!("{} entity created successfully!", entity_label),
-                    "type": "success",
-                    "autoClose": 5000,
-                }
-            });
-
-            // Add edge data if edge_label is present
-            if let Some(edge_label) = new_entity.get("edge_label").and_then(|l| l.as_str()) {
-                let source_id = entity["id"]
-                    .as_i64()
-                    .or_else(|| entity["id"].as_str().and_then(|s| s.parse::<i64>().ok()))
-                    .unwrap_or(0);
-
-                let target_id = saved_entity["id"].as_i64().unwrap_or(0);
-
-                let mut edge_tx = age_tx(&pool).await.unwrap();
-                let edge_query = format!(
-                    "SELECT * FROM cypher('{}', $$ MATCH (s), (t) WHERE id(s)={} AND id(t)={} CREATE (s)-[r:{}]->(t) RETURN r $$) as (edge agtype)",
-                    graph_name, source_id, target_id, edge_label
-                );
-                let _ = with_cypher(edge_query, edge_tx.as_mut()).await;
-                let _ = edge_tx.commit().await;
-
-                // Add edge data to message
-                let edge_data = json!({
-                    "id": format!("{}_{}", source_id, target_id),
-                    "source": source_id.to_string(),
-                    "target": target_id.to_string(),
-                    "type": "sfloat",
-                    "label": edge_label,
-                    "markerEnd": {
-                        "type": "arrowclosed",
-                        "width": 18,
-                        "height": 18,
-                    },
-                });
-
-                message
-                    .as_object_mut()
-                    .unwrap()
-                    .insert("edge".to_string(), edge_data);
-            }
-            // Send the created entity back to the client
-            if let Err(e) = session.text(message.to_string()).await {
-                error!("Failed to send created entity message: {}", e);
-            }
-        }
-    }
-    // Send final success notification to update the loading toast
-    let message = json!({
-        "action": "loading",
-        "notification": {
-            "toastId": entity["id"],
-            "autoClose": true,
-            "type": "success",
-            "isLoading": false,
-            "message": "Transform completed successfully!",
-        },
-    });
-    let _ = session.text(message.to_string()).await;
-}
-
-pub async fn load_nodes_from_db(
+// TODO: update this function so it appends events to the sql schema correctly, schema can be found at crates/migrations/20250529170043_init.up.sql
+pub async fn append_create_entity_event(
     pool: &PgPool,
-    graph_name: &str,
-) -> Result<(Vec<Value>, Vec<Value>), AppError> {
-    let mut tx = age_tx(pool).await?;
-
-    let vertices = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH (v) RETURN v $$) as (v agtype)",
-            graph_name
-        ),
-        tx.as_mut(),
-    )
-    .await?;
-    let edges = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH ()-[e]->() RETURN e $$) as (e agtype)",
-            graph_name
-        ),
-        tx.as_mut(),
-    )
-    .await?;
-
-    Ok((vertices, edges))
-}
-
-pub async fn read_graph(graph_name: &str, session: &mut Session, pool: &Database) {
-    let Ok(graph) = load_nodes_from_db(pool, &graph_name).await else {
-        error!("Unable to load graph `{graph_name}` from PostgreSQL!");
-        let error_msg = json!({
-            "action": "error",
-            "notification": {
-                "autoClose": 10000,
-                "message": "We ran into an error loading your flow graph. Please try refreshing the page or notify us directly at oss@osintbuddy.com",
-                "id": "graph"
-            }
-        });
-
-        let _ = session.text(error_msg.to_string()).await;
-        return;
-    };
-
-    let (vertices, edges) = graph;
-    info!("reading verts!!!!! {:?}", vertices);
-
-    let edges: Vec<Value> = edges
-        .into_iter()
-        .map(|mut edge| {
-            if let Some(edge) = edge.as_object_mut() {
-                // Change id, start/end ids for ReactFlow compatibility
-                if let Some(id) = edge.get("id").and_then(|v| v.as_i64()) {
-                    edge.insert("id".to_string(), Value::String(id.to_string()));
-                }
-                if let Some(start_id) = edge.get("start_id").and_then(|v| v.as_i64()) {
-                    edge.insert("source".to_string(), Value::String(start_id.to_string()));
-                    edge.remove("start_id");
-                }
-                if let Some(end_id) = edge.get("end_id").and_then(|v| v.as_i64()) {
-                    edge.insert("target".to_string(), Value::String(end_id.to_string()));
-                    edge.remove("end_id");
-                }
-                edge.insert("type".to_string(), json!("sfloat"));
-            };
-
-            edge
-        })
-        .collect();
-    let vertices: Vec<Value> = vertices
-        .into_iter()
-        .map(|mut vert| {
-            let Some(v) = vert.as_object_mut() else {
-                return vert;
-            };
-
-            // Handle ID conversion
-            if let Some(id) = v.get("id").and_then(|id| id.as_i64()) {
-                v.insert("id".to_string(), json!(id.to_string()));
-            }
-
-            // Extract x and y from properties object and move to vertex root level
-            let mut x_value = None;
-            let mut y_value = None;
-
-            if let Some(properties) = v.get_mut("properties").and_then(|p| p.as_object_mut()) {
-                x_value = properties.remove("x");
-                y_value = properties.remove("y");
-            }
-            v.insert("type".to_string(), json!("view"));
-
-            // Create position object at root level
-            let mut position = json!({});
-            if let Some(position_obj) = position.as_object_mut() {
-                if let Some(x) = x_value {
-                    position_obj.insert("x".to_string(), x);
-                }
-                if let Some(y) = y_value {
-                    position_obj.insert("y".to_string(), y);
-                }
-            }
-            v.insert("position".to_string(), position);
-
-            // Rename the properties key to data for frontend compatibility and include label
-            if let Some(mut properties) = v.remove("properties") {
-                // Move label from vertex root to data object
-                if let Some(label) = v.remove("label") {
-                    properties
-                        .as_object_mut()
-                        .unwrap()
-                        .insert("label".to_string(), label);
-                }
-                v.insert("data".to_string(), properties);
-            }
-
-            vert
-        })
-        .collect();
-    let message = json!({
-        "action": "read",
-        "notification": {
-            "autoClose": true,
-            "message": "Your graph has been loaded!",
-            "id": "graph"
-        },
-        "edges": edges,
-        "nodes":  vertices,
-    })
-    .to_string();
-    info!("SENDING! {}", message);
-    let _ = session.text(message).await;
-}
-
-pub async fn update_node(pool: &PgPool, entity: Value, graph_name: String) -> Result<(), AppError> {
-    let mut tx = age_tx(pool).await?;
-    // Safely get entity object and id
-    let entity_obj = entity.as_object().ok_or_else(|| {
-        error!("Entity is not a valid JSON object: {}", entity);
-        AppError {
-            message: "Invalid entity format",
-        }
-    })?;
-
-    let entity_id = entity.get("id").and_then(|id| id.as_i64()).ok_or_else(|| {
-        error!("Entity missing valid id field: {}", entity);
-        AppError {
-            message: "Entity missing valid id",
-        }
-    })?;
-
-    for (key, value) in entity_obj {
-        // Skip system fields that shouldn't be updated
-        if key == "id" || key == "type" || key == "label" {
-            continue;
-        }
-        let snake_key = to_snake_case(key);
-
-        // Use safe cypher query with proper escaping
-        let query = if value.is_string() {
-            format!(
-                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = '{}' $$) as (v agtype)",
-                graph_name,
-                entity_id,
-                snake_key,
-                value.as_str().unwrap().replace("'", "''") // Escape single quotes
-            )
-        } else {
-            format!(
-                "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} SET v.{} = {} $$) as (v agtype)",
-                graph_name, entity_id, snake_key, value
-            )
-        };
-        // Execute the update query using the cypher helper
-        with_cypher(query, tx.as_mut()).await.map_err(|err| {
-            error!("Failed to update node property {}: {}", key, err);
-            AppError {
-                message: "Failed to update node property",
-            }
-        })?;
-    }
-
-    // Commit all updates in a single transaction
-    tx.commit().await.map_err(|err| {
-        error!("Failed to commit node updates: {err}");
-        AppError {
-            message: "Failed to save node updates",
-        }
-    })?;
-
-    Ok(())
-}
-
-pub async fn remove_node(
-    pool: &PgPool,
-    session: &mut Session,
-    node: Value,
-    graph_name: String,
-) -> Result<(), AppError> {
-    let node_id: i64 = node["id"].as_i64().unwrap_or(0);
-    let check_in_edges_query = format!(
-        "SELECT * FROM cypher('{}', $$ MATCH (v)-[e]->() WHERE id(v)={} RETURN e $$) as (e agtype)",
-        graph_name, node_id
-    );
-    let check_out_edges_query = format!(
-        "SELECT * FROM cypher('{}', $$ MATCH ()-[e]->(v) WHERE id(v)={} RETURN e $$) as (e agtype)",
-        graph_name, node_id
-    );
-    let mut tx = age_tx(pool).await?;
-    let in_edge_rows = with_cypher(check_in_edges_query, tx.as_mut()).await?;
-    let edge_rows = with_cypher(check_out_edges_query, tx.as_mut()).await?;
-    info!("edge rows: {:?}", edge_rows);
-    let delete_query = if edge_rows.is_empty() && in_edge_rows.is_empty() {
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} DELETE v $$) as (v agtype)",
-            graph_name, node_id
-        )
-    } else {
-        format!(
-            "SELECT * FROM cypher('{}', $$ MATCH (v) WHERE id(v)={} DETACH DELETE v $$) as (v agtype)",
-            graph_name, node_id
-        )
-    };
-    let _ = with_cypher(delete_query, tx.as_mut()).await;
-    tx.commit().await.map_err(|err| {
-        error!("{err}");
-        AppError { message: "()" }
-    })?;
-    session
-        .text(
-            json!({
-                "action": "removeEntity".to_string(),
-                "entity": node,
-            })
-            .to_string(),
-        )
-        .await
-        .map_err(|err| {
-            error!("{err}");
-            AppError { message: "" }
-        })?;
-
-    Ok(())
-}
-
-pub async fn save_new_entity(
-    pool: &PgPool,
-    graph_name: String,
-    properties: Value,
+    graph_uuid: Uuid,
+    entity_payload: Value,
     label: &str,
 ) -> Result<Value, AppError> {
-    let entity_props = dict_to_opencypher(&properties);
-    let mut tx = age_tx(pool).await?;
-    // TODO: refactor into event sourcing
-    let Some(mut created_entity) = with_cypher(
-        format!(
-            "SELECT * FROM cypher('{}', $$ CREATE (v:{} {}) RETURN v $$) as (v agtype)",
-            graph_name,
-            to_snake_case(label),
-            entity_props
-        ),
-        tx.as_mut(),
-    )
-    .await?
-    .into_iter()
-    .next() else {
-        error!("Entity drop failed!");
-        return Err(AppError { message: "" });
+    // Extract position and remaining properties from payload
+    let (x, y, properties) = match entity_payload {
+        Value::Object(mut obj) => {
+            let x = obj.remove("x").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
+            let y = obj.remove("y").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
+            (x, y, Value::Object(obj))
+        }
+        _ => (0.0_f64, 0.0_f64, json!({})),
     };
 
-    // Commit the transaction to save the new entity to the database
-    tx.commit().await.map_err(|err| {
-        error!("Failed to commit new entity: {err}");
-        AppError {
-            message: "Failed to save new entity",
-        }
-    })?;
+    // Create a new entity id to track within the graph
+    let entity_id = Uuid::new_v4();
 
-    created_entity["type"] = json!("edit");
-    Ok(created_entity)
+    // Build domain event payload
+    let payload = json!({
+        "entity": {
+            "id": entity_id,
+            "label": label,
+            "position": { "x": x, "y": y },
+            "properties": properties,
+        }
+    });
+
+    // Append to event store on the graph stream
+    let req = AppendEvent {
+        category: "entity".to_string(),
+        key: graph_uuid.to_string(),
+        event_type: "entity:create".to_string(),
+        payload: payload.clone(),
+        valid_from: Utc::now(),
+        valid_to: None,
+        idempotency_key: None,
+        correlation_id: Some(Uuid::new_v4()),
+        causation_id: None,
+        expected_version: None,
+    };
+
+    if let Err(e) = eventstore::append_event(pool, req).await {
+        error!("Failed to append entity:create event: {}", e);
+    }
+
+    // Return the created entity document for immediate UI usage
+    Ok(payload.get("entity").cloned().unwrap_or_else(|| json!({})))
 }
 
 pub async fn graphing_websocket_handler(
@@ -638,7 +192,7 @@ pub async fn graphing_websocket_handler(
     let mut authenticated = false;
     let mut total_events = 0;
 
-    // Extract and decode graph UUID from path parameters
+    // Extract and decode graph id from path parameters
     let graph_ids = sqids.decode(&graph_id);
     let decoded_id = match graph_ids.first() {
         Some(id) => id,
@@ -666,7 +220,7 @@ pub async fn graphing_websocket_handler(
                     let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) else {
                         break;
                     };
-                    // if not previously authenticated in and msg count not modulo 3, authenticate connection
+                    // if not previously authenticated in and msg count not modulo 3, authenticate connection, after auth success, set graph_uuid
                     if total_events % 3 == 0 || !authenticated {
                         if let Some(token) = &event.token {
                             let Ok(claims) = decode_jwt(token, &app.cfg.jwt_secret) else {
@@ -694,7 +248,7 @@ pub async fn graphing_websocket_handler(
                             .fetch_one(pool.as_ref())
                             .await;
                             let Ok(graph) = graph else {
-                                // Graph not found or access denied
+                                // Graph not found
                                 let _ = session
                                     .close(Some(actix_ws::CloseCode::Policy.into()))
                                     .await;
@@ -702,17 +256,16 @@ pub async fn graphing_websocket_handler(
                             };
                             authenticated = true;
                             graph_uuid = graph.uuid;
-                            // TODO: Load entities from db when in production environment (app.cfg.environment == "production")
-                            // and run the plugin system in firecracker VMs
+
                             let _ = session
                                 .text(
                                     json!({
                                         "action": "authenticated".to_string(),
                                         "notification": {
                                             "type": "success",
-                                            "autoClose": false,
+                                            "autoClose": 4000,
                                             "toastId": "graph",
-                                            "message": "Please wait while we load your graph...",
+                                            "message": "Your graph has loaded!",
                                         },
                                         "plugins": get_available_plugins().await,
                                         "blueprints": blueprints,
@@ -724,9 +277,14 @@ pub async fn graphing_websocket_handler(
                     }
 
                     let graph_action = event.action.as_str();
-                    let graph_name = format!("g_{}", graph_uuid.unwrap().simple().to_string());
-                    info!("Executing action {graph_action} on {graph_name}!");
-                    // TODO: make an enum for this...
+                    info!("Executing action {graph_action} on {:?}!", graph_uuid);
+                    let Some(graph_uuid) = graph_uuid else {
+                        let _ = session
+                            .close(Some(actix_ws::CloseCode::Policy.into()))
+                            .await;
+                        break;
+                    };
+                    // TODO: make an enum for this later... ignore that work for now though
                     match graph_action {
                         "update:edge" => {
                             let message = json!({
@@ -762,8 +320,7 @@ pub async fn graphing_websocket_handler(
                             let _ = session.text(message.to_string()).await;
                         }
                         "read:graph" => {
-                            // TODO: implement materialized view of entities/edges
-                            // read_graph(&graph_name, &mut session, &pool).await;
+                            // TODO: Read from materialized view of entities/edges since this is the initial load read action
                             let message = json!({
                                 "action": "read",
                                 "notification": {
@@ -778,39 +335,41 @@ pub async fn graphing_websocket_handler(
                             let _ = session.text(message).await;
                         }
                         "update:entity" => {
-                            if let Err(err) = update_node(
-                                pool.as_ref(),
-                                event.entity.unwrap_or(json!({})),
-                                graph_name,
-                            )
-                            .await
-                            {
-                                error!("Failed to update entity: {:?}", err);
-                                let message = json!({
-                                    "action": "error",
-                                    "notification": {
-                                        "autoClose": true,
-                                        "message": format!("Update failed: {}", err.message),
-                                    },
-                                });
-                                let _ = session.text(message.to_string()).await;
-                            }
+                            // TODO:We will do this later,  ignore me for now
+                            // if let Err(err) = update_node(
+                            //     pool.as_ref(),
+                            //     event.entity.unwrap_or(json!({})),
+                            //     graph_name,
+                            // )
+                            // .await
+                            // {
+                            //     error!("Failed to update entity: {:?}", err);
+                            //     let message = json!({
+                            //         "action": "error",
+                            //         "notification": {
+                            //             "autoClose": true,
+                            //             "message": format!("Update failed: {}", err.message),
+                            //         },
+                            //     });
+                            //     let _ = session.text(message.to_string()).await;
+                            // }
                         }
                         "delete:entity" => {
-                            let _ = remove_node(
-                                pool.as_ref(),
-                                &mut session,
-                                event.entity.unwrap_or(json!({})),
-                                graph_name,
-                            )
-                            .await;
+                            // TODO:We will do this later,  ignore me for now
+                            // let _ = remove_node(
+                            //     pool.as_ref(),
+                            //     &mut session,
+                            //     event.entity.unwrap_or(json!({})),
+                            //     graph_name,
+                            // )
+                            // .await;
                         }
                         "transform:entity" => {
-                            // Execute the transform
-                            let mut entity = event.entity.unwrap_or(json!({}));
-                            let _ =
-                                execute_transform(&graph_name, &mut entity, &mut session, &pool)
-                                    .await;
+                            // TODO: We will do this later, ignore me for now
+                            // let mut entity = event.entity.unwrap_or(json!({}));
+                            // let _ =
+                            //     execute_transform(&graph_name, &mut entity, &mut session, &pool)
+                            //         .await;
                         }
                         "create:entity" => {
                             let Some(mut entity) = event.entity else {
@@ -858,9 +417,13 @@ pub async fn graphing_websocket_handler(
                             info!("entity after pop {entity}");
 
                             // Create the node in the graph database
-                            if let Ok(raw_result) =
-                                save_new_entity(&pool, graph_name, entity, &to_snake_case(label))
-                                    .await
+                            if let Ok(raw_result) = append_create_entity_event(
+                                &pool,
+                                graph_uuid,
+                                entity,
+                                &to_snake_case(label),
+                            )
+                            .await
                             {
                                 let message = json!({
                                     "action": "created".to_string(),
@@ -887,88 +450,4 @@ pub async fn graphing_websocket_handler(
     });
 
     Ok(response)
-}
-
-fn vertex_to_blueprint(vertex: &Value, blueprint: &Value) -> Value {
-    let mut entity = blueprint.clone();
-
-    if let Some(properties) = vertex.get("properties").unwrap_or(vertex).as_object() {
-        if let Some(position) = properties.get("position") {
-            entity
-                .as_object_mut()
-                .unwrap()
-                .insert("position".to_string(), position.to_owned());
-        };
-    }
-
-    if let Some(id) = vertex.get("id") {
-        entity
-            .as_object_mut()
-            .unwrap()
-            .insert("id".to_string(), id.to_owned());
-    }
-
-    entity
-        .as_object_mut()
-        .unwrap()
-        .insert("type".to_string(), json!("edit"));
-
-    entity
-}
-fn vertex_to_entity(vertex: &mut Map<String, Value>, blueprint: &Value) -> Value {
-    let mut entity = blueprint.clone();
-    if let Some(vertex_properties) = vertex.get("properties") {
-        if let Some(properties) = vertex_properties.as_object() {
-            // Set position from database
-            let position = json!({
-                "x": properties.get("x").unwrap_or(&json!(0)),
-                "y": properties.get("y").unwrap_or(&json!(0))
-            });
-
-            entity
-                .as_object_mut()
-                .unwrap()
-                .insert("position".to_string(), position);
-
-            // Map database properties to blueprint elements
-            if let Some(data) = entity.get_mut("data") {
-                if let Some(elements) = data.get_mut("elements") {
-                    if let Some(elements_array) = elements.as_array_mut() {
-                        for element in elements_array {
-                            if let Some(element_obj) = element.as_object_mut() {
-                                // Clone the label string to avoid borrow conflicts
-                                if let Some(label_str) = element_obj
-                                    .get("label")
-                                    .and_then(|l| l.as_str())
-                                    .map(|s| s.to_string())
-                                {
-                                    // Convert element label to snake_case to match database field
-                                    let snake_case_field = to_snake_case(&label_str);
-
-                                    // Look for the value in database properties
-                                    if let Some(db_value) = properties.get(&snake_case_field) {
-                                        // Update the element's value with database data
-                                        element_obj.insert("value".to_string(), db_value.clone());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if let Some(id) = vertex.get("id") {
-            entity
-                .as_object_mut()
-                .unwrap()
-                .insert("id".to_string(), serde_json::Value::String(id.to_string()));
-        }
-
-        entity.as_object_mut().unwrap().insert(
-            "type".to_string(),
-            serde_json::Value::String("view".to_string()),
-        );
-    };
-
-    entity
 }
