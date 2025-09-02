@@ -162,7 +162,7 @@ interface CaseOverviewProps {
 
 function CaseOverview({ graph }: CaseOverviewProps) {
   return (
-    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-1/5 min-w-1/5 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-2/9 min-w-2/9 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
       {/* details section: */}
       <section class='group py-2'>
         <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
@@ -209,7 +209,7 @@ export default function GraphDetails() {
         <GraphHeader graph={graph} />
         <div className='mt-3 flex h-full flex-col'>
           <div class='flex h-full w-full'>
-            <div class='flex w-4/5 flex-col pr-3'>
+            <div class='flex w-7/9 flex-col pr-3'>
               <div className='flex'>
                 <h2 className='text-slate-600'>
                   TODO Add content to center area here... Plan to add some
