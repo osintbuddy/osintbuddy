@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use sqlx::{types::Uuid, PgPool, Row};
+use sqlx::{PgPool, Row, types::Uuid};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Job {
@@ -35,9 +35,9 @@ pub struct NewJob {
 pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
     let rec = sqlx::query!(
         r#"
-        insert into jobs (job_id, kind, payload, status, priority, max_attempts, scheduled_at, idempotency_key)
-        values (uuid_generate_v4(), $1, $2, 'enqueued'::job_status, coalesce($3, 100), coalesce($4, 3), coalesce($5, now()), $6)
-        returning job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+        INSERT INTO jobs (job_id, kind, payload, status, priority, max_attempts, scheduled_at, idempotency_key)
+        VALUES (uuid_generate_v4(), $1, $2, 'enqueued'::job_status, coalesce($3, 100), coalesce($4, 3), coalesce($5, now()), $6)
+        RETURNING job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
                   created_at, scheduled_at, started_at, finished_at, backoff_until, idempotency_key
         "#,
         j.kind,
@@ -69,24 +69,29 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
     })
 }
 
-pub async fn lease_jobs(pool: &PgPool, owner: &str, lease_seconds: i32, max: i64) -> Result<Vec<Job>, sqlx::Error> {
+pub async fn lease_jobs(
+    pool: &PgPool,
+    owner: &str,
+    lease_seconds: i32,
+    max: i64,
+) -> Result<Vec<Job>, sqlx::Error> {
     // Use SKIP LOCKED pattern to avoid thundering herd
     let rows = sqlx::query(
         r#"
-        update jobs j set
+        UPDATE jobs j SET
             status = 'leased'::job_status,
             lease_owner = $2,
             lease_until = now() + ($3::text || ' seconds')::interval
-        where job_id in (
-            select job_id from jobs
-            where status = 'enqueued'::job_status
-              and scheduled_at <= now()
-              and (backoff_until is null or backoff_until <= now())
-            order by priority asc, created_at asc
-            limit $1
-            for update skip locked
+        WHERE job_id in (
+            SELECT job_id FROM jobs
+            WHERE status = 'enqueued'::job_status
+              AND scheduled_at <= now()
+              AND (backoff_until is null or backoff_until <= now())
+            ORDER BY priority ASC, created_at ASC
+            LIMIT $1
+            FOR UPDATE SKIP LOCKED
         )
-        returning job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+        RETURNING job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
                   created_at, scheduled_at, started_at, finished_at, backoff_until, idempotency_key
         "#,
     )
@@ -120,7 +125,7 @@ pub async fn lease_jobs(pool: &PgPool, owner: &str, lease_seconds: i32, max: i64
 
 pub async fn start_job(pool: &PgPool, job_id: Uuid, owner: &str) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        r#"update jobs set status = 'running'::job_status, started_at = now() where job_id = $1 and lease_owner = $2"#,
+        r#"UPDATE jobs SET status = 'running'::job_status, started_at = now() WHERE job_id = $1 AND lease_owner = $2"#,
         job_id,
         owner
     )
@@ -129,9 +134,14 @@ pub async fn start_job(pool: &PgPool, job_id: Uuid, owner: &str) -> Result<(), s
     Ok(())
 }
 
-pub async fn extend_lease(pool: &PgPool, job_id: Uuid, owner: &str, lease_seconds: i32) -> Result<(), sqlx::Error> {
+pub async fn extend_lease(
+    pool: &PgPool,
+    job_id: Uuid,
+    owner: &str,
+    lease_seconds: i32,
+) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        r#"update jobs set lease_until = now() + make_interval(secs => $3::double precision) where job_id = $1 and lease_owner = $2"#,
+        r#"UPDATE jobs SET lease_until = now() + make_interval(secs => $3::double precision) WHERE job_id = $1 AND lease_owner = $2"#,
         job_id,
         owner,
         lease_seconds as f64
@@ -143,7 +153,7 @@ pub async fn extend_lease(pool: &PgPool, job_id: Uuid, owner: &str, lease_second
 
 pub async fn complete_job(pool: &PgPool, job_id: Uuid, owner: &str) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        r#"update jobs set status = 'completed'::job_status, finished_at = now() where job_id = $1 and lease_owner = $2"#,
+        r#"UPDATE jobs SET status = 'completed'::job_status, finished_at = now() WHERE job_id = $1 AND lease_owner = $2"#,
         job_id,
         owner
     )
@@ -152,15 +162,20 @@ pub async fn complete_job(pool: &PgPool, job_id: Uuid, owner: &str) -> Result<()
     Ok(())
 }
 
-pub async fn fail_job(pool: &PgPool, job_id: Uuid, owner: &str, backoff_seconds: i32) -> Result<(), sqlx::Error> {
+pub async fn fail_job(
+    pool: &PgPool,
+    job_id: Uuid,
+    owner: &str,
+    backoff_seconds: i32,
+) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
-        update jobs set
+        UPDATE jobs SET
             status = case when attempts + 1 >= max_attempts then 'dead'::job_status else 'failed'::job_status end,
             attempts = attempts + 1,
             finished_at = now(),
             backoff_until = now() + make_interval(secs => $3::double precision)
-        where job_id = $1 and lease_owner = $2
+        WHERE job_id = $1 AND lease_owner = $2
         "#,
         job_id,
         owner,

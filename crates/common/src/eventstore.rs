@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use sqlx::{types::Uuid, PgPool};
+use sqlx::{PgPool, types::Uuid};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stream {
@@ -40,13 +40,17 @@ pub struct AppendEvent {
     pub expected_version: Option<i32>,
 }
 
-pub async fn ensure_stream(pool: &PgPool, category: &str, key: &str) -> Result<Stream, sqlx::Error> {
+pub async fn ensure_stream(
+    pool: &PgPool,
+    category: &str,
+    key: &str,
+) -> Result<Stream, sqlx::Error> {
     let rec = sqlx::query!(
         r#"
-        insert into event_streams(stream_id, category, key)
-        values (uuid_generate_v4(), $1, $2)
-        on conflict (category, key) do update set category = excluded.category
-        returning stream_id, category, key, created_at
+        INSERT INTO event_streams(stream_id, category, key)
+        VALUES (uuid_generate_v4(), $1, $2)
+        ON CONFLICT(category, key) DO UPDATE SET category = excluded.category
+        RETURNING stream_id, category, key, created_at
         "#,
         category,
         key
@@ -69,7 +73,7 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
 
     // Determine next version and optimistic check
     let cur = sqlx::query!(
-        r#"select max(version) as max from events where stream_id = $1"#,
+        r#"SELECT max(version) AS max FROM events WHERE stream_id = $1"#,
         stream.stream_id
     )
     .fetch_one(&mut *tx)
@@ -81,17 +85,19 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
     if let Some(exp) = ev.expected_version {
         if exp + 1 != next_version {
             // fail fast to let caller retry with correct concurrency
-            return Err(sqlx::Error::Protocol("optimistic concurrency failure".into()));
+            return Err(sqlx::Error::Protocol(
+                "optimistic concurrency failure".into(),
+            ));
         }
     }
 
     let rec = sqlx::query!(
         r#"
-        insert into events(
+        INSERT INTO events(
             stream_id, version, event_type, payload, valid_from, valid_to,
             causation_id, correlation_id, idempotency_key
-        ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-        returning seq, stream_id, version, event_type, payload, valid_from, valid_to,
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        RETURNING seq, stream_id, version, event_type, payload, valid_from, valid_to,
                   recorded_at, causation_id, correlation_id, idempotency_key
         "#,
         stream.stream_id,
@@ -124,15 +130,19 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
     })
 }
 
-pub async fn events_after(pool: &PgPool, after_seq: i64, limit: i64) -> Result<Vec<EventRecord>, sqlx::Error> {
+pub async fn events_after(
+    pool: &PgPool,
+    after_seq: i64,
+    limit: i64,
+) -> Result<Vec<EventRecord>, sqlx::Error> {
     let rows = sqlx::query!(
         r#"
-        select seq, stream_id, version, event_type, payload, valid_from, valid_to,
+        SELECT seq, stream_id, version, event_type, payload, valid_from, valid_to,
                recorded_at, causation_id, correlation_id, idempotency_key
-        from events
-        where seq > $1
-        order by seq asc
-        limit $2
+        FROM events
+        WHERE seq > $1
+        ORDER BY seq ASC
+        LIMIT $2
         "#,
         after_seq,
         limit
@@ -160,7 +170,7 @@ pub async fn events_after(pool: &PgPool, after_seq: i64, limit: i64) -> Result<V
 
 pub async fn get_checkpoint(pool: &PgPool, name: &str) -> Result<i64, sqlx::Error> {
     let rec = sqlx::query!(
-        r#"select last_seq from event_checkpoints where projection_name = $1"#,
+        r#"SELECT last_seq from event_checkpoints WHERE projection_name = $1"#,
         name
     )
     .fetch_optional(pool)
@@ -171,9 +181,9 @@ pub async fn get_checkpoint(pool: &PgPool, name: &str) -> Result<i64, sqlx::Erro
 pub async fn set_checkpoint(pool: &PgPool, name: &str, last_seq: i64) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
-        insert into event_checkpoints(projection_name, last_seq)
-        values ($1, $2)
-        on conflict (projection_name) do update set last_seq = excluded.last_seq, updated_at = now()
+        INSERT INTO event_checkpoints(projection_name, last_seq)
+        VALUES ($1, $2)
+        ON CONFLICT (projection_name) DO UPDATE SET last_seq = excluded.last_seq, updated_at = now()
         "#,
         name,
         last_seq
