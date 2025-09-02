@@ -17,6 +17,7 @@ import {
   Panel,
   ReactFlowProps,
   OnReconnect,
+  XYPosition,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -163,8 +164,8 @@ export default function Graph({
       const position = graphInstance?.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
-      })
-      const createEntity = { label, position }
+      }) as XYPosition
+      const createEntity = { label, x: position.x, y: position.y }
       createGraphEntity(createEntity).catch((error) => {
         console.error(error)
         toast.error(

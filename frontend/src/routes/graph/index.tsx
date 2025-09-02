@@ -176,13 +176,13 @@ export default function Graphing() {
     },
     error: (data) => {
       const notification = data.notification
-      if (notification?.toastId) {
+      if (notification?.id) {
         // Update existing loading toast to error
-        toast.update(notification.toastId, {
+        toast.update(notification.id, {
           render: notification.message,
           type: 'error',
           isLoading: false,
-          autoClose: 5000,
+          autoClose: notification.autoClose ?? 5000,
         })
       } else {
         // Create new error toast if no toastId

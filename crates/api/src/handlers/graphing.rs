@@ -86,6 +86,7 @@ pub struct GraphEdge {
     pub edge_type: String,
 }
 
+// Sent on successful auth response, this is used to map plugin transform results to entity layouts (elements)
 pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError> {
     let output = Command::new("ob")
         .args(&["blueprints"])
@@ -216,8 +217,13 @@ pub async fn execute_transform(
                 .insert("position".to_string(), position);
 
             // Create the node in the graph database with all data
-            let Ok(saved_entity) =
-                save_node_on_drop(&pool, graph_name.to_owned(), &entity_data, entity_label).await
+            let Ok(saved_entity) = save_new_entity(
+                &pool,
+                graph_name.to_owned(),
+                entity_data.clone(),
+                entity_label,
+            )
+            .await
             else {
                 error!("Failed to save node with data: {:?}", entity);
                 let message = json!({
@@ -366,7 +372,17 @@ pub async fn load_nodes_from_db(
 
 pub async fn read_graph(graph_name: &str, session: &mut Session, pool: &Database) {
     let Ok(graph) = load_nodes_from_db(pool, &graph_name).await else {
-        error!("Unable to load graph from PostgreSQL!");
+        error!("Unable to load graph `{graph_name}` from PostgreSQL!");
+        let error_msg = json!({
+            "action": "error",
+            "notification": {
+                "autoClose": 10000,
+                "message": "We ran into an error loading your flow graph. Please try refreshing the page or notify us directly at oss@osintbuddy.com",
+                "id": "graph"
+            }
+        });
+
+        let _ = session.text(error_msg.to_string()).await;
         return;
     };
 
@@ -570,22 +586,21 @@ pub async fn remove_node(
     Ok(())
 }
 
-pub async fn save_node_on_drop(
+pub async fn save_new_entity(
     pool: &PgPool,
     graph_name: String,
-    blueprint: &Value,
+    properties: Value,
     label: &str,
 ) -> Result<Value, AppError> {
-    let default_position = serde_json::json!({"x": 0, "y": 0});
-    let position = blueprint.get("position").unwrap_or(&default_position);
-    let position_props = dict_to_opencypher(position);
+    let entity_props = dict_to_opencypher(&properties);
     let mut tx = age_tx(pool).await?;
-    let Some(created_entity) = with_cypher(
+    // TODO: refactor into event sourcing
+    let Some(mut created_entity) = with_cypher(
         format!(
             "SELECT * FROM cypher('{}', $$ CREATE (v:{} {}) RETURN v $$) as (v agtype)",
             graph_name,
             to_snake_case(label),
-            position_props
+            entity_props
         ),
         tx.as_mut(),
     )
@@ -604,10 +619,8 @@ pub async fn save_node_on_drop(
         }
     })?;
 
-    let mut result = blueprint.clone();
-    result["id"] = created_entity.as_object().unwrap()["id"].clone();
-    result["type"] = json!("edit");
-    Ok(result)
+    created_entity["type"] = json!("edit");
+    Ok(created_entity)
 }
 
 pub async fn graphing_websocket_handler(
@@ -624,7 +637,6 @@ pub async fn graphing_websocket_handler(
     // We'll authenticate when we receive the first message
     let mut authenticated = false;
     let mut total_events = 0;
-    let mut blueprints: Option<HashMap<String, Value>> = None;
 
     // Extract and decode graph UUID from path parameters
     let graph_ids = sqids.decode(&graph_id);
@@ -642,9 +654,10 @@ pub async fn graphing_websocket_handler(
     actix_web::rt::spawn(async move {
         let mut graph_uuid: Option<Uuid> = None;
         let Ok(blueprints) = get_entity_blueprints().await else {
-            error!("Error getting blueprints, environment: {}", {
+            error!(
+                "Error getting blueprints for graph id `{decoded_id}`. Environment: {}",
                 &app.cfg.environment
-            });
+            );
             return;
         };
         while let Some(Ok(msg)) = msg_stream.next().await {
@@ -653,11 +666,8 @@ pub async fn graphing_websocket_handler(
                     let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) else {
                         break;
                     };
-                    info!("!authenticated ::{} ", !authenticated);
-                    info!("!{} % 6 == 0  :: {}", total_events, total_events % 6 == 0);
-                    // if not previously authenticated in and msg count not modulo 6, authenticate connection
-                    if total_events % 6 == 0 || !authenticated {
-                        info!("Authenticating!!");
+                    // if not previously authenticated in and msg count not modulo 3, authenticate connection
+                    if total_events % 3 == 0 || !authenticated {
                         if let Some(token) = &event.token {
                             let Ok(claims) = decode_jwt(token, &app.cfg.jwt_secret) else {
                                 let _ = session
@@ -694,10 +704,6 @@ pub async fn graphing_websocket_handler(
                             graph_uuid = graph.uuid;
                             // TODO: Load entities from db when in production environment (app.cfg.environment == "production")
                             // and run the plugin system in firecracker VMs
-                            let Ok(mut blueprints) = get_entity_blueprints().await else {
-                                error!("Error getting development blueprints!");
-                                break;
-                            };
                             let _ = session
                                 .text(
                                     json!({
@@ -717,10 +723,10 @@ pub async fn graphing_websocket_handler(
                         }
                     }
 
-                    info!("GRAPH_UUID, {:?}", graph_uuid);
                     let graph_action = event.action.as_str();
                     let graph_name = format!("g_{}", graph_uuid.unwrap().simple().to_string());
-                    info!("Executing graph_action!");
+                    info!("Executing action {graph_action} on {graph_name}!");
+                    // TODO: make an enum for this...
                     match graph_action {
                         "update:edge" => {
                             let message = json!({
@@ -756,7 +762,20 @@ pub async fn graphing_websocket_handler(
                             let _ = session.text(message.to_string()).await;
                         }
                         "read:graph" => {
-                            read_graph(&graph_name, &mut session, &pool).await;
+                            // TODO: implement materialized view of entities/edges
+                            // read_graph(&graph_name, &mut session, &pool).await;
+                            let message = json!({
+                                "action": "read",
+                                "notification": {
+                                    "autoClose": true,
+                                    "message": "Your graph has been loaded!",
+                                    "id": "graph"
+                                },
+                                "edges": [],
+                                "nodes":  [],
+                            })
+                            .to_string();
+                            let _ = session.text(message).await;
                         }
                         "update:entity" => {
                             if let Err(err) = update_node(
@@ -794,42 +813,62 @@ pub async fn graphing_websocket_handler(
                                     .await;
                         }
                         "create:entity" => {
-                            let entity = event.entity.unwrap_or(json!({}));
-                            // Get blueprint for the entity label
-
-                            let entity_label = entity["label"].as_str().unwrap_or("");
-                            let snake_case_label = to_snake_case(entity_label);
-                            let Some(blueprint) = blueprints.get(&snake_case_label) else {
-                                // TODO: Send error msg
+                            let Some(mut entity) = event.entity else {
+                                let message = json!({
+                                    "action": "error",
+                                    "notification": {
+                                        "autoClose": 8000,
+                                        "message": "We ran into an error processing your create:entity payload!",
+                                    },
+                                })
+                                .to_string();
+                                let _ = session.text(message).await;
                                 break;
                             };
-                            let mut blueprint_with_position = blueprint.clone();
-                            let position = serde_json::to_value(&entity["position"]).unwrap();
-                            blueprint_with_position
-                                .as_object_mut()
-                                .unwrap()
-                                .insert("position".to_string(), position);
+                            info!("Payload for create:entity: {entity}");
+
+                            // Pop entity label
+                            let Some(label) =
+                                entity.as_object_mut().and_then(|e| e.remove("label"))
+                            else {
+                                let message = json!({
+                                        "action": "error",
+                                        "notification": {
+                                            "autoClose": 8000,
+                                            "message": "We ran into an error getting your create:entity label!",
+                                        },
+                                     })
+                                     .to_string();
+                                let _ = session.text(message).await;
+                                break;
+                            };
+                            let Some(label) = label.as_str() else {
+                                let message = json!({
+                                        "action": "error",
+                                        "notification": {
+                                            "autoClose": 8000,
+                                            "message": "We ran into an error casting your entity label to the required type!",
+                                        },
+                                     })
+                                     .to_string();
+                                let _ = session.text(message).await;
+                                break;
+                            };
+
+                            info!("entity after pop {entity}");
 
                             // Create the node in the graph database
-                            if let Ok(raw_result) = save_node_on_drop(
-                                &pool,
-                                graph_name,
-                                &blueprint_with_position,
-                                entity["label"].as_str().unwrap(),
-                            )
-                            .await
+                            if let Ok(raw_result) =
+                                save_new_entity(&pool, graph_name, entity, &to_snake_case(label))
+                                    .await
                             {
-                                let processed_entity = vertex_to_blueprint(
-                                    &raw_result,
-                                    &blueprint_with_position.clone(),
-                                );
                                 let message = json!({
                                     "action": "created".to_string(),
                                     "notification": {
                                         "shouldClose": true,
-                                        "message": "{} entity created successfully!",
+                                        "message": format!("{label} entity created successfully!"),
                                     },
-                                    "entity": processed_entity
+                                    "entity": raw_result
                                 });
                                 let _ = session.text(message.to_string()).await;
                             }
