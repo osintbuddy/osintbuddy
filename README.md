@@ -21,7 +21,7 @@
 
   🚧 ⚠️ <ins> **Work in progress; Not ready for use, _yet_** </ins> ⚠️  🚧
 
-  ## Introducing OSINTBuddy
+  ## 🛡 Introducing OSINTBuddy 🛡 
 
   <p>
       Welcome to the OSINTBuddy project where you can connect, combine,
@@ -46,13 +46,13 @@
 </summary>
   <ol>
     <li><a href="#what-is-osintbuddycom">What is OSINTBuddy</a></li>
-    <li><a href="#project-status">Project Status</a></li>
+    <li><a href="#-project-status">Project Status  🚧</a></li>
     <li><a href="#key-alpha-features">Alpha Features 🚧</a></li>
-    <li><a href="#a-vision">Our Vision</a></li>
-    <li><a href="#installation">Installation</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#related-projects">Related Projects</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#-a-vision">Our Vision</a></li>
+    <li><a href="#-installation">Installation</a></li>
+    <li><a href="#-license">License</a></li>
+    <li><a href="#-related-projects">Related Projects</a></li>
+    <li><a href="#-contact">Contact</a></li>
   </ol>
 </details>
 
@@ -81,21 +81,22 @@ OSINT is a method of working with, assessing and ranking information — We are 
 I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want to put all of that information at your fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free. Free to use, free to modify, free to do with as you wish, and built with plain old web technologies anyone can learn. But this isn't really the project.
 
 
-It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The spread of disinformation and misinformation, amplified by algorithms designed to prioritize engagement over truth, erodes trust in institutions and fuels social division. Online "echo chambers" and filter bubbles reinforce existing biases, increasing political polarization and hindering constructive dialogue. Big Tech monopolies shape our digital lives and authoritarianism gains ground, the question of who owns, designs, and controls technology has never been more urgent. 
+It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent. 
 
 
-What are the technical frameworks that ensure that a technology is open and equitable; how do we “reconfigure” digital infrastructures to serve positive social transformation rather than corporate interests? This is a new chance for a truly free open source OSINT tool to be created for  enthusiasts around the world to fight back against these issues and we need your help to design it, to program it, and to build it. We want to hear your suggestions, your ideas, and we're going to build it right in front of your eyes. The notion of a “needle in a haystack” is taken to the extreme on the internet. Let's build a magnet.
+What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests? This is a chance for a free software OSINT tool to be created for enthusiasts around the world to fight back against these issues and we need your help to design it, to program it, and to build it. We want to hear your suggestions, your ideas, and we're going to build it right in front of your eyes. The notion of a “needle in a haystack” is taken to the extreme on the internet. Let's build a magnet.
 
 
-### Project Status
+### ⚠ Project Status
 
-As is, this project is more of a toy environment that's been useful while prototyping out this idea and gaining insight into the problem space. For this project to be truly successful we must ultimately be able to be used to do serious, original, and creative work. That's the basic test for whether our tools are genuinely working rather than merely telling a good story. Ideally, we want to be the tool where relatively low cost changes in practice produce transformative changes in outcome, aka non-linear returns and qualitative shifts. Historically, humans have invented many such transformative tools. If we're smart, maybe we can do the same for this problem space. The question we need to be answering is: What powerful, generalizable ideas can we learn from this project? How should the next wave of systems build on this? The system has to be shaped in a way which allows you to ask the questions you want to ask.
 
 > [!CAUTION] 
 >
 > **⚠️ Experimental Software (pre-alpha) ⚠️** 
 >
 > OSINTBuddy is currently experimental software. It's not quite ready for use *yet*! If you're interested in development you'll need the `plugins` docker service cloned: `git clone https://github.com/osintbuddy/plugins osintbuddy-plugins` to the root of this repo
+
+As is, this project is more of a toy environment that's been useful while prototyping out this idea and gaining insight into the problem space. For this project to be truly successful we must ultimately be able to be used to do serious, original, and creative work. That's the basic test for whether our tools are genuinely working rather than merely telling a good story. What powerful, generalizable ideas can we learn from this project? How should the next wave of systems build on this? The system has to be shaped in a way which allows you to ask the questions you want to ask.
 
 | Repository | Description | Language | Purpose | ETA |
 |------------|-------------|----------|---------|-----|
@@ -114,11 +115,11 @@ As is, this project is more of a toy environment that's been useful while protot
 - And check out the [open issues](https://github.com/jerlendds/osintbuddy/issues) for a list of requested features (and known bugs).
 
 
-## A Vision
+## ☀ A Vision
 
 I have this conviction that a remarkable set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT work but for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work can accomplish.
 
-My goal is to expand your thinking beyond what can be achieved using existing tools. To let you engage and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
+My goal is to let you engage with data and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
 
 - **Collective Intelligence** - Collaborative workspaces for global knowledge sharing
 - **Real-time Monitoring** - Automated data collection and alerts on changes
@@ -126,7 +127,7 @@ My goal is to expand your thinking beyond what can be achieved using existing to
 - **AI/ML Integrations** - Swarm intelligence, sentiment analysis, LLMs/MCP, evolutionary algorithms, etc
 
 
-## Installation
+## 🛠 Installation
 
 ### Prerequisites
 
@@ -144,12 +145,12 @@ My goal is to expand your thinking beyond what can be achieved using existing to
 
 ---
 
-### Download the latest release 
+### ⛔ Download the latest release ⛔
 
 Once we iron out a few more bugs and a few more features we intend to setup a github actions workflow to build and package up the built frontend and Rust services. Follow the project [on discord](https://discord.gg/b8vW4J4skv) for the latest updates :)
 
 
-### Development
+### ✎ Development
 
 This Rust rewrite exists because I got tired of Python and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*. 
 
@@ -199,21 +200,21 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    - Docs: [`http://localhost:55173/docs/overview`](http://localhost:55173/docs/overview)
 
 
-#### Shutting down OSIB
+#### ☠ Shutting down OSIB
 
 - **To stop OSINTBuddy**: `Ctrl+C`, then `docker compose down` to clean up.
 - **To delete *all* OSINTBuddy data**: Data removal is an **irreversible** operation!  **DO NOT** run this command if you do not want to lose **all** of your data! To remove all the data stored in your OSINTBuddy server run `docker compose down --volumes`. 
 
 ---
 
-## [↑](#introducing-osintbuddy)License
+## [↑](#introducing-osintbuddy)⚖ License
 
-We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL) as we want to guarantee freedom of use, reuse, copy, modification and re-publication of modifications. This is a technopolitical decision encoded into the social contract. Suffice to say here that the Affero GPLv3 license legally binds the service providers to give direct access to any user to the computer code that runs in a given instance.
+We are using the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) (AGPL) as we want to guarantee freedom of use, reuse, copy, modification and re-publication of modifications.  Because freedom doesn’t mean permissiveness, it means reciprocity. If you build on it, you give back. That’s how the commons stays healthy. This is a technopolitical decision encoded into the social contract. Suffice to say here that the Affero GPLv3 license legally binds the service providers to give direct access to any user to the computer code that runs in a given instance.
 
 - **Note**: *the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their custom plugins.*
 
 
-## [↑](#introducing-osintbuddy)Related Projects
+## [↑](#introducing-osintbuddy)☍ Related Projects 
 
 > Empowering investigators & cybersecurity enthusiasts to uncover truths, fight injustice, and create a safer world.
 
@@ -242,7 +243,7 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 
 
 
-## [↑](#introducing-osintbuddy)Contact
+## [↑](#introducing-osintbuddy)✉ Contact
 
 [Open an issue](https://github.com/osintbuddy/osintbuddy/issues/new?assignees=jerlendds&labels=Type%3A+Suggestion&projects=&template=&title=%5BFEATURE+REQUEST%5D) if you need to get in touch with me or send an email to <a href="mailto:oss@osintbuddy.com">oss@osintbuddy.com</a>.
 
@@ -255,3 +256,5 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 [stars-url]: https://github.com/jerlendds/osintbuddy/stargazers
 [issues-shield]: https://img.shields.io/github/issues/jerlendds/osintbuddy.svg?style=for-the-badge
 [issues-url]: https://github.com/jerlendds/osintbuddy/issues
+
+
