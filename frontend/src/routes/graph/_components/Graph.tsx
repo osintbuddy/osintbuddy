@@ -212,10 +212,11 @@ export default function Graph({
 
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_, node) => {
+      console.log('update node', node)
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(node.id),
+          id: node.id,
           x: node.position.x,
           y: node.position.y,
         },

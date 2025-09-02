@@ -59,10 +59,6 @@ CREATE TABLE IF NOT EXISTS edges_current (
   sys_to      timestamptz
 );
 
--- Optional history tables (append-only snapshots per change)
-CREATE TABLE IF NOT EXISTS entities_history (LIKE entities_current including all);
-CREATE TABLE IF NOT EXISTS edges_history    (LIKE edges_current including all);
-
 CREATE INDEX entities_current_doc_gin_idx ON entities_current USING gin (doc jsonb_path_ops);
 CREATE INDEX ON edges_current(kind, src_id, dst_id);
 

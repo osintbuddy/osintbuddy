@@ -24,7 +24,7 @@ export function UploadFileInput({
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(id),
+          id: id,
           [label]: file,
           name: file?.name || 'unknown',
         },

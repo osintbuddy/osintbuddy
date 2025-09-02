@@ -1,6 +1,6 @@
 use crate::middleware::auth::decode_jwt;
 use actix_web::{HttpRequest, HttpResponse, Result, web};
-use actix_ws::Message;
+use actix_ws::{Message, Session};
 use common::db::Database;
 use common::errors::AppError;
 use common::utils::to_snake_case;
@@ -126,14 +126,56 @@ pub fn get_available_plugins() -> BoxFuture<'static, Vec<Value>> {
 }
 
 // TODO: update this function so it appends events to the sql schema correctly, schema can be found at crates/migrations/20250529170043_init.up.sql
-pub async fn append_create_entity_event(
+pub async fn handle_create_entity(
     pool: &PgPool,
     graph_uuid: Uuid,
-    entity_payload: Value,
-    label: &str,
-) -> Result<Value, AppError> {
+    event: WebSocketMessage,
+    session: &mut Session,
+) {
+    let Some(mut entity) = event.entity else {
+        let message = json!({
+            "action": "error",
+            "notification": {
+                "autoClose": 8000,
+                "message": "We ran into an error processing your create:entity payload!",
+            },
+        })
+        .to_string();
+        let _ = session.text(message).await;
+        return;
+    };
+    info!("Payload for create:entity: {entity}");
+
+    // Pop entity label
+    let Some(label) = entity.as_object_mut().and_then(|e| e.remove("label")) else {
+        let message = json!({
+           "action": "error",
+           "notification": {
+               "autoClose": 8000,
+               "message": "We ran into an error getting your create:entity label!",
+           },
+        })
+        .to_string();
+        let _ = session.text(message).await;
+        return;
+    };
+    let Some(label) = label.as_str() else {
+        let message = json!({
+           "action": "error",
+           "notification": {
+               "autoClose": 8000,
+               "message": "We ran into an error casting your entity label to the required type!",
+           },
+        })
+        .to_string();
+        let _ = session.text(message).await;
+        return;
+    };
+
+    info!("entity after pop {entity}");
+
     // Extract position and remaining properties from payload
-    let (x, y, properties) = match entity_payload {
+    let (x, y, properties) = match entity {
         Value::Object(mut obj) => {
             let x = obj.remove("x").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
             let y = obj.remove("y").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
@@ -147,19 +189,17 @@ pub async fn append_create_entity_event(
 
     // Build domain event payload
     let payload = json!({
-        "entity": {
-            "id": entity_id,
-            "label": label,
-            "position": { "x": x, "y": y },
-            "properties": properties,
-        }
+        "id": entity_id,
+        "label": label,
+        "position": { "x": x, "y": y },
+        "properties": properties,
     });
 
     // Append to event store on the graph stream
-    let req = AppendEvent {
+    let event = AppendEvent {
         category: "entity".to_string(),
         key: graph_uuid.to_string(),
-        event_type: "entity:create".to_string(),
+        event_type: "create".to_string(),
         payload: payload.clone(),
         valid_from: Utc::now(),
         valid_to: None,
@@ -169,12 +209,115 @@ pub async fn append_create_entity_event(
         expected_version: None,
     };
 
-    if let Err(e) = eventstore::append_event(pool, req).await {
+    if let Err(e) = eventstore::append_event(pool, event).await {
         error!("Failed to append entity:create event: {}", e);
     }
 
     // Return the created entity document for immediate UI usage
-    Ok(payload.get("entity").cloned().unwrap_or_else(|| json!({})))
+    let message = json!({
+        "action": "created".to_string(),
+        "notification": {
+            "shouldClose": true,
+            "message": format!("Entity created successfully!"),
+        },
+        "entity": payload
+    });
+    let _ = session.text(message.to_string()).await;
+}
+
+pub async fn handle_update_entity(
+    pool: &PgPool,
+    graph_uuid: Uuid,
+    event: WebSocketMessage,
+    session: &mut Session,
+) {
+    let Some(mut entity) = event.entity else {
+        return;
+    };
+    // Ensure payload has id
+    let Some(id_val) = entity.get("id").and_then(|v| v.as_str()) else {
+        let _ = session.text(json!({"action":"error","notification":{"autoClose":8000,"message":"Missing entity id for update."}}).to_string()).await;
+        return;
+    };
+
+    // Normalize x,y -> position if present
+    if let Value::Object(ref mut obj) = entity {
+        if let (Some(x), Some(y)) = (obj.remove("x"), obj.remove("y")) {
+            let pos = json!({"x": x.as_f64().unwrap_or(0.0), "y": y.as_f64().unwrap_or(0.0)});
+            obj.insert("position".to_string(), pos);
+        }
+    }
+
+    // Append update event
+    let ev = AppendEvent {
+        category: "entity".to_string(),
+        key: graph_uuid.to_string(),
+        event_type: "update".to_string(),
+        payload: entity.clone(),
+        valid_from: Utc::now(),
+        valid_to: None,
+        idempotency_key: None,
+        correlation_id: Some(Uuid::new_v4()),
+        causation_id: None,
+        expected_version: None,
+    };
+    if let Err(e) = eventstore::append_event(pool, ev).await {
+        error!("Failed to append entity:update: {}", e);
+    }
+
+    let _ = session
+        .text(
+            json!({
+                "action": "updated",
+                "notification": {"shouldClose": true, "message": "Entity updated."},
+                "entity": entity
+            })
+            .to_string(),
+        )
+        .await;
+}
+
+pub async fn handle_delete_entity(
+    pool: &PgPool,
+    graph_uuid: Uuid,
+    event: WebSocketMessage,
+    session: &mut Session,
+) {
+    let Some(entity) = event.entity else {
+        return;
+    };
+    let Some(id_val) = entity.get("id").and_then(|v| v.as_str()) else {
+        let _ = session.text(json!({"action":"error","notification":{"autoClose":8000,"message":"Missing entity id for delete."}}).to_string()).await;
+        return;
+    };
+
+    let payload = json!({ "entity": {"id": id_val} });
+    let ev = AppendEvent {
+        category: "entity".to_string(),
+        key: graph_uuid.to_string(),
+        event_type: "delete".to_string(),
+        payload: payload.clone(),
+        valid_from: Utc::now(),
+        valid_to: None,
+        idempotency_key: None,
+        correlation_id: Some(Uuid::new_v4()),
+        causation_id: None,
+        expected_version: None,
+    };
+    if let Err(e) = eventstore::append_event(pool, ev).await {
+        error!("Failed to append entity:delete: {}", e);
+    }
+
+    let _ = session
+        .text(
+            json!({
+                "action": "deleted",
+                "notification": {"shouldClose": true, "message": "Entity deleted."},
+                "entity": payload.get("entity").cloned().unwrap_or_else(|| json!({}))
+            })
+            .to_string(),
+        )
+        .await;
 }
 
 pub async fn graphing_websocket_handler(
@@ -320,7 +463,26 @@ pub async fn graphing_websocket_handler(
                             let _ = session.text(message.to_string()).await;
                         }
                         "read:graph" => {
-                            // TODO: Read from materialized view of entities/edges since this is the initial load read action
+                            // Read latest materialized entities for this graph from entities_current
+                            let nodes: Vec<Value> = match sqlx::query!(
+                                r#"
+                                SELECT doc
+                                FROM entities_current
+                                WHERE sys_to IS NULL AND (doc->>'graph_id') = $1
+                                ORDER BY sys_from ASC
+                                "#,
+                                graph_uuid.to_string()
+                            )
+                            .fetch_all(pool.as_ref())
+                            .await
+                            {
+                                Ok(rows) => rows.into_iter().map(|r| r.doc).collect(),
+                                Err(err) => {
+                                    error!("read:graph query failed: {}", err);
+                                    vec![]
+                                }
+                            };
+
                             let message = json!({
                                 "action": "read",
                                 "notification": {
@@ -329,40 +491,16 @@ pub async fn graphing_websocket_handler(
                                     "id": "graph"
                                 },
                                 "edges": [],
-                                "nodes":  [],
+                                "nodes": nodes,
                             })
                             .to_string();
                             let _ = session.text(message).await;
                         }
                         "update:entity" => {
-                            // TODO:We will do this later,  ignore me for now
-                            // if let Err(err) = update_node(
-                            //     pool.as_ref(),
-                            //     event.entity.unwrap_or(json!({})),
-                            //     graph_name,
-                            // )
-                            // .await
-                            // {
-                            //     error!("Failed to update entity: {:?}", err);
-                            //     let message = json!({
-                            //         "action": "error",
-                            //         "notification": {
-                            //             "autoClose": true,
-                            //             "message": format!("Update failed: {}", err.message),
-                            //         },
-                            //     });
-                            //     let _ = session.text(message.to_string()).await;
-                            // }
+                            handle_update_entity(&pool, graph_uuid, event, &mut session).await;
                         }
                         "delete:entity" => {
-                            // TODO:We will do this later,  ignore me for now
-                            // let _ = remove_node(
-                            //     pool.as_ref(),
-                            //     &mut session,
-                            //     event.entity.unwrap_or(json!({})),
-                            //     graph_name,
-                            // )
-                            // .await;
+                            handle_delete_entity(&pool, graph_uuid, event, &mut session).await;
                         }
                         "transform:entity" => {
                             // TODO: We will do this later, ignore me for now
@@ -372,69 +510,7 @@ pub async fn graphing_websocket_handler(
                             //         .await;
                         }
                         "create:entity" => {
-                            let Some(mut entity) = event.entity else {
-                                let message = json!({
-                                    "action": "error",
-                                    "notification": {
-                                        "autoClose": 8000,
-                                        "message": "We ran into an error processing your create:entity payload!",
-                                    },
-                                })
-                                .to_string();
-                                let _ = session.text(message).await;
-                                break;
-                            };
-                            info!("Payload for create:entity: {entity}");
-
-                            // Pop entity label
-                            let Some(label) =
-                                entity.as_object_mut().and_then(|e| e.remove("label"))
-                            else {
-                                let message = json!({
-                                        "action": "error",
-                                        "notification": {
-                                            "autoClose": 8000,
-                                            "message": "We ran into an error getting your create:entity label!",
-                                        },
-                                     })
-                                     .to_string();
-                                let _ = session.text(message).await;
-                                break;
-                            };
-                            let Some(label) = label.as_str() else {
-                                let message = json!({
-                                        "action": "error",
-                                        "notification": {
-                                            "autoClose": 8000,
-                                            "message": "We ran into an error casting your entity label to the required type!",
-                                        },
-                                     })
-                                     .to_string();
-                                let _ = session.text(message).await;
-                                break;
-                            };
-
-                            info!("entity after pop {entity}");
-
-                            // Create the node in the graph database
-                            if let Ok(raw_result) = append_create_entity_event(
-                                &pool,
-                                graph_uuid,
-                                entity,
-                                &to_snake_case(label),
-                            )
-                            .await
-                            {
-                                let message = json!({
-                                    "action": "created".to_string(),
-                                    "notification": {
-                                        "shouldClose": true,
-                                        "message": format!("{label} entity created successfully!"),
-                                    },
-                                    "entity": raw_result
-                                });
-                                let _ = session.text(message.to_string()).await;
-                            }
+                            handle_create_entity(&pool, graph_uuid, event, &mut session).await;
                         }
                         _ => {}
                     }

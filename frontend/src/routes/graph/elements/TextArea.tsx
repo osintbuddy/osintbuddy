@@ -34,7 +34,7 @@ export function TextArea({
           onBlur={() => {
             sendJsonMessage({
               action: 'update:entity',
-              entity: { id: Number(id), [label]: value },
+              entity: { id: id, [label]: value },
             })
           }}
         />

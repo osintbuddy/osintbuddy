@@ -23,7 +23,7 @@ export function TextInput({
             onBlur={() => {
               sendJsonMessage({
                 action: 'update:entity',
-                entity: { id: Number(id), [label]: value },
+                entity: { id: id, [label]: value },
               })
             }}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>

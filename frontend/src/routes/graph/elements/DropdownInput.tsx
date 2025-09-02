@@ -77,7 +77,7 @@ export function DropdownInput({
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(id),
+          id: id,
           [label]: optionValue,
         },
       })
