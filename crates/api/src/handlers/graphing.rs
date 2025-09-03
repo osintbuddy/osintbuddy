@@ -263,18 +263,8 @@ pub async fn handle_update_entity(
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:update: {}", e);
+        // TODO: send ws error msg
     }
-
-    let _ = session
-        .text(
-            json!({
-                "action": "updated",
-                "notification": {"shouldClose": true, "message": "Entity updated."},
-                "entity": entity
-            })
-            .to_string(),
-        )
-        .await;
 }
 
 pub async fn handle_delete_entity(
@@ -318,6 +308,41 @@ pub async fn handle_delete_entity(
             .to_string(),
         )
         .await;
+}
+
+pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: &mut Session) {
+    // Read latest materialized entities for this graph from entities_current
+    let nodes: Vec<Value> = match sqlx::query!(
+        r#"
+        SELECT doc
+        FROM entities_current
+        WHERE sys_to IS NULL AND (doc->>'graph_id') = $1
+        ORDER BY sys_from ASC
+        "#,
+        graph_uuid.to_string()
+    )
+    .fetch_all(pool)
+    .await
+    {
+        Ok(rows) => rows.into_iter().map(|r| r.doc).collect(),
+        Err(err) => {
+            error!("read:graph query failed: {}", err);
+            vec![]
+        }
+    };
+
+    let message = json!({
+        "action": "read",
+        "notification": {
+            "autoClose": true,
+            "message": "Your graph has loaded!",
+            "id": "graph"
+        },
+        "edges": [],
+        "nodes": nodes,
+    })
+    .to_string();
+    let _ = session.text(message).await;
 }
 
 pub async fn graphing_websocket_handler(
@@ -420,12 +445,11 @@ pub async fn graphing_websocket_handler(
                     }
 
                     let graph_action = event.action.as_str();
-                    info!("Executing action {graph_action} on {:?}!", graph_uuid);
                     let Some(graph_uuid) = graph_uuid else {
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
-                        break;
+                        return;
                     };
                     // TODO: make an enum for this later... ignore that work for now though
                     match graph_action {
@@ -463,38 +487,10 @@ pub async fn graphing_websocket_handler(
                             let _ = session.text(message.to_string()).await;
                         }
                         "read:graph" => {
-                            // Read latest materialized entities for this graph from entities_current
-                            let nodes: Vec<Value> = match sqlx::query!(
-                                r#"
-                                SELECT doc
-                                FROM entities_current
-                                WHERE sys_to IS NULL AND (doc->>'graph_id') = $1
-                                ORDER BY sys_from ASC
-                                "#,
-                                graph_uuid.to_string()
-                            )
-                            .fetch_all(pool.as_ref())
-                            .await
-                            {
-                                Ok(rows) => rows.into_iter().map(|r| r.doc).collect(),
-                                Err(err) => {
-                                    error!("read:graph query failed: {}", err);
-                                    vec![]
-                                }
-                            };
-
-                            let message = json!({
-                                "action": "read",
-                                "notification": {
-                                    "autoClose": true,
-                                    "message": "Your graph has been loaded!",
-                                    "id": "graph"
-                                },
-                                "edges": [],
-                                "nodes": nodes,
-                            })
-                            .to_string();
-                            let _ = session.text(message).await;
+                            handle_materialized_read(&pool, graph_uuid, &mut session).await;
+                        }
+                        "create:entity" => {
+                            handle_create_entity(&pool, graph_uuid, event, &mut session).await;
                         }
                         "update:entity" => {
                             handle_update_entity(&pool, graph_uuid, event, &mut session).await;
@@ -509,9 +505,7 @@ pub async fn graphing_websocket_handler(
                             //     execute_transform(&graph_name, &mut entity, &mut session, &pool)
                             //         .await;
                         }
-                        "create:entity" => {
-                            handle_create_entity(&pool, graph_uuid, event, &mut session).await;
-                        }
+
                         _ => {}
                     }
                     total_events += 1;
