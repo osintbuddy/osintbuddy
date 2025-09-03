@@ -57,13 +57,13 @@ export function EditEntityNode({
           <Icon icon='grip-vertical' class='h-7 w-7' />
           <div className='flex w-full flex-col px-2 font-medium'>
             <p className='whitespace-wrap font-display text-slate-350 flex text-[0.4rem] font-black'>
-              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-extralight text-inherit'>
+              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-light text-inherit'>
                 ID:
               </span>
-              {blueprint.id}
+              {ctx.id.substring(0, 7).toUpperCase()}
             </p>
             <p className='whitespace-wrap font-display max-w-xl text-[0.65rem] font-semibold text-slate-200'>
-              {ctx.data.label}
+              {blueprint.label}
             </p>
           </div>
           <Icon

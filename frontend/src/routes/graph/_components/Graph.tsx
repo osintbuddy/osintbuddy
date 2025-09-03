@@ -181,16 +181,15 @@ export default function Graph({
       edit: (entity: JSONObject) => (
         <EditEntityNode
           ctx={entity}
-          blueprint={blueprints[toSnakeCase(entity.data.label)]}
+          blueprint={blueprints[entity.data.label]}
           sendJsonMessage={sendJsonMessage}
         />
       ),
-      view: (entity: JSONObject) => (
-        <ViewEntityNode
-          ctx={entity}
-          blueprint={blueprints[toSnakeCase(entity.data.label)]}
-        />
-      ),
+      view: (entity: JSONObject) => {
+        const { label, ...data } = entity.data
+        entity.data = data
+        return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
+      },
     }),
     [sendJsonMessage, Object.keys(blueprints).length !== 0]
   )
@@ -286,6 +285,8 @@ export default function Graph({
   // the connecting edges handle  will be either red, green, or the primary color
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
+
+  console.log(nodes, edges)
   return (
     <ReactFlow
       ref={ref}

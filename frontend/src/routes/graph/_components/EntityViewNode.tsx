@@ -11,6 +11,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
       Array.isArray(elements[0]) ? elements[0][0]?.value : elements[0]?.value,
     [elements]
   )
+  console.log('VUEW BIDE', ctx, blueprint)
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>
