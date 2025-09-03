@@ -2,66 +2,39 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Streams provide ordering and tenant/category scoping
 CREATE TABLE IF NOT EXISTS event_streams (
-  stream_id         uuid primary key,
-  category          text not null,           -- e.g., 'entity', 'edge'
-  key               text not null,           -- e.g., entity_id, edge_id, job_id
-  created_at        timestamptz not null default now(),
-  unique (category, key)
+  stream_id         UUID PRIMARY KEY,
+  category          TEXT NOT NULL,           -- e.g., 'entity', 'edge'
+  key               TEXT NOT NULL,           -- e.g., entity_id, edge_id, job_id
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (category, key)
 );
 
 
 -- Append-only events
 CREATE TABLE IF NOT EXISTS events (
-  seq               bigserial primary key,   -- global order (HWM)
-  stream_id         uuid not null references event_streams(stream_id) on delete cascade,
-  version           int  not null,           -- per-stream version (optimistic concurrency)
-  event_type        text not null,           -- e.g., 'entity:create', 'edge:create', etc
-  payload           jsonb not null,
+  seq               BIGSERIAL PRIMARY KEY,   -- global order (HWM)
+  stream_id         UUID NOT NULL references event_streams(stream_id) on delete cascade,
+  version           int  NOT NULL,           -- per-stream version (optimistic concurrency)
+  event_type        TEXT NOT NULL,           -- e.g., 'entity:create', 'edge:create', etc
+  payload           JSONB NOT NULL,
   -- Bi-temporal anchors: valid-time vs system-time
-  valid_from        timestamptz not null,
-  valid_to          timestamptz,
-  recorded_at       timestamptz not null default now(), -- system time (tx-time)
-  causation_id      uuid,                    -- event that caused this (optional)
-  correlation_id    uuid,                    -- request/task correlation
-  idempotency_key   text,                    -- dedupe external retries
-  unique (stream_id, version),
-  unique (idempotency_key)
+  valid_from        TIMESTAMPTZ NOT NULL,
+  valid_to          TIMESTAMPTZ,
+  recorded_at       TIMESTAMPTZ NOT NULL DEFAULT now(), -- system time (tx-time)
+  causation_id      UUID,                    -- event that caused this (optional)
+  correlation_id    UUID,                    -- request/task correlation
+  idempotency_key   TEXT,                    -- dedupe external retries
+  UNIQUE (stream_id, version),
+  UNIQUE (idempotency_key)
 );
 
 
 -- Projection checkpoints (high-water marks)
 CREATE TABLE IF NOT EXISTS event_checkpoints (
-  projection_name   text primary key,
-  last_seq          bigint not null default 0,
-  updated_at        timestamptz not null default now()
+  projection_name   TEXT PRIMARY KEY,
+  last_seq          BIGINT NOT NULL DEFAULT 0,
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
--- Current entity state (document-y, Marten-style)
-CREATE TABLE IF NOT EXISTS entities_current (
-  entity_id   uuid primary key,
-  doc         jsonb not null,             -- denormalized snapshot for reads
-  valid_from  timestamptz not null,
-  valid_to    timestamptz,                -- null => open-ended
-  sys_from    timestamptz not null,       -- when projector wrote it
-  sys_to      timestamptz                 -- superseded by projector
-);
-
--- Edge materialization (graph-ish)
-CREATE TABLE IF NOT EXISTS edges_current (
-  edge_id     uuid primary key,
-  src_id      uuid not null,
-  dst_id      uuid not null,
-  -- TODO: rename kind to label in sql and ws
-  kind        text not null,
-  props       jsonb not null default '{}'::jsonb,
-  valid_from  timestamptz not null,
-  valid_to    timestamptz,
-  sys_from    timestamptz not null,
-  sys_to      timestamptz
-);
-
-CREATE INDEX entities_current_doc_gin_idx ON entities_current USING gin (doc jsonb_path_ops);
-CREATE INDEX ON edges_current(kind, src_id, dst_id);
 
 DO $$
 BEGIN
@@ -76,33 +49,33 @@ END$$;
 
 -- worker jobs (sent to firecracker microVMs)
 CREATE TABLE IF NOT EXISTS jobs (
-  job_id         uuid primary key,
-  kind           text not null,             -- e.g., 'http_scrape', 'yara_scan'
-  payload        jsonb not null,
-  status         job_status not null default 'enqueued',
-  priority       int not null default 100,  -- lower = higher prio
-  attempts       int not null default 0,
-  max_attempts   int not null default 3,
-  lease_owner    text,                      -- worker host pod/node id
-  lease_until    timestamptz,               -- soft lease expiration
-  created_at     timestamptz not null default now(),
-  scheduled_at   timestamptz not null default now(),
-  started_at     timestamptz,
-  finished_at    timestamptz,
-  backoff_until  timestamptz,
-  idempotency_key text,
-  unique (idempotency_key)
+  job_id         UUID PRIMARY KEY,
+  kind           TEXT NOT NULL,             -- e.g., 'http_scrape', 'yara_scan'
+  payload        JSONB NOT NULL,
+  status         job_status NOT NULL DEFAULT 'enqueued',
+  priority       int NOT NULL DEFAULT 100,  -- lower = higher prio
+  attempts       int NOT NULL DEFAULT 0,
+  max_attempts   int NOT NULL DEFAULT 3,
+  lease_owner    TEXT,                      -- worker host pod/node id
+  lease_until    TIMESTAMPTZ,               -- soft lease expiration
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  scheduled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  started_at     TIMESTAMPTZ,
+  finished_at    TIMESTAMPTZ,
+  backoff_until  TIMESTAMPTZ,
+  idempotency_key TEXT,
+  UNIQUE (idempotency_key)
 );
 
 -- For structured outputs/binaries
 CREATE TABLE IF NOT EXISTS artifacts (
-  artifact_id   uuid primary key,
-  job_id        uuid not null references jobs(job_id) on delete cascade,
-  media_type    text not null default 'application/json',
+  artifact_id   UUID PRIMARY KEY,
+  job_id        UUID NOT NULL references jobs(job_id) on delete cascade,
+  media_type    TEXT NOT NULL DEFAULT 'application/json',
   bytes         bytea,          -- small artifacts inline (<= 1-5MB)
-  uri           text,           -- large artifacts offloaded (S3/minio/local fs)
-  meta          jsonb not null default '{}'::jsonb,
-  created_at    timestamptz not null default now()
+  uri           TEXT,           -- large artifacts offloaded (S3/minio/local fs)
+  meta          JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Wake up listeners efficiently
@@ -135,8 +108,8 @@ CREATE TABLE IF NOT EXISTS organizations (
 CREATE INDEX organizations_name_idx ON organizations (name);
 
 -- osintbuddy members 
--- + every member has a default organization created with their name
--- + this is their default "team"
+-- + every member has a DEFAULT organization created with their name
+-- + this is their DEFAULT "team"
 -- + TODO: create organization signup flow to allow
 --         customizing initial organization details on new account
 CREATE TABLE IF NOT EXISTS users (
@@ -160,7 +133,7 @@ CREATE INDEX users_org_id_idx ON users (org_id);
 -- Cases are the reference to a specific set entities and their relationships
 CREATE TABLE IF NOT EXISTS cases (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuid_generate_v4(),
+    uuid UUID UNIQUE DEFAULT UUID_generate_v4(),
     label TEXT NOT NULL,
     description TEXT NOT NULL,
     visibility VARCHAR(20) NOT NULL DEFAULT 'private',
@@ -173,6 +146,38 @@ CREATE TABLE IF NOT EXISTS cases (
     CONSTRAINT valid_case_visibility CHECK (visibility IN ('private', 'organization', 'shared', 'public', 'restricted'))
 );
 CREATE INDEX cases_org_id_idx ON cases (org_id);
+
+-- Current entity state (document-y, Marten-style)
+CREATE TABLE IF NOT EXISTS entities_current (
+  entity_id   UUID PRIMARY KEY,
+  label       TEXT,
+  graph_id    UUID NOT NULL,
+  FOREIGN KEY (graph_id) REFERENCES cases(uuid),
+  doc         JSONB NOT NULL,             -- denormalized snapshot for reads
+  valid_from  TIMESTAMPTZ NOT NULL,
+  valid_to    TIMESTAMPTZ,                -- null => open-ended
+  sys_from    TIMESTAMPTZ NOT NULL,       -- when projector wrote it
+  sys_to      TIMESTAMPTZ                 -- superseded by projector
+);
+
+-- Edge materialization (graph-ish)
+CREATE TABLE IF NOT EXISTS edges_current (
+  edge_id     UUID PRIMARY KEY,
+  src_id      UUID NOT NULL,
+  dst_id      UUID NOT NULL,
+  graph_id    UUID NOT NULL,
+  FOREIGN KEY (graph_id) REFERENCES cases(uuid),
+  -- TODO: rename kind to label in sql and ws
+  kind        TEXT NOT NULL,
+  props       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  valid_from  TIMESTAMPTZ NOT NULL,
+  valid_to    TIMESTAMPTZ,
+  sys_from    TIMESTAMPTZ NOT NULL,
+  sys_to      TIMESTAMPTZ
+);
+
+CREATE INDEX entities_current_doc_gin_idx ON entities_current USING gin (doc jsonb_path_ops);
+CREATE INDEX ON edges_current(kind, src_id, dst_id);
 
 CREATE TABLE IF NOT EXISTS favorite_cases (
     case_id BIGSERIAL NOT NULL,
@@ -187,7 +192,7 @@ CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 -- long as some simple rules and data structures are followed
 CREATE TABLE IF NOT EXISTS entities (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuid_generate_v4(),
+    uuid UUID DEFAULT UUID_generate_v4(),
     label TEXT NOT NULL,
     description TEXT NOT NULL,
     author TEXT NOT NULL,
@@ -260,7 +265,7 @@ CREATE INDEX access_logs_resource_idx ON access_logs (resource_type, resource_id
 -- TODO: think this out more, want to support RSS, custom post feeds, etc
 CREATE TABLE IF NOT EXISTS feeds (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuid_generate_v4(),
+    uuid UUID DEFAULT UUID_generate_v4(),
     title TEXT NOT NULL,
     description TEXT,
     categories TEXT[] NOT NULL DEFAULT '{}',
@@ -280,7 +285,7 @@ CREATE INDEX feeds_categories_idx ON feeds USING GIN (categories);
 -- feed posts
 CREATE TABLE IF NOT EXISTS posts (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuid_generate_v4(),
+    uuid UUID DEFAULT UUID_generate_v4(),
     feed_id BIGSERIAL NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
