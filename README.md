@@ -27,7 +27,7 @@
       Welcome to the OSINTBuddy project where you can connect, combine,
       and get insight from unstructured and public data as results that
       can be explored step-by-step. An easy-to-use plugin system allows any
-      Python developer to quickly integrate new data sources so you can focus 
+      developer to quickly integrate new data sources so you can focus 
       on discovering, interacting, and visualizing what's important to you
   </p>
 
@@ -46,8 +46,8 @@
 </summary>
   <ol>
     <li><a href="#what-is-osintbuddycom">What is OSINTBuddy</a></li>
-    <li><a href="#-project-status">Project Status  🚧</a></li>
-    <li><a href="#key-alpha-features">Alpha Features 🚧</a></li>
+    <li><a href="#-project-status">🚧 Project Status 🚧</a></li>
+    <li><a href="#key-alpha-features">Alpha Features</a></li>
     <li><a href="#-a-vision">Our Vision</a></li>
     <li><a href="#-installation">Installation</a></li>
     <li><a href="#-license">License</a></li>
@@ -78,13 +78,10 @@ An almost incomprehensible amount of data is created every day. And each year, f
 OSINT is a method of working with, assessing and ranking information — We are living in the [information age](https://en.wikipedia.org/wiki/Information_Age) and the volume of information OSINT research has to deal with *[(information explosion)](https://en.wikipedia.org/wiki/Information_explosion)* and the issue of low quality data leaves researchers drowning. The majority of this data is unstructured introducing many challenges to analyzing it and producing actionable intelligence since most data analytics databases are designed for structured data. We are surrounded by information and nearly none of it is useful. 
 
 
-I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want to put all of that information at your fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free. Free to use, free to modify, free to do with as you wish, and built with plain old web technologies anyone can learn. But this isn't really the project.
+I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want all of that information at our fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free software. Built with plain old web technologies anyone can learn. But this isn't really the project. It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent. 
 
 
-It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent. 
-
-
-What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests? This is a chance for a free software OSINT tool to be created for enthusiasts around the world to fight back against these issues and we need your help to design it, to program it, and to build it. We want to hear your suggestions, your ideas, and we're going to build it right in front of your eyes. The notion of a “needle in a haystack” is taken to the extreme on the internet. Let's build a magnet.
+What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests? This is a chance for a free software OSINT tool to be created for enthusiasts around the world to research and act on the issues and information that matter to you. We need your help to design it, to program it, and to build it. Let's hear your suggestions, your ideas, and we're going to do our best at building right in front of your eyes. The notion of a "needle in a haystack" is taken to the extreme on the internet. Let's build a magnet.
 
 
 ### ⚠ Project Status
@@ -117,14 +114,16 @@ As is, this project is more of a toy environment that's been useful while protot
 
 ## ☀ A Vision
 
-I have this conviction that a remarkable set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT work but for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work can accomplish.
+I have this conviction that a set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT and research work but a medium for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work entails.
 
-My goal is to let you engage with data and make decisions confidently for the research and interests you find meaningful. Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
+My goal is to make it easy to engage with data, both public and custom sources, to make decisions confidently for whatever research and interests you find meaningful. 
+
+Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
 
 - **Collective Intelligence** - Collaborative workspaces for global knowledge sharing
 - **Real-time Monitoring** - Automated data collection and alerts on changes
-- **History Graphs** - Browser extension for seamless web exploration
-- **AI/ML Integrations** - Swarm intelligence, sentiment analysis, LLMs/MCP, evolutionary algorithms, etc
+- **History Graphs & More** - A browser extension allowing you to visualize your web history as graph, scrape data, extract metadata, and more
+- **AI/ML Integrations** - Sentiment analysis, audio transcriptions, LLMs/MCP, translating, etc
 
 
 ## 🛠 Installation
@@ -140,8 +139,11 @@ My goal is to let you engage with data and make decisions confidently for the re
 
 ### Configuration
 
-- **Configure environment** _(by default we usually use the docker compose environment)_: copy the `.env.example` file and rename this file to `.env`, adjust ports, DB, and AMQP settings as needed.
-    - `cp .env.example .env` 
+- **Configure environment:** Copy `.env.example` file to `.env`, adjust the settings as needed.
+    - `cp .env.example .env`
+- **Configure frontend (optional):** Copy `frontend/.env.example` to `frontend/.env`, adjust as needed.
+    - `cp frontend/.env.example frontend/.env`
+
 
 ---
 
@@ -187,7 +189,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    ```
   
 6. **Run OSIB**
-   Run the backend `api` and `worker` on your host system:
+   Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
    cargo watch -q -c -w crates/api -x "run -p api"
    # in another terminal run: 
@@ -202,7 +204,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 #### ☠ Shutting down OSIB
 
-- **To stop OSINTBuddy**: `Ctrl+C`, then `docker compose down` to clean up.
+- **To stop OSINTBuddy**: `Ctrl+C`/kill the worker and api terminals, then `docker compose down` to clean up.
 - **To delete *all* OSINTBuddy data**: Data removal is an **irreversible** operation!  **DO NOT** run this command if you do not want to lose **all** of your data! To remove all the data stored in your OSINTBuddy server run `docker compose down --volumes`. 
 
 ---
@@ -234,12 +236,6 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 > LinkScope allows you to perform online investigations by representing information as discrete pieces of data, called Entities.
 
 + https://github.com/AccentuSoft/LinkScope_Client
-
----
-
-> Discover and deliver actionable intelligence.
-
-+ https://i2group.com/solutions/i2-analysts-notebook
 
 
 
