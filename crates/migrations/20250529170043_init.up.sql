@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS edges_current (
   edge_id     uuid primary key,
   src_id      uuid not null,
   dst_id      uuid not null,
+  -- TODO: rename kind to label in sql and ws
   kind        text not null,
   props       jsonb not null default '{}'::jsonb,
   valid_from  timestamptz not null,
