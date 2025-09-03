@@ -132,6 +132,7 @@ pub async fn handle_create_entity(
     event: WebSocketMessage,
     session: &mut Session,
 ) {
+    // Event validation and error messages
     let Some(mut entity) = event.entity else {
         let message = json!({
             "action": "error",
@@ -171,11 +172,11 @@ pub async fn handle_create_entity(
         let _ = session.text(message).await;
         return;
     };
+    // END event validation and error messages
 
     info!("entity after pop {entity}");
-
     // Extract position and remaining properties from payload
-    let (x, y, properties) = match entity {
+    let (x, y, mut properties) = match entity {
         Value::Object(mut obj) => {
             let x = obj.remove("x").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
             let y = obj.remove("y").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
@@ -184,15 +185,18 @@ pub async fn handle_create_entity(
         _ => (0.0_f64, 0.0_f64, json!({})),
     };
 
+    if let Some(props_obj) = properties.as_object_mut() {
+        props_obj.insert("label".to_string(), json!(to_snake_case(label)));
+    }
+
     // Create a new entity id to track within the graph
     let entity_id = Uuid::new_v4();
 
     // Build domain event payload
-    let payload = json!({
+    let mut payload = json!({
         "id": entity_id,
-        "label": label,
         "position": { "x": x, "y": y },
-        "properties": properties,
+        "data": properties,
     });
 
     // Append to event store on the graph stream
@@ -212,6 +216,20 @@ pub async fn handle_create_entity(
     if let Err(e) = eventstore::append_event(pool, event).await {
         error!("Failed to append entity:create event: {}", e);
     }
+    let Some(entity) = payload.as_object_mut() else {
+        let message = json!({
+           "action": "error",
+           "notification": {
+               "autoClose": 8000,
+               "message": "We ran into an error mutating your entity!",
+           },
+        })
+        .to_string();
+        let _ = session.text(message).await;
+        return;
+    };
+    // insert type which is used only in reactflow, no need to store this inside db
+    entity.insert("type".to_string(), json!("view"));
 
     // Return the created entity document for immediate UI usage
     let message = json!({
@@ -220,7 +238,7 @@ pub async fn handle_create_entity(
             "shouldClose": true,
             "message": format!("Entity created successfully!"),
         },
-        "entity": payload
+        "entity": entity
     });
     let _ = session.text(message.to_string()).await;
 }
@@ -310,7 +328,7 @@ pub async fn handle_create_edge(
         "source": source,
         "target": target,
         "kind": kind,
-        "properties": properties,
+        "data": properties,
     });
 
     // Append to event store on the graph stream
@@ -533,8 +551,8 @@ pub async fn handle_update_edge(
             {
                 m.insert("kind".to_string(), json!(v));
             }
-            if let Some(props) = obj.get("properties") {
-                m.insert("properties".to_string(), props.clone());
+            if let Some(props) = obj.get("data") {
+                m.insert("data".to_string(), props.clone());
             }
             payload = Value::Object(m);
         }
@@ -683,7 +701,17 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
     .fetch_all(pool)
     .await
     {
-        Ok(rows) => rows.into_iter().map(|r| r.doc).collect(),
+        Ok(rows) => rows
+            .into_iter()
+            .map(|r| {
+                let mut entity_doc = r.doc;
+                if let Some(obj) = entity_doc.as_object_mut() {
+                    obj.insert("type".to_string(), json!("view"));
+                    return json!(obj);
+                }
+                entity_doc
+            })
+            .collect(),
         Err(err) => {
             error!("read:graph query failed: {}", err);
             vec![]
