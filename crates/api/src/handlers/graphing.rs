@@ -675,10 +675,10 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
         r#"
         SELECT doc
         FROM entities_current
-        WHERE sys_to IS NULL AND (doc->>'graph_id') = $1
+        WHERE graph_id = $1
         ORDER BY sys_from ASC
         "#,
-        graph_uuid.to_string()
+        graph_uuid
     )
     .fetch_all(pool)
     .await

@@ -56,11 +56,12 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
     .fetch_one(pool)
     .await?;
 
+    // Parse graph_id from stream key when applicable (UUID string)
+    let graph_id = Uuid::parse_str(&stream.key).ok();
+
     match (stream.category.as_str(), ev.event_type.as_str()) {
         ("entity", "create") => {
             // Expect payload: { id, label, position:{x,y}, properties:{} }
-            // Extract entity id from payload
-            info!("proj payload entity create: {:?}", ev.payload);
             let Some(id_val) = ev.payload.get("id") else {
                 return Ok(());
             };
@@ -72,21 +73,16 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                 return Ok(());
             };
 
-            // Build document with graph context included for fast filtering
-            let mut doc = ev.payload.clone();
-            if let Some(obj) = doc.as_object_mut() {
-                obj.insert(
-                    "graph_id".to_string(),
-                    JsonValue::String(stream.key.clone()),
-                );
-            }
-
-            // Upsert current snapshot
+            // Upsert current snapshot (now includes graph_id)
+            let Some(graph_id) = graph_id else {
+                return Ok(());
+            };
             sqlx::query!(
                 r#"
-                INSERT INTO entities_current(entity_id, doc, valid_from, valid_to, sys_from, sys_to)
-                VALUES ($1, $2, $3, $4, now(), NULL)
+                INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
+                VALUES ($1, $2, $3, $4, $5, now(), NULL)
                 ON CONFLICT (entity_id) DO UPDATE SET
+                  graph_id = EXCLUDED.graph_id,
                   doc = EXCLUDED.doc,
                   valid_from = EXCLUDED.valid_from,
                   valid_to = EXCLUDED.valid_to,
@@ -94,7 +90,8 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                   sys_to = NULL
                 "#,
                 entity_id,
-                doc,
+                graph_id,
+                ev.payload,
                 ev.valid_from,
                 ev.valid_to
             )
@@ -135,22 +132,16 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                     dst.insert(k.clone(), v.clone());
                 }
             }
-
-            // Ensure graph_id is present (from stream key) and id stays consistent
-            if let Some(obj) = doc.as_object_mut() {
-                obj.insert(
-                    "graph_id".to_string(),
-                    JsonValue::String(stream.key.clone()),
-                );
-                obj.insert("id".to_string(), JsonValue::String(entity_id.to_string()));
-            }
-
-            // Insert/replace current snapshot
+            // Insert/replace current snapshot (with graph_id)
+            let Some(graph_id) = graph_id else {
+                return Ok(());
+            };
             sqlx::query!(
                 r#"
-                INSERT INTO entities_current(entity_id, doc, valid_from, valid_to, sys_from, sys_to)
-                VALUES ($1, $2, $3, $4, now(), NULL)
+                INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
+                VALUES ($1, $2, $3, $4, $5, now(), NULL)
                 ON CONFLICT (entity_id) DO UPDATE SET
+                  graph_id = EXCLUDED.graph_id,
                   doc = EXCLUDED.doc,
                   valid_from = EXCLUDED.valid_from,
                   valid_to = EXCLUDED.valid_to,
@@ -158,6 +149,7 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                   sys_to = NULL
                 "#,
                 entity_id,
+                graph_id,
                 doc,
                 ev.valid_from,
                 ev.valid_to
