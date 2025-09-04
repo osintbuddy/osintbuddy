@@ -21,7 +21,7 @@
 
   🚧 ⚠️ <ins> **Work in progress; Not ready for use, _yet_** </ins> ⚠️  🚧
 
-  ## 🛡 Introducing OSINTBuddy 🛡 
+  ## 🛡 Introducing OSINTBuddy 
 
   <p>
       Welcome to the OSINTBuddy project where you can connect, combine,
@@ -81,7 +81,7 @@ OSINT is a method of working with, assessing and ranking information — We are 
 I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want all of that information at our fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free software. Built with plain old web technologies anyone can learn. But this isn't really the project. It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent. 
 
 
-What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests? This is a chance for a free software OSINT tool to be created for enthusiasts around the world to research and act on the issues and information that matter to you. We need your help to design it, to program it, and to build it. Let's hear your suggestions, your ideas, and we're going to do our best at building right in front of your eyes. The notion of a "needle in a haystack" is taken to the extreme on the internet. Let's build a magnet.
+What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests?s We need your help to design it, to program it, and to build it. Let's hear your suggestions, your ideas, and we're going to be building right in front of your eyes. The notion of a "needle in a haystack" is taken to the extreme on the internet. Let's build a magnet.
 
 
 ### ⚠ Project Status
@@ -108,15 +108,13 @@ As is, this project is more of a toy environment that's been useful while protot
 - **Extensible Plugin Architecture**: a Python-based plugin system allows custom entities to pull from any data source.
 - **Self-hosted**: Your data can stay under your control with full privacy and security
 - **Cost-Effective**: Ditch the enterprise pricing, access advanced OSINT capabilities with free open source software.
-- **Open for contributions**.
+- **Open to contributions**.
 - And check out the [open issues](https://github.com/jerlendds/osintbuddy/issues) for a list of requested features (and known bugs).
 
 
 ## ☀ A Vision
 
-I have this conviction that a set of opportunities is open today. I believe it's now possible, or soon will be, to create a new immersive medium for not just traditional OSINT and research work but a medium for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium. If we choose well, we might be able to expand the possible range of what OSINT work entails.
-
-My goal is to make it easy to engage with data, both public and custom sources, to make decisions confidently for whatever research and interests you find meaningful. 
+I have this conviction that a set of opportunities is available today. I believe it's now possible, if not today then soon, that will allow us to create a new immersive medium for not just traditional OSINT and research work but a medium for discovering, learning, researching, and coming to actionable insights in any number of contexts you can imagine. A medium such as photoshop is different from any of the individual tools photoshop contains. The range of possibilities in such immersive mediums are staggering and these possibilities emerge from the basic objects and actions in that medium.
 
 Want to help out? Writing down and sharing your ideas, having discussions, and letting me know what works and doesn't, all act as a way to help bootstrap this project. It's a way of identifying points of leverage that might help us develop new tools for OSINT. So let's get started, here are [a few of my ideas](https://studium.dev/osib/ideas):
 
@@ -140,10 +138,13 @@ Want to help out? Writing down and sharing your ideas, having discussions, and l
 ### Configuration
 
 - **Configure environment:** Copy `.env.example` file to `.env`, adjust the settings as needed.
-    - `cp .env.example .env`
+    - ```bash
+      cp .env.example .env
+      ```
 - **Configure frontend (optional):** Copy `frontend/.env.example` to `frontend/.env`, adjust as needed.
-    - `cp frontend/.env.example frontend/.env`
-
+    - ```bash
+      cp frontend/.env.example frontend/.env
+      ```
 
 ---
 
