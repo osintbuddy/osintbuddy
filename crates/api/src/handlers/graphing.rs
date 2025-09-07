@@ -639,9 +639,15 @@ pub async fn handle_update_entity(
         expected_version: None,
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
-        error!("Failed to append entity:update: {}", e);
+        error!("Failed to append entity:update event: {}", e);
         // TODO: send ws error msg
+        return;
     }
+    let message = json!({
+        "action": "update",
+        "entity": entity
+    });
+    let _ = session.text(message.to_string()).await;
 }
 
 pub async fn handle_delete_entity(

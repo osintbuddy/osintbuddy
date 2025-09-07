@@ -1,6 +1,6 @@
 import { Fragment } from 'preact/compat'
 import { Highlight, themes } from 'prism-react-renderer'
-import { HeroBackground } from './HeroBackground'
+import { HeroBackground } from '../HeroBackground'
 import blurCyanImage from '@/assets/images/blur-cyan.png'
 import blurIndigoImage from '@/assets/images/blur-indigo.png'
 import Button from '../buttons'

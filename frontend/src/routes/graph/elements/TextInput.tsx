@@ -1,6 +1,7 @@
 import { Icon } from '@/components/icons'
 import { NodeElementProps } from '@/types/graph'
 import { ChangeEvent, memo, useState } from 'preact/compat'
+import { toSnakeCase } from '../utils'
 
 export function TextInput({
   id,
@@ -8,8 +9,10 @@ export function TextInput({
   sendJsonMessage,
   icon,
   value: initValue,
+  data,
 }: NodeElementProps) {
   const [value, setValue] = useState(initValue)
+  console.log('id?', id)
   return (
     <>
       <div className='flex flex-col'>
@@ -21,9 +24,16 @@ export function TextInput({
             id={`${id}-${label}`}
             type='text'
             onBlur={() => {
+              console.log('id-0---', id, label, value)
               sendJsonMessage({
                 action: 'update:entity',
-                entity: { id: id, [label]: value },
+                entity: {
+                  id,
+                  data: {
+                    ...data,
+                    [toSnakeCase(label)]: value,
+                  },
+                },
               })
             }}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>

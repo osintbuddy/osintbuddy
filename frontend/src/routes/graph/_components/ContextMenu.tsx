@@ -137,7 +137,7 @@ export default function ContextMenu({
                 closeMenu()
                 sendJsonMessage({
                   action: 'delete:entity',
-                  entity: { id: Number(selection.id) },
+                  entity: { id: selection.id },
                 })
                 removeNode(selection.id)
               }}

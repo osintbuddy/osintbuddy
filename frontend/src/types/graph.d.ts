@@ -34,13 +34,7 @@ interface NodeInputProps {
 
 type NodeElementProps = NodeInputProps & {
   id: string
-}
-
-interface ElementProps {
-  id: string
-  sendJsonMessage: SendJsonMessage
-  element: NodeInputProps
-  key: string
+  data?: any
 }
 
 interface TextElement {

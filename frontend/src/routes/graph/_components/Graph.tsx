@@ -178,16 +178,18 @@ export default function Graph({
 
   const nodeTypes = useMemo(
     () => ({
-      edit: (entity: JSONObject) => (
-        <EditEntityNode
-          ctx={entity}
-          blueprint={blueprints[entity.data.label]}
-          sendJsonMessage={sendJsonMessage}
-        />
-      ),
+      edit: (entity: JSONObject) => {
+        const { label } = entity.data
+        return (
+          <EditEntityNode
+            ctx={entity}
+            blueprint={blueprints[label]}
+            sendJsonMessage={sendJsonMessage}
+          />
+        )
+      },
       view: (entity: JSONObject) => {
-        const { label, ...data } = entity.data
-        entity.data = data
+        const { label } = entity.data
         return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
       },
     }),
@@ -211,7 +213,6 @@ export default function Graph({
 
   const onNodeDragStop: OnNodeDrag = useCallback(
     (_, node) => {
-      console.log('update node', node)
       sendJsonMessage({
         action: 'update:entity',
         entity: {

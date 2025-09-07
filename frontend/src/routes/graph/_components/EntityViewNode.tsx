@@ -3,15 +3,22 @@ import { memo } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
+import { toSnakeCase } from '../utils'
 
 export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
   const { color: backgroundColor, icon, elements } = blueprint
-  const displayValue = useMemo(
+  const value = useMemo(
     () =>
-      Array.isArray(elements[0]) ? elements[0][0]?.value : elements[0]?.value,
+      ctx.data[
+        toSnakeCase(
+          Array.isArray(elements[0])
+            ? elements[0][0]?.label
+            : elements[0]?.label
+        )
+      ] ?? <span class='text-slate-800'>No data found</span>,
     [elements]
   )
-  console.log('VUEW BIDE', ctx, blueprint)
+
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>
@@ -25,7 +32,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
         <h2
           class={`break pointer-events-none absolute top-full -right-28 -left-28 mt-2.5 line-clamp-4 h-auto text-center text-xl leading-6 wrap-anywhere text-slate-400`}
         >
-          {displayValue}
+          {value}
         </h2>
       </div>
       <EntityHandles />

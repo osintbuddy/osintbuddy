@@ -34,6 +34,7 @@ type ActionTypes =
 interface SocketActions {
   authenticated: (data: any) => void
   read: (data: any) => void
+  update: (data: any) => void
   remove: (data: any) => void
   created: (data: any) => void
   loading: (data: any) => void
@@ -56,6 +57,7 @@ export default function Graphing() {
     setNodes,
     setEdges,
     addNode,
+    updateNode,
     addEdge,
     clearGraph,
     setPositionMode,
@@ -141,8 +143,12 @@ export default function Graphing() {
       fitView()
     },
     remove: () => {},
+    update: (data) => {
+      console.log('running update client', data.entity)
+      updateNode(data.entity.id, data.entity)
+    },
     created: (data) => {
-      addNode(data.entity)
+      addNode({ ...data.entity, type: 'edit' })
       if (data.edge) {
         addEdge(data.edge)
       } else {

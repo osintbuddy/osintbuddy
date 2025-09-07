@@ -39,6 +39,7 @@ export function EditEntityNode({
       })
     )
   }, [blueprint])
+
   return (
     <>
       <EntityHandles />
@@ -98,7 +99,8 @@ export function EditEntityNode({
                     return (
                       <Fragment key={i}>
                         <Element
-                          id={blueprint.id}
+                          data={ctx.data}
+                          id={ctx.id}
                           sendJsonMessage={sendJsonMessage}
                           element={elm}
                           key={`${elm.label}-${elm.id}-${blueprint.id}`}
@@ -115,7 +117,8 @@ export function EditEntityNode({
             }
             return (
               <Element
-                id={blueprint.id}
+                data={ctx.data}
+                id={ctx.id}
                 sendJsonMessage={sendJsonMessage}
                 element={element}
                 key={`${element.label}-${element.id}-${blueprint.id}`}

@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/app/store'
 import Button from '@/components/buttons'
-import { HeroBackground } from '@/components/docs/HeroBackground'
+import { HeroBackground } from '@/components/HeroBackground'
 import { Icon } from '@/components/icons'
 import Input from '@/components/inputs'
 import { useEffect } from 'preact/hooks'

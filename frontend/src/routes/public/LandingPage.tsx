@@ -1,5 +1,5 @@
 import type { JSX } from 'preact'
-import { HeroBackground } from '@/components/docs/HeroBackground'
+import { HeroBackground } from '@/components/HeroBackground'
 import Button from '@/components/buttons'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/icons'
@@ -44,8 +44,8 @@ export default function LandingPage(): JSX.Element {
                   variant='primary'
                   onClick={() => navigate('/dashboard/graph')}
                 >
-                  Open OSINTBuddy
-                  <Icon icon='folder-open' className='btn-icon' />
+                  Launch OSINTBuddy
+                  <Icon icon='rocket' className='btn-icon' />
                 </Button.Solid>
               ) : (
                 <Button.Solid
