@@ -57,7 +57,29 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
     .await?;
 
     // Parse graph_id from stream key when applicable (UUID string)
-    let graph_id = Uuid::parse_str(&stream.key).ok();
+    let Some(graph_id) = Uuid::parse_str(&stream.key).ok() else {
+        error!(
+            "Failed to fetch graph id. Unable to materialize current state from event: {:?}",
+            ev
+        );
+        return Ok(());
+    };
+
+    let Some(entity) = ev.payload.get("entity") else {
+        error!("Error getting entity from event!");
+        return Ok(());
+    };
+
+    info!("AFTER GET ENTITY before match: {}", entity);
+    info!("1");
+    let Some(id_val) = entity.get("id") else {
+        return Ok(());
+    };
+    info!("2");
+    let entity_id = match id_val {
+        JsonValue::String(s) => s,
+        other => &other.to_string(),
+    };
 
     match (stream.category.as_str(), ev.event_type.as_str()) {
         ("entity", "create") => {
@@ -73,10 +95,6 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                 return Ok(());
             };
 
-            // Upsert current snapshot (now includes graph_id)
-            let Some(graph_id) = graph_id else {
-                return Ok(());
-            };
             sqlx::query!(
                 r#"
                 INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
@@ -132,10 +150,7 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                     dst.insert(k.clone(), v.clone());
                 }
             }
-            // Insert/replace current snapshot (with graph_id)
-            let Some(graph_id) = graph_id else {
-                return Ok(());
-            };
+
             sqlx::query!(
                 r#"
                 INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
@@ -159,20 +174,40 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
         }
         ("entity", "delete") => {
             // Mark entity as deleted by clearing current row
-            let Some(id_val) = ev.payload.get("id") else {
-                return Ok(());
-            };
-            let id_str = match id_val {
-                JsonValue::String(s) => s.clone(),
-                other => other.to_string(),
-            };
-            let Ok(entity_id) = Uuid::parse_str(&id_str) else {
+
+            info!("3");
+            let Ok(entity_id) = Uuid::parse_str(&entity_id) else {
                 return Ok(());
             };
 
-            // Remove current snapshot for this entity
+            info!("4");
             sqlx::query!(
-                r#"DELETE FROM entities_current WHERE entity_id = $1"#,
+                r#"
+            UPDATE entities_current
+               SET sys_to   = now(),
+                   valid_to = COALESCE(valid_to, now())
+             WHERE entity_id = $1
+               AND graph_id  = $2
+               AND sys_to    IS NULL
+            "#,
+                entity_id,
+                graph_id
+            )
+            .execute(pool)
+            .await?;
+
+            // also close incident edges to prevent dangling edges in UI
+            info!("5");
+            sqlx::query!(
+                r#"
+            UPDATE edges_current
+               SET sys_to   = now(),
+                   valid_to = COALESCE(valid_to, now())
+             WHERE graph_id = $1
+               AND sys_to   IS NULL
+               AND (src_id = $2 OR dst_id = $2)
+            "#,
+                graph_id,
                 entity_id
             )
             .execute(pool)

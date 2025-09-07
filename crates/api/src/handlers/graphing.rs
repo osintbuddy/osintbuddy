@@ -663,6 +663,14 @@ pub async fn handle_delete_entity(
         let _ = session.text(json!({"action":"error","notification":{"autoClose":8000,"message":"Missing entity id for delete."}}).to_string()).await;
         return;
     };
+    // Parse the UUID early so we can use it for DB updates
+    let id_uuid = match Uuid::parse_str(id_val) {
+        Ok(u) => u,
+        Err(_) => {
+            let _ = session.text(json!({"action":"error","notification":{"autoClose":8000,"message":"Invalid UUID for entity id."}}).to_string()).await;
+            return;
+        }
+    };
 
     let payload = json!({ "entity": {"id": id_val} });
     let ev = AppendEvent {
@@ -680,17 +688,52 @@ pub async fn handle_delete_entity(
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:delete: {}", e);
     }
+    if let Err(e) = sqlx::query!(
+        r#"
+        UPDATE entities_current
+        SET sys_to   = now(),
+            valid_to = COALESCE(valid_to, now())
+        WHERE entity_id = $1
+          AND graph_id  = $2
+          AND sys_to    IS NULL
+        "#,
+        id_uuid,
+        graph_uuid
+    )
+    .execute(pool)
+    .await
+    {
+        error!("Failed to soft-delete entity from entities_current: {}", e);
+    }
+    // also close any incident edges in edges_current
+    if let Err(e) = sqlx::query!(
+        r#"
+        UPDATE edges_current
+        SET sys_to   = now(),
+            valid_to = COALESCE(valid_to, now())
+        WHERE graph_id = $1
+          AND sys_to   IS NULL
+          AND (src_id = $2 OR dst_id = $2)
+        "#,
+        graph_uuid,
+        id_uuid
+    )
+    .execute(pool)
+    .await
+    {
+        error!(
+            "Failed to soft-delete incident edges from edges_current: {}",
+            e
+        );
+    }
 
-    let _ = session
-        .text(
-            json!({
-                "action": "deleted",
-                "notification": {"shouldClose": true, "message": "Entity deleted."},
-                "entity": payload.get("entity").cloned().unwrap_or_else(|| json!({}))
-            })
-            .to_string(),
-        )
-        .await;
+    info!("payload: {:?}", payload);
+    let message = json!({
+        "action": "deleted",
+        "notification": {"shouldClose": true, "message": "Entity deleted."},
+        "entity": payload.get("entity").cloned().unwrap_or_else(|| json!({}))
+    });
+    let _ = session.text(message.to_string()).await;
 }
 
 pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: &mut Session) {
@@ -700,6 +743,7 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
         SELECT doc
         FROM entities_current
         WHERE graph_id = $1
+            AND sys_to IS NULL
         ORDER BY sys_from ASC
         "#,
         graph_uuid
