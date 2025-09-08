@@ -64,28 +64,28 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
         );
         return Ok(());
     };
-
-    let entity_uuid = if stream.category == "entity" {
-        ev.payload
-            .get("id")
-            .and_then(|v| v.as_str())
-            .and_then(|s| Uuid::parse_str(s).ok())
-    } else {
-        None
-    };
-    let Some(entity_uuid) = entity_uuid else {
-        error!("entity event missing/invalid id (seq={})", ev.seq);
-        return Ok(());
-    };
-
-    match (stream.category.as_str(), ev.event_type.as_str()) {
+    match stream.category.as_str() {
         // --------------------------
         // Entity projection handlers
         // --------------------------
-        ("entity", "create") => {
-            // Store the entire event payload as the document (id, position, data)
-            // UI will add {type: "view" or "edit" } on read for Reactflow.
-            sqlx::query!(
+        "entity" => {
+            let entity_uuid = if stream.category == "entity" {
+                ev.payload
+                    .get("id")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| Uuid::parse_str(s).ok())
+            } else {
+                None
+            };
+            let Some(entity_uuid) = entity_uuid else {
+                error!("entity event missing/invalid id (seq={})", ev.seq);
+                return Ok(());
+            };
+            match ev.event_type.as_str() {
+                "create" => {
+                    // Store the entire event payload as the document (id, position, data)
+                    // UI will add {type: "view" or "edit" } on read for Reactflow.
+                    sqlx::query!(
                 r#"
                 INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
                 VALUES ($1, $2, $3, $4, $5, now(), NULL)
@@ -105,32 +105,32 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
             )
             .execute(pool)
             .await?;
-        }
-        ("entity", "update") => {
-            // load current document; if missing, ignore update
-            let current = sqlx::query!(
+                }
+                "update" => {
+                    // load current document; if missing, ignore update
+                    let current = sqlx::query!(
                 r#"SELECT doc FROM entities_current WHERE entity_id = $1 AND graph_id = $2 AND sys_to IS NULL"#,
                 entity_uuid,
                 graph_uuid
             )
             .fetch_optional(pool)
             .await?;
-            let Some(mut doc) = current.map(|r| r.doc) else {
-                return Ok(());
-            };
+                    let Some(mut doc) = current.map(|r| r.doc) else {
+                        return Ok(());
+                    };
 
-            // shallow merge fields into current doc
-            if let (Some(dst), Some(src)) = (doc.as_object_mut(), ev.payload.as_object()) {
-                for (k, v) in src.iter() {
-                    // never allow id overwrite
-                    if k == "id" {
-                        continue;
+                    // shallow merge fields into current doc
+                    if let (Some(dst), Some(src)) = (doc.as_object_mut(), ev.payload.as_object()) {
+                        for (k, v) in src.iter() {
+                            // never allow id overwrite
+                            if k == "id" {
+                                continue;
+                            }
+                            dst.insert(k.clone(), v.clone());
+                        }
                     }
-                    dst.insert(k.clone(), v.clone());
-                }
-            }
 
-            sqlx::query!(
+                    sqlx::query!(
                 r#"
                 INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
                 VALUES ($1, $2, $3, $4, $5, now(), NULL)
@@ -150,11 +150,11 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
             )
             .execute(pool)
             .await?;
-        }
-        ("entity", "delete") => {
-            // Mark entity as deleted by clearing current row
-            sqlx::query!(
-                r#"
+                }
+                "delete" => {
+                    // Mark entity as deleted by clearing current row
+                    sqlx::query!(
+                        r#"
             UPDATE entities_current
                SET sys_to   = now(),
                    valid_to = COALESCE(valid_to, now())
@@ -162,15 +162,15 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                AND graph_id  = $2
                AND sys_to    IS NULL
             "#,
-                entity_uuid,
-                graph_uuid
-            )
-            .execute(pool)
-            .await?;
+                        entity_uuid,
+                        graph_uuid
+                    )
+                    .execute(pool)
+                    .await?;
 
-            // prevent dangling edges
-            sqlx::query!(
-                r#"
+                    // prevent dangling edges
+                    sqlx::query!(
+                        r#"
             UPDATE edges_current
                SET sys_to   = now(),
                    valid_to = COALESCE(valid_to, now())
@@ -178,117 +178,43 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                AND sys_to   IS NULL
                AND (src_id = $2 OR dst_id = $2)
             "#,
-                graph_uuid,
-                entity_uuid
-            )
-            .execute(pool)
-            .await?;
+                        graph_uuid,
+                        entity_uuid
+                    )
+                    .execute(pool)
+                    .await?;
+                }
+                _ => return Ok(()),
+            }
         }
         // --------------------------
         // Edge projection handlers
         // --------------------------
-        ("edge", "create") => {
-            // payload: { id, source, target, data }
-            let eid = ev.payload.get("id").and_then(|v| v.as_str());
-            let src = ev.payload.get("source").and_then(|v| v.as_str());
-            let dst = ev.payload.get("target").and_then(|v| v.as_str());
-            if let (Some(eid), Some(src), Some(dst)) = (eid, src, dst) {
-                let Ok(edge_id) = Uuid::parse_str(eid) else {
-                    return Ok(());
-                };
-                let Ok(src_id) = Uuid::parse_str(src) else {
-                    return Ok(());
-                };
-                let Ok(dst_id) = Uuid::parse_str(dst) else {
+        "edge" => match ev.event_type.as_str() {
+            "create" => {
+                let eid = ev.payload.get("id").and_then(|v| v.as_str());
+                let src = ev.payload.get("source").and_then(|v| v.as_str());
+                let dst = ev.payload.get("target").and_then(|v| v.as_str());
+                let (Some(eid), Some(src), Some(dst)) = (eid, src, dst) else {
                     return Ok(());
                 };
 
-                let props: JsonValue = ev
+                let (edge_id, src_id, dst_id) = (
+                    Uuid::parse_str(eid).ok(),
+                    Uuid::parse_str(src).ok(),
+                    Uuid::parse_str(dst).ok(),
+                );
+                let (Some(edge_id), Some(src_id), Some(dst_id)) = (edge_id, src_id, dst_id) else {
+                    return Ok(());
+                };
+
+                let props = ev
                     .payload
                     .get("data")
                     .cloned()
                     .unwrap_or(JsonValue::Object(Default::default()));
 
                 sqlx::query!(
-                    r#"
-                    INSERT INTO edges_current(edge_id, src_id, dst_id, graph_id, props, valid_from, valid_to, sys_from, sys_to)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7, now(), NULL)
-                    ON CONFLICT (edge_id) DO UPDATE SET
-                      src_id     = EXCLUDED.src_id,
-                      dst_id     = EXCLUDED.dst_id,
-                      graph_id   = EXCLUDED.graph_id,
-                      props      = EXCLUDED.props,
-                      valid_from = EXCLUDED.valid_from,
-                      valid_to   = EXCLUDED.valid_to,
-                      sys_from   = now(),
-                      sys_to     = NULL
-                    "#,
-                    edge_id,
-                    src_id,
-                    dst_id,
-                    graph_uuid,
-                    props,
-                    ev.valid_from,
-                    ev.valid_to
-                )
-                .execute(pool)
-                .await?;
-            }
-        }
-        ("edge", "update") => {
-            // payload: { id, source?, target?, kind?, data? }
-            let eid = ev.payload.get("id").and_then(|v| v.as_str());
-            let Some(eid) = eid else {
-                return Ok(());
-            };
-            let Ok(edge_id) = Uuid::parse_str(eid) else {
-                return Ok(());
-            };
-
-            // Load current, merge shallowly
-            let current = sqlx::query!(
-                r#"SELECT src_id, dst_id, props FROM edges_current WHERE edge_id = $1 AND sys_to IS NULL"#,
-                edge_id
-            )
-            .fetch_optional(pool)
-            .await?;
-            let Some(row) = current else {
-                return Ok(());
-            };
-
-            let mut src_id = row.src_id;
-            let mut dst_id = row.dst_id;
-            let mut props = row.props;
-
-            if let Some(s) = ev
-                .payload
-                .get("source")
-                .and_then(|v| v.as_str())
-                .and_then(|s| Uuid::parse_str(s).ok())
-            {
-                src_id = s;
-            }
-            if let Some(d) = ev
-                .payload
-                .get("target")
-                .and_then(|v| v.as_str())
-                .and_then(|d| Uuid::parse_str(d).ok())
-            {
-                dst_id = d;
-            }
-
-            if let Some(newp) = ev.payload.get("data") {
-                // shallow merge for object; otherwise replace
-                if let (Some(dst), Some(src)) = (props.as_object_mut(), newp.as_object()) {
-                    for (k, v) in src.iter() {
-                        dst.insert(k.clone(), v.clone());
-                    }
-                } else {
-                    props = newp.clone();
-                }
-            }
-
-            sqlx::query!(
                 r#"
                 INSERT INTO edges_current(edge_id, src_id, dst_id, graph_id, props, valid_from, valid_to, sys_from, sys_to)
                 VALUES ($1,$2,$3,$4,$5,$6,$7, now(), NULL)
@@ -303,35 +229,91 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                   sys_to     = NULL
                 "#,
                 edge_id, src_id, dst_id, graph_uuid, props, ev.valid_from, ev.valid_to
-            )
-            .execute(pool)
-            .await?;
-        }
-        ("edge", "delete") => {
-            // payload: { id }
-            let eid = ev.payload.get("id").and_then(|v| v.as_str());
-            let Some(eid) = eid else {
-                return Ok(());
-            };
-            let Ok(edge_id) = Uuid::parse_str(eid) else {
-                return Ok(());
-            };
+            ).execute(pool).await?;
+            }
+            "update" => {
+                let eid = ev.payload.get("id").and_then(|v| v.as_str());
+                let Some(edge_id) = eid.and_then(|s| Uuid::parse_str(s).ok()) else {
+                    return Ok(());
+                };
 
-            sqlx::query!(
+                let current = sqlx::query!(
+                    r#"SELECT src_id, dst_id, props FROM edges_current
+                   WHERE edge_id=$1 AND graph_id=$2 AND sys_to IS NULL"#,
+                    edge_id,
+                    graph_uuid
+                )
+                .fetch_optional(pool)
+                .await?;
+                let Some(row) = current else {
+                    return Ok(());
+                };
+
+                let mut src_id = row.src_id;
+                let mut dst_id = row.dst_id;
+                let mut props = row.props;
+
+                if let Some(s) = ev
+                    .payload
+                    .get("source")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| Uuid::parse_str(s).ok())
+                {
+                    src_id = s;
+                }
+                if let Some(d) = ev
+                    .payload
+                    .get("target")
+                    .and_then(|v| v.as_str())
+                    .and_then(|d| Uuid::parse_str(d).ok())
+                {
+                    dst_id = d;
+                }
+
+                if let Some(newp) = ev.payload.get("data") {
+                    if let (Some(dst), Some(src)) = (props.as_object_mut(), newp.as_object()) {
+                        for (k, v) in src {
+                            dst.insert(k.clone(), v.clone());
+                        }
+                    } else {
+                        props = newp.clone();
+                    }
+                }
+
+                sqlx::query!(
                 r#"
-                UPDATE edges_current
-                   SET sys_to   = now(),
-                       valid_to = COALESCE(valid_to, now())
-                 WHERE edge_id = $1
-                   AND graph_id = $2
-                   AND sys_to   IS NULL
+                INSERT INTO edges_current(edge_id, src_id, dst_id, graph_id, props, valid_from, valid_to, sys_from, sys_to)
+                VALUES ($1,$2,$3,$4,$5,$6,$7, now(), NULL)
+                ON CONFLICT (edge_id) DO UPDATE SET
+                  src_id     = EXCLUDED.src_id,
+                  dst_id     = EXCLUDED.dst_id,
+                  graph_id   = EXCLUDED.graph_id,
+                  props      = EXCLUDED.props,
+                  valid_from = EXCLUDED.valid_from,
+                  valid_to   = EXCLUDED.valid_to,
+                  sys_from   = now(),
+                  sys_to     = NULL
                 "#,
-                edge_id,
-                graph_uuid
-            )
-            .execute(pool)
-            .await?;
-        }
+                edge_id, src_id, dst_id, graph_uuid, props, ev.valid_from, ev.valid_to
+            ).execute(pool).await?;
+            }
+            "delete" => {
+                let eid = ev.payload.get("id").and_then(|v| v.as_str());
+                let Some(edge_id) = eid.and_then(|s| Uuid::parse_str(s).ok()) else {
+                    return Ok(());
+                };
+
+                sqlx::query!(
+                    r#"UPDATE edges_current SET sys_to=now(), valid_to=COALESCE(valid_to,now())
+                   WHERE edge_id=$1 AND graph_id=$2 AND sys_to IS NULL"#,
+                    edge_id,
+                    graph_uuid
+                )
+                .execute(pool)
+                .await?;
+            }
+            _ => return Ok(()),
+        },
         _ => {}
     }
 

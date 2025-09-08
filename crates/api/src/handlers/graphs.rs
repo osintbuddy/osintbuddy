@@ -222,13 +222,6 @@ async fn get_graph_handler(
         }
     })?;
 
-    let graph_name: String = graph
-        .uuid
-        .map(|uuid| format!("g_{}", uuid.as_simple().to_string()))
-        .ok_or(AppError {
-            message: "We ran into a missing graph id error!",
-        })?;
-
     Ok(GraphStats {
         graph: Graph {
             id: graph_id.to_string(),

@@ -72,6 +72,25 @@ const viewOptions: FitViewOptions = {
   padding: 50,
 }
 
+// Remove the React Flow auto prefix from an ID string.
+export function stripXYEdge(id: string) {
+  return id.replace('xy-edge__', '')
+}
+
+// Deep copy + sanitize: fixes all object fields named "id".
+export function stripXYEdgeInIds(payload: any): any {
+  if (Array.isArray(payload)) return payload.map(stripXYEdgeInIds)
+  if (payload && typeof payload === 'object') {
+    const out = {}
+    for (const [k, v] of Object.entries(payload)) {
+      if (k === 'id' && typeof v === 'string') out[k] = stripXYEdge(v)
+      else out[k] = stripXYEdgeInIds(v)
+    }
+    return out
+  }
+  return payload
+}
+
 export default function Graph({
   graphInstance,
   setGraphInstance,
@@ -230,8 +249,8 @@ export default function Graph({
       // Use the store handler if provided, otherwise fallback to WebSocket
       handleEdgesChange(changes)
       sendJsonMessage({
-        action: 'update:edges',
-        changes,
+        action: 'create:edge',
+        edge: stripXYEdgeInIds(changes),
       })
     },
     [handleEdgesChange, showEdges]
@@ -266,8 +285,8 @@ export default function Graph({
       setEdges(reconnectEdge(oldEdge, newConnection, edges))
       sendJsonMessage({
         action: 'update:edge',
-        oldEdge,
-        newConnection,
+        oldEdge: stripXYEdgeInIds(oldEdge),
+        newConnection: stripXYEdgeInIds(newConnection),
       })
     },
     [setEdges, reconnectEdge, edges, sendJsonMessage]
@@ -275,11 +294,11 @@ export default function Graph({
   const onReconnectEnd: ReactFlowProps['onReconnectEnd'] = useCallback(
     (_: MouseEvent | TouchEvent, edge: Edge) => {
       if (!edgeReconnectSuccessful.current) {
-        removeEdge(edge.id)
+        const id = edge.id
+        removeEdge(id)
         sendJsonMessage({
           action: 'delete:edge',
-          oldEdge,
-          newConnection,
+          edge: { id: stripXYEdge(id) },
         })
       }
       edgeReconnectSuccessful.current = true
