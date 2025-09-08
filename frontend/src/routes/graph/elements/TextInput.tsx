@@ -12,7 +12,6 @@ export function TextInput({
   data,
 }: NodeElementProps) {
   const [value, setValue] = useState(initValue)
-  console.log('id?', id)
   return (
     <>
       <div className='flex flex-col'>
@@ -23,19 +22,18 @@ export function TextInput({
           <input
             id={`${id}-${label}`}
             type='text'
-            onBlur={() => {
-              console.log('id-0---', id, label, value)
+            onBlur={() =>
               sendJsonMessage({
                 action: 'update:entity',
                 entity: {
                   id,
                   data: {
                     ...data,
-                    [label]: value,
+                    [toSnakeCase(label)]: value,
                   },
                 },
               })
-            }}
+            }
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               setValue(event.currentTarget.value)
             }

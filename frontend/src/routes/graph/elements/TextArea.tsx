@@ -39,8 +39,8 @@ export function TextArea({
               entity: {
                 id: id,
                 data: {
-                  [toSnakeCase(label)]: value,
                   ...data,
+                  [toSnakeCase(label)]: value,
                 },
               },
             })

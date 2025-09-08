@@ -32,7 +32,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
         <h2
           class={`break pointer-events-none absolute top-full -right-28 -left-28 mt-2.5 line-clamp-4 h-auto text-center text-xl leading-6 wrap-anywhere text-slate-400`}
         >
-          {value}
+          <pre class='font-sans'>{value}</pre>
         </h2>
       </div>
       <EntityHandles />

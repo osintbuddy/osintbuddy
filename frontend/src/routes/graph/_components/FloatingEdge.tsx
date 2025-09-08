@@ -33,7 +33,6 @@ function FloatingEdge({
   data,
   sendJsonMessage,
 }: FloatingEdgeProps) {
-  console.log('ddgeeata', data, id)
   if (showEdges) return null
   const { positionMode } = useFlowStore()
   const { updateEdge } = useReactFlow()
@@ -182,10 +181,7 @@ function FloatingEdge({
                 className={`nopan pointer-events-auto absolute -mt-8 items-end`}
               >
                 <button
-                  onClick={() => {
-                    console.log('TODO: setShowVertexPropsPanel(true)')
-                    setShowEdgePanel(false)
-                  }}
+                  onClick={() => setShowEdgePanel(false)}
                   class='bg-slate-925/10 hover:outline-primary/70 outline-mirage-950/70 focus:outline-mirage-500 ocus:text-danger-600 pointer-events-auto flex max-w-44 cursor-grab items-center justify-center rounded-xs bg-gradient-to-br from-black/10 to-black/15 p-1 leading-none overflow-ellipsis text-slate-600 outline backdrop-blur-xs ease-in placeholder:text-slate-800 hover:bg-slate-950/70 hover:text-blue-600/90 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-blue-600/80 focus:placeholder:text-slate-800'
                 >
                   <Icon

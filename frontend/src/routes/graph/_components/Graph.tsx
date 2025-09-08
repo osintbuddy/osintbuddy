@@ -194,7 +194,6 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
-        console.log('labelview entity', label)
         return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
       },
     }),
@@ -233,7 +232,6 @@ export default function Graph({
 
   const onEdgesChange = useCallback(
     (changes: any) => {
-      console.log('onEdgesChange', changes)
       // Use the store handler if provided, otherwise fallback to WebSocket
       handleRelationshipsChange(changes)
     },
@@ -265,12 +263,6 @@ export default function Graph({
         data: {},
       },
     })
-    console.log('onConnect', {
-      temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
-      source: connection.source,
-      target: connection.target,
-      data: {},
-    })
   }, [])
   // used for handling edge deletions. e.g. when a user
   // selects and drags  an existing connection line/edge
@@ -282,7 +274,6 @@ export default function Graph({
     }, [])
   const onReconnect: OnReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
-      console.log('onReconnect', oldEdge, newConnection)
       edgeReconnectSuccessful.current = true
       setRelationships(
         reconnectEdge(oldEdge, newConnection, edges, { shouldReplaceId: false })
@@ -304,7 +295,6 @@ export default function Graph({
     ) => {
       if (!edgeReconnectSuccessful.current) {
         removeRelationship(edge.id)
-        console.log('delete:edge: ', edge.id)
         sendJsonMessage({
           action: 'delete:edge',
           edge: { id: edge.id },
@@ -319,8 +309,6 @@ export default function Graph({
   // the connecting edges handle  will be either red, green, or the primary color
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
-
-  console.log('on render, edges:', edges)
   return (
     <ReactFlow
       ref={ref}
@@ -358,7 +346,7 @@ export default function Graph({
       connectionMode={ConnectionMode.Loose}
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
       defaultMarkerColor='#3b419eee'
-      onlyRenderVisibleElements={true}
+      onlyRenderVisibleElements={false}
     >
       <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
       <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>

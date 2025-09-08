@@ -155,11 +155,9 @@ export default function Graphing() {
     },
     update: (data) => {
       if (data?.entity) {
-        console.log('running update client', data.entity)
         updateEntity(data.entity.id, data.entity)
       }
       if (data.edge) {
-        console.log('updatingRelationship', data.edge)
         const { id, ...update } = data.edge
         updateRelationship(id, update)
       }
