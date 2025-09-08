@@ -329,9 +329,8 @@ interface Transforms {
   [any: string]: Transform[]
 }
 
-// TODO: type me better
+// TODO: type frfr ong
 interface Blueprint {
-  // TODO: type frfr
   [any: string]: {
     [any: string]: any
     value: string
@@ -343,7 +342,7 @@ interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
-  blueprints: Blueprint
+  blueprints: Blueprint[]
   currentEntity: Entity | null
   transforms: Transforms
   isLoading: boolean
@@ -367,7 +366,6 @@ interface EntitiesState {
   fetchTransforms: (label: string) => Promise<void>
   clearTransforms: () => Promise<void>
 }
-
 export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   entities: [],
   favorites: [],
@@ -557,75 +555,56 @@ export const useAppStore = create<SettingsState>()(
 
 export type PositionMode = 'manual' | 'force' | 'elk' | 'tree' | 'right tree'
 
-export interface GraphFlowState {
+export interface FlowState {
   nodes: Node[]
   edges: Edge[]
   positionMode: PositionMode
-  handleNodesChange: (changes: NodeChange[]) => void
-  handleEdgesChange: (changes: EdgeChange[]) => void
-  onConnect: (connection: Connection) => void
-  setNodes: (nodes: Node[]) => void
-  setEdges: (edges: Edge[]) => void
-  addNode: (node: Node) => void
-  addEdge: (edge: Edge) => void
-  removeEdge: (id: Edge['id']) => void
-  removeNode: (nodeId: string) => void
-  updateNode: (nodeId: string, updates: Partial<Node>) => void
+  handleEntityChange: (changes: NodeChange[]) => void
+  handleRelationshipsChange: (changes: EdgeChange[]) => void
+  onRelationshipConnect: (connection: Connection) => void
+  setEntities: (nodes: Node[]) => void
+  setRelationships: (edges: Edge[]) => void
+  addEntity: (node: Node) => void
+  addRelationship: (edge: Edge) => void
+  removeRelationship: (id: Edge['id']) => void
+  removeEntity: (nodeId: string) => void
+  updateEntity: (nodeId: string, updates: Partial<Node>) => void
   clearGraph: () => void
   setPositionMode: (mode: PositionMode) => void
-  enableEntityEdit: (nodeId: string) => void
-  disableEntityEdit: (nodeId: string) => void
-  updateEdge: (id: string, edgeUpdate: Partial<Edge>) => void
+  setEntityEdit: (nodeId: string) => void
+  setEntityType: (nodeId: string, type: string) => void
+  setEntityView: (nodeId: string) => void
+  updateRelationship: (id: string, edgeUpdate: Partial<Edge>) => void
+  removeTempRelationshipId: (fromId: string, toId: string) => void
 }
 
-// Initial empty state
+// Initial empty state for graph store
 const initialNodes: Node[] = []
 const initialEdges: Edge[] = []
+const markerEnd = {
+  type: MarkerType.ArrowClosed,
+  color: '#373c83',
+  width: 16,
+  height: 16,
+}
 
-// This is our useGraphFlowStore hook that we can use in our components to get parts of the store and call actions
-export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
+export const useFlowStore = create<FlowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   positionMode: 'manual',
   setPositionMode: (mode: PositionMode) => set({ positionMode: mode }),
-  handleNodesChange: (changes) => {
+  clearGraph: () => set({ nodes: [], edges: [] }),
+  // start (relationship/reactflow edge) logic
+  setRelationships: (edges) => set({ edges }),
+  addRelationship: (edge) => set({ edges: [...get().edges, edge] }),
+  removeTempRelationshipId: (fromId: string, toId: string) =>
     set({
-      nodes: applyNodeChanges(changes, get().nodes),
-    })
-  },
-
-  handleEdgesChange: (changes) => {
-    set({
-      edges: applyEdgeChanges(changes, get().edges),
-    })
-  },
-
-  onConnect: (connection) => {
-    set({
-      edges: addEdge(
-        {
-          ...connection,
-          type: 'sfloat',
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: '#373c83',
-            width: 16,
-            height: 16,
-          },
-        },
-        get().edges
+      // remap reactflow generated edge id -> authoritative UUID from server
+      edges: get().edges.map((e) =>
+        e.id === fromId ? { ...e, id: toId, type: 'sfloat', markerEnd } : e
       ),
-    })
-  },
-
-  setNodes: (nodes) => {
-    set({ nodes })
-  },
-
-  setEdges: (edges) => {
-    set({ edges })
-  },
-  updateEdge: (id, update) => {
+    }),
+  updateRelationship: (id, update) =>
     set({
       edges: get().edges.map((edge) => {
         if (edge.id === id) {
@@ -636,59 +615,57 @@ export const useGraphFlowStore = create<GraphFlowState>((set, get) => ({
         }
         return edge
       }),
-    })
-  },
-  addNode: (node) => {
+    }),
+  removeRelationship: (id) =>
+    set({ edges: get().edges.filter((e) => e.id !== id) }),
+  handleRelationshipsChange: (changes) =>
+    set({ edges: applyEdgeChanges(changes, get().edges) }),
+  onRelationshipConnect: (connection) =>
     set({
-      nodes: [...get().nodes, node],
-    })
-  },
-
-  addEdge: (edge) => {
+      edges: addEdge(
+        {
+          ...connection,
+          type: 'sfloat',
+          markerEnd,
+        },
+        get().edges
+      ),
+    }),
+  // start (entity/reactflow node) logic
+  setEntities: (nodes) => set({ nodes }),
+  addEntity: (node) => set({ nodes: [...get().nodes, node] }),
+  updateEntity: (nodeId, updates) =>
     set({
-      edges: [...get().edges, edge],
-    })
-  },
-  removeEdge: (id) => {
-    set({ edges: get().edges.filter((e) => e.id !== id) })
-  },
-  removeNode: (nodeId) => {
+      nodes: get().nodes.map((node) =>
+        node.id === nodeId ? { ...node, ...updates } : node
+      ),
+    }),
+  removeEntity: (nodeId) =>
     set({
       nodes: get().nodes.filter((node) => node.id !== nodeId),
       edges: get().edges.filter(
         (edge) => edge.source !== nodeId && edge.target !== nodeId
       ),
-    })
-  },
-
-  updateNode: (nodeId, updates) => {
+    }),
+  handleEntityChange: (changes) =>
+    set({ nodes: applyNodeChanges(changes, get().nodes) }),
+  // node display type logic (https://reactflow.dev/examples/nodes/custom-node)
+  setEntityType: (nodeId, type = 'view') =>
     set({
       nodes: get().nodes.map((node) =>
-        node.id === nodeId ? { ...node, ...updates } : node
+        node.id === nodeId ? { ...node, type } : node
       ),
-    })
-  },
-
-  clearGraph: () => {
-    set({
-      nodes: [],
-      edges: [],
-    })
-  },
-
-  enableEntityEdit: (nodeId) => {
+    }),
+  setEntityEdit: (nodeId) =>
     set({
       nodes: get().nodes.map((node) =>
         node.id === nodeId ? { ...node, type: 'edit' } : node
       ),
-    })
-  },
-
-  disableEntityEdit: (nodeId) => {
+    }),
+  setEntityView: (nodeId) =>
     set({
       nodes: get().nodes.map((node) =>
         node.id === nodeId ? { ...node, type: 'view' } : node
       ),
-    })
-  },
+    }),
 }))

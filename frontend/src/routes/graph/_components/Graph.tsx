@@ -18,6 +18,9 @@ import {
   ReactFlowProps,
   OnReconnect,
   XYPosition,
+  OnConnectEnd,
+  OnConnect,
+  addEdge,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -25,7 +28,7 @@ import { ViewEntityNode } from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import FloatingEdge from './FloatingEdge'
-import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import OverlayMenus from './OverlayMenus'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -72,25 +75,6 @@ const viewOptions: FitViewOptions = {
   padding: 50,
 }
 
-// Remove the React Flow auto prefix from an ID string.
-export function stripXYEdge(id: string) {
-  return id.replace('xy-edge__', '')
-}
-
-// Deep copy + sanitize: fixes all object fields named "id".
-export function stripXYEdgeInIds(payload: any): any {
-  if (Array.isArray(payload)) return payload.map(stripXYEdgeInIds)
-  if (payload && typeof payload === 'object') {
-    const out = {}
-    for (const [k, v] of Object.entries(payload)) {
-      if (k === 'id' && typeof v === 'string') out[k] = stripXYEdge(v)
-      else out[k] = stripXYEdgeInIds(v)
-    }
-    return out
-  }
-  return payload
-}
-
 export default function Graph({
   graphInstance,
   setGraphInstance,
@@ -102,18 +86,18 @@ export default function Graph({
   blueprints,
 }: ProjectGraphProps) {
   const {
-    enableEntityEdit,
-    disableEntityEdit,
-    removeEdge,
-    setEdges,
-    onConnect,
-    handleEdgesChange,
-    handleNodesChange,
+    setEntityEdit: enableEntityEdit,
+    setEntityView: disableEntityEdit,
+    removeRelationship: removeEdge,
+    setRelationships: setEdges,
+    onRelationshipConnect: onConnect,
+    handleRelationshipsChange: handleEdgesChange,
+    handleEntityChange: handleNodesChange,
     positionMode,
     clearGraph,
     nodes,
     edges,
-  } = useGraphFlowStore()
+  } = useFlowStore()
 
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
@@ -244,17 +228,43 @@ export default function Graph({
     [sendJsonMessage]
   )
 
-  const onEdgeChange = useCallback(
+  const onEdgesChange = useCallback(
     (changes: any) => {
       // Use the store handler if provided, otherwise fallback to WebSocket
       handleEdgesChange(changes)
-      sendJsonMessage({
-        action: 'create:edge',
-        edge: stripXYEdgeInIds(changes),
-      })
     },
     [handleEdgesChange, showEdges]
   )
+
+  const handleOnConnect: OnConnect = useCallback((connection) => {
+    onConnect(connection)
+    console.log('handling on COnnect', connection)
+  }, [])
+
+  const handleConnectEnd: OnConnectEnd = useCallback((event, connection) => {
+    console.log('connect endP: ', connection.isValid, {
+      action: 'create:edge',
+      edge: {
+        temp_id: `xy-edge__${connection.fromNode?.id}${connection.fromHandle?.id}-${connection.toNode?.id}${connection.toHandle?.id}`,
+        source: connection.fromNode?.id,
+        target: connection.toNode?.id,
+        data: {},
+      },
+    })
+    if (connection.isValid) {
+      const from = connection.fromNode?.id
+      const to = connection.toNode?.id
+      sendJsonMessage({
+        action: 'create:edge',
+        edge: {
+          temp_id: `xy-edge__${from}${connection.fromHandle?.id}-${to}${connection.toHandle?.id}`,
+          source: from,
+          target: to,
+          data: {},
+        },
+      })
+    }
+  }, [])
 
   // on double click toggle between entity types
   // (rectangular editable entity vs circlular view entity)
@@ -285,8 +295,8 @@ export default function Graph({
       setEdges(reconnectEdge(oldEdge, newConnection, edges))
       sendJsonMessage({
         action: 'update:edge',
-        oldEdge: stripXYEdgeInIds(oldEdge),
-        newConnection: stripXYEdgeInIds(newConnection),
+        oldEdge,
+        newConnection,
       })
     },
     [setEdges, reconnectEdge, edges, sendJsonMessage]
@@ -298,7 +308,7 @@ export default function Graph({
         removeEdge(id)
         sendJsonMessage({
           action: 'delete:edge',
-          edge: { id: stripXYEdge(id) },
+          edge: { id },
         })
       }
       edgeReconnectSuccessful.current = true
@@ -326,8 +336,9 @@ export default function Graph({
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
-      onConnect={onConnect}
-      onEdgesChange={onEdgeChange}
+      onConnect={handleOnConnect}
+      onConnectEnd={handleConnectEnd}
+      onEdgesChange={onEdgesChange}
       onDragOver={onDragOver}
       isValidConnection={isValidConnection}
       onReconnectStart={onReconnectStart}

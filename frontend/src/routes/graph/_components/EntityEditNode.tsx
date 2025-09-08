@@ -16,7 +16,7 @@ import { FixedSizeList as List } from 'react-window'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
 import Element from './Element'
-import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useFlowStore } from '@/app/store'
 import { toSnakeCase } from '../utils'
 const handleStyle = {
   borderColor: '#1C233B',

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
-import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
+import { Edge, FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
 import { useParams, useLocation, useBlocker } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -12,7 +12,7 @@ import { useTour } from '@reactour/tour'
 import {
   useGraphStore,
   useAuthStore,
-  useGraphFlowStore,
+  useFlowStore,
   useEntitiesStore,
 } from '@/app/store'
 import '@xyflow/react/dist/style.css'
@@ -54,15 +54,16 @@ export default function Graphing() {
   const {
     nodes,
     edges,
-    setNodes,
-    setEdges,
-    addNode,
-    updateNode,
-    addEdge,
+    setEntities: setNodes,
+    setRelationships: setEdges,
+    addEntity: addNode,
+    updateEntity: updateNode,
+    addRelationship: addEdge,
     clearGraph,
     setPositionMode,
     positionMode,
-  } = useGraphFlowStore()
+    removeTempRelationshipId,
+  } = useFlowStore()
   const { clearTransforms } = useEntitiesStore()
   // handle initial graph loading
   useEffect(() => {
@@ -125,6 +126,13 @@ export default function Graphing() {
     },
     [graphInstance]
   )
+  const handleNotification = (data: any) => {
+    const notification = data.notification
+    if (notification) {
+      const { message, ...notificationProps } = notification
+      toast.success(notification.message, notificationProps)
+    }
+  }
 
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
@@ -142,22 +150,19 @@ export default function Graphing() {
       toast.dismiss('graph')
       fitView()
     },
-    remove: () => {},
+    remove: (data) => {
+      handleNotification(data)
+    },
     update: (data) => {
       console.log('running update client', data.entity)
       updateNode(data.entity.id, data.entity)
+      handleNotification(data)
     },
     created: (data) => {
-      addNode({ ...data.entity, type: 'edit' })
-      if (data.edge) {
-        addEdge(data.edge)
-      } else {
-      }
-      const notification = data.notification
-      if (notification) {
-        const { message, ...notificationProps } = notification
-        toast.success(notification.message, notificationProps)
-      }
+      const { entity, edge: { temp_id, id } = {} } = data
+      if (entity) addNode({ ...entity, type: 'edit' })
+      if (temp_id && id) removeTempRelationshipId(temp_id, id)
+      handleNotification(data)
     },
     loading: (data) => {
       const { toastId, type, isLoading, autoClose, ...notification } =

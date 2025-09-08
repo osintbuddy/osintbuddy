@@ -8,7 +8,7 @@ import {
   useReactFlow,
 } from '@xyflow/react'
 import { Icon } from '@/components/icons'
-import { useGraphFlowStore } from '@/app/store'
+import { useFlowStore } from '@/app/store'
 import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
 const EMPTY_LABEL_SIZE = 10
@@ -29,7 +29,7 @@ function FloatingEdge({
   showEdges = false,
 }: EdgeProps) {
   if (showEdges) return null
-  const { positionMode } = useGraphFlowStore()
+  const { positionMode } = useFlowStore()
   const { updateEdge } = useReactFlow()
 
   const [showEdgePanel, setShowEdgePanel] = useState(false)

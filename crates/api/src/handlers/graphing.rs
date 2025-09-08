@@ -71,50 +71,6 @@ pub struct GraphEdge {
     pub edge_type: String,
 }
 
-fn normalize_edge_create(
-    event: &serde_json::Value,
-) -> Option<(String, String, serde_json::Value, String)> {
-    // returns (source, target, props_json, ui_edge_id)
-    // Shape A: { entity: { id, source, target, ... } }  (legacy)
-    if let Some(obj) = event.get("entity").and_then(|v| v.as_object()) {
-        let src = obj.get("source")?.as_str()?.to_string();
-        let dst = obj.get("target")?.as_str()?.to_string();
-        let mut props = obj.clone();
-        props.remove("id");
-        props.remove("source");
-        props.remove("target");
-        let ui_id = obj
-            .get("id")
-            .and_then(|v| v.as_str())
-            .unwrap_or_default()
-            .to_string();
-        return Some((src, dst, serde_json::Value::Object(props), ui_id));
-    }
-    // Shape B: edgesChange array: { edge: [ { type: "replace"|"add", item: { id, source, target, ... } } ] }
-    if let Some(arr) = event.get("edge").and_then(|v| v.as_array()) {
-        // prefer last replace/add with item
-        for ch in arr.iter().rev() {
-            if let (Some("replace") | Some("add"), Some(item)) =
-                (ch.get("type").and_then(|v| v.as_str()), ch.get("item"))
-            {
-                let src = item.get("source")?.as_str()?.to_string();
-                let dst = item.get("target")?.as_str()?.to_string();
-                let ui_id = item
-                    .get("id")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or_default()
-                    .to_string();
-                let mut m = item.as_object()?.clone();
-                m.remove("id");
-                m.remove("source");
-                m.remove("target");
-                return Some((src, dst, serde_json::Value::Object(m), ui_id));
-            }
-        }
-    }
-    None
-}
-
 // Used by client to map plugin transform results to entity layouts (elements)
 pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError> {
     let output = Command::new("ob")
@@ -300,27 +256,31 @@ pub async fn handle_create_edge(
         let _ = session.text(message).await;
         return;
     };
-    let (source, target, props, ui_edge_id) = match normalize_edge_create(&edge) {
-        Some(t) => t,
+    let (source, target, data, temp_id) = match &edge.as_object() {
+        Some(t) => {
+            let (Some(src), Some(dst), Some(data), Some(temp_id)) = (
+                t.get("source"),
+                t.get("target"),
+                t.get("data"),
+                t.get("temp_id"),
+            ) else {
+                return;
+            };
+            (src, dst, data, temp_id)
+        }
         None => {
-            // try legacy straight-through (your existing branch)
-            // ... (omit for brevity) ...
             let _ = session.text(json!({"action":"error","notification":{"autoClose":8000,"message":"Invalid create:edge payload"}}).to_string()).await;
             return;
         }
     };
 
-    // TODO: Remove markerEnd
-    // let props = props.remove("markerEnd")
-
+    let edge_id = Uuid::new_v4();
     // Build domain event payload
     let payload = json!({
-        "id": ui_edge_id,
+        "id": edge_id,
         "source": source,
         "target": target,
-        // TODO: Extract label from properties and store as label here
-        // "label"
-        "data": props,
+        "data": data,
     });
 
     // Append to event store on the graph stream
@@ -342,12 +302,18 @@ pub async fn handle_create_edge(
 
     // Return the created edge document for immediate UI usage
     let message = json!({
-        "action": "created".to_string(),
+        "action": "created",
         "notification": {
             "shouldClose": true,
             "message": "Edge created successfully!",
         },
-        "edge": payload
+        "edge": {
+            "id": edge_id,
+            "source": source,
+            "target": target,
+            "data": data,
+            "temp_id": temp_id
+        }
     });
     let _ = session.text(message.to_string()).await;
 }
@@ -768,6 +734,13 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
                     "source": r.src_id,
                     "target": r.dst_id,
                     "data": r.props,
+                    "type": "sfloat",
+                    "markerEnd": {
+                        "type": "arrowclosed",
+                        "color": "#373c83",
+                        "width": 16,
+                        "height": 16,
+                    }
                 });
                 // surface "type" to top-level if present (React Flow convenience)
                 if let Some(t) = r.props.get("type").and_then(|v| v.as_str()) {

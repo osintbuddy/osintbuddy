@@ -2,7 +2,7 @@ import { useState, useMemo } from 'preact/hooks'
 import { Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { PositionMode, useEntitiesStore, useFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
 import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
@@ -116,7 +116,7 @@ export default function OverlayMenus({
     isBounded: true,
   })
 
-  const { setPositionMode } = useGraphFlowStore()
+  const { setPositionMode } = useFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
 

@@ -1,7 +1,7 @@
 import { Icon } from '@/components/icons'
 import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import Input from '@/components/inputs'
-import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useFlowStore } from '@/app/store'
 import { CtxPosition } from '..'
 import { toast } from 'react-toastify'
 
@@ -20,7 +20,7 @@ export default function ContextMenu({
 }: ContextMenuProps) {
   const { transforms, fetchTransforms, isLoadingTransforms } =
     useEntitiesStore()
-  const { removeNode } = useGraphFlowStore()
+  const { removeEntity: removeNode } = useFlowStore()
   const [query, setQuery] = useState('')
 
   const handleCtxMenuIdClick = useCallback(() => {
