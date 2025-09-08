@@ -207,6 +207,7 @@ export default function Graph({
           {...edge}
           showEdges={showEdges}
           setShowEdges={setShowEdges}
+          sendJsonMessage={sendJsonMessage}
         />
       ),
     }),

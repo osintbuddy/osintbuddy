@@ -17,23 +17,29 @@ interface EdgeProps extends Edge {
   setShowEdges: (set: boolean) => void
   showEdges: boolean
 }
+interface FloatingEdgeProps extends EdgeProps {
+  sendJsonMessage: (data: any) => void
+}
+
 function FloatingEdge({
   id,
   source,
   target,
   markerEnd,
   style,
-  label,
   sourceHandle,
   targetHandle,
   showEdges = false,
-}: EdgeProps) {
+  data,
+  sendJsonMessage,
+}: FloatingEdgeProps) {
+  console.log('ddgeeata', data, id)
   if (showEdges) return null
   const { positionMode } = useFlowStore()
   const { updateEdge } = useReactFlow()
 
   const [showEdgePanel, setShowEdgePanel] = useState(false)
-  const [edgeLabel, setEdgeLabel] = useState((label as string) ?? '')
+  const [edgeLabel, setEdgeLabel] = useState((data?.label ?? '') as string)
   const edgeInputSize =
     edgeLabel.length <= MAX_LABEL_SIZE
       ? edgeLabel.length === 0
@@ -150,10 +156,19 @@ function FloatingEdge({
             </button>
             <input
               tabIndex={-1}
-              value={edgeLabel.replace('_', ' ')}
-              onBlur={(event) =>
-                updateEdge(id, { label: event.currentTarget.value })
-              }
+              value={edgeLabel}
+              onBlur={(event) => {
+                updateEdge(id, { data: { label: event.currentTarget.value } })
+                sendJsonMessage({
+                  action: 'update:edge',
+                  edge: {
+                    id,
+                    source,
+                    target,
+                    data: { label: event.currentTarget.value, ...data },
+                  },
+                })
+              }}
               onChange={(event) => setEdgeLabel(event.currentTarget.value)}
               onFocus={() => setShowEdgePanel(true)}
               onMouseDown={(event) => !event.shiftKey && setShowEdgePanel(true)}
