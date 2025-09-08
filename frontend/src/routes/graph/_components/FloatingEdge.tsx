@@ -12,7 +12,7 @@ import { useFlowStore } from '@/app/store'
 import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
 const EMPTY_LABEL_SIZE = 10
-const MAX_LABEL_SIZE = 30
+const MAX_LABEL_SIZE = 26
 interface EdgeProps extends Edge {
   setShowEdges: (set: boolean) => void
   showEdges: boolean
@@ -44,7 +44,7 @@ function FloatingEdge({
       ? edgeLabel.length === 0
         ? EMPTY_LABEL_SIZE
         : edgeLabel.length + 2
-          ? edgeLabel.length + 7
+          ? edgeLabel.length + 0
           : 10
       : MAX_LABEL_SIZE
   const sourceNode = useStore(

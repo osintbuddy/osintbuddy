@@ -197,7 +197,7 @@ export default function Graph({
         return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
       },
     }),
-    [sendJsonMessage, Object.keys(blueprints).length !== 0]
+    [blueprints]
   )
   const [showEdges, setShowEdges] = useState(false)
   const edgeTypes = useMemo(
@@ -240,18 +240,19 @@ export default function Graph({
 
   // on double click toggle between entity types
   // (rectangular editable entity vs circlular view entity)
-  const onNodeClick: NodeMouseHandler = (
-    _: TouchEvent | MouseEvent,
-    node: Node
-  ) => {
-    const newDelta = new Date().getTime()
-    setClickDelta(newDelta)
-    // if double click, toggle entity/node type
-    if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
-      if (node.type === 'view') setEntityEdit(node.id)
-      else setEntityView(node.id)
-    }
-  }
+  const onNodeClick: NodeMouseHandler = useCallback(
+    (_: TouchEvent | MouseEvent, node: Node) => {
+      const newDelta = new Date().getTime()
+      setClickDelta(newDelta)
+      // if double click, toggle entity/node type
+      if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
+        if (node.type === 'view') setEntityEdit(node.id)
+        else setEntityView(node.id)
+      }
+    },
+    [clickDelta, setEntityEdit, setEntityView]
+  )
+
   const onConnect: OnConnect = useCallback((connection) => {
     onRelationshipConnect(connection)
     sendJsonMessage({
@@ -307,8 +308,16 @@ export default function Graph({
 
   // depending on where the valid entity connection handle is positioned
   // the connecting edges handle  will be either red, green, or the primary color
-  const isValidConnection: IsValidConnection = (connection) =>
-    connection.target !== connection.source
+  const isValidConnection: IsValidConnection = useCallback(
+    (connection) => connection.target !== connection.source,
+    []
+  )
+
+  const onPaneCtxMenu = useCallback(
+    (event) => onNodeContextMenu(event, null),
+    [onNodeContextMenu]
+  )
+
   return (
     <ReactFlow
       ref={ref}
@@ -338,7 +347,7 @@ export default function Graph({
       onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
-      onPaneContextMenu={(event) => onNodeContextMenu(event, null)}
+      onPaneContextMenu={onPaneCtxMenu}
       onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}

@@ -213,7 +213,7 @@ export default function Graphing() {
   // TODO: Also implement d3-hierarchy, entitree-flex, dagre, webcola, and graphology layout modes
   //       Once implemented measure performance and deprecate whatever performs worse
   // tree layouts toggle found in top right
-  const elk = new ELK()
+  const elk = useMemo(() => new ELK(), [])
   const useElkLayoutElements = () => {
     const defaultOptions = {
       'elk.algorithm': 'layered',
