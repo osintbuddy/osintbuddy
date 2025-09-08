@@ -276,6 +276,11 @@ export default function Graph({
     (_: MouseEvent | TouchEvent, edge: Edge) => {
       if (!edgeReconnectSuccessful.current) {
         removeEdge(edge.id)
+        sendJsonMessage({
+          action: 'delete:edge',
+          oldEdge,
+          newConnection,
+        })
       }
       edgeReconnectSuccessful.current = true
     },

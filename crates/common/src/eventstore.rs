@@ -23,7 +23,6 @@ pub struct EventRecord {
     pub recorded_at: DateTime<Utc>,
     pub causation_id: Option<Uuid>,
     pub correlation_id: Option<Uuid>,
-    pub idempotency_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,7 +33,6 @@ pub struct AppendEvent {
     pub payload: JsonValue,
     pub valid_from: DateTime<Utc>,
     pub valid_to: Option<DateTime<Utc>>,
-    pub idempotency_key: Option<String>,
     pub correlation_id: Option<Uuid>,
     pub causation_id: Option<Uuid>,
     pub expected_version: Option<i32>,
@@ -49,7 +47,8 @@ pub async fn ensure_stream(
         r#"
         INSERT INTO event_streams(stream_id, category, key)
         VALUES (uuid_generate_v4(), $1, $2)
-        ON CONFLICT(category, key) DO UPDATE SET category = excluded.category
+        ON CONFLICT (category, key)
+        DO UPDATE SET category = excluded.category
         RETURNING stream_id, category, key, created_at
         "#,
         category,
@@ -66,6 +65,24 @@ pub async fn ensure_stream(
     })
 }
 
+pub async fn current_version(pool: &PgPool, category: &str, key: &str) -> Result<i32, sqlx::Error> {
+    let rec = sqlx::query!(
+        r#"
+        WITH s AS (
+          SELECT stream_id FROM event_streams WHERE category = $1 AND key = $2
+        )
+        SELECT COALESCE(MAX(e.version), 0) AS cur
+        FROM events e
+        JOIN s ON e.stream_id = s.stream_id
+        "#,
+        category,
+        key
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(rec.cur.unwrap_or(0))
+}
+
 pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord, sqlx::Error> {
     let mut tx = pool.begin().await?;
 
@@ -73,11 +90,14 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
 
     // Determine next version and optimistic check
     let cur = sqlx::query!(
-        r#"SELECT max(version) AS max FROM events WHERE stream_id = $1"#,
+        r#"
+        SELECT COALESCE(MAX(version), 0) AS max
+        FROM events WHERE stream_id = $1"#,
         stream.stream_id
     )
     .fetch_one(&mut *tx)
     .await?;
+
     let next_version = match cur.max {
         Some(v) => v + 1,
         None => 1,
@@ -93,12 +113,13 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
 
     let rec = sqlx::query!(
         r#"
-        INSERT INTO events(
-            stream_id, version, event_type, payload, valid_from, valid_to,
-            causation_id, correlation_id, idempotency_key
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-        RETURNING seq, stream_id, version, event_type, payload, valid_from, valid_to,
-                  recorded_at, causation_id, correlation_id, idempotency_key
+        INSERT INTO events (
+            stream_id, version, event_type, payload,
+            valid_from, valid_to, recorded_at,
+            causation_id, correlation_id
+        ) VALUES ($1,$2,$3,$4,$5,$6, now(), $7, $8)
+        RETURNING seq, stream_id, version, event_type, payload,
+        valid_from, valid_to, recorded_at, causation_id, correlation_id
         "#,
         stream.stream_id,
         next_version,
@@ -108,7 +129,6 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         ev.valid_to,
         ev.causation_id,
         ev.correlation_id,
-        ev.idempotency_key
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -126,7 +146,6 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         recorded_at: rec.recorded_at,
         causation_id: rec.causation_id,
         correlation_id: rec.correlation_id,
-        idempotency_key: rec.idempotency_key,
     })
 }
 
@@ -138,7 +157,7 @@ pub async fn events_after(
     let rows = sqlx::query!(
         r#"
         SELECT seq, stream_id, version, event_type, payload, valid_from, valid_to,
-               recorded_at, causation_id, correlation_id, idempotency_key
+               recorded_at, causation_id, correlation_id
         FROM events
         WHERE seq > $1
         ORDER BY seq ASC
@@ -163,7 +182,6 @@ pub async fn events_after(
             recorded_at: rec.recorded_at,
             causation_id: rec.causation_id,
             correlation_id: rec.correlation_id,
-            idempotency_key: rec.idempotency_key,
         })
         .collect())
 }

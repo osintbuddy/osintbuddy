@@ -23,10 +23,12 @@ CREATE TABLE IF NOT EXISTS events (
   recorded_at       TIMESTAMPTZ NOT NULL DEFAULT now(), -- system time (tx-time)
   causation_id      UUID,                    -- event that caused this (optional)
   correlation_id    UUID,                    -- request/task correlation
-  idempotency_key   TEXT,                    -- dedupe external retries
-  UNIQUE (stream_id, version),
-  UNIQUE (idempotency_key)
+  UNIQUE (stream_id, version)
 );
+
+-- Handy index when reading current version per stream
+CREATE INDEX IF NOT EXISTS events_stream_id_version_idx
+  ON events (stream_id, version DESC);
 
 
 -- Projection checkpoints (high-water marks)
@@ -50,7 +52,6 @@ END$$;
 -- worker jobs (sent to firecracker microVMs)
 CREATE TABLE IF NOT EXISTS jobs (
   job_id         UUID PRIMARY KEY,
-  kind           TEXT NOT NULL,             -- e.g., 'http_scrape', 'yara_scan'
   payload        JSONB NOT NULL,
   status         job_status NOT NULL DEFAULT 'enqueued',
   priority       int NOT NULL DEFAULT 100,  -- lower = higher prio
@@ -62,9 +63,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   scheduled_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   started_at     TIMESTAMPTZ,
   finished_at    TIMESTAMPTZ,
-  backoff_until  TIMESTAMPTZ,
-  idempotency_key TEXT,
-  UNIQUE (idempotency_key)
+  backoff_until  TIMESTAMPTZ
 );
 
 -- For structured outputs/binaries
@@ -147,37 +146,42 @@ CREATE TABLE IF NOT EXISTS cases (
 );
 CREATE INDEX cases_org_id_idx ON cases (org_id);
 
--- Current entity state (document-y, Marten-style)
+-- Current entity state
 CREATE TABLE IF NOT EXISTS entities_current (
-  entity_id   UUID PRIMARY KEY,
-  label       TEXT,
-  graph_id    UUID NOT NULL,
-  FOREIGN KEY (graph_id) REFERENCES cases(uuid),
-  doc         JSONB NOT NULL,             -- denormalized snapshot for reads
-  valid_from  TIMESTAMPTZ NOT NULL,
-  valid_to    TIMESTAMPTZ,                -- null => open-ended
-  sys_from    TIMESTAMPTZ NOT NULL,       -- when projector wrote it
-  sys_to      TIMESTAMPTZ                 -- superseded by projector
+  PRIMARY KEY             (graph_id, entity_id),
+  entity_id               UUID,
+  graph_id                UUID NOT NULL,
+  FOREIGN KEY             (graph_id) REFERENCES cases(uuid),
+  doc                     JSONB NOT NULL,             -- denormalized snapshot for reads
+  valid_from              TIMESTAMPTZ NOT NULL,
+  valid_to                TIMESTAMPTZ,                -- null => open-ended
+  sys_from                TIMESTAMPTZ NOT NULL,       -- when projector wrote it
+  sys_to                  TIMESTAMPTZ                 -- superseded by projector
 );
 
--- Edge materialization (graph-ish)
+-- Edge materialization
 CREATE TABLE IF NOT EXISTS edges_current (
   edge_id     UUID PRIMARY KEY,
   src_id      UUID NOT NULL,
   dst_id      UUID NOT NULL,
   graph_id    UUID NOT NULL,
   FOREIGN KEY (graph_id) REFERENCES cases(uuid),
-  -- TODO: rename kind to label in sql and ws
-  kind        TEXT NOT NULL,
   props       JSONB NOT NULL DEFAULT '{}'::jsonb,
   valid_from  TIMESTAMPTZ NOT NULL,
   valid_to    TIMESTAMPTZ,
   sys_from    TIMESTAMPTZ NOT NULL,
   sys_to      TIMESTAMPTZ
 );
+-- Fast path for materialized reads and deletions
+CREATE INDEX IF NOT EXISTS entities_current_graph_open_idx ON entities_current (graph_id) WHERE sys_to IS NULL;
+CREATE INDEX IF NOT EXISTS edges_current_graph_open_idx    ON edges_current    (graph_id) WHERE sys_to IS NULL;
+CREATE INDEX IF NOT EXISTS edges_current_src_open_idx      ON edges_current    (src_id)   WHERE sys_to IS NULL;
+CREATE INDEX IF NOT EXISTS edges_current_dst_open_idx      ON edges_current    (dst_id)   WHERE sys_to IS NULL;
+-- Optional: property lookups
+CREATE INDEX IF NOT EXISTS edges_current_props_gin_idx     ON edges_current USING gin (props jsonb_path_ops);
 
 CREATE INDEX entities_current_doc_gin_idx ON entities_current USING gin (doc jsonb_path_ops);
-CREATE INDEX ON edges_current(kind, src_id, dst_id);
+CREATE INDEX IF NOT EXISTS edges_current_src_dst_open_idx ON edges_current(src_id, dst_id);
 
 CREATE TABLE IF NOT EXISTS favorite_cases (
     case_id BIGSERIAL NOT NULL,

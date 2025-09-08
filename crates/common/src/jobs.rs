@@ -6,7 +6,6 @@ use sqlx::{PgPool, Row, types::Uuid};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Job {
     pub job_id: Uuid,
-    pub kind: String,
     pub payload: JsonValue,
     pub status: String,
     pub priority: i32,
@@ -19,40 +18,34 @@ pub struct Job {
     pub started_at: Option<DateTime<Utc>>,
     pub finished_at: Option<DateTime<Utc>>,
     pub backoff_until: Option<DateTime<Utc>>,
-    pub idempotency_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewJob {
-    pub kind: String,
     pub payload: JsonValue,
     pub priority: Option<i32>,
     pub max_attempts: Option<i32>,
     pub scheduled_at: Option<DateTime<Utc>>,
-    pub idempotency_key: Option<String>,
 }
 
 pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
     let rec = sqlx::query!(
         r#"
-        INSERT INTO jobs (job_id, kind, payload, status, priority, max_attempts, scheduled_at, idempotency_key)
-        VALUES (uuid_generate_v4(), $1, $2, 'enqueued'::job_status, coalesce($3, 100), coalesce($4, 3), coalesce($5, now()), $6)
-        RETURNING job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
-                  created_at, scheduled_at, started_at, finished_at, backoff_until, idempotency_key
+        INSERT INTO jobs (job_id, payload, status, priority, max_attempts, scheduled_at)
+        VALUES (uuid_generate_v4(), $1, 'enqueued'::job_status, coalesce($2, 100), coalesce($3, 3), coalesce($4, now()))
+        RETURNING job_id, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+                  created_at, scheduled_at, started_at, finished_at, backoff_until
         "#,
-        j.kind,
         j.payload,
         j.priority,
         j.max_attempts,
         j.scheduled_at,
-        j.idempotency_key
     )
     .fetch_one(pool)
     .await?;
 
     Ok(Job {
         job_id: rec.job_id,
-        kind: rec.kind,
         payload: rec.payload,
         status: rec.status,
         priority: rec.priority,
@@ -65,7 +58,6 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
         started_at: rec.started_at,
         finished_at: rec.finished_at,
         backoff_until: rec.backoff_until,
-        idempotency_key: rec.idempotency_key,
     })
 }
 
@@ -92,7 +84,7 @@ pub async fn lease_jobs(
             FOR UPDATE SKIP LOCKED
         )
         RETURNING job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
-                  created_at, scheduled_at, started_at, finished_at, backoff_until, idempotency_key
+                  created_at, scheduled_at, started_at, finished_at, backoff_until
         "#,
     )
     .bind(max)
@@ -105,7 +97,6 @@ pub async fn lease_jobs(
         .into_iter()
         .map(|row| Job {
             job_id: row.get("job_id"),
-            kind: row.get::<String, _>("kind"),
             payload: row.get("payload"),
             status: row.get::<String, _>("status"),
             priority: row.get("priority"),
@@ -118,7 +109,6 @@ pub async fn lease_jobs(
             started_at: row.get("started_at"),
             finished_at: row.get("finished_at"),
             backoff_until: row.get("backoff_until"),
-            idempotency_key: row.get("idempotency_key"),
         })
         .collect())
 }

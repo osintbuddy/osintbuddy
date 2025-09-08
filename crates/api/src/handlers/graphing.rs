@@ -145,9 +145,6 @@ pub async fn handle_create_entity(
         let _ = session.text(message).await;
         return;
     };
-    info!("Payload for create:entity: {entity}");
-
-    // Pop entity label
     let Some(label) = entity.as_object_mut().and_then(|e| e.remove("label")) else {
         let message = json!({
            "action": "error",
@@ -172,9 +169,8 @@ pub async fn handle_create_entity(
         let _ = session.text(message).await;
         return;
     };
-    // END event validation and error messages
+    // end validation
 
-    info!("entity after pop {entity}");
     // Extract position and remaining properties from payload
     let (x, y, mut properties) = match entity {
         Value::Object(mut obj) => {
@@ -189,7 +185,6 @@ pub async fn handle_create_entity(
         props_obj.insert("label".to_string(), json!(to_snake_case(label)));
     }
 
-    // Create a new entity id to track within the graph
     let entity_id = Uuid::new_v4();
 
     // Build domain event payload
@@ -207,7 +202,6 @@ pub async fn handle_create_entity(
         payload: payload.clone(),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -228,10 +222,10 @@ pub async fn handle_create_entity(
         let _ = session.text(message).await;
         return;
     };
-    // insert type which is used only in reactflow, no need to store this inside db
+    // insert type which is used only in reactflow, don't store this
     entity.insert("type".to_string(), json!("view"));
 
-    // Return the created entity document for immediate UI usage
+    // Return for immediate UI usage
     let message = json!({
         "action": "created".to_string(),
         "notification": {
@@ -249,7 +243,7 @@ pub async fn handle_create_edge(
     event: WebSocketMessage,
     session: &mut Session,
 ) {
-    let Some(mut edge) = event.entity else {
+    let Some(edge) = event.entity else {
         let message = json!({
             "action": "error",
             "notification": {
@@ -262,8 +256,8 @@ pub async fn handle_create_edge(
         return;
     };
 
-    // Extract source, target, and kind; treat remaining fields as properties
-    let (source, target, kind, properties) = match edge {
+    // Extract source, target; treat remaining fields as properties
+    let (source, target, properties) = match edge {
         Value::Object(mut obj) => {
             let source = obj
                 .remove("source")
@@ -271,26 +265,9 @@ pub async fn handle_create_edge(
             let target = obj
                 .remove("target")
                 .and_then(|v| v.as_str().map(|s| s.to_string()));
-            // Support a few possible field names for edge kind/type
-            let kind = obj
-                .remove("kind")
-                .and_then(|v| v.as_str().map(|s| s.to_string()))
-                .or_else(|| {
-                    obj.remove("edge_type")
-                        .and_then(|v| v.as_str().map(|s| s.to_string()))
-                })
-                .or_else(|| {
-                    obj.remove("edgeType")
-                        .and_then(|v| v.as_str().map(|s| s.to_string()))
-                })
-                .or_else(|| {
-                    obj.remove("type")
-                        .and_then(|v| v.as_str().map(|s| s.to_string()))
-                })
-                .unwrap_or_else(|| "relates_to".to_string());
 
             match (source, target) {
-                (Some(src), Some(dst)) => (src, dst, kind, Value::Object(obj)),
+                (Some(src), Some(dst)) => (src, dst, Value::Object(obj)),
                 _ => {
                     let message = json!({
                         "action": "error",
@@ -327,7 +304,8 @@ pub async fn handle_create_edge(
         "id": edge_id,
         "source": source,
         "target": target,
-        "kind": kind,
+        // TODO: Extract label from properties and store as label here
+        // "label"
         "data": properties,
     });
 
@@ -339,7 +317,6 @@ pub async fn handle_create_edge(
         payload: payload.clone(),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -409,7 +386,6 @@ pub async fn handle_delete_edge(
         payload: payload.clone(),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -437,7 +413,7 @@ pub async fn handle_update_edge(
     event: WebSocketMessage,
     session: &mut Session,
 ) {
-    let Some(mut entity) = event.entity else {
+    let Some(entity) = event.entity else {
         let _ = session
             .text(
                 json!({
@@ -454,8 +430,8 @@ pub async fn handle_update_edge(
     };
 
     // Support two shapes:
-    // 1) { id, source?, target?, kind?, properties? }
-    // 2) { oldEdge: { id, kind? }, newConnection: { source, target } }
+    // 1) { id, source?, target?, properties? }
+    // 2) { oldEdge: { id }, newConnection: { source, target } }
     let mut payload = json!({});
 
     if let Some(obj) = entity.as_object() {
@@ -580,7 +556,6 @@ pub async fn handle_update_edge(
         payload: payload.clone(),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -633,7 +608,6 @@ pub async fn handle_update_entity(
         payload: entity.clone(),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -672,15 +646,13 @@ pub async fn handle_delete_entity(
         }
     };
 
-    let payload = json!({ "entity": {"id": id_val} });
     let ev = AppendEvent {
         category: "entity".to_string(),
         key: graph_uuid.to_string(),
         event_type: "delete".to_string(),
-        payload: payload.clone(),
+        payload: json!({ "id": id_val }),
         valid_from: Utc::now(),
         valid_to: None,
-        idempotency_key: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
@@ -727,11 +699,10 @@ pub async fn handle_delete_entity(
         );
     }
 
-    info!("payload: {:?}", payload);
     let message = json!({
         "action": "deleted",
         "notification": {"shouldClose": true, "message": "Entity deleted."},
-        "entity": payload.get("entity").cloned().unwrap_or_else(|| json!({}))
+        "entity": { "id": id_val }
     });
     let _ = session.text(message.to_string()).await;
 }
@@ -802,6 +773,7 @@ pub async fn graphing_websocket_handler(
     let decoded_id = match graph_ids.first() {
         Some(id) => id,
         None => {
+            let _ = session.text(json!({"action": "deauth"}).to_string());
             let _ = session
                 .close(Some(actix_ws::CloseCode::Policy.into()))
                 .await;
@@ -823,6 +795,10 @@ pub async fn graphing_websocket_handler(
             match msg {
                 Message::Text(text) => {
                     let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) else {
+                        let _ = session.text(json!({"action": "deauth"}).to_string());
+                        let _ = session
+                            .close(Some(actix_ws::CloseCode::Policy.into()))
+                            .await;
                         break;
                     };
                     // if not previously authenticated and msg count not modulo 3 (aka check for JWT expiry)
@@ -830,14 +806,12 @@ pub async fn graphing_websocket_handler(
                     if total_events % 3 == 0 || !authenticated {
                         if let Some(token) = &event.token {
                             let Ok(claims) = decode_jwt(token, &app.cfg.jwt_secret) else {
-                                let _ = session
-                                    .close(Some(actix_ws::CloseCode::Policy.into()))
-                                    .await;
                                 break;
                             };
                             let user_ids = sqids.decode(&claims.sub);
                             let Some(decoded_user_id) = user_ids.first() else {
                                 // Invalid user ID in token
+                                let _ = session.text(json!({"action": "deauth"}).to_string());
                                 let _ = session
                                     .close(Some(actix_ws::CloseCode::Policy.into()))
                                     .await;
@@ -855,6 +829,7 @@ pub async fn graphing_websocket_handler(
                             .await;
                             let Ok(graph) = graph else {
                                 // Graph not found
+                                let _ = session.text(json!({"action": "deauth"}).to_string());
                                 let _ = session
                                     .close(Some(actix_ws::CloseCode::Policy.into()))
                                     .await;
