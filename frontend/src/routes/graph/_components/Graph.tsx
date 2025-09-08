@@ -194,6 +194,7 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
+        console.log('labelview entity', label)
         return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
       },
     }),

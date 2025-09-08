@@ -74,6 +74,7 @@ export function Element({
     case 'textarea':
       return (
         <TextArea
+          data={data}
           key={key}
           id={id}
           label={label}

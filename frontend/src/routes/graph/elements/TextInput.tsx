@@ -31,7 +31,7 @@ export function TextInput({
                   id,
                   data: {
                     ...data,
-                    [toSnakeCase(label)]: value,
+                    [label]: value,
                   },
                 },
               })

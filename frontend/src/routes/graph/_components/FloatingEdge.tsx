@@ -12,7 +12,7 @@ import { useFlowStore } from '@/app/store'
 import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
 const EMPTY_LABEL_SIZE = 10
-const MAX_LABEL_SIZE = 26
+const MAX_LABEL_SIZE = 30
 interface EdgeProps extends Edge {
   setShowEdges: (set: boolean) => void
   showEdges: boolean
@@ -44,7 +44,9 @@ function FloatingEdge({
     edgeLabel.length <= MAX_LABEL_SIZE
       ? edgeLabel.length === 0
         ? EMPTY_LABEL_SIZE
-        : edgeLabel.length - 2
+        : edgeLabel.length + 2
+          ? edgeLabel.length + 7
+          : 10
       : MAX_LABEL_SIZE
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
@@ -138,10 +140,7 @@ function FloatingEdge({
         style={{ ...style, strokeWidth: 2, stroke: '#373c8300' }}
       />
       <EdgeLabelRenderer>
-        <div
-          className='relative ml-4 flex max-w-32'
-          ref={draggableEdgeLabelRef}
-        >
+        <div className='relative flex max-w-32' ref={draggableEdgeLabelRef}>
           <div class='group relative'>
             <button
               title='Shift+click and drag to reposition this edge label'
@@ -151,7 +150,7 @@ function FloatingEdge({
             >
               <Icon
                 icon='grip-vertical'
-                className='absolute mt-5.5 -ml-4 h-5.5 w-4.5 scale-125 text-inherit'
+                className='absolute mt-5 -ml-4 h-5.5 w-4.5 scale-125 text-inherit'
               />
             </button>
             <input
@@ -165,7 +164,7 @@ function FloatingEdge({
                     id,
                     source,
                     target,
-                    data: { label: event.currentTarget.value, ...data },
+                    data: { ...data, label: event.currentTarget.value },
                   },
                 })
               }}
