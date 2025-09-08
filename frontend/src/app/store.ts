@@ -611,6 +611,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
           return {
             ...edge,
             ...update,
+            id: edge.id,
           }
         }
         return edge
@@ -618,8 +619,15 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     }),
   removeRelationship: (id) =>
     set({ edges: get().edges.filter((e) => e.id !== id) }),
-  handleRelationshipsChange: (changes) =>
-    set({ edges: applyEdgeChanges(changes, get().edges) }),
+  handleRelationshipsChange: (changes) => {
+    console.log('insideHandleRelationshipsChange, BEFORE apply: ', changes)
+    const newEdges = applyEdgeChanges(changes, get().edges)
+    console.log(
+      'insideHandleRelationshipsChange, AFTER applyEdgeChanges: ',
+      newEdges
+    )
+    set({ edges: newEdges })
+  },
   onRelationshipConnect: (connection) =>
     set({
       edges: addEdge(

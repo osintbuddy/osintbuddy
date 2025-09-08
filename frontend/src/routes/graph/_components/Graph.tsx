@@ -21,6 +21,7 @@ import {
   OnConnectEnd,
   OnConnect,
   addEdge,
+  FinalConnectionState,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -64,7 +65,7 @@ interface ProjectGraphProps {
   readyState: ReadyState
   graph: GraphState | null
   fitView: (fitViewOptions?: FitViewOptions | undefined) => void
-  blueprints: Blueprint
+  blueprints: Blueprint[]
 }
 
 const DBL_CLICK_THRESHOLD = 340
@@ -86,13 +87,13 @@ export default function Graph({
   blueprints,
 }: ProjectGraphProps) {
   const {
-    setEntityEdit: enableEntityEdit,
-    setEntityView: disableEntityEdit,
-    removeRelationship: removeEdge,
-    setRelationships: setEdges,
-    onRelationshipConnect: onConnect,
-    handleRelationshipsChange: handleEdgesChange,
-    handleEntityChange: handleNodesChange,
+    setEntityEdit,
+    setEntityView,
+    removeRelationship,
+    setRelationships,
+    onRelationshipConnect,
+    handleRelationshipsChange,
+    handleEntityChange,
     positionMode,
     clearGraph,
     nodes,
@@ -230,41 +231,12 @@ export default function Graph({
 
   const onEdgesChange = useCallback(
     (changes: any) => {
+      console.log('onEdgesChange', changes)
       // Use the store handler if provided, otherwise fallback to WebSocket
-      handleEdgesChange(changes)
+      handleRelationshipsChange(changes)
     },
-    [handleEdgesChange, showEdges]
+    [handleRelationshipsChange, showEdges]
   )
-
-  const handleOnConnect: OnConnect = useCallback((connection) => {
-    onConnect(connection)
-    console.log('handling on COnnect', connection)
-  }, [])
-
-  const handleConnectEnd: OnConnectEnd = useCallback((event, connection) => {
-    console.log('connect endP: ', connection.isValid, {
-      action: 'create:edge',
-      edge: {
-        temp_id: `xy-edge__${connection.fromNode?.id}${connection.fromHandle?.id}-${connection.toNode?.id}${connection.toHandle?.id}`,
-        source: connection.fromNode?.id,
-        target: connection.toNode?.id,
-        data: {},
-      },
-    })
-    if (connection.isValid) {
-      const from = connection.fromNode?.id
-      const to = connection.toNode?.id
-      sendJsonMessage({
-        action: 'create:edge',
-        edge: {
-          temp_id: `xy-edge__${from}${connection.fromHandle?.id}-${to}${connection.toHandle?.id}`,
-          source: from,
-          target: to,
-          data: {},
-        },
-      })
-    }
-  }, [])
 
   // on double click toggle between entity types
   // (rectangular editable entity vs circlular view entity)
@@ -276,13 +248,30 @@ export default function Graph({
     setClickDelta(newDelta)
     // if double click, toggle entity/node type
     if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
-      if (node.type === 'view') enableEntityEdit(node.id)
-      else disableEntityEdit(node.id)
+      if (node.type === 'view') setEntityEdit(node.id)
+      else setEntityView(node.id)
     }
   }
-
+  const onConnect: OnConnect = useCallback((connection) => {
+    onRelationshipConnect(connection)
+    sendJsonMessage({
+      action: 'create:edge',
+      edge: {
+        temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
+        source: connection.source,
+        target: connection.target,
+        data: {},
+      },
+    })
+    console.log('onConnect', {
+      temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
+      source: connection.source,
+      target: connection.target,
+      data: {},
+    })
+  }, [])
   // used for handling edge deletions. e.g. when a user
-  // selects and drags  an existing connectionline/edge
+  // selects and drags  an existing connection line/edge
   // to a blank spot on the graph, the edge will be removed
   const edgeReconnectSuccessful = useRef(true)
   const onReconnectStart: ReactFlowProps['onReconnectStart'] =
@@ -291,24 +280,32 @@ export default function Graph({
     }, [])
   const onReconnect: OnReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
+      console.log('onReconnect', oldEdge, newConnection)
       edgeReconnectSuccessful.current = true
-      setEdges(reconnectEdge(oldEdge, newConnection, edges))
+      setRelationships(
+        reconnectEdge(oldEdge, newConnection, edges, { shouldReplaceId: false })
+      )
+      const { id, data = {} } = oldEdge
+      const { source, target } = newConnection
       sendJsonMessage({
         action: 'update:edge',
-        oldEdge,
-        newConnection,
+        edge: { id, data, source, target },
       })
     },
-    [setEdges, reconnectEdge, edges, sendJsonMessage]
+    [setRelationships, reconnectEdge, edges, sendJsonMessage]
   )
   const onReconnectEnd: ReactFlowProps['onReconnectEnd'] = useCallback(
-    (_: MouseEvent | TouchEvent, edge: Edge) => {
+    (
+      _: MouseEvent | TouchEvent,
+      edge: Edge,
+      connectionState: FinalConnectionState
+    ) => {
       if (!edgeReconnectSuccessful.current) {
-        const id = edge.id
-        removeEdge(id)
+        removeRelationship(edge.id)
+        console.log('delete:edge: ', edge.id)
         sendJsonMessage({
           action: 'delete:edge',
-          edge: { id },
+          edge: { id: edge.id },
         })
       }
       edgeReconnectSuccessful.current = true
@@ -321,7 +318,7 @@ export default function Graph({
   const isValidConnection: IsValidConnection = (connection) =>
     connection.target !== connection.source
 
-  console.log(nodes, edges)
+  console.log('on render, edges:', edges)
   return (
     <ReactFlow
       ref={ref}
@@ -336,8 +333,7 @@ export default function Graph({
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
-      onConnect={handleOnConnect}
-      onConnectEnd={handleConnectEnd}
+      onConnect={onConnect}
       onEdgesChange={onEdgesChange}
       onDragOver={onDragOver}
       isValidConnection={isValidConnection}
@@ -345,7 +341,7 @@ export default function Graph({
       onReconnect={onReconnect}
       onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
-      onNodesChange={handleNodesChange}
+      onNodesChange={handleEntityChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       panActivationKeyCode='Space'

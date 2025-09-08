@@ -225,7 +225,6 @@ pub async fn handle_create_entity(
     // insert type which is used only in reactflow, don't store this
     entity.insert("type".to_string(), json!("view"));
 
-    // Return for immediate UI usage
     let message = json!({
         "action": "created".to_string(),
         "notification": {
@@ -324,46 +323,23 @@ pub async fn handle_delete_edge(
     event: WebSocketMessage,
     session: &mut Session,
 ) {
-    let Some(entity) = event.entity else {
-        let _ = session
-            .text(
-                json!({
-                    "action": "error",
-                    "notification": {
-                        "autoClose": 8000,
-                        "message": "We ran into an error processing your delete:edge payload!",
-                    },
-                })
-                .to_string(),
-            )
-            .await;
+    let Some(edge) = event.edge else {
+        let message = json!({
+            "action": "error",
+            "notification": {
+                "autoClose": 8000,
+                "message": "We ran into an error finding your edge payload!",
+            },
+        });
+        let _ = session.text(message.to_string()).await;
         return;
     };
-
-    // Expect an id field to identify the edge to delete
-    let Some(id_val) = entity.get("id").and_then(|v| v.as_str()) else {
-        let _ = session
-            .text(
-                json!({
-                    "action": "error",
-                    "notification": {
-                        "autoClose": 8000,
-                        "message": "Missing edge id for delete.",
-                    },
-                })
-                .to_string(),
-            )
-            .await;
-        return;
-    };
-
-    let payload = json!({ "id": id_val });
 
     let ev = AppendEvent {
         category: "edge".to_string(),
         key: graph_uuid.to_string(),
         event_type: "delete".to_string(),
-        payload: payload.clone(),
+        payload: edge.clone(),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
@@ -373,18 +349,22 @@ pub async fn handle_delete_edge(
 
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append edge:delete: {}", e);
+        let message = json!({
+            "action": "error",
+            "notification": {
+                "autoClose": 8000,
+                "message": "We ran into an error persisting your edge deletion!",
+            },
+        });
+        let _ = session.text(message.to_string()).await;
     }
 
-    let _ = session
-        .text(
-            json!({
-                "action": "deleted",
-                "notification": {"shouldClose": true, "message": "Edge deleted."},
-                "entity": payload
-            })
-            .to_string(),
-        )
-        .await;
+    let message = json!({
+        "action": "deleted",
+        "notification": {"shouldClose": true, "message": "Edge deleted."},
+        "edge": edge
+    });
+    let _ = session.text(message.to_string()).await;
 }
 
 pub async fn handle_update_edge(
@@ -393,147 +373,24 @@ pub async fn handle_update_edge(
     event: WebSocketMessage,
     session: &mut Session,
 ) {
-    let Some(entity) = event.entity else {
-        let _ = session
-            .text(
-                json!({
-                    "action": "error",
-                    "notification": {
-                        "autoClose": 8000,
-                        "message": "We ran into an error processing your update:edge payload!",
-                    },
-                })
-                .to_string(),
-            )
-            .await;
+    let Some(edge) = event.edge else {
+        let message = json!({
+            "action": "error",
+            "notification": {
+                "autoClose": 8000,
+                "message": "We ran into an error processing your update:edge payload!",
+            },
+        });
+        let _ = session.text(message.to_string()).await;
         return;
     };
-
-    // Support two shapes:
-    // 1) { id, source?, target?, properties? }
-    // 2) { oldEdge: { id }, newConnection: { source, target } }
-    let mut payload = json!({});
-
-    if let Some(obj) = entity.as_object() {
-        if obj.contains_key("oldEdge") && obj.contains_key("newConnection") {
-            // ReactFlow reconnect shape
-            let id = obj
-                .get("oldEdge")
-                .and_then(|v| v.get("id"))
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
-            let source = obj
-                .get("newConnection")
-                .and_then(|v| v.get("source"))
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
-            let target = obj
-                .get("newConnection")
-                .and_then(|v| v.get("target"))
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
-            let kind = obj
-                .get("oldEdge")
-                .and_then(|v| {
-                    v.get("kind").or_else(|| {
-                        v.get("edge_type")
-                            .or_else(|| v.get("edgeType").or_else(|| v.get("type")))
-                    })
-                })
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
-
-            match (id, source, target) {
-                (Some(id), Some(source), Some(target)) => {
-                    let mut p = serde_json::Map::new();
-                    p.insert("id".to_string(), json!(id));
-                    p.insert("source".to_string(), json!(source));
-                    p.insert("target".to_string(), json!(target));
-                    if let Some(k) = kind {
-                        p.insert("kind".to_string(), json!(k));
-                    }
-                    payload = Value::Object(p);
-                }
-                _ => {
-                    let _ = session
-                        .text(
-                            json!({
-                                "action": "error",
-                                "notification": {
-                                    "autoClose": 8000,
-                                    "message": "Invalid update:edge payload (missing id/source/target).",
-                                },
-                            })
-                            .to_string(),
-                        )
-                        .await;
-                    return;
-                }
-            }
-        } else {
-            // Generic update shape
-            let Some(id_val) = obj.get("id").and_then(|v| v.as_str()) else {
-                let _ = session
-                    .text(
-                        json!({
-                            "action": "error",
-                            "notification": {
-                                "autoClose": 8000,
-                                "message": "Missing edge id for update.",
-                            },
-                        })
-                        .to_string(),
-                    )
-                    .await;
-                return;
-            };
-
-            // Allow updating source/target/kind/properties; pass through provided fields
-            let mut m = serde_json::Map::new();
-            m.insert("id".to_string(), json!(id_val));
-            if let Some(v) = obj.get("source").and_then(|v| v.as_str()) {
-                m.insert("source".to_string(), json!(v));
-            }
-            if let Some(v) = obj.get("target").and_then(|v| v.as_str()) {
-                m.insert("target".to_string(), json!(v));
-            }
-            if let Some(v) = obj
-                .get("kind")
-                .or_else(|| {
-                    obj.get("edge_type")
-                        .or_else(|| obj.get("edgeType").or_else(|| obj.get("type")))
-                })
-                .and_then(|v| v.as_str())
-            {
-                m.insert("kind".to_string(), json!(v));
-            }
-            if let Some(props) = obj.get("data") {
-                m.insert("data".to_string(), props.clone());
-            }
-            payload = Value::Object(m);
-        }
-    } else {
-        let _ = session
-            .text(
-                json!({
-                    "action": "error",
-                    "notification": {
-                        "autoClose": 8000,
-                        "message": "Invalid update:edge payload format.",
-                    },
-                })
-                .to_string(),
-            )
-            .await;
-        return;
-    }
 
     // Append update event
     let ev = AppendEvent {
         category: "edge".to_string(),
         key: graph_uuid.to_string(),
         event_type: "update".to_string(),
-        payload: payload.clone(),
+        payload: edge.clone(),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
@@ -544,17 +401,12 @@ pub async fn handle_update_edge(
         error!("Failed to append edge:update: {}", e);
     }
 
-    // Ack response
-    let _ = session
-        .text(
-            json!({
-                "action": "updated",
-                "notification": {"shouldClose": true, "message": "Edge updated."},
-                "entity": payload
-            })
-            .to_string(),
-        )
-        .await;
+    let message = json!({
+        "action": "update",
+        "notification": {"shouldClose": true, "message": "Edge updated."},
+        "edge": edge
+    });
+    let _ = session.text(message.to_string()).await;
 }
 
 pub async fn handle_update_entity(

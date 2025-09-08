@@ -54,11 +54,11 @@ export default function Graphing() {
   const {
     nodes,
     edges,
-    setEntities: setNodes,
-    setRelationships: setEdges,
-    addEntity: addNode,
-    updateEntity: updateNode,
-    addRelationship: addEdge,
+    setEntities,
+    setRelationships,
+    addEntity,
+    updateEntity,
+    updateRelationship,
     clearGraph,
     setPositionMode,
     positionMode,
@@ -143,9 +143,9 @@ export default function Graphing() {
       toast.dismiss('connection-lost')
     },
     read: (data) => {
-      setNodes(data.nodes || [])
+      setEntities(data.nodes || [])
       setNodesBeforeLayout(data.nodes || [])
-      setEdges(data.edges || [])
+      setRelationships(data.edges || [])
       setEdgesBeforeLayout(data.edges || [])
       toast.dismiss('graph')
       fitView()
@@ -154,13 +154,20 @@ export default function Graphing() {
       handleNotification(data)
     },
     update: (data) => {
-      console.log('running update client', data.entity)
-      updateNode(data.entity.id, data.entity)
+      if (data?.entity) {
+        console.log('running update client', data.entity)
+        updateEntity(data.entity.id, data.entity)
+      }
+      if (data.edge) {
+        console.log('updatingRelationship', data.edge)
+        const { id, ...update } = data.edge
+        updateRelationship(id, update)
+      }
       handleNotification(data)
     },
     created: (data) => {
       const { entity, edge: { temp_id, id } = {} } = data
-      if (entity) addNode({ ...entity, type: 'edit' })
+      if (entity) addEntity({ ...entity, type: 'edit' })
       if (temp_id && id) removeTempRelationshipId(temp_id, id)
       handleNotification(data)
     },
@@ -243,8 +250,8 @@ export default function Graphing() {
             height: undefined,
           }))
           clearGraph()
-          setNodes(layoutedNodes)
-          setEdges(edges)
+          setEntities(layoutedNodes)
+          setRelationships(edges)
           window.requestAnimationFrame(() => {
             fitView && fitView({ padding: 0.25 })
           })
@@ -265,11 +272,11 @@ export default function Graphing() {
 
   const handlePositionChange = useCallback(() => {
     if (positionMode === 'manual') {
-      setNodes(nodesBeforeLayout)
-      setEdges(edgesBeforeLayout)
+      setEntities(nodesBeforeLayout)
+      setRelationships(edgesBeforeLayout)
     }
     fitView({ duration: 300 })
-  }, [positionMode, setNodes, setEdges])
+  }, [positionMode, setEntities, setRelationships])
 
   useEffect(() => {
     if (positionMode === 'manual') {
