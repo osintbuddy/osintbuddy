@@ -323,7 +323,7 @@ export default function Graph({
       ref={ref}
       zoomOnScroll={true}
       zoomOnPinch={true}
-      nodeDragThreshold={2}
+      nodeDragThreshold={0}
       zoomOnDoubleClick={false}
       minZoom={MIN_ZOOM}
       maxZoom={MAX_ZOOM}

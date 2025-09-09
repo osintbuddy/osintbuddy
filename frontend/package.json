@@ -45,6 +45,7 @@
     "slate-react": "^0.117.4",
     "tailwindcss": "^4.1.4",
     "three": "^0.178.0",
+    "uuid": "^13.0.0",
     "vite-plugin-dynamic-import": "^1.6.0",
     "vite-plugin-markdown": "^2.2.0",
     "webcola": "^3.4.0",

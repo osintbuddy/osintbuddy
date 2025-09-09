@@ -403,7 +403,7 @@ pub async fn handle_update_edge(
 
     let message = json!({
         "action": "update",
-        "notification": {"shouldClose": true, "message": "Edge updated."},
+        // "notification": {"shouldClose": true, "message": "Edge updated."},
         "edge": edge
     });
     let _ = session.text(message.to_string()).await;
