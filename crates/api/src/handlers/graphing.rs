@@ -302,10 +302,6 @@ pub async fn handle_create_edge(
     // Return the created edge document for immediate UI usage
     let message = json!({
         "action": "created",
-        "notification": {
-            "shouldClose": true,
-            "message": "Edge created successfully!",
-        },
         "edge": {
             "id": edge_id,
             "source": source,
