@@ -187,14 +187,19 @@ export default function Graph({
         return (
           <EditEntityNode
             ctx={entity}
-            blueprint={blueprints[label]}
+            blueprint={structuredClone(blueprints[label])}
             sendJsonMessage={sendJsonMessage}
           />
         )
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
-        return <ViewEntityNode ctx={entity} blueprint={blueprints[label]} />
+        return (
+          <ViewEntityNode
+            ctx={entity}
+            blueprint={structuredClone(blueprints[label])}
+          />
+        )
       },
     }),
     [blueprints]
@@ -323,7 +328,6 @@ export default function Graph({
       ref={ref}
       zoomOnScroll={true}
       zoomOnPinch={true}
-      nodeDragThreshold={0}
       zoomOnDoubleClick={false}
       minZoom={MIN_ZOOM}
       maxZoom={MAX_ZOOM}

@@ -32,12 +32,11 @@ export function DropdownInput({
       query === '' || !isOpen
         ? options
         : options.filter((option: DropdownOptionProps) => {
-            const fuzzySearch = createFuzzySearch(
-              option?.label && option?.label.length !== 0 ? 'label' : 'value',
-              0.6
+            return (
+              option.label.toLowerCase().includes(query.toLowerCase()) ||
+              option.value.toLowerCase().includes(query.toLowerCase())
             )
             // option?.label.toLowerCase().includes(query.toLowerCase())
-            return fuzzySearch(query)
           }),
     [query, options, isOpen]
   )

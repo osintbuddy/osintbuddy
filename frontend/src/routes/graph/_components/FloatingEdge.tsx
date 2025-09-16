@@ -108,27 +108,7 @@ function FloatingEdge({
     targetHandle,
     updateEdge,
   ])
-  const [edgePathRef, draggableEdgeLabelRef] = useDraggableEdgeLabel(
-    labelX,
-    labelY,
-    positionMode,
-    edgePath
-  )
 
-  useEffect(() => {
-    const handleClickOutsideEdgePanel: EventListener = (event) => {
-      if (!draggableEdgeLabelRef.current) {
-        return
-      }
-      if (!draggableEdgeLabelRef.current.contains(event.target as Node)) {
-        setShowEdgePanel(false)
-      }
-    }
-    document.addEventListener('click', handleClickOutsideEdgePanel, true)
-    return () => {
-      document.removeEventListener('click', handleClickOutsideEdgePanel, true)
-    }
-  }, [draggableEdgeLabelRef])
   const pathStyle = useMemo(
     () => ({
       ...style,
@@ -151,33 +131,25 @@ function FloatingEdge({
         },
       })
     },
-    [updateEdge, sendJsonMessage, id, source, target, data]
+    [updateEdge]
   )
-  console.log('showEdgeLabel', showEdgeLabel)
   return (
     <>
       <path
         markerEnd={markerEnd as string}
         class='react-flow__edge-path'
-        ref={edgePathRef}
         d={edgePath}
         style={pathStyle}
       />
-      <EdgeLabelRenderer>
-        <div className='relative flex max-w-32' ref={draggableEdgeLabelRef}>
-          {showEdgeLabel && (
+      {showEdgeLabel && (
+        <EdgeLabelRenderer>
+          <div
+            className='relative flex max-w-32'
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            }}
+          >
             <div class='group relative'>
-              <button
-                title='Shift+click and drag to reposition this edge label'
-                onMouseDown={() => setShowEdgePanel(false)}
-                tabIndex={2}
-                className='nopan nodrag pointer-events-auto relative flex items-center justify-center bg-transparent text-slate-700 opacity-20 ease-in focus-within:text-slate-600 focus-within:opacity-100 hover:bg-slate-950/10 hover:text-slate-600 hover:opacity-100 focus:text-slate-600 focus:opacity-100 active:text-slate-600 active:opacity-100'
-              >
-                <Icon
-                  icon='grip-vertical'
-                  className='absolute mt-5 -ml-4 h-5.5 w-4.5 scale-125 text-inherit'
-                />
-              </button>
               <input
                 tabIndex={-1}
                 value={edgeLabel}
@@ -209,9 +181,9 @@ function FloatingEdge({
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </EdgeLabelRenderer>
+          </div>
+        </EdgeLabelRenderer>
+      )}
     </>
   )
 }
