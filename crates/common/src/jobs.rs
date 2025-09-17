@@ -33,7 +33,7 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
         r#"
         INSERT INTO jobs (job_id, payload, status, priority, max_attempts, scheduled_at)
         VALUES (uuid_generate_v4(), $1, 'enqueued'::job_status, coalesce($2, 100), coalesce($3, 3), coalesce($4, now()))
-        RETURNING job_id, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+        RETURNING job_id, payload, status::text as status, priority, attempts, max_attempts, lease_owner, lease_until,
                   created_at, scheduled_at, started_at, finished_at, backoff_until
         "#,
         j.payload,
@@ -47,7 +47,10 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
     Ok(Job {
         job_id: rec.job_id,
         payload: rec.payload,
-        status: rec.status,
+        // `query!` infers `Option<String>` for nullable columns; default to 'enqueued'.
+        status: rec
+            .status
+            .unwrap_or_else(|| "enqueued".to_string()),
         priority: rec.priority,
         attempts: rec.attempts,
         max_attempts: rec.max_attempts,
@@ -83,7 +86,7 @@ pub async fn lease_jobs(
             LIMIT $1
             FOR UPDATE SKIP LOCKED
         )
-        RETURNING job_id, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+        RETURNING job_id, payload, status::text as status, priority, attempts, max_attempts, lease_owner, lease_until,
                   created_at, scheduled_at, started_at, finished_at, backoff_until
         "#,
     )

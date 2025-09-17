@@ -1,7 +1,7 @@
 use crate::config::{self, CFG};
 use actix_web::web::Data;
 use futures_util::future::BoxFuture;
-use log::{debug, error, info};
+use log::{error, info};
 
 use sqlx::postgres::{PgPoolOptions};
 use sqlx::{PgPool};

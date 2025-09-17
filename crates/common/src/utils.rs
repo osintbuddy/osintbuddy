@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 pub fn dict_to_opencypher(value: &Value) -> String {
     let mut properties = "{".to_string();
@@ -57,4 +57,3 @@ pub fn to_camel_case(value: &str) -> String {
     }
     result
 }
-

@@ -19,3 +19,4 @@ crates/vmlinux.bin
 perf.data.old
 perf.data
 flamegraph.svg
+AGENTS.md

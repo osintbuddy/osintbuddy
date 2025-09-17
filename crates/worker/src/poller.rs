@@ -1,5 +1,7 @@
-use common::jobs;
+use chrono::Utc;
+use common::{eventstore, jobs};
 use log::{error, info, warn};
+use serde_json::json;
 use sqlx::PgPool;
 use std::time::Duration;
 
@@ -26,21 +28,68 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                             error!("start_job failed {}: {}", job.job_id, e);
                             return;
                         }
-                        // TODO: Remove kind field, all jobs will be of one kind for now (Python)
-                        // Execute using firecracker VM stub
-                        // let res = vm::execute_job(&job.kind, &job.payload).await;
-                        // match res {
-                        //     Ok(_) => {
-                        //         if let Err(e) = jobs::complete_job(&pool_clone, job.job_id, &owner_clone).await {
-                        //             error!("complete_job error {}: {}", job.job_id, e);
-                        //         }
-                        //     }
-                        //     Err(e) => {
-                        //         warn!("job failed {}: {}", job.job_id, e);
-                        //         // simple backoff: 10s
-                        //         let _ = jobs::fail_job(&pool_clone, job.job_id, &owner_clone, 10).await;
-                        //     }
-                        // }
+                        // announce job start
+                        let _ = eventstore::append_event(
+                            &pool_clone,
+                            eventstore::AppendEvent {
+                                category: "job".into(),
+                                key: job.job_id.to_string(),
+                                event_type: "job:event".into(),
+                                payload: json!({"type":"progress","data":{"note":"starting"}}),
+                                valid_from: Utc::now(),
+                                valid_to: None,
+                                correlation_id: None,
+                                causation_id: None,
+                                expected_version: None,
+                            },
+                        )
+                        .await;
+                        // Execute job (dev -> ob CLI, prod -> VM stub for now)
+                        let res = vm::execute_job(&job.payload).await;
+                        match res {
+                            Ok(maybe_json) => {
+                                if let Some(data) = maybe_json {
+                                    let _ = eventstore::append_event(
+                                        &pool_clone,
+                                        eventstore::AppendEvent {
+                                            category: "job".into(),
+                                            key: job.job_id.to_string(),
+                                            event_type: "job:event".into(),
+                                            payload: json!({"type":"result","data": data}),
+                                            valid_from: Utc::now(),
+                                            valid_to: None,
+                                            correlation_id: None,
+                                            causation_id: None,
+                                            expected_version: None,
+                                        },
+                                    )
+                                    .await;
+                                }
+                                if let Err(e) = jobs::complete_job(&pool_clone, job.job_id, &owner_clone).await {
+                                    error!("complete_job error {}: {}", job.job_id, e);
+                                }
+                            }
+                            Err(e) => {
+                                warn!("job failed {}: {}", job.job_id, e);
+                                let _ = eventstore::append_event(
+                                    &pool_clone,
+                                    eventstore::AppendEvent {
+                                        category: "job".into(),
+                                        key: job.job_id.to_string(),
+                                        event_type: "job:event".into(),
+                                        payload: json!({"type":"error","data":{"message": e.to_string()}}),
+                                        valid_from: Utc::now(),
+                                        valid_to: None,
+                                        correlation_id: None,
+                                        causation_id: None,
+                                        expected_version: None,
+                                    },
+                                )
+                                .await;
+                                // simple backoff: 10s
+                                let _ = jobs::fail_job(&pool_clone, job.job_id, &owner_clone, 10).await;
+                            }
+                        }
                     });
                 }
             }

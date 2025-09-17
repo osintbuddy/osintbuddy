@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 use chrono::Utc;
 use common::eventstore::{self, AppendEvent};
+use common::jobs;
 use serde_json::{Value, json};
 use sqids::Sqids;
 use sqlx::PgPool;
@@ -754,7 +755,7 @@ pub async fn graphing_websocket_handler(
                             handle_delete_entity(&pool, graph_uuid, event, &mut session).await;
                         }
                         "transform:entity" => {
-                            // TODO: Create job for worker -> firecracker flow
+                            handle_transform_entity(&pool, graph_uuid, event, &mut session).await;
                         }
 
                         _ => {}
@@ -771,4 +772,141 @@ pub async fn graphing_websocket_handler(
     });
 
     Ok(response)
+}
+
+// Enqueue a transform job for the worker
+async fn handle_transform_entity(
+    pool: &PgPool,
+    _graph_uuid: Uuid,
+    event: WebSocketMessage,
+    session: &mut Session,
+) {
+    let Some(entity) = event.entity else {
+        let _ = session
+            .text(
+                json!({
+                    "action": "error",
+                    "notification": {
+                        "autoClose": 6000,
+                        "message": "Transform request missing entity payload.",
+                    },
+                })
+                .to_string(),
+            )
+            .await;
+        return;
+    };
+
+    // Build job payload expected by worker dev runner: `ob run -T '<payload>'`
+    let payload = json!({
+        "action": "transform:entity",
+        "entity": entity,
+    });
+
+    match jobs::enqueue_job(
+        pool,
+        jobs::NewJob {
+            payload,
+            priority: None,
+            max_attempts: None,
+            scheduled_at: None,
+        },
+    )
+    .await
+    {
+        Ok(job) => {
+            // Notify client that the transform has started and provide job ID
+            let _ = session
+                .text(
+                    json!({
+                        "action": "transform:started",
+                        "job_id": job.job_id,
+                        "entity": job.payload["entity"],
+                    })
+                    .to_string(),
+                )
+                .await;
+            // Stream events for this job until it completes or times out
+            stream_job_events(pool, session, job.job_id).await;
+        }
+        Err(e) => {
+            error!("enqueue transform job failed: {}", e);
+            let _ = session
+                .text(
+                    json!({
+                        "action": "error",
+                        "notification": {
+                            "autoClose": 8000,
+                            "message": format!("Failed to enqueue transform: {}", e),
+                        },
+                    })
+                    .to_string(),
+                )
+                .await;
+        }
+    }
+}
+
+async fn stream_job_events(pool: &PgPool, session: &mut Session, job_id: Uuid) {
+    // Ensure stream exists and get its id
+    let Ok(stream) = eventstore::ensure_stream(pool, "job", &job_id.to_string()).await else {
+        return;
+    };
+    let mut last_version: i32 = 0;
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_secs(60);
+    loop {
+        if start.elapsed() > timeout {
+            break;
+        }
+        let rows = sqlx::query!(
+            r#"
+            SELECT version, event_type, payload
+            FROM events
+            WHERE stream_id = $1 AND version > $2
+            ORDER BY version ASC
+            LIMIT 50
+            "#,
+            stream.stream_id,
+            last_version
+        )
+        .fetch_all(pool)
+        .await;
+
+        let Ok(rows) = rows else {
+            sleep(Duration::from_millis(250)).await;
+            continue;
+        };
+        if rows.is_empty() {
+            sleep(Duration::from_millis(250)).await;
+            continue;
+        }
+        let mut done = false;
+        for r in rows {
+            last_version = r.version;
+            let payload = r.payload;
+            let _ = session
+                .text(
+                    json!({
+                        "action": "job:event",
+                        "job_id": job_id,
+                        "event": payload,
+                    })
+                    .to_string(),
+                )
+                .await;
+            if payload
+                .get("type")
+                .and_then(|v| v.as_str())
+                .map(|t| t == "result" || t == "error")
+                .unwrap_or(false)
+            {
+                done = true;
+                break;
+            }
+        }
+        if done {
+            break;
+        }
+    }
 }
