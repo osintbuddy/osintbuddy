@@ -777,7 +777,7 @@ pub async fn graphing_websocket_handler(
 // Enqueue a transform job for the worker
 async fn handle_transform_entity(
     pool: &PgPool,
-    _graph_uuid: Uuid,
+    graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
 ) {
@@ -826,8 +826,9 @@ async fn handle_transform_entity(
                     .to_string(),
                 )
                 .await;
-            // Stream events for this job until it completes or times out
-            stream_job_events(pool, session, job.job_id).await;
+            // Stream events for this job until it completes or times out,
+            // then persist transform outputs as entity/edge events and emit UI updates.
+            stream_job_events(pool, session, job.job_id, graph_uuid, job.payload["entity"].clone()).await;
         }
         Err(e) => {
             error!("enqueue transform job failed: {}", e);
@@ -847,7 +848,13 @@ async fn handle_transform_entity(
     }
 }
 
-async fn stream_job_events(pool: &PgPool, session: &mut Session, job_id: Uuid) {
+async fn stream_job_events(
+    pool: &PgPool,
+    session: &mut Session,
+    job_id: Uuid,
+    graph_uuid: Uuid,
+    source_entity: Value,
+) {
     // Ensure stream exists and get its id
     let Ok(stream) = eventstore::ensure_stream(pool, "job", &job_id.to_string()).await else {
         return;
@@ -901,6 +908,19 @@ async fn stream_job_events(pool: &PgPool, session: &mut Session, job_id: Uuid) {
                 .map(|t| t == "result" || t == "error")
                 .unwrap_or(false)
             {
+                // On result, try to persist transform outputs as entity/edge events
+                if payload
+                    .get("type")
+                    .and_then(|v| v.as_str())
+                    .map(|t| t == "result")
+                    .unwrap_or(false)
+                {
+                    if let Some(data) = payload.get("data") {
+                        if let Err(e) = persist_transform_outputs(pool, graph_uuid, job_id, &source_entity, data, session).await {
+                            error!("persist transform outputs failed: {}", e);
+                        }
+                    }
+                }
                 done = true;
                 break;
             }
@@ -909,4 +929,156 @@ async fn stream_job_events(pool: &PgPool, session: &mut Session, job_id: Uuid) {
             break;
         }
     }
+}
+
+// Persist transform outputs by creating entity and edge events, then notify UI with created entities
+async fn persist_transform_outputs(
+    pool: &PgPool,
+    graph_uuid: Uuid,
+    job_id: Uuid,
+    source_entity: &Value,
+    outputs: &Value,
+    session: &mut Session,
+) -> Result<(), sqlx::Error> {
+    use chrono::Utc;
+    use common::eventstore::{self, AppendEvent};
+
+    // Extract source entity context
+    let src_id = source_entity
+        .get("id")
+        .and_then(|v| v.as_str())
+        .and_then(|s| Uuid::parse_str(s).ok());
+    let src_pos = source_entity.get("position");
+    let transform_label = source_entity
+        .get("transform")
+        .and_then(|v| v.as_str())
+        .unwrap_or("transform");
+    let Some(src_id) = src_id else { return Ok(()); };
+
+    // Normalize outputs to an array of objects
+    let items: Vec<Value> = match outputs {
+        Value::Array(a) => a.clone(),
+        Value::Object(_) => vec![outputs.clone()],
+        _ => vec![],
+    };
+
+    // Compute a simple placement fan-out around the source
+    let (base_x, base_y) = if let Some(p) = src_pos.and_then(|p| p.as_object()) {
+        (
+            p.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0),
+            p.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0),
+        )
+    } else {
+        (0.0_f64, 0.0_f64)
+    };
+
+    for (i, mut item) in items.into_iter().enumerate() {
+        // Determine label and copy remaining fields as data
+        let label_s = item
+            .get("label")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+
+        // Build entity document
+        let entity_id = Uuid::new_v4();
+        let pos = json!({
+            "x": base_x + (i as f64 * 180.0),
+            "y": base_y + 40.0,
+        });
+
+        // Remove non-data fields
+        if let Some(obj) = item.as_object_mut() {
+            obj.remove("edge_label");
+            obj.remove("label");
+        }
+
+        let mut entity_doc = json!({
+            "id": entity_id,
+            "position": pos,
+            "data": {
+                "label": to_snake_case(&label_s),
+            }
+        });
+        if let (Some(dst), Value::Object(src)) = (entity_doc.get_mut("data"), &item) {
+            if let Some(dst_obj) = dst.as_object_mut() {
+                for (k, v) in src.iter() {
+                    dst_obj.insert(k.clone(), v.clone());
+                }
+            }
+        }
+
+        // Append entity:create event
+        let ev_entity = AppendEvent {
+            category: "entity".into(),
+            key: graph_uuid.to_string(),
+            event_type: "create".into(),
+            payload: entity_doc.clone(),
+            valid_from: Utc::now(),
+            valid_to: None,
+            correlation_id: Some(job_id),
+            causation_id: None,
+            expected_version: None,
+        };
+        let _ = eventstore::append_event(pool, ev_entity).await;
+
+        // Append edge:create event from source -> new entity
+        let edge_id = Uuid::new_v4();
+        let edge_label = transform_label;
+        let edge_doc = json!({
+            "id": edge_id,
+            "source": src_id,
+            "target": entity_id,
+            "data": { "label": edge_label, "type": "sfloat" }
+        });
+        let ev_edge = AppendEvent {
+            category: "edge".into(),
+            key: graph_uuid.to_string(),
+            event_type: "create".into(),
+            payload: edge_doc,
+            valid_from: Utc::now(),
+            valid_to: None,
+            correlation_id: Some(job_id),
+            causation_id: None,
+            expected_version: None,
+        };
+        let _ = eventstore::append_event(pool, ev_edge).await;
+
+        // Immediately inform UI about the new entity (ReactFlow node)
+        // The projector will handle edges; optionally a later read refresh will include them
+        let mut ui_entity = entity_doc.clone();
+        if let Some(obj) = ui_entity.as_object_mut() {
+            obj.insert("type".to_string(), json!("edit"));
+        }
+        let _ = session
+            .text(
+                json!({
+                    "action": "created",
+                    "notification": {"shouldClose": true, "message": "Transform created entity."},
+                    "entity": ui_entity
+                })
+                .to_string(),
+            )
+            .await;
+
+        // Immediately inform UI about the new edge so it appears without a refresh
+        let _ = session
+            .text(
+                json!({
+                    "action": "created",
+                    "edge": {
+                        "id": edge_id,
+                        "source": src_id,
+                        "target": entity_id,
+                        "data": { "label": edge_label, "type": "sfloat" },
+                        "type": "sfloat"
+                    }
+                })
+                .to_string(),
+            )
+            .await;
+    }
+    // Refresh client edges/state to include newly created relationships
+    handle_materialized_read(pool, graph_uuid, session).await;
+    Ok(())
 }

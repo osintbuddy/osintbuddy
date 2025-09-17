@@ -57,6 +57,7 @@ export default function Graphing() {
     setEntities,
     setRelationships,
     addEntity,
+    addRelationship,
     updateEntity,
     updateRelationship,
     clearGraph,
@@ -164,9 +165,15 @@ export default function Graphing() {
       handleNotification(data)
     },
     created: (data) => {
-      const { entity, edge: { temp_id, id } = {} } = data
+      const { entity, edge } = data
       if (entity) addEntity({ ...entity, type: 'edit' })
-      if (temp_id && id) removeTempRelationshipId(temp_id, id)
+      // If server returns authoritative edge with id/source/target, add it immediately
+      if (edge?.id && edge?.source && edge?.target) {
+        addRelationship(edge)
+      } else if (edge?.temp_id && edge?.id) {
+        // Otherwise, remap temp -> id for edges initiated by the client
+        removeTempRelationshipId(edge.temp_id, edge.id)
+      }
       handleNotification(data)
     },
     loading: (data) => {
