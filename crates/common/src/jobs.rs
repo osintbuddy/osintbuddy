@@ -83,7 +83,7 @@ pub async fn lease_jobs(
             LIMIT $1
             FOR UPDATE SKIP LOCKED
         )
-        RETURNING job_id, kind, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
+        RETURNING job_id, payload, status::text as "status!", priority, attempts, max_attempts, lease_owner, lease_until,
                   created_at, scheduled_at, started_at, finished_at, backoff_until
         "#,
     )
