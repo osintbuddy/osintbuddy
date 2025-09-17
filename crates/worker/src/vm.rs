@@ -27,7 +27,10 @@ pub async fn execute_job(payload: &JsonValue) -> Result<Option<JsonValue>, VmErr
 
         let mut cmd = Command::new("ob");
         cmd.arg("run").arg("-T").arg(payload_s);
-        let output = cmd.output().await.map_err(|e| VmError::Launch(e.to_string()))?;
+        let output = cmd
+            .output()
+            .await
+            .map_err(|e| VmError::Launch(e.to_string()))?;
 
         if output.status.success() {
             // Optionally log stdout for visibility during dev
@@ -69,7 +72,12 @@ pub async fn execute_job(payload: &JsonValue) -> Result<Option<JsonValue>, VmErr
             let code = output.status.code().unwrap_or(-1);
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
-            error!("ob failed (code={}): {} | {}", code, stdout.trim(), stderr.trim());
+            error!(
+                "ob failed (code={}): {} | {}",
+                code,
+                stdout.trim(),
+                stderr.trim()
+            );
             Err(VmError::Launch(format!("ob exit code {}", code)))
         }
     } else {

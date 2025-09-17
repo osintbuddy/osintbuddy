@@ -828,7 +828,14 @@ async fn handle_transform_entity(
                 .await;
             // Stream events for this job until it completes or times out,
             // then persist transform outputs as entity/edge events and emit UI updates.
-            stream_job_events(pool, session, job.job_id, graph_uuid, job.payload["entity"].clone()).await;
+            stream_job_events(
+                pool,
+                session,
+                job.job_id,
+                graph_uuid,
+                job.payload["entity"].clone(),
+            )
+            .await;
         }
         Err(e) => {
             error!("enqueue transform job failed: {}", e);
@@ -837,6 +844,7 @@ async fn handle_transform_entity(
                     json!({
                         "action": "error",
                         "notification": {
+                            "toastId": entity["id"],
                             "autoClose": 8000,
                             "message": format!("Failed to enqueue transform: {}", e),
                         },
@@ -916,7 +924,16 @@ async fn stream_job_events(
                     .unwrap_or(false)
                 {
                     if let Some(data) = payload.get("data") {
-                        if let Err(e) = persist_transform_outputs(pool, graph_uuid, job_id, &source_entity, data, session).await {
+                        if let Err(e) = persist_transform_outputs(
+                            pool,
+                            graph_uuid,
+                            job_id,
+                            &source_entity,
+                            data,
+                            session,
+                        )
+                        .await
+                        {
                             error!("persist transform outputs failed: {}", e);
                         }
                     }
@@ -953,7 +970,9 @@ async fn persist_transform_outputs(
         .get("transform")
         .and_then(|v| v.as_str())
         .unwrap_or("transform");
-    let Some(src_id) = src_id else { return Ok(()); };
+    let Some(src_id) = src_id else {
+        return Ok(());
+    };
 
     // Normalize outputs to an array of objects
     let items: Vec<Value> = match outputs {
@@ -983,8 +1002,10 @@ async fn persist_transform_outputs(
         // Build entity document
         let entity_id = Uuid::new_v4();
         let pos = json!({
-            "x": base_x + (i as f64 * 180.0),
-            "y": base_y + 40.0,
+            // Place transform results one full step to the right of the source
+            // to avoid overlap, and keep Y aligned with the source.
+            "x": base_x + ((i as f64 + 1.0) * 420.0),
+            "y": base_y,
         });
 
         // Remove non-data fields
@@ -1054,7 +1075,7 @@ async fn persist_transform_outputs(
             .text(
                 json!({
                     "action": "created",
-                    "notification": {"shouldClose": true, "message": "Transform created entity."},
+                    "notification": {"shouldClose": true, "message": "Transform completed successfully."},
                     "entity": ui_entity
                 })
                 .to_string(),
@@ -1078,7 +1099,5 @@ async fn persist_transform_outputs(
             )
             .await;
     }
-    // Refresh client edges/state to include newly created relationships
-    handle_materialized_read(pool, graph_uuid, session).await;
     Ok(())
 }

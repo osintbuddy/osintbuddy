@@ -65,7 +65,9 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                     )
                                     .await;
                                 }
-                                if let Err(e) = jobs::complete_job(&pool_clone, job.job_id, &owner_clone).await {
+                                if let Err(e) =
+                                    jobs::complete_job(&pool_clone, job.job_id, &owner_clone).await
+                                {
                                     error!("complete_job error {}: {}", job.job_id, e);
                                 }
                             }
@@ -87,7 +89,8 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                 )
                                 .await;
                                 // simple backoff: 10s
-                                let _ = jobs::fail_job(&pool_clone, job.job_id, &owner_clone, 10).await;
+                                let _ =
+                                    jobs::fail_job(&pool_clone, job.job_id, &owner_clone, 10).await;
                             }
                         }
                     });

@@ -5,9 +5,9 @@ use crate::{
         organization::{Organization, UpdateOrganization},
     },
 };
+use actix_web::{Result, delete, get, put};
 use common::db;
 use common::errors::AppError;
-use actix_web::{Result, delete, get, put};
 use log::error;
 
 #[get("/organizations/me")]

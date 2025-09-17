@@ -48,9 +48,7 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
         job_id: rec.job_id,
         payload: rec.payload,
         // `query!` infers `Option<String>` for nullable columns; default to 'enqueued'.
-        status: rec
-            .status
-            .unwrap_or_else(|| "enqueued".to_string()),
+        status: rec.status.unwrap_or_else(|| "enqueued".to_string()),
         priority: rec.priority,
         attempts: rec.attempts,
         max_attempts: rec.max_attempts,

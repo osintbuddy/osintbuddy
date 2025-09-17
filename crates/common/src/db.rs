@@ -3,8 +3,8 @@ use actix_web::web::Data;
 use futures_util::future::BoxFuture;
 use log::{error, info};
 
-use sqlx::postgres::{PgPoolOptions};
-use sqlx::{PgPool};
+use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use tokio::sync::OnceCell;
 
 pub type Database = Data<PgPool>;

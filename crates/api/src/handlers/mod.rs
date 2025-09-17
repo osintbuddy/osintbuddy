@@ -6,9 +6,9 @@ mod entities;
 mod events;
 mod graphing;
 mod graphs;
+mod jobs;
 mod organization;
 mod user;
-mod jobs;
 
 #[get("/health")]
 pub async fn healthcheck_handler() -> impl Responder {
