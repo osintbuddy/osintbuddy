@@ -16,3 +16,6 @@ crates/vmlinux.bin
 crates/id_rsa*
 crates/rootfs.ext4
 crates/vmlinux.bin
+perf.data.old
+perf.data
+flamegraph.svg

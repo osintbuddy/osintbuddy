@@ -71,13 +71,13 @@ function PublicNavbar(): JSX.Element {
       </a>
       {!isDocsPage && (
         <button
-          className='font-code before:bg-primary-300 group relative flex border border-slate-400/5 bg-black/10 px-3 py-2 font-semibold text-slate-400 backdrop-blur-sm transition-all duration-300 ease-out before:absolute before:bottom-0 before:left-1/2 before:flex before:h-0.5 before:w-0 before:-translate-1/2 before:items-center before:transition-all before:duration-200 before:content-[""] hover:bg-black/35 hover:text-slate-300 hover:before:w-full'
+          className='font-code before:bg-primary-300 group relative flex border border-slate-400/5 bg-black/1 px-3 py-1 font-semibold text-slate-400 backdrop-blur-sm transition-all duration-300 ease-out before:absolute before:bottom-0 before:left-1/2 before:flex before:h-0.5 before:w-0 before:-translate-1/2 before:items-center before:transition-all before:duration-200 before:content-[""] hover:bg-black/10 hover:text-slate-300 hover:before:w-full'
           onClick={() => navigate('/docs/overview')}
         >
           OSIB://BOOK
           <Icon
-            icon='eye-search'
-            className='btn-icon group-hover:animate-wiggle ml-3'
+            icon='book'
+            className='btn-icon group-hover:animate-wiggle relative top-[2px]'
           />
         </button>
       )}

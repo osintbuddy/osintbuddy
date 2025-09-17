@@ -8,8 +8,6 @@ import {
   useReactFlow,
 } from '@xyflow/react'
 import { Icon } from '@/components/icons'
-import { useFlowStore } from '@/app/store'
-import useDraggableEdgeLabel from '@/hooks/useDraggableEdgeLabel'
 
 const EMPTY_LABEL_SIZE = 10
 const MAX_LABEL_SIZE = 26
@@ -35,7 +33,6 @@ function FloatingEdge({
   sendJsonMessage,
 }: FloatingEdgeProps) {
   if (showEdges) return null
-  const { positionMode } = useFlowStore()
   const { updateEdge } = useReactFlow()
   const showEdgeLabel = useStore(zoomSelector)
   const [showEdgePanel, setShowEdgePanel] = useState(false)
@@ -120,14 +117,15 @@ function FloatingEdge({
 
   const handleOnBlur = useCallback(
     (event: any) => {
-      updateEdge(id, { data: { label: event.currentTarget?.value } })
+      const label = event.currentTarget?.value
+      updateEdge(id, { data: { label } })
       sendJsonMessage({
         action: 'update:edge',
         edge: {
           id,
           source,
           target,
-          data: { ...data, label: event.currentTarget?.value },
+          data: { ...data, label },
         },
       })
     },
@@ -156,9 +154,7 @@ function FloatingEdge({
                 onBlur={handleOnBlur}
                 onChange={(event) => setEdgeLabel(event.currentTarget.value)}
                 onFocus={() => setShowEdgePanel(true)}
-                onMouseDown={(event) =>
-                  !event.shiftKey && setShowEdgePanel(true)
-                }
+                onMouseDown={() => setShowEdgePanel(true)}
                 placeholder='No label found'
                 size={edgeInputSize}
                 type='text'

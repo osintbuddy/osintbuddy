@@ -61,7 +61,7 @@ export default function ContextMenu({
             <span className='font-display mr-1 font-semibold text-slate-800'>
               ID:{' '}
             </span>
-            {selection?.id ? selection.id : '?!'}
+            {selection?.id ? selection.id.toUpperCase().slice(0, 8) : '?!'}
           </button>
           {selection && (
             <Input.AltIcon
@@ -78,7 +78,7 @@ export default function ContextMenu({
           {transforms[selection?.data?.label] &&
             !isLoadingTransforms &&
             selection?.id && (
-              <div className='border-mirage-950 flex min-h-[115px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
+              <div className='border-mirage-950 cursor flex min-h-[115px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
                 {filteredTransforms.map((transform: any) => (
                   <button
                     key={transform.label}
@@ -115,7 +115,7 @@ export default function ContextMenu({
                 ))}
 
                 {filteredTransforms?.length === 0 && (
-                  <p class='relative px-2 py-1 text-sm text-yellow-500/80'>
+                  <p class='relative px-2 py-1 text-sm text-slate-600'>
                     {selection?.id ? 'No transforms found!' : ''}
                   </p>
                 )}

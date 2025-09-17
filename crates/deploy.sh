@@ -1,5 +1,6 @@
 #!/bin/env bash
 # Tested on Debian 12!
+# TODO: Update for new crates directory structure...
 
 NC='\e[0m' # no color/color off
 RED='\033[0;31m'

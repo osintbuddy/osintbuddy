@@ -21,17 +21,17 @@
 
   🚧 ⚠️ <ins> **Work in progress; Not ready for use, _yet_** </ins> ⚠️  🚧
 
-  ## 🛡 Introducing OSINTBuddy 
+  ## 🛡 Introducing OSINTBuddy
 
   <p>
       Welcome to the OSINTBuddy project where you can connect, combine,
       and get insight from unstructured and public data as results that
       can be explored step-by-step. An easy-to-use plugin system allows any
-      developer to quickly integrate new data sources so you can focus 
+      developer to quickly integrate new data sources so you can focus
       on discovering, interacting, and visualizing what's important to you
   </p>
 
-  
+
 <br/>
 
   [osib-demo-2025-07-24.webm](https://github.com/user-attachments/assets/5a2ad0cd-26d5-433b-9876-6c1146e0fef1)
@@ -41,7 +41,7 @@
 
 
 <details open="open">
-<summary> 
+<summary>
 <b>Table of Contents</b>
 </summary>
   <ol>
@@ -59,7 +59,7 @@
 ### What is <a referrerpolicy="unsafe-url" target="_blank" href="https://osintbuddy.com">osintbuddy.com</a>?
 
 
-Not much, yet. 
+Not much, yet.
 
 
 But here's the concept:
@@ -75,10 +75,10 @@ An almost incomprehensible amount of data is created every day. And each year, f
 - Grey literature *(technical reports, preprints, patents, business documents, etc)*
 
 
-OSINT is a method of working with, assessing and ranking information — We are living in the [information age](https://en.wikipedia.org/wiki/Information_Age) and the volume of information OSINT research has to deal with *[(information explosion)](https://en.wikipedia.org/wiki/Information_explosion)* and the issue of low quality data leaves researchers drowning. The majority of this data is unstructured introducing many challenges to analyzing it and producing actionable intelligence since most data analytics databases are designed for structured data. We are surrounded by information and nearly none of it is useful. 
+OSINT is a method of working with, assessing and ranking information — We are living in the [information age](https://en.wikipedia.org/wiki/Information_Age) and the volume of information OSINT research has to deal with *[(information explosion)](https://en.wikipedia.org/wiki/Information_explosion)* and the issue of low quality data leaves researchers drowning. The majority of this data is unstructured introducing many challenges to analyzing it and producing actionable intelligence since most data analytics databases are designed for structured data. We are surrounded by information and nearly none of it is useful.
 
 
-I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want all of that information at our fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free software. Built with plain old web technologies anyone can learn. But this isn't really the project. It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent. 
+I've decided to do something about it. The rapid developments in technologies such as AI and big data analytics have opened new horizons for OSINT which weren't previously available. We want all of that information at our fingertips. We want actionable intelligence quickly and to the point, that's why we're building an open-source OSINT tool that's free software. Built with plain old web technologies anyone can learn. But this isn't really the project. It's been three decades since its inception and the internets only proved to be a mirror of us, our society and politics. We face a series of significant challenges that directly threaten democratic values and processes. The question of who owns, designs, and controls technology has never been more urgent.
 
 
 What are the technical frameworks that ensure that a technology is open and equitable; how do we "reconfigure" digital infrastructures to serve positive social transformation rather than corporate interests?s We need your help to design it, to program it, and to build it. Let's hear your suggestions, your ideas, and we're going to be building right in front of your eyes. The notion of a "needle in a haystack" is taken to the extreme on the internet. Let's build a magnet.
@@ -87,9 +87,9 @@ What are the technical frameworks that ensure that a technology is open and equi
 ### ⚠ Project Status
 
 
-> [!CAUTION] 
+> [!CAUTION]
 >
-> **⚠️ Experimental Software (pre-alpha) ⚠️** 
+> **⚠️ Experimental Software (pre-alpha) ⚠️**
 >
 > OSINTBuddy is currently experimental software. It's not quite ready for use *yet*! If you're interested in development you'll need the `plugins` docker service cloned: `git clone https://github.com/osintbuddy/plugins osintbuddy-plugins` to the root of this repo
 
@@ -110,7 +110,7 @@ As is, this project is more of a toy environment that's been useful while protot
 - **Cost-Effective**: Ditch the enterprise pricing, access advanced OSINT capabilities with free open source software.
 - **Open to contributions**.
 - And check out the [open issues](https://github.com/jerlendds/osintbuddy/issues) for a list of requested features (and known bugs).
-
+q
 
 ## ☀ A Vision
 
@@ -155,7 +155,7 @@ Once we iron out a few more bugs and a few more features we intend to setup a gi
 
 ### ✎ Development
 
-This Rust rewrite exists because I got tired of Python and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*. 
+This Rust rewrite exists because I got tired of Python and I decided to rewrite the entire thing to learn Rust. Now it's faster and crashes less *(hopefully)*.
 
 If you want to start developing for OSINTBuddy, create or pick up an [issue](https://github.com/jerlendds/osintbuddy/issues) and follow these steps:
 
@@ -164,7 +164,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    git clone https://github.com/osintbuddy/osintbuddy.git
    cd osintbuddy
    # using ssh?
-   # git clone git@github.com:osintbuddy/osintbuddy.git 
+   # git clone git@github.com:osintbuddy/osintbuddy.git
    ```
 
 2. [**Install Docker & Compose**](https://docs.docker.com/get-started/get-docker/)
@@ -188,12 +188,12 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    cargo install cargo-watch
    cd crates/ && sqlx migrate run && cd ..
    ```
-  
+
 6. **Run OSIB**
    Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
    cargo watch -q -c -w crates/api -x "run -p api"
-   # in another terminal run: 
+   # in another terminal run:
    cargo watch -q -c -w crates/worker -x "run -p worker"
    ```
 
@@ -206,7 +206,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 #### ☠ Shutting down OSIB
 
 - **To stop OSINTBuddy**: `Ctrl+C`/kill the worker and api terminals, then `docker compose down` to clean up.
-- **To delete *all* OSINTBuddy data**: Data removal is an **irreversible** operation!  **DO NOT** run this command if you do not want to lose **all** of your data! To remove all the data stored in your OSINTBuddy server run `docker compose down --volumes`. 
+- **To delete *all* OSINTBuddy data**: Data removal is an **irreversible** operation!  **DO NOT** run this command if you do not want to lose **all** of your data! To remove all the data stored in your OSINTBuddy server run `docker compose down --volumes`.
 
 ---
 
@@ -217,11 +217,11 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 - **Note**: *the [OSINTBuddy PyPi package](https://github.com/jerlendds/osintbuddy-plugins) is MIT licensed. We understand some individuals and businesses may not want to share their custom plugins.*
 
 
-## [↑](#introducing-osintbuddy)☍ Related Projects 
+## [↑](#introducing-osintbuddy)☍ Related Projects
 
 > Empowering investigators & cybersecurity enthusiasts to uncover truths, fight injustice, and create a safer world.
 
-+ https://phantomhelix.com/product/sierra
++ https://phantomhelix.com/product/sierra?ref=osintbuddy.com
 
 + https://phantomhelix.com/download
 
@@ -230,15 +230,19 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 > Start with one lead.
 > Close cases 12x faster with OSINT.
 
-+ https://www.maltego.com/
++ https://www.maltego.com/?ref=osintbuddy.com
 
 ---
 
 > LinkScope allows you to perform online investigations by representing information as discrete pieces of data, called Entities.
 
-+ https://github.com/AccentuSoft/LinkScope_Client
++ https://github.com/AccentuSoft/LinkScope_Client?ref=osintbuddy.com
 
+---
 
+> the first automatically GPU-accelerated platform, harness all of your data without worrying about scale, and pivot on the fly to follow anywhere your investigation leads you. Ideal for everything from security, fraud, and IT investigations to 360° views of customers and supply chains to mapping cancer mutations, Graphistry turns the potential of your data into human insight and value.
+
++ https://www.graphistry.com/?ref=osintbuddy.com
 
 ## [↑](#introducing-osintbuddy)✉ Contact
 
@@ -253,5 +257,3 @@ We are using the [GNU Affero General Public License v3.0](https://choosealicense
 [stars-url]: https://github.com/jerlendds/osintbuddy/stargazers
 [issues-shield]: https://img.shields.io/github/issues/jerlendds/osintbuddy.svg?style=for-the-badge
 [issues-url]: https://github.com/jerlendds/osintbuddy/issues
-
-

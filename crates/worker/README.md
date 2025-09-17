@@ -20,7 +20,7 @@ AMQP‑backed job worker that launches Firecracker microVMs to execute sandboxed
 
 ### What is this?
 
-An async Rust service that consumes jobs and spins up ephemeral Firecracker microVMs to process them. It uses `tokio` and `firecracker-rs-sdk` to configure/start the VM.
+An async Rust service that consumes PostgreSQL jobs and spins up ephemeral Firecracker microVMs to process them *(production)* or the local Python virtual environment *(development)*. It uses `tokio` and `firecracker-rs-sdk` to configure/start the VM.
 
 ### Status
 
