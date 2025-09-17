@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'preact/hooks'
-import { FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
+import { Edge, FitViewOptions, Node, ReactFlowInstance } from '@xyflow/react'
 import { useParams, useLocation, useBlocker } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -12,7 +12,7 @@ import { useTour } from '@reactour/tour'
 import {
   useGraphStore,
   useAuthStore,
-  useGraphFlowStore,
+  useFlowStore,
   useEntitiesStore,
 } from '@/app/store'
 import '@xyflow/react/dist/style.css'
@@ -34,6 +34,7 @@ type ActionTypes =
 interface SocketActions {
   authenticated: (data: any) => void
   read: (data: any) => void
+  update: (data: any) => void
   remove: (data: any) => void
   created: (data: any) => void
   loading: (data: any) => void
@@ -47,20 +48,23 @@ export default function Graphing() {
   const { setIsOpen: setIsTourOpen, setCurrentStep: setCurrentTourStep } =
     useTour()
   const { graph, getGraph, isLoading, isError } = useGraphStore()
-  const { setPlugins } = useEntitiesStore()
+  const { setPlugins, setBlueprints, blueprints } = useEntitiesStore()
   const { access_token } = useAuthStore()
 
   const {
     nodes,
     edges,
-    setNodes,
-    setEdges,
-    addNode,
-    addEdge,
+    setEntities,
+    setRelationships,
+    addEntity,
+    addRelationship,
+    updateEntity,
+    updateRelationship,
     clearGraph,
     setPositionMode,
     positionMode,
-  } = useGraphFlowStore()
+    removeTempRelationshipId,
+  } = useFlowStore()
   const { clearTransforms } = useEntitiesStore()
   // handle initial graph loading
   useEffect(() => {
@@ -123,34 +127,54 @@ export default function Graphing() {
     },
     [graphInstance]
   )
+  const handleNotification = (data: any) => {
+    const notification = data.notification
+    if (notification) {
+      const { message, ...notificationProps } = notification
+      toast.success(notification.message, notificationProps)
+    }
+  }
 
   // Handle any actions the websocket sends
   const socketActions: SocketActions = {
     authenticated: (data) => {
       setPlugins(data.plugins)
+      setBlueprints(data.blueprints)
       sendJsonMessage({ action: 'read:graph' })
       toast.dismiss('connection-lost')
     },
     read: (data) => {
-      setNodes(data.nodes || [])
+      setEntities(data.nodes || [])
       setNodesBeforeLayout(data.nodes || [])
-      setEdges(data.edges || [])
+      setRelationships(data.edges || [])
       setEdgesBeforeLayout(data.edges || [])
       toast.dismiss('graph')
       fitView()
     },
-    remove: () => {},
-    created: (data) => {
-      addNode(data.entity)
+    remove: (data) => {
+      handleNotification(data)
+    },
+    update: (data) => {
+      if (data?.entity) {
+        updateEntity(data.entity.id, data.entity)
+      }
       if (data.edge) {
-        addEdge(data.edge)
-      } else {
+        const { id, ...update } = data.edge
+        updateRelationship(id, update)
       }
-      const notification = data.notification
-      if (notification) {
-        const { message, ...notificationProps } = notification
-        toast.success(notification.message, notificationProps)
+      handleNotification(data)
+    },
+    created: (data) => {
+      const { entity, edge } = data
+      if (entity) addEntity({ ...entity, type: 'edit' })
+      // If server returns authoritative edge with id/source/target, add it immediately
+      if (edge?.id && edge?.source && edge?.target) {
+        addRelationship(edge)
+      } else if (edge?.temp_id && edge?.id) {
+        // Otherwise, remap temp -> id for edges initiated by the client
+        removeTempRelationshipId(edge.temp_id, edge.id)
       }
+      handleNotification(data)
     },
     loading: (data) => {
       const { toastId, type, isLoading, autoClose, ...notification } =
@@ -175,13 +199,13 @@ export default function Graphing() {
     },
     error: (data) => {
       const notification = data.notification
-      if (notification?.toastId) {
+      if (notification?.id) {
         // Update existing loading toast to error
-        toast.update(notification.toastId, {
+        toast.update(notification.id, {
           render: notification.message,
           type: 'error',
           isLoading: false,
-          autoClose: 5000,
+          autoClose: notification.autoClose ?? 5000,
         })
       } else {
         // Create new error toast if no toastId
@@ -196,7 +220,7 @@ export default function Graphing() {
   // TODO: Also implement d3-hierarchy, entitree-flex, dagre, webcola, and graphology layout modes
   //       Once implemented measure performance and deprecate whatever performs worse
   // tree layouts toggle found in top right
-  const elk = new ELK()
+  const elk = useMemo(() => new ELK(), [])
   const useElkLayoutElements = () => {
     const defaultOptions = {
       'elk.algorithm': 'layered',
@@ -231,8 +255,8 @@ export default function Graphing() {
             height: undefined,
           }))
           clearGraph()
-          setNodes(layoutedNodes)
-          setEdges(edges)
+          setEntities(layoutedNodes)
+          setRelationships(edges)
           window.requestAnimationFrame(() => {
             fitView && fitView({ padding: 0.25 })
           })
@@ -253,11 +277,11 @@ export default function Graphing() {
 
   const handlePositionChange = useCallback(() => {
     if (positionMode === 'manual') {
-      setNodes(nodesBeforeLayout)
-      setEdges(edgesBeforeLayout)
+      setEntities(nodesBeforeLayout)
+      setRelationships(edgesBeforeLayout)
     }
     fitView({ duration: 300 })
-  }, [positionMode, setNodes, setEdges])
+  }, [positionMode, setEntities, setRelationships])
 
   useEffect(() => {
     if (positionMode === 'manual') {
@@ -274,8 +298,6 @@ export default function Graphing() {
       </>
       <div className='h-screen w-screen bg-slate-950/40' ref={graphRef}>
         <Graph
-          nodes={nodes}
-          edges={edges}
           graphInstance={graphInstance}
           setGraphInstance={setGraphInstance}
           sendJsonMessage={sendJsonMessage}
@@ -283,6 +305,7 @@ export default function Graphing() {
           graph={graph}
           setElkLayout={setElkLayout}
           fitView={fitView}
+          blueprints={blueprints}
         />
       </div>
     </>

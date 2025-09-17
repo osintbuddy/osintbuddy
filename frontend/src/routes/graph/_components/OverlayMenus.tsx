@@ -2,7 +2,7 @@ import { useState, useMemo } from 'preact/hooks'
 import { Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { PositionMode, useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { PositionMode, useEntitiesStore, useFlowStore } from '@/app/store'
 import { Graph } from '@/app/api'
 import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
@@ -59,11 +59,12 @@ export default function OverlayMenus({
   fitView,
   clearGraph,
   readyState,
+  setShowEdges,
+  showEdges,
 }: OverlayMenusProps) {
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
   const { plugins } = useEntitiesStore()
-
   const filteredPlugins = useMemo(
     () =>
       searchFilter
@@ -115,16 +116,17 @@ export default function OverlayMenus({
     isBounded: true,
   })
 
-  const { setPositionMode } = useGraphFlowStore()
+  const { setPositionMode } = useFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
+
   return (
     <ResponsiveGridLayout
       allowOverlap={false}
       preventCollision={true}
       compactType={null}
-      className='pointer-events-none absolute inset-0 z-10 h-screen w-screen'
-      style={{ width: '100%', height: '100%' }}
+      className='!pointer-events-none absolute inset-0 z-10'
+      style={{ width: '100vw', height: '100vh', display: 'absolute' }}
       rowHeight={4}
       resizeHandles={['se']}
       breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
@@ -160,11 +162,12 @@ export default function OverlayMenus({
             className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
             onClick={() => {
               clearGraph()
-              navigate('/dashboard', { replace: true })
+              navigate(`/dashboard/graph/${graph?.id}`, { replace: true })
             }}
           >
             <Icon icon='home' className='h-6 w-6' />
           </button>
+
           <button
             onClick={() => setIsPositionDraggable(!isPositionsDraggable)}
             className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
@@ -222,6 +225,12 @@ export default function OverlayMenus({
               onClick={() => fitView({ duration: 200 })}
             >
               <Icon icon='viewfinder' className='h-6 w-6' />
+            </button>
+            <button
+              className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
+              onClick={() => setShowEdges(!showEdges)}
+            >
+              <Icon icon='ruler-2-off' className='h-6 w-6' />
             </button>
           </div>
           <button

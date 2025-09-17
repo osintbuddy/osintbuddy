@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/app/store'
 import Button from '@/components/buttons'
-import { HeroBackground } from '@/components/docs/HeroBackground'
+import { HeroBackground } from '@/components/HeroBackground'
 import { Icon } from '@/components/icons'
 import Input from '@/components/inputs'
 import { JSX } from 'preact/jsx-runtime'
@@ -63,7 +63,7 @@ export default function LoginPage(): JSX.Element {
             onSubmit={onLoginSubmit}
             class='grid w-full max-w-2xs gap-y-2 px-2 md:px-0'
           >
-            <Input.Transparent
+            <Input.AltText
               label='Email'
               type='email'
               className='w-full'
@@ -72,7 +72,7 @@ export default function LoginPage(): JSX.Element {
               defaultValue={rememberedEmail}
               required
             />
-            <Input.TransparentPassword
+            <Input.AltPassword
               label='Password'
               className='w-full'
               name='password'

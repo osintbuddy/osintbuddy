@@ -5,19 +5,33 @@ import { Title } from '../elements/Title'
 import { TextArea } from '../elements/TextArea'
 import { Text } from '../elements/Text'
 import { CopyText } from '../elements/CopyText'
-import { memo } from 'preact/compat'
-import { ElementProps } from '@/types/graph'
+import { memo, useState } from 'preact/compat'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+import { NodeInputProps } from '@/types/graph'
 
-// TODO: Fix types
-export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
-  const { label, value, icon } = element
+interface ElementProps {
+  id: string
+  sendJsonMessage: SendJsonMessage
+  element: NodeInputProps
+  key: string
+  data: any
+}
+
+export function Element({
+  id,
+  sendJsonMessage,
+  element,
+  key,
+  data,
+}: ElementProps) {
+  const { label, value, icon, options = [] } = element
   switch (element.type) {
     case 'dropdown':
       return (
         <DropdownInput
           key={key}
           id={id}
-          options={element.options || []}
+          options={options || []}
           label={label}
           value={value}
           sendJsonMessage={sendJsonMessage}
@@ -26,6 +40,7 @@ export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
     case 'text':
       return (
         <TextInput
+          data={data}
           key={key}
           id={id}
           label={label}
@@ -59,6 +74,7 @@ export function Element({ id, sendJsonMessage, element, key }: ElementProps) {
     case 'textarea':
       return (
         <TextArea
+          data={data}
           key={key}
           id={id}
           label={label}

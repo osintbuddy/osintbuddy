@@ -52,7 +52,7 @@ export default function Subpanel({
         onClick={setShow}
       >
         <h2
-          class={`font-display ${show && '!text-slate-350/80'} px-1 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
+          class={`font-display ${show && '!text-slate-350/80'} px-3 text-sm leading-3 font-semibold select-none focus:outline-hidden`}
         >
           {label}
         </h2>
@@ -89,7 +89,7 @@ export default function Subpanel({
         </>
       )}
       <div
-        class={`overflow-y-auto pr-2.5 pl-0.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
+        class={`overflow-y-auto px-1.5 transition-all duration-200 ease-in ${show ? 'h-full opacity-100' : 'h-0 max-h-full'}`}
       >
         {items.map((item) => {
           return (
@@ -108,7 +108,7 @@ export default function Subpanel({
                     >
                       {item.label}
                     </p>
-                    <p class='mb-0.5 line-clamp-3 h-full max-h-8 w-full overflow-clip pr-6 leading-4 wrap-break-word'>
+                    <p class='mb-0.5 line-clamp-3 h-full max-h-12 w-full overflow-clip pr-6 leading-4 wrap-break-word'>
                       {item.description}
                     </p>
                     <p class='mt-1 text-left text-xs leading-none font-light'>

@@ -1,13 +1,12 @@
-[package]
-name = "osib"
-version = "0.3.0"
-authors = ["jerlendds oss@osintbuddy.com"]
-edition = "2024"
+[workspace]
+resolver = "2"
+members = [
+    "crates/worker",
+    "crates/api",
+    "crates/common"    
+]
 
-[lib]
-path = "src/lib.rs"
-
-[dependencies]
+[workspace.dependencies]
 actix-web = "4"
 confik = "0.14"
 sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono", "uuid"] }
@@ -28,8 +27,7 @@ env_logger = "0.11.8"
 log = "0.4.27"
 regex = "1.11.1"
 reqwest = { version = "0.11", features = ["json"] }
-minio = "0.3.0"
-futures-util = "0.3"
+futures-util = "0.3.31"
 tokio = { version = "1.43", features = [
     "net",
     "time",
@@ -39,4 +37,5 @@ tokio = { version = "1.43", features = [
     "rt-multi-thread",
     "full"
 ] }
+actix-limitation = "0.5.1"
 firecracker-rs-sdk = { version = "0.1.0", features = ["_rt-tokio"] }

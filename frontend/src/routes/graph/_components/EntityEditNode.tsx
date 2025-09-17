@@ -16,8 +16,8 @@ import { FixedSizeList as List } from 'react-window'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
 import Element from './Element'
-import { useGraphFlowStore } from '@/app/store'
-
+import { useEntitiesStore, useFlowStore } from '@/app/store'
+import { toSnakeCase } from '../utils'
 const handleStyle = {
   borderColor: '#1C233B',
   background: '#0c0c32',
@@ -26,17 +26,20 @@ const handleStyle = {
   height: 10,
 }
 
-function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
-  const node = ctx.data
+export function EditEntityNode({
+  ctx,
+  sendJsonMessage,
+  blueprint,
+}: JSONObject) {
+  const columnsCount = useMemo(() => {
+    return Math.max(
+      0,
+      ...blueprint.elements.map((e) => {
+        return e?.length === undefined ? 1 : e.length
+      })
+    )
+  }, [blueprint])
 
-  const columnsCount = useMemo(
-    () =>
-      Math.max(
-        0,
-        ...node.elements.map((s) => (s.length === undefined ? 1 : s.length))
-      ),
-    [node.elements]
-  )
   return (
     <>
       <EntityHandles />
@@ -46,24 +49,26 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
           // 99 === 0.6 opacity
           style={{
             backgroundColor:
-              node?.color?.length === 7 ? `${node.color}99` : node?.color,
+              blueprint?.color?.length === 7
+                ? `${blueprint.color}99`
+                : blueprint?.color,
           }}
           className='text-slate-350 flex h-full w-full cursor-grab items-center justify-between rounded-t-md px-1 py-2 active:cursor-grabbing'
         >
           <Icon icon='grip-vertical' class='h-7 w-7' />
           <div className='flex w-full flex-col px-2 font-medium'>
             <p className='whitespace-wrap font-display text-slate-350 flex text-[0.4rem] font-black'>
-              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-extralight text-inherit'>
+              <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-light text-inherit'>
                 ID:
               </span>
-              {ctx.id}
+              {ctx.id.substring(0, 7).toUpperCase()}
             </p>
             <p className='whitespace-wrap font-display max-w-xl text-[0.65rem] font-semibold text-slate-200'>
-              {ctx.data.label}
+              {blueprint.label}
             </p>
           </div>
           <Icon
-            icon={ctx.data.icon}
+            icon={blueprint.icon}
             className='mx-1 h-6 w-6 cursor-grab focus:cursor-grabbing'
           />
         </div>
@@ -75,7 +80,7 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
             gridTemplateColumns: '100%',
           }}
         >
-          {ctx.data.elements.map((element: NodeInput, i: number) => {
+          {blueprint.elements.map((element: NodeInput, i: number) => {
             if (Array.isArray(element)) {
               return (
                 <div
@@ -84,28 +89,39 @@ function EditEntityNode({ ctx, sendJsonMessage }: JSONObject) {
                     columnGap: '0.5rem',
                     gridTemplateColumns: `repeat(${element.length}, minmax(0, 1fr))`,
                   }}
-                  key={i.toString()}
+                  key={i}
                 >
-                  {element.map((elm, i: number) => (
-                    <Fragment key={i.toString()}>
-                      <Element
-                        id={ctx.id}
-                        sendJsonMessage={sendJsonMessage}
-                        element={elm}
-                        key={`${elm.label}-${elm.id}-${ctx.id}`}
-                      />
-                    </Fragment>
-                  ))}
+                  {element.map((elm, i: number) => {
+                    const value = ctx.data[toSnakeCase(elm.label)]
+                    if (value) {
+                      elm.value = value
+                    }
+                    return (
+                      <Fragment key={i}>
+                        <Element
+                          data={ctx.data}
+                          id={ctx.id}
+                          sendJsonMessage={sendJsonMessage}
+                          element={elm}
+                          key={`${elm.label}-${elm.id}-${blueprint.id}`}
+                        />
+                      </Fragment>
+                    )
+                  })}
                 </div>
               )
             }
-
+            const value = ctx.data[toSnakeCase(element.label)]
+            if (value) {
+              element.value = value
+            }
             return (
               <Element
+                data={ctx.data}
                 id={ctx.id}
                 sendJsonMessage={sendJsonMessage}
                 element={element}
-                key={`${element.label}-${element.id}-${ctx.id}`}
+                key={`${element.label}-${element.id}-${blueprint.id}`}
               />
             )
           })}

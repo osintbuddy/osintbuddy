@@ -82,16 +82,16 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div class='flex'>
-        <aside class='relative flex h-screen max-w-80 min-w-80 flex-col items-start overflow-y-clip rounded border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px pt-3.5 shadow-2xl shadow-black/25 backdrop-blur-md'>
-          <Input.TransparentIcon
-            icon={<Icon icon='search' className='relative h-6 w-6' />}
-            onBtnClick={() => console.log('Todo search')}
+      <div class='flex h-full px-3 py-3'>
+        <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
+          <Input.AltIcon
+            icon={<Icon icon='search' className='transparent-icon' />}
+            onBtnClick={() => console.warn('TODO: fix search')}
             type='text'
-            className='mx-2 mb-1.5 w-full'
+            className='relative left-px mb-2.5 w-full'
             placeholder={`Search...`}
           />
-          <div className='relative my-1'>
+          <div className='relative left-0.5'>
             <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
                 to='graph'
@@ -115,11 +115,11 @@ export default function DashboardPage() {
                 Market
               </Link>
               <div
-                class={`${currentPanelTab === 1 ? '!translate-x-[111px]' : currentPanelTab !== 0 ? 'translate-x-[216px]' : 'translate-x-[6px]'} from-primary-350 to-primary-400 border-mirage-400/60 absolute top-0 left-0 z-[0] mr-auto min-h-[35px] min-w-[95px] cursor-pointer rounded border bg-gradient-to-br transition-all duration-200 ease-out`}
+                class={`${currentPanelTab === 1 ? '!translate-x-[108px]' : currentPanelTab !== 0 ? 'translate-x-[213px]' : 'translate-x-[6px]'} from-primary-350 to-primary-400 border-mirage-400/60 absolute top-0 left-0 z-[0] mr-auto min-h-[35px] min-w-[95px] cursor-pointer rounded border bg-gradient-to-br transition-all duration-200 ease-out`}
               />
             </section>
           </div>
-          <div class='relative my-1 flex h-[calc(90%-80px)] w-full flex-col'>
+          <div class='relative my-1 flex h-[calc(92.5%-80px)] w-full flex-col'>
             {currentPanelTab === 0 && (
               <GraphPanel
                 graphsData={{ favorites: graphFavorites, graphs }}
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateGraphModal(true)}
-                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+                  className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create case
                   <Icon icon='chart-dots-3' className='btn-icon !ml-7' />
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 <Button.Ghost
                   variant='primary'
                   onClick={() => setShowCreateEntityModal(true)}
-                  className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+                  className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
                 >
                   Create entity
                   <Icon icon='ghost-3' className='btn-icon !ml-7' />
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           {currentPanelTab === 2 && (
             <Button.Ghost
               variant='primary'
-              className='absolute bottom-4 mx-4 mt-auto w-[calc(100%-2rem)]'
+              className='absolute bottom-3 mx-4 mt-auto w-[calc(100%-2rem)]'
               title='Connect third-party servers providing plugin access'
             >
               Connect server plugins
@@ -280,7 +280,7 @@ function CreateEntityModal({
           </div>
         </section>
         <div class='mt-3 grid w-full grid-cols-1 gap-y-2'>
-          <Input.Transparent
+          <Input.AltText
             placeholder='Your entity name...'
             className='w-full'
             name='label'
@@ -292,7 +292,7 @@ function CreateEntityModal({
             name='description'
             label='Description'
           />
-          <Input.Transparent
+          <Input.AltText
             placeholder='Entity authors name...'
             className='mb-6 w-full'
             name='author'
@@ -352,7 +352,7 @@ export function CreateGraphModal({
     })
       .then((graph) => {
         closeModal()
-        toast.success('Graph created successfully!')
+        toast.success('Your case was created successfully!')
         if (showGuide) {
           navigate(`/graph/${graph.id}`, { state: { showGuide } })
         }
@@ -382,7 +382,7 @@ export function CreateGraphModal({
           </div>
         </section>
         <div class='mt-3 grid w-full grid-cols-1 gap-y-2'>
-          <Input.Transparent
+          <Input.AltText
             name='label'
             label='Label'
             placeholder='Enter a name for your graph...'

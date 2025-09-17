@@ -1,6 +1,7 @@
 import { Icon } from '@/components/icons'
 import { NodeElementProps } from '@/types/graph'
 import { ChangeEvent, memo, useState } from 'preact/compat'
+import { toSnakeCase } from '../utils'
 
 export function TextInput({
   id,
@@ -8,6 +9,7 @@ export function TextInput({
   sendJsonMessage,
   icon,
   value: initValue,
+  data,
 }: NodeElementProps) {
   const [value, setValue] = useState(initValue)
   return (
@@ -20,12 +22,18 @@ export function TextInput({
           <input
             id={`${id}-${label}`}
             type='text'
-            onBlur={() => {
+            onBlur={() =>
               sendJsonMessage({
                 action: 'update:entity',
-                entity: { id: Number(id), [label]: value },
+                entity: {
+                  id,
+                  data: {
+                    ...data,
+                    [toSnakeCase(label)]: value,
+                  },
+                },
               })
-            }}
+            }
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               setValue(event.currentTarget.value)
             }

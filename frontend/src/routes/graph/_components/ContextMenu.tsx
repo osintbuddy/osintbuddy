@@ -1,7 +1,7 @@
 import { Icon } from '@/components/icons'
 import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import Input from '@/components/inputs'
-import { useEntitiesStore, useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useFlowStore } from '@/app/store'
 import { CtxPosition } from '..'
 import { toast } from 'react-toastify'
 
@@ -20,7 +20,7 @@ export default function ContextMenu({
 }: ContextMenuProps) {
   const { transforms, fetchTransforms, isLoadingTransforms } =
     useEntitiesStore()
-  const { removeNode } = useGraphFlowStore()
+  const { removeEntity: removeNode } = useFlowStore()
   const [query, setQuery] = useState('')
 
   const handleCtxMenuIdClick = useCallback(() => {
@@ -61,10 +61,10 @@ export default function ContextMenu({
             <span className='font-display mr-1 font-semibold text-slate-800'>
               ID:{' '}
             </span>
-            {selection?.id ? selection.id : '?!'}
+            {selection?.id ? selection.id.toUpperCase().slice(0, 8) : '?!'}
           </button>
           {selection && (
-            <Input.TransparentIcon
+            <Input.AltIcon
               onChange={(e) => setQuery(e.currentTarget.value)}
               className='h-8 !rounded-none !px-1.5 !py-1 !outline-none'
               icon={<Icon icon='search' className='relative right-0 h-4 w-4' />}
@@ -78,7 +78,7 @@ export default function ContextMenu({
           {transforms[selection?.data?.label] &&
             !isLoadingTransforms &&
             selection?.id && (
-              <div className='border-mirage-950 flex min-h-[115px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
+              <div className='border-mirage-950 cursor flex min-h-[115px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
                 {filteredTransforms.map((transform: any) => (
                   <button
                     key={transform.label}
@@ -115,7 +115,7 @@ export default function ContextMenu({
                 ))}
 
                 {filteredTransforms?.length === 0 && (
-                  <p class='relative px-2 py-1 text-sm text-yellow-500/80'>
+                  <p class='relative px-2 py-1 text-sm text-slate-600'>
                     {selection?.id ? 'No transforms found!' : ''}
                   </p>
                 )}
@@ -137,7 +137,7 @@ export default function ContextMenu({
                 closeMenu()
                 sendJsonMessage({
                   action: 'delete:entity',
-                  entity: { id: Number(selection.id) },
+                  entity: { id: selection.id },
                 })
                 removeNode(selection.id)
               }}

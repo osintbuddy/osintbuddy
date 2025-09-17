@@ -9,11 +9,11 @@ services:
     volumes:
       - ./frontend/:/app/
     ports:
-      - "${FRONTEND_PORT-55173}:5173"
+      - "${FRONTEND_PORT-55173}:55173"
 
   db:
     container_name: "db"
-    image: apache/age
+    image: "postgres:17.6-alpine3.22"
     volumes:
       - "ob-db-data:${PGDATA-/var/lib/postgresql/data/pgdata}"
     env_file:
@@ -21,19 +21,5 @@ services:
     ports:
       - "55432:5432"
 
-  obj:
-    container_name: "obj"
-    command: "server /data"
-    image: quay.io/minio/minio
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: password
-    ports:
-      - 9000:9000
-      - 9001:9001
-    volumes:
-      - ob-obj-data:/data
-
 volumes:
   ob-db-data:
-  ob-obj-data:

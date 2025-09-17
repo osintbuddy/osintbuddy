@@ -18,7 +18,7 @@ export function MarketPanel() {
         to='/dashboard/graph'
         isFavorite={true}
         errorMessage={
-          'The market will be here one day... Follow the project on the forum or on discord to get the latest updates'
+          'The market might be here eventually... Follow the project on discord to get the latest updates'
         }
       />
       <Subpanel
@@ -30,7 +30,9 @@ export function MarketPanel() {
         items={[]}
         onClick={async (hid: string) => null}
         to='/dashboard/graph'
-        errorMessage={'Coming eventually... Stay tuned!'}
+        errorMessage={
+          'The market might be here eventually... Follow the project on discord to get the latest updates'
+        }
       />
     </>
   )
@@ -42,7 +44,7 @@ interface GraphPanelProps {
     favorites: string[]
   }
   isLoading: boolean
-isError: boolean
+  isError: boolean
   isSuccess: boolean
   favoriteGraph: (graphId: string) => void
   unfavoriteGraph: (graphId: string) => void
@@ -111,7 +113,7 @@ export function GraphPanel({
         to='/dashboard/graph'
       />
       <Subpanel
-        label='All graphs'
+        label='All cases'
         showError={isError}
         show={showAllGraphs}
         setShow={() => setShowAllGraphs(!showAllGraphs)}

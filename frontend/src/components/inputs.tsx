@@ -7,7 +7,7 @@ interface FileInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   onBtnClick: Function
 }
 
-export function TransparentFile(props: FileInputProps) {
+export function AltFile(props: FileInputProps) {
   const { onBtnClick, ...inputProps } = props
 
   return (
@@ -35,7 +35,7 @@ interface PasswordInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   label?: string
 }
 
-export function TransparentPassword(props: PasswordInputProps) {
+export function AltPassword(props: PasswordInputProps) {
   const [hidePassword, setHidePassword] = useState<'text' | 'password'>(
     'password'
   )
@@ -87,7 +87,7 @@ interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   label?: string | JSX.Element | undefined
 }
 
-export function Transparent(props: InputProps) {
+export function AltText(props: InputProps) {
   const { className, label, ...inputProps } = props
   return (
     <div className='relative mt-7 flex w-full flex-col'>
@@ -134,7 +134,7 @@ interface IconInputProps extends InputProps {
   onBtnClick?: MouseEventHandler<HTMLButtonElement>
 }
 
-export function TransparentIcon(props: IconInputProps) {
+export function AltIcon(props: IconInputProps) {
   const { className, label, icon, onBtnClick, ...inputProps } = props
 
   return (
@@ -144,7 +144,7 @@ export function TransparentIcon(props: IconInputProps) {
           {label}
         </label>
       )}
-      <div className='relative flex w-full'>
+      <div className='group relative flex w-full'>
         <input
           {...inputProps}
           className={`hover:outline-mirage-400 outline-mirage-500 focus-visible:border-primary text-slate-350 w-64 rounded border-2 border-transparent bg-linear-to-br from-black/35 to-black/10 px-2 py-1 font-sans outline-1 transition-all duration-100 ease-in placeholder:text-slate-800 hover:from-black/35 hover:to-black/20 focus:border-2 focus:bg-black/60 focus-visible:outline-transparent ${className ?? ''}`}
@@ -237,7 +237,7 @@ export function Checkbox(props: InputProps) {
     <div
       className={`text-slate-350 relative flex items-center justify-between ${className ?? ''}`}
     >
-      <label for={label?.toString()} class='text-sm hover:text-slate-300'>
+      <label for={label?.toString()} class='text-sm'>
         {label}
       </label>
       <input
@@ -251,10 +251,10 @@ export function Checkbox(props: InputProps) {
 }
 
 const Input = {
-  TransparentFile,
-  TransparentPassword,
-  Transparent,
-  TransparentIcon,
+  AltFile,
+  AltPassword,
+  AltText,
+  AltIcon,
   Textarea,
   ToggleSwitch,
   Checkbox,

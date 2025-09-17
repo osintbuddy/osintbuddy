@@ -17,20 +17,26 @@ import {
   Panel,
   ReactFlowProps,
   OnReconnect,
+  XYPosition,
+  OnConnectEnd,
+  OnConnect,
+  addEdge,
+  FinalConnectionState,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
-import ViewEntityNode from './EntityViewNode'
+import { ViewEntityNode } from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import FloatingEdge from './FloatingEdge'
-import { useGraphFlowStore } from '@/app/store'
+import { useEntitiesStore, useFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import OverlayMenus from './OverlayMenus'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import { ReadyState } from 'react-use-websocket'
 import { Graph as GraphState } from '@/app/api'
 import { ElkLayoutArguments } from 'elkjs/lib/elk-api'
+import { toSnakeCase } from '../utils'
 
 export interface CtxPosition {
   top: number
@@ -44,9 +50,14 @@ export interface CtxMenu {
   position?: CtxPosition
 }
 
+interface Blueprint {
+  [any: string]: {
+    [any: string]: any
+    value?: string
+  }
+}
+
 interface ProjectGraphProps {
-  nodes: Node[]
-  edges: Edge[]
   graphInstance?: ReactFlowInstance
   setGraphInstance: (value: ReactFlowInstance) => void
   sendJsonMessage: SendJsonMessage
@@ -54,6 +65,7 @@ interface ProjectGraphProps {
   readyState: ReadyState
   graph: GraphState | null
   fitView: (fitViewOptions?: FitViewOptions | undefined) => void
+  blueprints: Blueprint[]
 }
 
 const DBL_CLICK_THRESHOLD = 340
@@ -65,8 +77,6 @@ const viewOptions: FitViewOptions = {
 }
 
 export default function Graph({
-  nodes,
-  edges,
   graphInstance,
   setGraphInstance,
   sendJsonMessage,
@@ -74,18 +84,22 @@ export default function Graph({
   graph,
   setElkLayout,
   fitView,
+  blueprints,
 }: ProjectGraphProps) {
   const {
-    enableEntityEdit,
-    disableEntityEdit,
-    removeEdge,
-    setEdges,
-    onConnect,
-    handleEdgesChange,
-    handleNodesChange,
+    setEntityEdit,
+    setEntityView,
+    removeRelationship,
+    setRelationships,
+    onRelationshipConnect,
+    handleRelationshipsChange,
+    handleEntityChange,
     positionMode,
     clearGraph,
-  } = useGraphFlowStore()
+    nodes,
+    edges,
+  } = useFlowStore()
+
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
 
@@ -93,9 +107,7 @@ export default function Graph({
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
   const onMultiSelectionCtxMenu = useCallback(
-    (event: MouseEvent, nodes: Node[]) => {
-      event.preventDefault()
-    },
+    (event: MouseEvent, _: Node[]) => event.preventDefault(),
     []
   )
 
@@ -156,8 +168,8 @@ export default function Graph({
       const position = graphInstance?.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
-      })
-      const createEntity = { label, position }
+      }) as XYPosition
+      const createEntity = { label, x: position.x, y: position.y }
       createGraphEntity(createEntity).catch((error) => {
         console.error(error)
         toast.error(
@@ -170,19 +182,41 @@ export default function Graph({
 
   const nodeTypes = useMemo(
     () => ({
-      edit: (data: JSONObject) => (
-        <EditEntityNode ctx={data} sendJsonMessage={sendJsonMessage} />
-      ),
-      view: (data: JSONObject) => <ViewEntityNode ctx={data} />,
+      edit: (entity: JSONObject) => {
+        const { label } = entity.data
+        return (
+          <EditEntityNode
+            ctx={entity}
+            blueprint={structuredClone(blueprints[label])}
+            sendJsonMessage={sendJsonMessage}
+          />
+        )
+      },
+      view: (entity: JSONObject) => {
+        const { label } = entity.data
+        return (
+          <ViewEntityNode
+            ctx={entity}
+            blueprint={structuredClone(blueprints[label])}
+          />
+        )
+      },
     }),
-    [sendJsonMessage]
+    [blueprints]
   )
-
+  const [showEdges, setShowEdges] = useState(false)
   const edgeTypes = useMemo(
     () => ({
-      sfloat: FloatingEdge,
+      sfloat: (edge: Edge) => (
+        <FloatingEdge
+          {...edge}
+          showEdges={showEdges}
+          setShowEdges={setShowEdges}
+          sendJsonMessage={sendJsonMessage}
+        />
+      ),
     }),
-    []
+    [showEdges]
   )
 
   const [clickDelta, setClickDelta] = useState(0)
@@ -192,7 +226,7 @@ export default function Graph({
       sendJsonMessage({
         action: 'update:entity',
         entity: {
-          id: Number(node.id),
+          id: node.id,
           x: node.position.x,
           y: node.position.y,
         },
@@ -201,35 +235,43 @@ export default function Graph({
     [sendJsonMessage]
   )
 
-  const onEdgeChange = useCallback(
+  const onEdgesChange = useCallback(
     (changes: any) => {
       // Use the store handler if provided, otherwise fallback to WebSocket
-      handleEdgesChange(changes)
-      sendJsonMessage({
-        action: 'update:edges',
-        changes,
-      })
+      handleRelationshipsChange(changes)
     },
-    [handleEdgesChange]
+    [handleRelationshipsChange, showEdges]
   )
 
   // on double click toggle between entity types
   // (rectangular editable entity vs circlular view entity)
-  const onNodeClick: NodeMouseHandler = (
-    _: TouchEvent | MouseEvent,
-    node: Node
-  ) => {
-    const newDelta = new Date().getTime()
-    setClickDelta(newDelta)
-    // if double click, toggle entity/node type
-    if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
-      if (node.type === 'view') enableEntityEdit(node.id)
-      else disableEntityEdit(node.id)
-    }
-  }
+  const onNodeClick: NodeMouseHandler = useCallback(
+    (_: TouchEvent | MouseEvent, node: Node) => {
+      const newDelta = new Date().getTime()
+      setClickDelta(newDelta)
+      // if double click, toggle entity/node type
+      if (newDelta - clickDelta < DBL_CLICK_THRESHOLD) {
+        if (node.type === 'view') setEntityEdit(node.id)
+        else setEntityView(node.id)
+      }
+    },
+    [clickDelta, setEntityEdit, setEntityView]
+  )
 
+  const onConnect: OnConnect = useCallback((connection) => {
+    onRelationshipConnect(connection)
+    sendJsonMessage({
+      action: 'create:edge',
+      edge: {
+        temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
+        source: connection.source,
+        target: connection.target,
+        data: {},
+      },
+    })
+  }, [])
   // used for handling edge deletions. e.g. when a user
-  // selects and drags  an existing connectionline/edge
+  // selects and drags  an existing connection line/edge
   // to a blank spot on the graph, the edge will be removed
   const edgeReconnectSuccessful = useRef(true)
   const onReconnectStart: ReactFlowProps['onReconnectStart'] =
@@ -239,19 +281,30 @@ export default function Graph({
   const onReconnect: OnReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       edgeReconnectSuccessful.current = true
-      setEdges(reconnectEdge(oldEdge, newConnection, edges))
+      setRelationships(
+        reconnectEdge(oldEdge, newConnection, edges, { shouldReplaceId: false })
+      )
+      const { id, data = {} } = oldEdge
+      const { source, target } = newConnection
       sendJsonMessage({
         action: 'update:edge',
-        oldEdge,
-        newConnection,
+        edge: { id, data, source, target },
       })
     },
-    [setEdges, reconnectEdge, edges, sendJsonMessage]
+    [setRelationships, reconnectEdge, edges, sendJsonMessage]
   )
   const onReconnectEnd: ReactFlowProps['onReconnectEnd'] = useCallback(
-    (_: MouseEvent | TouchEvent, edge: Edge) => {
+    (
+      _: MouseEvent | TouchEvent,
+      edge: Edge,
+      connectionState: FinalConnectionState
+    ) => {
       if (!edgeReconnectSuccessful.current) {
-        removeEdge(edge.id)
+        removeRelationship(edge.id)
+        sendJsonMessage({
+          action: 'delete:edge',
+          edge: { id: edge.id },
+        })
       }
       edgeReconnectSuccessful.current = true
     },
@@ -260,50 +313,56 @@ export default function Graph({
 
   // depending on where the valid entity connection handle is positioned
   // the connecting edges handle  will be either red, green, or the primary color
-  const isValidConnection: IsValidConnection = (connection) =>
-    connection.target !== connection.source
+  const isValidConnection: IsValidConnection = useCallback(
+    (connection) => connection.target !== connection.source,
+    []
+  )
+
+  const onPaneCtxMenu = useCallback(
+    (event) => onNodeContextMenu(event, null),
+    [onNodeContextMenu]
+  )
 
   return (
     <ReactFlow
-      defaultMarkerColor='#3b419eee'
       ref={ref}
-      onlyRenderVisibleElements={true}
-      nodeDragThreshold={2}
-      minZoom={MIN_ZOOM}
-      maxZoom={MAX_ZOOM}
       zoomOnScroll={true}
       zoomOnPinch={true}
       zoomOnDoubleClick={false}
+      minZoom={MIN_ZOOM}
+      maxZoom={MAX_ZOOM}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       nodes={nodes}
       edges={edges}
       onDrop={onDrop}
       onConnect={onConnect}
-      onEdgesChange={onEdgeChange}
-      edgeTypes={edgeTypes}
+      onEdgesChange={onEdgesChange}
       onDragOver={onDragOver}
       isValidConnection={isValidConnection}
       onReconnectStart={onReconnectStart}
       onReconnect={onReconnect}
       onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
-      onNodesChange={handleNodesChange}
+      onNodesChange={handleEntityChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
-      nodeTypes={nodeTypes}
       panActivationKeyCode='Space'
       onMoveStart={() => setCtxMenu(null)}
       onNodeDragStop={onNodeDragStop}
       onPaneClick={onPaneClick}
-      onPaneContextMenu={(event) => onNodeContextMenu(event, null)}
+      onPaneContextMenu={onPaneCtxMenu}
       onNodeContextMenu={onNodeContextMenu}
       onSelectionContextMenu={onMultiSelectionCtxMenu}
       connectionLineComponent={NewConnectionLine}
       elevateNodesOnSelect={true}
       connectionMode={ConnectionMode.Loose}
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
+      defaultMarkerColor='#3b419eee'
+      onlyRenderVisibleElements={false}
     >
       <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
-      <Panel position='top-left'>
+      <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
         <OverlayMenus
           readyState={readyState}
           positionMode={positionMode}

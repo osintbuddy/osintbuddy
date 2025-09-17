@@ -1,0 +1,25 @@
+# Global ignores for Docker build contexts
+.git
+.gitignore
+target
+**/target
+node_modules
+frontend/node_modules
+frontend/dist
+.mypy_cache
+.pytest_cache
+__pycache__
+venv
+.venv
+.sqlx
+.vscode
+*.log
+*.tmp
+*.swp
+*.swo
+rootfs.ext4
+vmlinux.bin
+vm_config.json
+id_rsa*
+*.pem
+*.key

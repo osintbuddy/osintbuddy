@@ -1,12 +1,14 @@
 import { Icon } from '@/components/icons'
 import { NodeElementProps } from '@/types/graph'
 import { memo, useState } from 'preact/compat'
+import { toSnakeCase } from '../utils'
 
 export function TextArea({
   id,
   label,
   sendJsonMessage,
   value: initValue,
+  data,
 }: NodeElementProps) {
   const [value, setValue] = useState(initValue)
   const [showMonospace, setShowMonospace] = useState(true)
@@ -34,7 +36,13 @@ export function TextArea({
           onBlur={() => {
             sendJsonMessage({
               action: 'update:entity',
-              entity: { id: Number(id), [label]: value },
+              entity: {
+                id: id,
+                data: {
+                  ...data,
+                  [toSnakeCase(label)]: value,
+                },
+              },
             })
           }}
         />

@@ -1,10 +1,10 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import '../../../node_modules/react-grid-layout/css/styles.css';
 @import '../../../node_modules/@xyflow/react/dist/style.css';
 @import './fonts.css';
 @import './nodes.css';
 @import './loaders.css';
+@plugin "@tailwindcss/typography";
 
 @custom-variant theme-matrix {  &:where([data-theme="matrix"] *) {    @slot;  }}
 @custom-variant theme-blueprint {  &:where([data-theme="blueprint"] *) {    @slot;  }}
@@ -12,9 +12,15 @@
 
 @theme {
   --font-sans: "Lato";
-  --font-display: "Onest";
+  --font-display: "Poppins";
+  /* TODO: Vendor the google fonts in index.html once I figure out what Im sticking with */
+  /* TODO: Saira looks nice, still need to experiment more with font pairings that fit this app */
+  --font-art: "Nata Sans";
   --font-code: "Fira Code", "monospace";
   --color-x: #25295f;
+
+ --animate-wiggle: wiggle 600ms ease-in-out;
+ --animate-wiggle-8: wiggle 750ms ease-in-out infinite;
 
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
@@ -57,7 +63,7 @@
   --color-mirage-700: #111523;
   --color-mirage-800: #0F1320;
   --color-mirage-900: #0D111C;
-  --color-mirage-950: #0D101A;
+  --color-mirage-950: #0e111b;
 
   --color-gray-50: #3D3D3D;
   --color-gray-100: #383838;
@@ -135,6 +141,14 @@
   --color-cod-950: #02020c;
 }
 
+@keyframes wiggle {
+    0% { transform: rotate(0deg); }
+   80% { transform: rotate(0deg); }
+   85% { transform: rotate(7deg); }
+   95% { transform: rotate(-7deg); }
+  100% { transform: rotate(0deg); }
+}
+
 /* TODO: Improve me... this gradient and grid background is such a pain
 in the ass to make look nice, maybe animate some other bg for landing page,
 or improve colors, idk, I  */
@@ -170,8 +184,8 @@ html {
 
 body {
   background-image:
-    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.062) 0%, rgba(1, 11, 39, 0.055) 100%),
-    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 15, 0.322) 1%, rgba(4, 0, 22, 0.035) 99%),
+    radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.0) 0%, rgba(1, 11, 39, 0.155) 100%),
+    radial-gradient(113% 91% at 17% -2%, rgba(2, 1, 15, 0.0) 1%, rgba(4, 0, 22, 0.035) 99%),
     radial-gradient(142% 91% at 83% 7%, hsla(251, 98%, 40%, 0.11) 1%, rgba(0, 1, 14, 0.205) 99%),
     radial-gradient(142% 91% at -6% 74%, rgba(150, 5, 179, 0.192) 1%, rgba(0, 80, 253, 0.219) 99%),
     radial-gradient(142% 91% at 111% 84%, rgba(0, 0, 0, 0.158) 25%, rgba(0, 8, 116, 0.151) 95%);
@@ -179,13 +193,22 @@ body {
 }
 
 .btn-icon {
-  @apply ml-3 w-5 h-5 group-hover:!scale-105 ease-out transition-all duration-75
+  @apply ml-3 w-5 h-5  ease-out transition-all duration-75 group-hover:animate-wiggle
 }
+
+.transparent-icon {
+  @apply group-hover:text-primary-350 group-focus-within:group-hover:text-primary-400 group-focus-within:text-primary-400 group-active:text-primary-400 relative right-4 h-6 w-6
+}
+
+.link {
+  @apply border-b-primary-300 text-slate-350 inline-flex h-[11px] border-b-3 hover:border-b-5 leading-0 font-medium transition-all duration-100 ease-in-out hover:text-slate-200
+}
+
 
 ::-moz-selection,
 ::selection {
-  color: var(--color-teal-200);
-  background-color:  color-mix(in srgb, var(--color-teal-400) 15%, transparent);
+  color: var(--color-slate-50);
+  background-color:  color-mix(in srgb, var(--color-radiance-700) 80%, transparent);
   opacity: .1
 }
 
@@ -347,12 +370,8 @@ input[type='number'] {
 
   --xy-background-color-props: #0d101a91;
 }
-.react-flow__panel {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  margin: 0px;
-}
+
+
 .react-flow__edge .react-flow__edge-path {
   stroke: #373c83 !important;
   stroke-width: 2;
