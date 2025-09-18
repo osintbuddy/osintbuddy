@@ -1,20 +1,25 @@
 import { memo, useState } from 'preact/compat'
 import { Icon } from '@/components/icons'
-import { HTMLFileEvent } from '@/types/graph'
+
+export interface HTMLFileEvent extends Event {
+  target: HTMLInputElement & EventTarget
+}
+
+interface FileInputProps {
+  id: string
+  label: string
+  value: string
+  sendJsonMessage: (data: any) => void
+  icon?: any
+}
 
 export function UploadFileInput({
   id,
-  initialValue,
+  value: initialValue,
   label,
   sendJsonMessage,
   icon,
-}: {
-  nodeId: string
-  label: string
-  initialValue: string
-  sendJsonMessage: Function
-  icon?: any
-}) {
+}: FileInputProps) {
   const [value, setValue] = useState<File>(initialValue as any)
 
   const updateValue = (event: HTMLFileEvent) => {

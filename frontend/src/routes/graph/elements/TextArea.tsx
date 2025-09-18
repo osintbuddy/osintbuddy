@@ -1,7 +1,14 @@
 import { Icon } from '@/components/icons'
-import { NodeElementProps } from '@/types/graph'
 import { memo, useState } from 'preact/compat'
 import { toSnakeCase } from '../utils'
+
+interface TextAreaElement {
+  id: string
+  label: string
+  sendJsonMessage: (data: JSONObject) => void
+  value: string
+  data: any
+}
 
 export function TextArea({
   id,
@@ -9,7 +16,7 @@ export function TextArea({
   sendJsonMessage,
   value: initValue,
   data,
-}: NodeElementProps) {
+}: TextAreaElement) {
   const [value, setValue] = useState(initValue)
   const [showMonospace, setShowMonospace] = useState(true)
 

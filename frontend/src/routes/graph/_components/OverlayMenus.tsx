@@ -162,7 +162,7 @@ export default function OverlayMenus({
             className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
             onClick={() => {
               clearGraph()
-              navigate(`/dashboard/graph/${graph?.id}`, { replace: true })
+              navigate(`/dashboard/case/${graph?.id}`, { replace: true })
             }}
           >
             <Icon icon='home' className='h-6 w-6' />
@@ -341,7 +341,7 @@ export default function OverlayMenus({
             <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
               <Link
                 className='font-display flex w-full items-center justify-between font-medium text-slate-500'
-                to='/dashboard/entity'
+                to='/dashboard/entities'
                 replace
               >
                 <Icon icon='ghost-3 ' />

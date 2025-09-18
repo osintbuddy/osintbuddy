@@ -77,7 +77,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '',
-            element: <Navigate to='graph' replace />,
+            element: <Navigate to='cases' replace />,
           },
           {
             path: 'market',
@@ -88,7 +88,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'graph',
+            path: 'cases',
             element: (
               <Suspense fallback={<RoundLoader />}>
                 <GraphOverview />
@@ -96,7 +96,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'graph/:hid',
+            path: 'case/:hid',
             element: (
               <Suspense fallback={<RoundLoader />}>
                 <GraphDetails />
@@ -104,7 +104,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: 'entity',
+            path: 'entities',
             element: (
               <Suspense fallback={<RoundLoader />}>
                 <EntitiesOverview />
@@ -140,7 +140,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: 'graph/',
+    path: 'flow/',
     element: (
       <Suspense fallback={<RoundLoader />}>
         <GraphLayout />

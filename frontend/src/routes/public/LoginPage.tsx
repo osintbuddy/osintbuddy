@@ -42,7 +42,7 @@ export default function LoginPage(): JSX.Element {
           // from is used when a user previously tried to visit an app
           // page without being signed in so we direct them to that page after sign in
           if (from) navigate(from, { replace: true })
-          else navigate('/dashboard/graph', { replace: true })
+          else navigate('/dashboard/cases', { replace: true })
         })
         .catch((err) => toast.error(err.message))
     }

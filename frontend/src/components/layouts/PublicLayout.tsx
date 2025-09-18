@@ -85,7 +85,7 @@ function PublicNavbar(): JSX.Element {
         <Button.Solid
           variant='primary'
           className='!font-code !font-bold'
-          onClick={() => navigate('/dashboard/graph')}
+          onClick={() => navigate('/dashboard/cases')}
         >
           OSIB://ACCESS
           <Icon icon='folder-open' className='btn-icon' />

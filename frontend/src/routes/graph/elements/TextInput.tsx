@@ -3,6 +3,15 @@ import { NodeElementProps } from '@/types/graph'
 import { ChangeEvent, memo, useState } from 'preact/compat'
 import { toSnakeCase } from '../utils'
 
+interface TextInputProps {
+  id: string
+  label: string
+  sendJsonMessage: (data: any) => void
+  icon: string
+  value: string
+  data: any
+}
+
 export function TextInput({
   id,
   label,
@@ -10,7 +19,7 @@ export function TextInput({
   icon,
   value: initValue,
   data,
-}: NodeElementProps) {
+}: TextInputProps) {
   const [value, setValue] = useState(initValue)
   return (
     <>

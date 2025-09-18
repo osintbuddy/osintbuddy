@@ -1,11 +1,7 @@
 import { CSSProperties } from 'preact/compat'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
-interface DropdownOptionProps {
-  label: string
-  tooltip: string
-  value: string
-}
+
 
 type NodeTypes =
   | 'dropdown'
@@ -44,6 +40,4 @@ interface TextElement {
   icon?: string
 }
 
-interface HTMLFileEvent extends Event {
-  target: HTMLInputElement & EventTarget
-}
+

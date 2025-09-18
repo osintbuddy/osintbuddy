@@ -48,7 +48,7 @@ function GraphHeader({ graph }: GraphHeaderProps) {
   const handleDeleteGraph = async () => {
     if (!graph?.id) return
     await deleteGraph({ id: graph.id })
-    navigate('/dashboard/graph', { replace: true })
+    navigate('/dashboard/case', { replace: true })
   }
 
   return (
@@ -105,7 +105,7 @@ function GraphHeader({ graph }: GraphHeaderProps) {
 
             <ActionButton
               title='View and edit the flow graph'
-              onClick={() => navigate(`/graph/${graph?.id}`, { replace: true })}
+              onClick={() => navigate(`/flow/${graph?.id}`, { replace: true })}
               label='Flow view'
               icon='chart-dots-3'
             />

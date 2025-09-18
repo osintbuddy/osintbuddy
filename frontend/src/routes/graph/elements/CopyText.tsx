@@ -1,9 +1,14 @@
 import { Icon } from '@/components/icons'
-import { NodeElementProps } from '@/types/graph'
 import { memo } from 'preact/compat'
 import { toast } from 'react-toastify'
 
-export function CopyText({ id, label, value }: NodeElementProps) {
+interface CopyTextProps {
+  id: string
+  label: string
+  value: string
+}
+
+export function CopyText({ id, label, value }: CopyTextProps) {
   return (
     <div
       onClick={() => {

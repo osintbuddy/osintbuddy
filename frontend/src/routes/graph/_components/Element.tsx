@@ -33,7 +33,7 @@ export function Element({
           id={id}
           options={options || []}
           label={label}
-          value={value}
+          value={value ?? ''}
           data={data}
           sendJsonMessage={sendJsonMessage}
         />
@@ -45,7 +45,7 @@ export function Element({
           key={key}
           id={id}
           label={label}
-          value={value}
+          value={value ?? ''}
           icon={icon ?? 'ballpen'}
           sendJsonMessage={sendJsonMessage}
         />
@@ -56,7 +56,7 @@ export function Element({
           key={key}
           id={id}
           label={label}
-          initialValue={value || ''}
+          value={value ?? ''}
           icon={icon ?? 'file-upload'}
           sendJsonMessage={sendJsonMessage}
         />

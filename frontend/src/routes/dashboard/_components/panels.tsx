@@ -15,7 +15,7 @@ export function MarketPanel() {
         isLoading={false}
         items={[]}
         onClick={async (hid: string) => null}
-        to='/dashboard/graph'
+        to='/dashboard/case'
         isFavorite={true}
         errorMessage={
           'The market might be here eventually... Follow the project on discord to get the latest updates'
@@ -29,7 +29,7 @@ export function MarketPanel() {
         isLoading={false}
         items={[]}
         onClick={async (hid: string) => null}
-        to='/dashboard/graph'
+        to='/dashboard/case'
         errorMessage={
           'The market might be here eventually... Follow the project on discord to get the latest updates'
         }
@@ -102,7 +102,7 @@ export function GraphPanel({
   return (
     <>
       <Subpanel
-        label='Favorites'
+        label='Watchlist'
         showError={isError}
         show={showFavoriteGraphs}
         setShow={() => setShowFavoriteGraphs(!showFavoriteGraphs)}
@@ -110,7 +110,7 @@ export function GraphPanel({
         items={favoriteGraphs}
         onClick={async (hid) => await updateFavorites(hid)}
         isFavorite={true}
-        to='/dashboard/graph'
+        to='/dashboard/case'
       />
       <Subpanel
         label='All cases'
@@ -120,7 +120,7 @@ export function GraphPanel({
         isLoading={isLoading}
         items={graphs}
         onClick={async (hid) => await updateFavorites(hid)}
-        to='/dashboard/graph'
+        to='/dashboard/case'
       />
     </>
   )
@@ -201,7 +201,7 @@ export function EntitiesPanel({
         isLoading={isLoading}
         items={favoriteEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
-        to='/dashboard/entity'
+        to='/dashboard/entities'
         isFavorite={true}
       />
       <Subpanel
@@ -212,7 +212,7 @@ export function EntitiesPanel({
         isLoading={isLoading}
         items={sortedEntities}
         onClick={async (hid) => await updateEntityFavorites(hid)}
-        to='/dashboard/entity'
+        to='/dashboard/entities'
       />
     </>
   )

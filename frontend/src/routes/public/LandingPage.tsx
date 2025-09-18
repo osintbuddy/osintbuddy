@@ -42,7 +42,7 @@ export default function LandingPage(): JSX.Element {
               {isAuthenticated ? (
                 <Button.Solid
                   variant='primary'
-                  onClick={() => navigate('/dashboard/graph')}
+                  onClick={() => navigate('/dashboard/cases')}
                 >
                   Launch OSINTBuddy
                   <Icon icon='rocket' className='btn-icon' />

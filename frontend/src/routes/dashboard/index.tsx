@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   // Determine current tab based on route
   const getCurrentTab = () => {
-    if (location.pathname.includes('/entity')) return 1
+    if (location.pathname.includes('/entities')) return 1
     if (location.pathname.includes('/market')) return 2
     return 0 // default to graphs
   }
@@ -85,23 +85,28 @@ export default function DashboardPage() {
       <div class='flex h-full px-3 py-3'>
         <aside class='relative flex max-w-80 min-w-80 shrink flex-col items-start overflow-y-clip rounded-md border-r-3 border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
           <Input.AltIcon
-            icon={<Icon icon='search' className='transparent-icon' />}
+            icon={
+              <Icon
+                icon='search'
+                className='-left-2 h-6 w-6 text-slate-800 transition duration-300 ease-in-out hover:text-slate-600'
+              />
+            }
             onBtnClick={() => console.warn('TODO: fix search')}
             type='text'
             className='relative left-px mb-2.5 w-full'
             placeholder={`Search...`}
           />
-          <div className='relative left-0.5'>
+          <div className='relative left-0.75'>
             <section class='font-display flex shrink items-center justify-between rounded pb-1 font-semibold *:text-slate-600 *:hover:text-slate-500 *:aria-selected:text-slate-200/95'>
               <Link
-                to='graph'
+                to='cases'
                 class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 0}
               >
                 Cases
               </Link>
               <Link
-                to='entity'
+                to='entities'
                 class='z-10 flex h-8.5 min-w-[6.5rem] cursor-pointer items-center justify-center rounded text-sm leading-none text-inherit outline-hidden select-none focus:text-slate-500 focus:outline-hidden'
                 aria-selected={currentPanelTab === 1}
               >

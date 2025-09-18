@@ -1,5 +1,5 @@
 import { Icon } from '@/components/icons'
-import { DropdownOptionProps, NodeElementProps } from '@/types/graph'
+
 import { toSnakeCase } from '../utils'
 import { useReactFlow } from '@xyflow/react'
 import {
@@ -12,6 +12,20 @@ import {
   useState,
 } from 'preact/compat'
 
+interface DropdownInputProps {
+  options: DropdownOptionProps[]
+  label: string
+  id: string
+  sendJsonMessage: (data: any) => void
+  value: string
+  data: any
+}
+interface DropdownOptionProps {
+  label: string
+  tooltip: string
+  value: string
+}
+
 export function DropdownInput({
   options = [],
   label,
@@ -19,7 +33,7 @@ export function DropdownInput({
   sendJsonMessage,
   value,
   data,
-}: NodeElementProps) {
+}: DropdownInputProps) {
   const [query, setQuery] = useState('')
   const [displayValue, setDisplayValue] = useState('')
   const [isOpen, setIsOpen] = useState(false)
