@@ -64,6 +64,8 @@ export default function Graphing() {
     setPositionMode,
     positionMode,
     removeTempRelationshipId,
+    addEntities,
+    addRelationships,
   } = useFlowStore()
   const { clearTransforms } = useEntitiesStore()
   // handle initial graph loading
@@ -165,7 +167,7 @@ export default function Graphing() {
       handleNotification(data)
     },
     created: (data) => {
-      const { entity, edge } = data
+      const { entity, edge, entities, edges } = data
       if (entity) addEntity({ ...entity, type: 'edit' })
       // If server returns authoritative edge with id/source/target, add it immediately
       if (edge?.id && edge?.source && edge?.target) {
@@ -174,6 +176,8 @@ export default function Graphing() {
         // Otherwise, remap temp -> id for edges initiated by the client
         removeTempRelationshipId(edge.temp_id, edge.id)
       }
+      if (entities) addEntities(entities)
+      if (edges) addRelationships(edges)
       handleNotification(data)
     },
     loading: (data) => {

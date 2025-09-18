@@ -1,5 +1,6 @@
 import { Icon } from '@/components/icons'
 import { DropdownOptionProps, NodeElementProps } from '@/types/graph'
+import { toSnakeCase } from '../utils'
 import { useReactFlow } from '@xyflow/react'
 import {
   ChangeEvent,
@@ -17,6 +18,7 @@ export function DropdownInput({
   id,
   sendJsonMessage,
   value,
+  data,
 }: NodeElementProps) {
   const [query, setQuery] = useState('')
   const [displayValue, setDisplayValue] = useState('')
@@ -45,9 +47,7 @@ export function DropdownInput({
     (option) => option.value === value || option.label === value
   )
 
-  const { updateNodeData, getNode } = useReactFlow()
-  const wtf = getNode(id)
-  const elements: any[] = []
+  const { updateNodeData } = useReactFlow()
   const selectOption = useCallback(
     (option: DropdownOptionProps) => {
       const optionValue =
@@ -56,31 +56,21 @@ export function DropdownInput({
       setActiveIndex(-1)
       setQuery('')
       setDisplayValue(option.label)
-
-      const newElements = elements.map((elm) => {
-        if (Array.isArray(elm)) {
-          return elm.map((e) => {
-            if (e.label === label) e.value = optionValue
-            return e
-          })
-        } else {
-          if (elm.label === label) elm.value = optionValue
-          return elm
-        }
-      })
-
-      updateNodeData(id, {
-        elements: newElements,
-      })
+      const key = toSnakeCase(label)
+      // Update local node data so UI reflects the change immediately
+      updateNodeData(id, { [key]: optionValue })
       sendJsonMessage({
         action: 'update:entity',
         entity: {
           id: id,
-          [label]: optionValue,
+          data: {
+            ...(data || {}),
+            [key]: optionValue,
+          },
         },
       })
     },
-    [elements, label, id, updateNodeData, sendJsonMessage]
+    [label, id, updateNodeData, sendJsonMessage, data]
   )
 
   const handleKeyDown = useCallback(

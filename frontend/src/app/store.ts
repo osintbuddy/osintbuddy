@@ -565,7 +565,9 @@ export interface FlowState {
   setEntities: (nodes: Node[]) => void
   setRelationships: (edges: Edge[]) => void
   addEntity: (node: Node) => void
+  addEntities: (node: Node[]) => void
   addRelationship: (edge: Edge) => void
+  addRelationships: (edge: Edge[]) => void
   removeRelationship: (id: Edge['id']) => void
   removeEntity: (nodeId: string) => void
   updateEntity: (nodeId: string, updates: Partial<Node>) => void
@@ -597,6 +599,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   // start (relationship/reactflow edge) logic
   setRelationships: (edges) => set({ edges }),
   addRelationship: (edge) => set({ edges: [...get().edges, edge] }),
+  addRelationships: (edges) => set({ edges: [...get().edges, ...edges] }),
   removeTempRelationshipId: (fromId: string, toId: string) =>
     set({
       // remap reactflow generated edge id -> authoritative UUID from server
@@ -635,6 +638,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   // start (entity/reactflow node) logic
   setEntities: (nodes) => set({ nodes }),
   addEntity: (node) => set({ nodes: [...get().nodes, node] }),
+  addEntities: (nodes) => set({ nodes: [...get().nodes, ...nodes] }),
   updateEntity: (nodeId, updates) =>
     set({
       nodes: get().nodes.map((node) =>

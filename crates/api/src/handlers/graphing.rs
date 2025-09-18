@@ -991,6 +991,9 @@ async fn persist_transform_outputs(
         (0.0_f64, 0.0_f64)
     };
 
+    let mut ui_entities: Vec<Value> = vec![];
+    let mut ui_edges: Vec<Value> = vec![];
+
     for (i, mut item) in items.into_iter().enumerate() {
         // Determine label and copy remaining fields as data
         let label_s = item
@@ -1001,11 +1004,14 @@ async fn persist_transform_outputs(
 
         // Build entity document
         let entity_id = Uuid::new_v4();
+        // Arrange entities in rows of 4: increment X across, then Y down by 200.
+        let step_x = 460.0_f64;
+        let step_y = 260.0_f64;
+        let col = (i % 4) as f64;
+        let row = (i / 4) as f64;
         let pos = json!({
-            // Place transform results one full step to the right of the source
-            // to avoid overlap, and keep Y aligned with the source.
-            "x": base_x + ((i as f64 + 1.0) * 420.0),
-            "y": base_y,
+            "x": base_x + ((col + 1.0) * step_x),
+            "y": base_y + (row * step_y),
         });
 
         // Remove non-data fields
@@ -1071,33 +1077,22 @@ async fn persist_transform_outputs(
         if let Some(obj) = ui_entity.as_object_mut() {
             obj.insert("type".to_string(), json!("edit"));
         }
-        let _ = session
-            .text(
-                json!({
-                    "action": "created",
-                    "notification": {"shouldClose": true, "message": "Transform completed successfully."},
-                    "entity": ui_entity
-                })
-                .to_string(),
-            )
-            .await;
-
+        ui_entities.push(ui_entity);
+        ui_edges.push(json!({
+            "id": edge_id,
+            "source": src_id,
+            "target": entity_id,
+            "data": { "label": edge_label, "type": "sfloat" },
+            "type": "sfloat"
+        }));
         // Immediately inform UI about the new edge so it appears without a refresh
-        let _ = session
-            .text(
-                json!({
-                    "action": "created",
-                    "edge": {
-                        "id": edge_id,
-                        "source": src_id,
-                        "target": entity_id,
-                        "data": { "label": edge_label, "type": "sfloat" },
-                        "type": "sfloat"
-                    }
-                })
-                .to_string(),
-            )
-            .await;
     }
+    let message = json!({
+        "action": "created",
+        "notification": {"shouldClose": true, "message": "Transform completed successfully."},
+        "entities": ui_entities,
+        "edges": ui_edges,
+    });
+    let _ = session.text(message.to_string()).await;
     Ok(())
 }

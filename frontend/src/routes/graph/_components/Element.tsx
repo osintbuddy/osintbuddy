@@ -5,7 +5,7 @@ import { Title } from '../elements/Title'
 import { TextArea } from '../elements/TextArea'
 import { Text } from '../elements/Text'
 import { CopyText } from '../elements/CopyText'
-import { memo, useState } from 'preact/compat'
+import { memo } from 'preact/compat'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import { NodeInputProps } from '@/types/graph'
 
@@ -34,6 +34,7 @@ export function Element({
           options={options || []}
           label={label}
           value={value}
+          data={data}
           sendJsonMessage={sendJsonMessage}
         />
       )

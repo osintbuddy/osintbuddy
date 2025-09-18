@@ -2,6 +2,7 @@ import { Icon } from '@/components/icons'
 import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import Input from '@/components/inputs'
 import { useEntitiesStore, useFlowStore } from '@/app/store'
+import { toSnakeCase } from '../utils'
 import { CtxPosition } from '..'
 import { toast } from 'react-toastify'
 
@@ -44,7 +45,7 @@ export default function ContextMenu({
   useEffect(() => {
     if (selection?.data?.label) fetchTransforms(selection.data.label)
   }, [selection?.data?.label, fetchTransforms])
-
+  console.log('selectiond atas?!?!?!', selection)
   return (
     <>
       <div
@@ -85,16 +86,46 @@ export default function ContextMenu({
                     onClick={(e) => {
                       e.preventDefault()
                       closeMenu()
-                      sendJsonMessage({
+                      // Build a clean data payload for the backend.
+                      // 1) Start from node.data
+                      const rawData = { ...(selection?.data || {}) }
+                      // 2) Remove UI-only fields
+                      if ('elements' in rawData)
+                        delete (rawData as any).elements
+                      // 3) Migrate any stray top-level fields into data (e.g. "CSE Categories")
+                      const knownTop = new Set([
+                        'id',
+                        'data',
+                        'type',
+                        'position',
+                        'measured',
+                        'selected',
+                        'dragging',
+                        'width',
+                        'height',
+                        'zIndex',
+                        'sourcePosition',
+                        'targetPosition',
+                        'style',
+                      ])
+                      Object.keys(selection || {}).forEach((k) => {
+                        if (!knownTop.has(k) && selection[k] != null) {
+                          const key = toSnakeCase(k)
+                          if (rawData[key] == null) rawData[key] = selection[k]
+                        }
+                      })
+                      const payload = {
                         action: 'transform:entity',
                         entity: {
                           id: selection.id,
                           type: selection.data?.label,
-                          data: selection.data,
+                          data: rawData,
                           position: selection.position,
                           transform: transform.label,
                         },
-                      })
+                      }
+                      console.log('transform sending', selection, payload)
+                      sendJsonMessage(payload)
                       toast.loading(
                         `Transforming ${transform.label.toLowerCase()}. Please wait...`,
                         {
