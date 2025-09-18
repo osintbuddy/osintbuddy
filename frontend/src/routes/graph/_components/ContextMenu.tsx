@@ -5,6 +5,7 @@ import { useEntitiesStore, useFlowStore } from '@/app/store'
 import { toSnakeCase } from '../utils'
 import { CtxPosition } from '..'
 import { toast } from 'react-toastify'
+import ShinyText from '@/components/ShinyText'
 
 export interface ContextMenuProps {
   closeMenu: () => void
@@ -153,8 +154,10 @@ export default function ContextMenu({
             )}
           {isLoadingTransforms && (
             <div class='flex min-h-[115px] flex-col'>
-              <p class='relative flex w-full px-2 py-1 text-sm text-slate-600'>
-                Loading transforms
+              <p class='relative flex w-full px-2 py-1'>
+                <ShinyText className='text-sm tracking-wide text-slate-600'>
+                  Loading transforms
+                </ShinyText>
                 <span class='dot-flashing top-3.5 left-2' />
               </p>
             </div>

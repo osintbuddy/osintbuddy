@@ -22,6 +22,13 @@
  --animate-wiggle: wiggle 600ms ease-in-out;
  --animate-wiggle-8: wiggle 750ms ease-in-out infinite;
 
+  --animate-shine: shine var(--shine-speed, 1000ms) linear infinite;
+
+  @keyframes shine {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
   --color-primary-100: #5460FF;
@@ -253,7 +260,7 @@ input[data-autocompleted] {
   scrollbar-color: #0c092754 #0405115d;
 }
 @supports (not (-moz-appearance:button)) and (contain:paint) and (-webkit-appearance:none){
-  /* ugh,  failed web standards, this targets the shitty chrome browser - https://stackoverflow.com/a/73264364 */
+  /* ugh,  failed web standards, this targets the chrome browser - https://stackoverflow.com/a/73264364 */
   * {
     scrollbar-width: thin;
   }
@@ -445,4 +452,20 @@ input[type='number'] {
   width: 8px;
 }
 /* end react-grid-layout and codemirror */
-
+/* Shiny text, usually used as loading indication */
+.text-shiny {
+  background: linear-gradient(90deg, #9aa0a6, #e5e7eb, #9aa0a6);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shine var(--shine-speed,5s) linear infinite;
+}
+.text-shiny.disabled {
+  animation: none;
+  background: none;
+  color: #a3a3a3;
+  -webkit-text-fill-color: currentColor;
+}
+/* Shiny text, usually used as loading indication */
