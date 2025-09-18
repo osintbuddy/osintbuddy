@@ -64,6 +64,8 @@ export default function Graphing() {
     setPositionMode,
     positionMode,
     removeTempRelationshipId,
+    addEntities,
+    addRelationships,
   } = useFlowStore()
   const { clearTransforms } = useEntitiesStore()
   // handle initial graph loading
@@ -129,9 +131,20 @@ export default function Graphing() {
   )
   const handleNotification = (data: any) => {
     const notification = data.notification
+    console.log('notification', notification)
     if (notification) {
-      const { message, ...notificationProps } = notification
-      toast.success(notification.message, notificationProps)
+      const { message, isLoading, toastId, ...notificationProps } = notification
+      if (toastId) {
+        toast.update(toastId, {
+          render: notification.message,
+          type: 'success',
+          isLoading: false,
+          autoClose: 5000,
+          ...notification,
+        })
+      } else {
+        toast.success(notification.message, notificationProps)
+      }
     }
   }
 
@@ -165,7 +178,7 @@ export default function Graphing() {
       handleNotification(data)
     },
     created: (data) => {
-      const { entity, edge } = data
+      const { entity, edge, entities, edges } = data
       if (entity) addEntity({ ...entity, type: 'edit' })
       // If server returns authoritative edge with id/source/target, add it immediately
       if (edge?.id && edge?.source && edge?.target) {
@@ -174,6 +187,8 @@ export default function Graphing() {
         // Otherwise, remap temp -> id for edges initiated by the client
         removeTempRelationshipId(edge.temp_id, edge.id)
       }
+      if (entities) addEntities(entities)
+      if (edges) addRelationships(edges)
       handleNotification(data)
     },
     loading: (data) => {
@@ -188,14 +203,7 @@ export default function Graphing() {
           toastId: toastId,
           autoClose: 1600,
         })
-      } else
-        toast.update(toastId, {
-          render: notification.message,
-          type: 'success',
-          isLoading: false,
-          autoClose: 5000,
-          ...notification,
-        })
+      }
     },
     error: (data) => {
       const notification = data.notification

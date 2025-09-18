@@ -18,7 +18,7 @@ interface EdgeProps extends Edge {
 interface FloatingEdgeProps extends EdgeProps {
   sendJsonMessage: (data: any) => void
 }
-const zoomSelector = (s: any) => s.transform[2] >= 0.45
+const zoomSelector = (s: any) => s.transform[2] >= 0.75
 
 function FloatingEdge({
   id,
@@ -158,7 +158,7 @@ function FloatingEdge({
                 placeholder='No label found'
                 size={edgeInputSize}
                 type='text'
-                class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-44 !cursor-text items-center justify-center rounded-xs bg-slate-950/10 bg-gradient-to-br p-px px-1 text-sm leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
+                class='nopan nodrag hover:outline-mirage-500/70 focus:outline-primary-400 outline-mirage-600/10 pointer-events-auto absolute flex field-sizing-content max-w-44 !cursor-text items-center justify-center rounded-xs bg-slate-950/20 bg-gradient-to-br p-px px-1 text-sm leading-none overflow-ellipsis text-slate-500 outline backdrop-blur-lg backdrop-brightness-95 ease-in placeholder:text-slate-800 hover:from-black/30 hover:to-black/25 hover:text-slate-400 hover:placeholder:text-slate-800 focus:bg-black/30 focus:from-black/30 focus:to-black/35 focus:text-slate-400 focus:placeholder:text-slate-800'
               />
               {showEdgePanel && (
                 <div

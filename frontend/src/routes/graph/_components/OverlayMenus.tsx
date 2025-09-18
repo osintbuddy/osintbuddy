@@ -94,7 +94,7 @@ export default function OverlayMenus({
     h: 57,
     x: 34,
     y: 4,
-    minW: 2,
+    minW: 7,
     maxW: 44,
     minH: 3,
     maxH: 60,
@@ -217,17 +217,17 @@ export default function OverlayMenus({
                   : 'Offline'}
             </button>
           </div>
-
+          {/* TODO: Fix all these shitty styles, maybe abstract into a css file too, sheesh, this is a mess */}
           <div className='mr-auto flex items-center'>
             <button
               title='Fit the graph view'
-              className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
+              className='hover:border-primary-400/50 hover:text-primary-300/80 from-mirage-950/20 to-mirage-900/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:to-black/20 hover:shadow focus:bg-black/70 focus:outline-hidden'
               onClick={() => fitView({ duration: 200 })}
             >
               <Icon icon='viewfinder' className='h-6 w-6' />
             </button>
             <button
-              className='hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden'
+              className='hover:border-primary-400/50 hover:text-primary-300/80 from-mirage-950/20 to-mirage-900/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:to-black/20 hover:shadow focus:bg-black/70 focus:outline-hidden'
               onClick={() => setShowEdges(!showEdges)}
             >
               <Icon icon='ruler-2-off' className='h-6 w-6' />
@@ -242,9 +242,9 @@ export default function OverlayMenus({
             }}
             title='Set entities to your manual layout'
             type='button'
-            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+            className={`hover:to-mirage-900/30 hover:border-primary-400/50 hover:text-primary-300/80 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:bg-slate-900/30 focus:outline-hidden ${
               positionMode === 'manual'
-                ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
+                ? 'bg-mirage-800/80 hover:bg-mirage-950 border-primary-400/50 hover:border-primary-400/50'
                 : ''
             }`}
           >
@@ -264,7 +264,7 @@ export default function OverlayMenus({
               setIsForceActive(!isForceActive)
             }}
             type='button'
-            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
               positionMode === 'force'
                 ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
                 : ''
@@ -294,7 +294,7 @@ export default function OverlayMenus({
               })
             }}
             type='button'
-            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
               positionMode === 'right tree'
                 ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
                 : ''
@@ -317,7 +317,7 @@ export default function OverlayMenus({
               })
             }}
             type='button'
-            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 iflex relative z-0 shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
+            className={`hover:to-mirage-500/30 hover:border-primary-400/50 hover:text-primary-300/80 focus:bg-mirage-800 from-mirage-950/20 to-mirage-600/10 hover:shadow-primary-950/50 shadow-cod-800/20 relative z-0 flex shrink -translate-x-px items-center justify-center overflow-hidden rounded-md border border-slate-950 bg-transparent bg-gradient-to-br from-10% p-2 text-sm text-slate-500 shadow-2xs outline-hidden hover:bg-gradient-to-tl hover:from-black/20 hover:from-40% hover:shadow focus:outline-hidden ${
               positionMode === 'tree'
                 ? 'bg-mirage-800/80 hover:bg-mirage-800 border-primary-400/50 hover:border-primary-400/50'
                 : ''
@@ -338,13 +338,14 @@ export default function OverlayMenus({
       >
         <ol className='relative flex px-4 pt-2 text-sm select-none'>
           <li className='mr-auto flex'>
-            <h5 className='font-display flex w-full items-center justify-between truncate whitespace-nowrap text-inherit'>
+            <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
               <Link
-                className='font-display font-medium text-slate-500'
+                className='font-display flex w-full items-center justify-between font-medium text-slate-500'
                 to='/dashboard/entity'
                 replace
               >
-                Entities
+                <Icon icon='ghost-3 ' />
+                <span className='ml-1'>Entities</span>
               </Link>
             </h5>
           </li>
