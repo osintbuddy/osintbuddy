@@ -34,7 +34,7 @@
 
 <br/>
 
-  [osib-demo-2025-07-24.webm](https://github.com/user-attachments/assets/5a2ad0cd-26d5-433b-9876-6c1146e0fef1)
+  [osib-demo-2025-09-18.webm](https://github.com/user-attachments/assets/069f3837-5fcf-459f-8999-0eaf6176e636)
 
 
 </p>
