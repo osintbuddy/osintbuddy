@@ -1089,7 +1089,7 @@ async fn persist_transform_outputs(
     }
     let message = json!({
         "action": "created",
-        "notification": {"shouldClose": true, "message": "Transform completed successfully."},
+        "notification": {"toastId": source_entity["id"], "shouldClose": true, "message": "Transform completed successfully."},
         "entities": ui_entities,
         "edges": ui_edges,
     });

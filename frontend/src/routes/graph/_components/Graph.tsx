@@ -330,6 +330,7 @@ export default function Graph({
       zoomOnPinch={true}
       zoomOnDoubleClick={false}
       minZoom={MIN_ZOOM}
+      nodeDragThreshold={2}
       maxZoom={MAX_ZOOM}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}

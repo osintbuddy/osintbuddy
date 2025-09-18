@@ -131,9 +131,20 @@ export default function Graphing() {
   )
   const handleNotification = (data: any) => {
     const notification = data.notification
+    console.log('notification', notification)
     if (notification) {
-      const { message, ...notificationProps } = notification
-      toast.success(notification.message, notificationProps)
+      const { message, isLoading, toastId, ...notificationProps } = notification
+      if (toastId) {
+        toast.update(toastId, {
+          render: notification.message,
+          type: 'success',
+          isLoading: false,
+          autoClose: 5000,
+          ...notification,
+        })
+      } else {
+        toast.success(notification.message, notificationProps)
+      }
     }
   }
 
@@ -192,14 +203,7 @@ export default function Graphing() {
           toastId: toastId,
           autoClose: 1600,
         })
-      } else
-        toast.update(toastId, {
-          render: notification.message,
-          type: 'success',
-          isLoading: false,
-          autoClose: 5000,
-          ...notification,
-        })
+      }
     },
     error: (data) => {
       const notification = data.notification

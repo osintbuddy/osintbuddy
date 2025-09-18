@@ -45,7 +45,6 @@ export default function ContextMenu({
   useEffect(() => {
     if (selection?.data?.label) fetchTransforms(selection.data.label)
   }, [selection?.data?.label, fetchTransforms])
-  console.log('selectiond atas?!?!?!', selection)
   return (
     <>
       <div
