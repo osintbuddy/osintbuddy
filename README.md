@@ -161,8 +161,8 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 1. **Clone the repo**
    ```sh
-   git clone https://github.com/osintbuddy/osintbuddy.git
-   cd osintbuddy
+   $ git clone https://github.com/osintbuddy/osintbuddy.git
+   $ cd osintbuddy
    # using ssh?
    # git clone git@github.com:osintbuddy/osintbuddy.git
    ```
@@ -171,30 +171,34 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 3. [**Initialize default entities** _(aka plugins)_](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSIB:
    ```sh
-   python3 -m venv venv
-   . ./venv/bin/activate
-   pip install ./osintbuddy-plugins/
-   ob init
+   $ git clone https://github.com/osintbuddy/plugins.git
+   $ python3 -m venv venv
+   $ . ./venv/bin/activate
+   $ pip install ./plugins/
+   $ ob init
    ```
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
    ```
-   docker compose up db ui
+   $ docker compose up db ui
    ```
 
 5. **Migrate database**.
    ```bash
-   cargo install sqlx-cli --no-default-features --features native-tls,postgres
-   cargo install cargo-watch
-   cd crates/ && sqlx migrate run && cd ..
+   $ cargo install sqlx-cli --no-default-features --features native-tls,postgres
+   $ cargo install cargo-watch
+   $ cd crates/ && sqlx migrate run && cd ..
    ```
 
 6. **Run OSIB**
    Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
-   cargo watch -q -c -w crates/api -x "run -p api"
-   # in another terminal run:
-   cargo watch -q -c -w crates/worker -x "run -p worker"
+   # NOTE: Make sure to run this terminal with Python env activated
+   $ . /venv/bin/activate
+   $ cargo watch -q -c -w crates/api -x "run -p api"
+
+   # In another terminal run:
+   $ cargo watch -q -c -w crates/worker -x "run -p worker"
    ```
 
 7. **Access OSIB** through the URLs provided for the frontend, backend, and documentation:
