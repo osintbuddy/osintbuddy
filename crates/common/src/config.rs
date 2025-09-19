@@ -46,7 +46,7 @@ pub async fn cfg() -> AppConfig {
                 database_url: String::from("postgresql://postgres:password@localhost:55432/app"),
                 backend_port: 48997,
                 backend_addr: String::from("localhost"),
-                backend_cors: String::from("http://localhost:5173"),
+                backend_cors: String::from("http://localhost:55173"),
                 sqids_alphabet: String::from("RQWMLGFATEYHDSIUKXNCOVZJPB"),
                 jwt_maxage: 60,
                 jwt_secret: String::from(
