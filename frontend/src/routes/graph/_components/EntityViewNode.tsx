@@ -34,9 +34,9 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
         </div>
         {showContent && (
           <h2
-            class={`break pointer-events-none absolute top-full -right-28 -left-28 mt-2.5 line-clamp-4 h-auto text-center text-xl leading-6 wrap-anywhere text-slate-400`}
+            class={`break pointer-events-none absolute top-full -right-28 -left-28 mt-2.5 line-clamp-5 h-auto text-center text-xl leading-6 wrap-anywhere text-slate-400`}
           >
-            <pre class='font-sans'>{value}</pre>
+            {value}
           </h2>
         )}
       </div>

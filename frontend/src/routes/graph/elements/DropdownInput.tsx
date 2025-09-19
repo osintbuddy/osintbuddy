@@ -159,28 +159,18 @@ export function DropdownInput({
   }, [options, value])
 
   const handleInputBlur = useCallback((event: FocusEvent) => {
-    const relatedTarget = event.relatedTarget as Node | null // Ensure correct typing
+    const relatedTarget = event.relatedTarget as Node | null
 
     if (isScrollingOrMouseDownOnListRef.current || relatedTarget === null) {
-      // Reset the flag
       isScrollingOrMouseDownOnListRef.current = false
 
-      // Optional: Add a very slight delay and re-focus the input if it's still supposed to be open
-      // This handles cases where focus might be fleeting
-      // However, often just preventing the close is enough.
-      // If needed, you could add:
-      setTimeout(() => {
-        if (isOpen && inputRef.current) {
-          // Don't force focus back, just prevent closing for now
-          setIsOpen(false)
-          // inputRef.current.blur()
-        }
-      }, 0)
+      if (isOpen && inputRef.current) {
+        setIsOpen(false)
+        // inputRef.current.blur()
+      }
 
-      // Crucially, prevent the dropdown from closing in this scenario
       return
     }
-    // Original blur logic: Check if focus moved outside the combobox container
     if (!comboboxRef.current?.contains(relatedTarget)) {
       return // Focus moved within the combobox, don't close
     }
