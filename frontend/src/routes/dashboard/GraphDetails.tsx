@@ -135,7 +135,7 @@ function SimpleStatCard({ value, label }: SimpleStatCardProps) {
     <div class='from-cod-900/60 to-cod-950/10 hover:to-cod-950/15 relative w-full rounded-xs border-b border-slate-900 bg-gradient-to-tr px-3 py-2.5 text-slate-400 shadow-sm transition-all duration-100 hover:text-slate-300'>
       <h2 class='text-md flex items-end font-sans'>
         {label}
-        <span class='ml-auto text-6xl font-bold'>{value ?? 0}</span>
+        <span class='ml-auto text-4xl font-bold'>{value ?? 0}</span>
       </h2>
     </div>
   )
@@ -235,13 +235,13 @@ function CaseActivity({ graphId }: { graphId: string }) {
   }
 
   return (
-    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-72 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
-      <h5 className='font-display flex w-full items-center justify-between px-2 py-1 text-lg font-medium text-inherit'>
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+      <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
         Recent Case Activity
         <button
           type='button'
           onClick={() => setMineOnly(!mineOnly)}
-          class={`text-xs rounded px-2 py-0.5 transition-colors ${
+          class={`rounded px-2 py-0.5 text-xs transition-colors ${
             mineOnly
               ? 'bg-primary-500/20 text-primary-200'
               : 'bg-black/10 text-slate-500 hover:bg-black/30 hover:text-slate-300'
@@ -285,7 +285,7 @@ function CaseActivity({ graphId }: { graphId: string }) {
                   class={`ring-mirage-800/30 ${ring} absolute left-2 flex h-8 w-8 items-center justify-center rounded-full bg-radial-[at_10%_65%] from-65% ring-6`}
                 >
                   {actorName ? (
-                    <span class='text-[10px] font-bold uppercase text-black/80'>
+                    <span class='text-[10px] font-bold text-black/80 uppercase'>
                       {initials}
                     </span>
                   ) : (
@@ -303,9 +303,7 @@ function CaseActivity({ graphId }: { graphId: string }) {
                 <p class='mb-0.5 text-sm text-slate-500'>{describe(e)}</p>
                 <div class='text-xs text-slate-600'>
                   by{' '}
-                  <span class='text-slate-400'>
-                    {actorName || 'unknown'}
-                  </span>
+                  <span class='text-slate-400'>{actorName || 'unknown'}</span>
                 </div>
               </li>
             )
@@ -374,9 +372,15 @@ function CaseOverview({ graph }: CaseOverviewProps) {
             Case Statistics
           </h5>
           <hr class='mb-1 border-1 text-slate-900 transition-all duration-200 group-hover:text-slate-800' />
-          <SimpleStatCard value={loading ? null : entities} label='Entities Count' />
+          <SimpleStatCard
+            value={loading ? null : entities}
+            label='Entities Count'
+          />
           <SimpleStatCard value={loading ? null : edges} label='Edges Count' />
-          <SimpleStatCard value={loading ? null : events} label='Events Count' />
+          <SimpleStatCard
+            value={loading ? null : events}
+            label='Events Count'
+          />
         </section>
       </section>
     </div>
