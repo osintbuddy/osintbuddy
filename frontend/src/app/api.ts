@@ -204,6 +204,14 @@ export interface ListEntitiesResponse {
   favorites: string[]
 }
 
+export interface AttachmentItem {
+  attachment_id: string
+  filename: string
+  media_type: string
+  size: number
+  created_at: string
+}
+
 export interface PluginEntity {
   label: string
   description: string
@@ -303,6 +311,19 @@ export const entitiesApi = {
         method: 'POST',
         body: payload,
       },
+      onExp
+    )
+  },
+  listAttachments: async (
+    graph_id: string,
+    entity_id: string,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<AttachmentItem[]> => {
+    return request<AttachmentItem[]>(
+      `/entities/attachments?graph_id=${encodeURIComponent(graph_id)}&entity_id=${encodeURIComponent(entity_id)}`,
+      token,
+      {},
       onExp
     )
   },

@@ -1,11 +1,21 @@
-import { useState, useMemo } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 import { Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
-import { PositionMode, useEntitiesStore, useFlowStore } from '@/app/store'
-import { Graph } from '@/app/api'
+import {
+  PositionMode,
+  useAttachmentsStore,
+  useAuthStore,
+  useEntitiesStore,
+  useFlowStore,
+  usePdfViewerStore,
+} from '@/app/store'
+import { AttachmentItem, Graph, entitiesApi } from '@/app/api'
+import { BASE_URL } from '@/app/baseApi'
 import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
+import { useParams } from 'react-router-dom'
+import PdfViewerPanel from './PdfViewerPanel'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -48,6 +58,8 @@ interface OverlayMenusProps {
   fitView: Function
   clearGraph: Function
   readyState: ReadyState
+  setShowEdges: (value: boolean) => void
+  showEdges: boolean
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -87,6 +99,8 @@ export default function OverlayMenus({
   }
   const [isEntitiesDraggable, setIsEntitiesDraggable] = useState(false)
   const [isPositionsDraggable, setIsPositionDraggable] = useState(false)
+  const [isAttachmentsDraggable, setIsAttachmentsDraggable] = useState(false)
+  const [isPdfDraggable, setIsPdfDraggable] = useState(false)
 
   const [entitiesLayout, setEntitiesLayout] = useState<Layout>({
     i: 'entities',
@@ -119,11 +133,97 @@ export default function OverlayMenus({
   const { setPositionMode } = useFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
   const navigate = useNavigate()
+  const { hid } = useParams()
+
+  const closedPanelLayout: Layout = {
+    i: 'attachments',
+    w: 0,
+    h: 0,
+    x: 0,
+    y: 100,
+    minW: 0,
+    maxW: 0,
+    minH: 0,
+    maxH: 0,
+    isDraggable: false,
+    isBounded: true,
+  }
+
+  // Attachments panel state
+  const attachments = useAttachmentsStore()
+  const pdfViewer = usePdfViewerStore()
+  const defaultAttachmentsLayout: Layout = {
+    i: 'attachments',
+    w: 10,
+    h: 26,
+    x: 0,
+    y: 4,
+    minW: 7,
+    maxW: 44,
+    minH: 6,
+    maxH: 60,
+    isDraggable: false,
+    isBounded: true,
+  }
+  const [attachmentsLayout, setAttachmentsLayout] =
+    useState<Layout>(closedPanelLayout)
+  const defaultPdfLayout: Layout = {
+    i: 'pdfviewer',
+    w: 14,
+    h: 56,
+    x: 0,
+    y: 4,
+    minW: 12,
+    maxW: 24,
+    minH: 12,
+    maxH: 84,
+    isDraggable: false,
+    isBounded: false,
+  }
+  const [pdfLayout, setPdfLayout] = useState<Layout>(defaultPdfLayout)
+  const [itemsCache, setItemsCache] = useState<
+    Record<string, AttachmentItem[]>
+  >({})
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    const load = async () => {
+      if (!attachments.open || !attachments.active) return
+      const entityId = attachments.active
+      // Only fetch if not cached
+      if (itemsCache[entityId]) return
+      try {
+        setLoading(true)
+        const token = useAuthStore.getState().access_token as string
+        const data = await entitiesApi.listAttachments(
+          String(hid),
+          entityId,
+          token
+        )
+        setItemsCache((prev) => ({ ...prev, [entityId]: data }))
+      } catch (_) {
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [attachments.open, attachments.active, hid])
+
+  // Reset attachments layout when panel closes so it reopens at default size
+  useEffect(() => {
+    if (!attachments.open) {
+      setAttachmentsLayout(closedPanelLayout)
+    }
+  }, [attachments.open])
+  useEffect(() => {
+    if (!pdfViewer.open) {
+      setPdfLayout(defaultPdfLayout)
+    }
+  }, [pdfViewer.open])
 
   return (
     <ResponsiveGridLayout
-      allowOverlap={false}
-      preventCollision={true}
+      allowOverlap={true}
+      preventCollision={false}
       compactType={null}
       className='!pointer-events-none absolute inset-0 z-10'
       style={{ width: '100vw', height: '100vh', display: 'absolute' }}
@@ -138,6 +238,17 @@ export default function OverlayMenus({
         lg: [
           { ...appbarLayout, isDraggable: isPositionsDraggable },
           { ...entitiesLayout, isDraggable: isEntitiesDraggable },
+          ...(attachments.open
+            ? [
+                {
+                  ...defaultAttachmentsLayout,
+                  isDraggable: isAttachmentsDraggable,
+                },
+              ]
+            : [closedPanelLayout]),
+          ...(pdfViewer.open
+            ? [{ ...pdfLayout, isDraggable: isPdfDraggable }]
+            : [closedPanelLayout]),
         ],
       }}
       onLayoutChange={(layout, layouts) => {
@@ -151,6 +262,26 @@ export default function OverlayMenus({
           isDraggable: isEntitiesDraggable,
           isBounded: true,
         })
+        if (attachments.open) {
+          const att = layouts.lg.find((l) => l.i === 'attachments') as Layout
+          if (att) {
+            setAttachmentsLayout({
+              ...att,
+              isDraggable: isAttachmentsDraggable,
+              isBounded: true,
+            })
+          }
+        }
+        if (pdfViewer.open) {
+          const pv = layouts.lg.find((l) => l.i === 'pdfviewer') as Layout
+          if (pv) {
+            setPdfLayout({
+              ...pv,
+              isDraggable: isPdfDraggable,
+              isBounded: true,
+            })
+          }
+        }
       }}
     >
       <div
@@ -386,6 +517,187 @@ export default function OverlayMenus({
           ))}
         </ul>
       </div>
+
+      <div
+        className='pointer-events-auto z-10 flex h-min w-full flex-col rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+        key='attachments'
+        id='attachments-panel'
+      >
+        <ol className='relative flex px-4 pt-2 text-sm select-none'>
+          <li className='mr-auto flex'>
+            <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
+              <span className='font-display flex w-full items-center justify-between font-medium text-slate-500'>
+                <Icon icon='folder' />
+                <span className='ml-1'>Attachments</span>
+              </span>
+            </h5>
+          </li>
+          <li className='flex'>
+            <div className='flex w-full items-center justify-between'>
+              <button
+                onClick={() =>
+                  setIsAttachmentsDraggable(!isAttachmentsDraggable)
+                }
+                className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
+              >
+                {isAttachmentsDraggable ? (
+                  <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
+                ) : (
+                  <Icon icon='lock' className='h-5 w-5 text-inherit' />
+                )}
+              </button>
+            </div>
+            <div className='flex w-full items-center justify-between'>
+              <button
+                onClick={() => attachments.closePanel()}
+                className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
+                title='Close attachments'
+              >
+                <Icon icon='x' className='h-5 w-5 text-inherit' />
+              </button>
+            </div>
+          </li>
+        </ol>
+        {/* Tabs */}
+        <div className='mx-2 flex flex-nowrap gap-1 overflow-x-scroll border-b border-slate-800/60 pb-1'>
+          {attachments.tabs.map((t) => (
+            <div
+              key={t.entityId}
+              className={`flex w-full items-center gap-2 rounded-t border border-slate-800/60 px-2 py-1 text-xs ${
+                attachments.active === t.entityId
+                  ? 'bg-slate-900/60 text-slate-200'
+                  : 'bg-slate-925/40 text-slate-400'
+              }`}
+            >
+              <button
+                className='truncate text-left whitespace-nowrap'
+                onClick={() => attachments.setActive(t.entityId)}
+              >
+                {t.title}
+              </button>
+              <button
+                title='Close tab'
+                onClick={() => attachments.removeTab(t.entityId)}
+                className='text-slate-500 hover:text-slate-300'
+              >
+                <Icon icon='x' className='h-3 w-3' />
+              </button>
+            </div>
+          ))}
+        </div>
+        {/* Content */}
+        <div className='max-h-64 overflow-y-auto px-3 pr-4'>
+          {(!attachments.active || loading) && (
+            <div className='p-2 text-xs text-slate-400'>
+              {loading ? 'Loading…' : 'Select a tab to view attachments.'}
+            </div>
+          )}
+          {attachments.active && !loading && (
+            <ul className='space-y-1'>
+              {(itemsCache[attachments.active] || []).map((a) => (
+                <li
+                  key={a.attachment_id}
+                  className='bg-slate-925/60 flex items-center justify-between rounded border border-slate-800/70 px-2 py-1 text-xs text-slate-300'
+                >
+                  <div className='flex min-w-0 items-center gap-2'>
+                    <Icon icon='file' className='h-3.5 w-3.5 text-slate-400' />
+                    <div className='min-w-0'>
+                      <div className='truncate'>{a.filename}</div>
+                      <div className='text-[10px] text-slate-500'>
+                        {a.media_type} • {(a.size / 1024).toFixed(1)} KB
+                      </div>
+                    </div>
+                  </div>
+                  <div className='ml-2 flex shrink-0 items-center gap-2'>
+                    <div className='text-[10px] text-slate-500'>
+                      {new Date(a.created_at).toLocaleString()}
+                    </div>
+                    <button
+                      title='Download'
+                      className='rounded border border-slate-800 px-1 py-0.5 text-slate-400 hover:text-slate-200'
+                      onClick={async () => {
+                        try {
+                          const resp = await fetch(
+                            `${BASE_URL}/entities/attachments/${a.attachment_id}`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${useAuthStore.getState().access_token}`,
+                              },
+                            }
+                          )
+                          if (!resp.ok) throw new Error('Failed to download')
+                          const blob = await resp.blob()
+                          const url = URL.createObjectURL(blob)
+                          const link = document.createElement('a')
+                          link.href = url
+                          link.download = a.filename
+                          document.body.appendChild(link)
+                          link.click()
+                          link.remove()
+                          setTimeout(() => URL.revokeObjectURL(url), 60_000)
+                        } catch (_) {
+                          // toast errors handled elsewhere if desired
+                        }
+                      }}
+                    >
+                      <Icon icon='download' className='h-3.5 w-3.5' />
+                    </button>
+                    <button
+                      title='Delete'
+                      className='rounded border border-slate-800 px-1 py-0.5 text-red-400 hover:text-red-200'
+                      onClick={async () => {
+                        try {
+                          const resp = await fetch(
+                            `${BASE_URL}/entities/attachments/${a.attachment_id}`,
+                            {
+                              method: 'DELETE',
+                              headers: {
+                                Authorization: `Bearer ${useAuthStore.getState().access_token}`,
+                              },
+                            }
+                          )
+                          if (!resp.ok) throw new Error('Failed to delete')
+                          // Update cache locally
+                          setItemsCache((prev) => ({
+                            ...prev,
+                            [attachments.active as string]: (
+                              prev[attachments.active as string] || []
+                            ).filter(
+                              (x) => x.attachment_id !== a.attachment_id
+                            ),
+                          }))
+                        } catch (_) {
+                          // Optional: toast.error('Failed to delete attachment')
+                        }
+                      }}
+                    >
+                      <Icon icon='trash' className='h-3.5 w-3.5' />
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {attachments.active &&
+                (itemsCache[attachments.active] || []).length === 0 && (
+                  <div className='p-2 text-xs text-slate-500'>
+                    No attachments found.
+                  </div>
+                )}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {pdfViewer.open && (
+        <div
+          key='pdfviewer'
+          className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+        >
+          <PdfViewerPanel
+            draggable={isPdfDraggable}
+            onToggleDrag={() => setIsPdfDraggable((v) => !v)}
+          />
+        </div>
+      )}
     </ResponsiveGridLayout>
   )
 }

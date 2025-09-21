@@ -674,3 +674,104 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       ),
     }),
 }))
+
+// Attachments panel store
+interface AttachmentTab {
+  entityId: string
+  title: string
+}
+
+interface AttachmentsState {
+  open: boolean
+  tabs: AttachmentTab[]
+  active?: string
+  openPanel: () => void
+  closePanel: () => void
+  addTab: (entityId: string, title: string) => void
+  removeTab: (entityId: string) => void
+  setActive: (entityId: string) => void
+}
+
+export const useAttachmentsStore = create<AttachmentsState>((set, get) => ({
+  open: false,
+  tabs: [],
+  active: undefined,
+  openPanel: () => set({ open: true }),
+  closePanel: () => set({ open: false }),
+  addTab: (entityId, title) => {
+    const tabs = get().tabs
+    if (!tabs.find((t) => t.entityId === entityId)) {
+      set({ tabs: [...tabs, { entityId, title }] })
+    }
+    set({ active: entityId, open: true })
+  },
+  removeTab: (entityId) => {
+    const tabs = get().tabs.filter((t) => t.entityId !== entityId)
+    const wasActive = get().active === entityId
+    set({ tabs })
+    if (wasActive) {
+      set({ active: tabs.length ? tabs[tabs.length - 1].entityId : undefined })
+    }
+    if (tabs.length === 0) set({ open: false })
+  },
+  setActive: (entityId) => set({ active: entityId, open: true }),
+}))
+
+// PDF viewer panel store
+interface PdfViewerState {
+  open: boolean
+  attachmentId?: string
+  filename?: string
+  page: number
+  numPages?: number
+  openViewer: (attachmentId: string, filename?: string) => void
+  closeViewer: () => void
+  setPage: (page: number) => void
+  setNumPages: (n: number) => void
+}
+
+interface PdfTab { attachmentId: string; filename?: string; page: number; numPages?: number }
+
+interface PdfViewerTabsState {
+  open: boolean
+  tabs: PdfTab[]
+  active?: string
+  openViewer: (attachmentId: string, filename?: string) => void
+  closeTab: (attachmentId: string) => void
+  closeViewer: () => void
+  setActive: (attachmentId: string) => void
+  setPage: (attachmentId: string, page: number) => void
+  setNumPages: (attachmentId: string, n: number) => void
+}
+
+export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
+  open: false,
+  tabs: [],
+  active: undefined,
+  openViewer: (attachmentId, filename) => {
+    const tabs = get().tabs
+    if (!tabs.find((t) => t.attachmentId === attachmentId)) {
+      set({ tabs: [...tabs, { attachmentId, filename, page: 1 }] })
+    }
+    set({ open: true, active: attachmentId })
+  },
+  closeTab: (attachmentId) => {
+    const next = get().tabs.filter((t) => t.attachmentId !== attachmentId)
+    const wasActive = get().active === attachmentId
+    set({ tabs: next })
+    if (wasActive) {
+      set({ active: next.length ? next[next.length - 1].attachmentId : undefined })
+    }
+    if (next.length === 0) set({ open: false })
+  },
+  closeViewer: () => set({ open: false, tabs: [], active: undefined }),
+  setActive: (attachmentId) => set({ active: attachmentId }),
+  setPage: (attachmentId, page) =>
+    set({
+      tabs: get().tabs.map((t) => (t.attachmentId === attachmentId ? { ...t, page } : t)),
+    }),
+  setNumPages: (attachmentId, n) =>
+    set({
+      tabs: get().tabs.map((t) => (t.attachmentId === attachmentId ? { ...t, numPages: n } : t)),
+    }),
+}))

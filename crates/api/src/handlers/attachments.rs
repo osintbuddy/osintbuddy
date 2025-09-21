@@ -1,6 +1,6 @@
 use actix_multipart::Multipart;
-use actix_web::{HttpResponse, Result, post};
-use actix_web::web::Data;
+use actix_web::{HttpResponse, Result, post, get, delete};
+use actix_web::web::{Data, Query, Path};
 use chrono::Utc;
 use futures_util::TryStreamExt as _;
 use serde_json::Value as JsonValue;
@@ -177,4 +177,145 @@ pub async fn upload_entity_attachment_handler(
     };
 
     Ok(HttpResponse::Ok().json(resp))
+}
+
+#[derive(serde::Deserialize)]
+pub struct ListAttachmentsQuery {
+    pub graph_id: String,
+    pub entity_id: String,
+}
+
+#[derive(serde::Serialize)]
+pub struct AttachmentItem {
+    pub attachment_id: String,
+    pub filename: String,
+    pub media_type: String,
+    pub size: i64,
+    pub created_at: chrono::DateTime<Utc>,
+}
+
+#[get("/entities/attachments")]
+pub async fn list_entity_attachments_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    app: AppData,
+    query: Query<ListAttachmentsQuery>,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    let mut graph_uuid: Option<Uuid> = None;
+    // Accept graph_id as UUID or sqid
+    if let Ok(u) = Uuid::parse_str(query.graph_id.as_str()) {
+        graph_uuid = Some(u);
+    } else {
+        let decoded = sqids.decode(&query.graph_id);
+        if let Some(numeric_id) = decoded.first() {
+            if let Ok(row) = sqlx::query!(
+                r#"SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2"#,
+                *numeric_id as i64,
+                auth.account_id
+            )
+            .fetch_one(pool.as_ref())
+            .await
+            {
+                graph_uuid = row.uuid;
+            }
+        }
+    }
+    let Some(graph_uuid) = graph_uuid else {
+        return Err(AppError { message: "Invalid graph id." });
+    };
+    let Ok(entity_uuid) = Uuid::parse_str(query.entity_id.as_str()) else {
+        return Err(AppError { message: "Invalid entity id." });
+    };
+
+    let rows = sqlx::query!(
+        r#"
+        SELECT attachment_id, filename, media_type, size, created_at
+        FROM entity_attachments
+        WHERE graph_id = $1 AND entity_id = $2 AND owner_id = $3
+        ORDER BY created_at DESC
+        "#,
+        graph_uuid,
+        entity_uuid,
+        auth.account_id
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|_| AppError { message: "Failed to list attachments." })?;
+
+    let items: Vec<AttachmentItem> = rows
+        .into_iter()
+        .map(|r| AttachmentItem {
+            attachment_id: r.attachment_id.to_string(),
+            filename: r.filename,
+            media_type: r.media_type,
+            size: r.size,
+            created_at: r.created_at,
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(items))
+}
+
+#[get("/entities/attachments/{attachment_id}")]
+pub async fn get_entity_attachment_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    path: Path<String>,
+) -> Result<HttpResponse, AppError> {
+    let attachment_id = match Uuid::parse_str(path.as_str()) {
+        Ok(u) => u,
+        Err(_) => return Err(AppError { message: "Invalid attachment id." }),
+    };
+
+    let row = sqlx::query!(
+        r#"
+        SELECT filename, media_type, bytes
+        FROM entity_attachments
+        WHERE attachment_id = $1 AND owner_id = $2
+        "#,
+        attachment_id,
+        auth.account_id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|_| AppError { message: "Attachment not found." })?;
+
+    let Some(bytes) = row.bytes else {
+        return Err(AppError { message: "Attachment stored externally." });
+    };
+
+    Ok(HttpResponse::Ok()
+        .content_type(row.media_type)
+        .append_header((
+            actix_web::http::header::CONTENT_DISPOSITION,
+            format!("inline; filename=\"{}\"", row.filename.replace('"', "'")),
+        ))
+        .body(bytes))
+}
+
+#[delete("/entities/attachments/{attachment_id}")]
+pub async fn delete_entity_attachment_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    path: Path<String>,
+) -> Result<HttpResponse, AppError> {
+    let attachment_id = match Uuid::parse_str(path.as_str()) {
+        Ok(u) => u,
+        Err(_) => return Err(AppError { message: "Invalid attachment id." }),
+    };
+
+    let res = sqlx::query!(
+        r#"DELETE FROM entity_attachments WHERE attachment_id=$1 AND owner_id=$2"#,
+        attachment_id,
+        auth.account_id
+    )
+    .execute(pool.as_ref())
+    .await
+    .map_err(|_| AppError { message: "Failed to delete attachment." })?;
+
+    if res.rows_affected() == 0 {
+        return Err(AppError { message: "Attachment not found." });
+    }
+    Ok(HttpResponse::Ok().finish())
 }

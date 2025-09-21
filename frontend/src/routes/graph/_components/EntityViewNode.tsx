@@ -25,7 +25,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>
-        {showContent && <EntityToolbar />}
+        {showContent && <EntityToolbar entityId={ctx.id} entityTitle={blueprint.label} />}
         <div style={{ backgroundColor }} class='header !rounded-full !p-2'>
           <Icon
             icon={icon}
