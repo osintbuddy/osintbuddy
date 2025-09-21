@@ -379,6 +379,23 @@ export interface GraphDetails {
   degree2_count: number
 }
 
+// Case Activity
+export interface CaseActivityItem {
+  seq: number
+  category: string
+  event_type: string
+  payload: any
+  version: number
+  valid_from: string
+  valid_to: string | null
+  recorded_at: string
+  actor_id?: string | null
+}
+
+export interface CaseActivityPage {
+  events: CaseActivityItem[]
+}
+
 export const graphsApi = {
   create: async (
     payload: CreateGraphPayload,
@@ -460,4 +477,34 @@ export const graphsApi = {
       onExp
     )
   },
+}
+
+export const casesApi = {
+  activity: async (
+    id: string,
+    payload: Paginate,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<CaseActivityPage> => {
+    const { skip, limit } = payload
+    return request<CaseActivityPage>(
+      `/cases/${id}/activity?skip=${skip}&limit=${limit}`,
+      token,
+      {},
+      onExp
+    )
+  },
+  stats: async (
+    id: string,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<CaseStats> => {
+    return request<CaseStats>(`/cases/${id}/stats`, token, {}, onExp)
+  },
+}
+
+export interface CaseStats {
+  entities_count: number
+  edges_count: number
+  events_count: number
 }

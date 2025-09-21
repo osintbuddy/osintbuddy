@@ -43,6 +43,7 @@ pub async fn append_event_handler(
         correlation_id: b.correlation_id,
         causation_id: b.causation_id,
         expected_version,
+        actor_id: Some("osib".to_string()),
     };
 
     match eventstore::append_event(&pool, req).await {

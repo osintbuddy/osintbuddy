@@ -23,6 +23,7 @@ pub struct EventRecord {
     pub recorded_at: DateTime<Utc>,
     pub causation_id: Option<Uuid>,
     pub correlation_id: Option<Uuid>,
+    pub actor_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,6 +37,7 @@ pub struct AppendEvent {
     pub correlation_id: Option<Uuid>,
     pub causation_id: Option<Uuid>,
     pub expected_version: Option<i32>,
+    pub actor_id: Option<String>,
 }
 
 pub async fn ensure_stream(
@@ -117,9 +119,10 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
             stream_id, version, event_type, payload,
             valid_from, valid_to, recorded_at,
             causation_id, correlation_id
-        ) VALUES ($1,$2,$3,$4,$5,$6, now(), $7, $8)
+            , actor_id
+        ) VALUES ($1,$2,$3,$4,$5,$6, now(), $7, $8, $9)
         RETURNING seq, stream_id, version, event_type, payload,
-        valid_from, valid_to, recorded_at, causation_id, correlation_id
+        valid_from, valid_to, recorded_at, causation_id, correlation_id, actor_id
         "#,
         stream.stream_id,
         next_version,
@@ -129,6 +132,7 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         ev.valid_to,
         ev.causation_id,
         ev.correlation_id,
+        ev.actor_id,
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -146,6 +150,7 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         recorded_at: rec.recorded_at,
         causation_id: rec.causation_id,
         correlation_id: rec.correlation_id,
+        actor_id: rec.actor_id,
     })
 }
 
@@ -157,7 +162,7 @@ pub async fn events_after(
     let rows = sqlx::query!(
         r#"
         SELECT seq, stream_id, version, event_type, payload, valid_from, valid_to,
-               recorded_at, causation_id, correlation_id
+               recorded_at, causation_id, correlation_id, actor_id
         FROM events
         WHERE seq > $1
         ORDER BY seq ASC
@@ -182,6 +187,7 @@ pub async fn events_after(
             recorded_at: rec.recorded_at,
             causation_id: rec.causation_id,
             correlation_id: rec.correlation_id,
+            actor_id: rec.actor_id,
         })
         .collect())
 }
