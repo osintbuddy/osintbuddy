@@ -20,6 +20,8 @@ pub struct AppConfig {
     #[confik(secret)]
     pub sqids_alphabet: String,
     pub serve_build: Option<bool>,
+    // uploads
+    pub upload_max_inline_mb: Option<u64>,
 
     // worker + firecracker tuning
     pub worker_owner: Option<String>,
@@ -52,6 +54,7 @@ pub async fn cfg() -> AppConfig {
                 jwt_secret: String::from(
                     "03d2394fc289b30660772ea8d444540ff64z066631063d823b41444e1bdef086",
                 ),
+                upload_max_inline_mb: Some(100),
                 worker_owner: None,
                 worker_lease_seconds: Some(300),
                 worker_batch: Some(8),

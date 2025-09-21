@@ -61,11 +61,15 @@ pub async fn run(cfg: &'static AppConfig) -> io::Result<()> {
                 .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
                 .build(),
         };
+        // Set payload limit based on configuration (affects multipart and others)
+        let max_mb = cfg.upload_max_inline_mb.unwrap_or(100);
+        let max_bytes = (max_mb as usize).saturating_mul(1024 * 1024);
         let app = App::new()
             .wrap(Logger::default())
             .app_data(web::Data::new(app_state))
             .app_data(web::Data::new(sqids))
             .app_data(web::Data::new(pool.to_owned()))
+            .app_data(web::PayloadConfig::new(max_bytes))
             .wrap(
                 Cors::default()
                     .allowed_origin(&cfg.backend_cors)

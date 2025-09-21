@@ -7,6 +7,7 @@ pub mod entities;
 pub mod graphs;
 pub mod organization;
 pub mod user;
+pub mod attachments;
 
 #[derive(Deserialize, Serialize)]
 pub struct Notification {

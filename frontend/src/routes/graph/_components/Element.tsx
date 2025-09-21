@@ -24,7 +24,7 @@ export function Element({
   key,
   data,
 }: ElementProps) {
-  const { label, value, icon, options = [] } = element
+  const { label, value, icon, options = [], accept } = element
   switch (element.type) {
     case 'dropdown':
       return (
@@ -58,6 +58,7 @@ export function Element({
           label={label}
           value={value ?? ''}
           icon={icon ?? 'file-upload'}
+          accept={accept}
           sendJsonMessage={sendJsonMessage}
         />
       )

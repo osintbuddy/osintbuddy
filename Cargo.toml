@@ -8,6 +8,7 @@ members = [
 
 [workspace.dependencies]
 actix-web = "4"
+actix-multipart = "0.6.1"
 confik = "0.14"
 sqlx = { version = "0.8", features = ["runtime-tokio", "tls-native-tls", "postgres", "json", "derive", "chrono", "uuid"] }
 dotenvy = "0.15.7"

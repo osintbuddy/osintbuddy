@@ -41,11 +41,12 @@ function ActionButton({
   )
 }
 
-function GraphHeader({ graph }: GraphHeaderProps) {
+function CaseAppbarPanel({ graph }: GraphHeaderProps) {
   const navigate = useNavigate()
   const { deleteGraph, isDeleting } = useGraphsStore()
 
   const handleDeleteGraph = async () => {
+    // TODO: open 'confirm delete?' dialog before deletion
     if (!graph?.id) return
     await deleteGraph({ id: graph.id })
     navigate('/dashboard/case', { replace: true })
@@ -141,7 +142,7 @@ function SimpleStatCard({ value, label }: SimpleStatCardProps) {
   )
 }
 
-function CaseActivity({ graphId }: { graphId: string }) {
+function CaseActivityPanel({ graphId }: { graphId: string }) {
   const [events, setEvents] = useState<CaseActivityItem[]>([])
   const [skip, setSkip] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -235,7 +236,7 @@ function CaseActivity({ graphId }: { graphId: string }) {
   }
 
   return (
-    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-64 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 group border-cod-900/20 mt-auto mr-auto flex h-full max-h-55 w-full flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
       <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
         Recent Case Activity
         <button
@@ -324,7 +325,7 @@ interface CaseOverviewProps {
   graph: Graph
 }
 
-function CaseOverview({ graph }: CaseOverviewProps) {
+function CaseOverviewPanel({ graph }: CaseOverviewProps) {
   const token = useAuthStore.getState().access_token as string
   const [stats, setStats] = useState<CaseStats | null>(null)
   const [loading, setLoading] = useState(false)
@@ -349,7 +350,7 @@ function CaseOverview({ graph }: CaseOverviewProps) {
   return (
     <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-2/9 min-w-2/9 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
       {/* details section: */}
-      <section class='group py-2'>
+      <section class='group'>
         <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
           {graph?.label}
         </h5>
@@ -397,7 +398,7 @@ export default function GraphDetails() {
   return (
     <>
       <div class='flex w-full flex-col pl-3'>
-        <GraphHeader graph={graph} />
+        <CaseAppbarPanel graph={graph} />
         <div className='mt-3 flex h-full flex-col'>
           <div class='flex h-full w-full'>
             <div class='flex w-7/9 flex-col pr-3'>
@@ -413,10 +414,10 @@ export default function GraphDetails() {
                   keep brainstorming for now...
                 </h2>
               </div>
-              <CaseActivity graphId={hid} />
+              <CaseActivityPanel graphId={hid} />
             </div>
             {/* far right dashboard panel */}
-            <CaseOverview graph={graph as Graph} />
+            <CaseOverviewPanel graph={graph as Graph} />
           </div>
         </div>
       </div>

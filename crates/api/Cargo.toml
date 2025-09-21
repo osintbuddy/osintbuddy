@@ -7,6 +7,7 @@ edition = "2024"
 actix-web = { workspace = true }
 actix-cors = { workspace = true }
 actix-files = { workspace = true }
+actix-multipart = { workspace = true }
 actix-ws = { workspace = true }
 actix-limitation = { workspace = true }
 argon2 = { workspace = true }

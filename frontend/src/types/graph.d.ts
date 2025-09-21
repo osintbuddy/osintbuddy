@@ -21,6 +21,7 @@ interface NodeInputProps {
   options?: DropdownOptionProps[]
   value?: string
   icon?: any
+  accept?: string
   title?: string
   subtitle?: string
   text?: string
@@ -39,5 +40,4 @@ interface TextElement {
   value: string
   icon?: string
 }
-
 

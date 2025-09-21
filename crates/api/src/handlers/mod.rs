@@ -5,6 +5,7 @@ use crate::schemas::Notification;
 mod cases;
 mod entities;
 mod events;
+mod attachments;
 mod graphing;
 mod graphs;
 mod jobs;
@@ -19,6 +20,7 @@ pub async fn healthcheck_handler() -> impl Responder {
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/api")
         .service(healthcheck_handler)
+        .service(attachments::upload_entity_attachment_handler)
         .service(cases::list_case_activity_handler)
         .service(events::append_event_handler)
         .service(cases::get_case_stats_handler)
