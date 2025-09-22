@@ -570,7 +570,7 @@ export default function OverlayMenus({
               }`}
             >
               <button
-                className='truncate text-left whitespace-nowrap'
+                className='w-full text-left whitespace-nowrap'
                 onClick={() => attachments.setActive(t.entityId)}
               >
                 {t.title}

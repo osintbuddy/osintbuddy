@@ -180,12 +180,12 @@ export default function Graphing() {
     created: (data) => {
       const { entity, edge, entities, edges } = data
       if (entity) addEntity({ ...entity, type: 'edit' })
-      // If server returns authoritative edge with id/source/target, add it immediately
-      if (edge?.id && edge?.source && edge?.target) {
-        addRelationship(edge)
-      } else if (edge?.temp_id && edge?.id) {
-        // Otherwise, remap temp -> id for edges initiated by the client
+      // If this edge originated from this client, remap temp -> id to avoid duplicates
+      if (edge?.temp_id && edge?.id) {
         removeTempRelationshipId(edge.temp_id, edge.id)
+      } else if (edge?.id && edge?.source && edge?.target) {
+        // Otherwise, add a new edge created by another client/process
+        addRelationship(edge)
       }
       if (entities) addEntities(entities)
       if (edges) addRelationships(edges)

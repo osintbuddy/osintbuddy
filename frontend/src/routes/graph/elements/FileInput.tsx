@@ -39,10 +39,16 @@ export function UploadFileInput({
     if (!hid) return
     try {
       setLoading(true)
-      const items = await entitiesApi.listAttachments(String(hid), id, access_token as string)
+      const items = await entitiesApi.listAttachments(
+        String(hid),
+        id,
+        access_token as string
+      )
       setAttachments(items)
-    } catch (_) {}
-    finally { setLoading(false) }
+    } catch (_) {
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -55,7 +61,9 @@ export function UploadFileInput({
       // Optional type filter
       if (accept && file) {
         const okType = file.type === accept
-        const okExt = accept === 'application/pdf' && file.name.toLowerCase().endsWith('.pdf')
+        const okExt =
+          accept === 'application/pdf' &&
+          file.name.toLowerCase().endsWith('.pdf')
         if (!okType && !okExt) {
           toast.error(`Invalid file type. Expected ${accept}.`)
           return
@@ -78,7 +86,9 @@ export function UploadFileInput({
           },
         })
         if (!resp.ok) {
-          const err = await resp.json().catch(() => ({ message: 'Upload failed.' }))
+          const err = await resp
+            .json()
+            .catch(() => ({ message: 'Upload failed.' }))
           throw new Error(err?.message || 'Upload failed')
         }
         return await resp.json()
@@ -106,7 +116,10 @@ export function UploadFileInput({
         ) : attachments.length > 0 ? (
           <ul className='space-y-0.5'>
             {attachments.map((a) => (
-              <li key={a.attachment_id} className='flex items-center justify-between gap-2 text-[10px] text-slate-400'>
+              <li
+                key={a.attachment_id}
+                className='flex items-center justify-between text-[10px] text-slate-400'
+              >
                 <span className='truncate'>{a.filename}</span>
                 <span className='shrink-0 space-x-1'>
                   <button
@@ -115,50 +128,6 @@ export function UploadFileInput({
                     onClick={() => openViewer(a.attachment_id, a.filename)}
                   >
                     <Icon icon='eye' className='h-3.5 w-3.5' />
-                  </button>
-                  <button
-                    title='Download'
-                    className='rounded border border-slate-800 px-1 py-0.5 text-slate-400 hover:text-slate-200'
-                    onClick={async () => {
-                      try {
-                        const resp = await fetch(`${BASE_URL}/entities/attachments/${a.attachment_id}`, {
-                          headers: { Authorization: `Bearer ${access_token}` },
-                        })
-                        if (!resp.ok) throw new Error('Failed to download')
-                        const blob = await resp.blob()
-                        const url = URL.createObjectURL(blob)
-                        const link = document.createElement('a')
-                        link.href = url
-                        link.download = a.filename
-                        document.body.appendChild(link)
-                        link.click()
-                        link.remove()
-                        setTimeout(() => URL.revokeObjectURL(url), 60_000)
-                      } catch (_) {
-                        toast.error('Failed to download attachment')
-                      }
-                    }}
-                  >
-                    <Icon icon='download' className='h-3.5 w-3.5' />
-                  </button>
-                  <button
-                    title='Delete'
-                    className='rounded border border-slate-800 px-1 py-0.5 text-red-400 hover:text-red-200'
-                    onClick={async () => {
-                      try {
-                        const resp = await fetch(`${BASE_URL}/entities/attachments/${a.attachment_id}`, {
-                          method: 'DELETE',
-                          headers: { Authorization: `Bearer ${access_token}` },
-                        })
-                        if (!resp.ok) throw new Error('Failed to delete')
-                        toast.success('Attachment deleted')
-                        fetchAttachments()
-                      } catch (_) {
-                        toast.error('Failed to delete attachment')
-                      }
-                    }}
-                  >
-                    <Icon icon='trash' className='h-3.5 w-3.5' />
                   </button>
                 </span>
               </li>
