@@ -137,21 +137,23 @@ export function UploadFileInput({
           <div className='text-[10px] text-slate-600'>No attachments yet.</div>
         )}
       </div>
-      <div className='flex items-center'>
-        <div className='node-field'>
-          <Icon icon={icon} className='h-6 w-6' />
-          <label className={`ml-5 w-52 ${value?.name && 'text-slate-400'}`}>
-            <input
-              data-label={label}
-              id={`${id}-${label}`}
-              type='file'
-              accept={accept}
-              className='nodrag'
-              onChange={(event: any) => updateValue(event)}
-            />
-            {value?.name ? value.name : label}
-          </label>
-        </div>
+      <div className='hover:border-mirage-200/50 focus-within:!border-primary-350 border-mirage-200/30 relative flex w-full items-center justify-between rounded-sm border bg-gradient-to-br from-black/10 to-black/35 pl-0.5 text-sm leading-4 text-slate-400 shadow-sm transition-colors duration-75 ease-in-out focus-within:bg-gradient-to-l focus-within:from-black/45 focus-within:to-black/20'>
+        <Icon icon={icon} className='h-6 w-6' />
+        <label
+          for={`${id}-${label}`}
+          className={`ml-5 w-52 ${value?.name && 'text-slate-400'}`}
+        >
+          <input
+            name={label}
+            data-label={label}
+            id={`${id}-${label}`}
+            type='file'
+            accept={accept}
+            className='nodrag'
+            onChange={(event: any) => updateValue(event)}
+          />
+          {value?.name ? value.name : label}
+        </label>
       </div>
     </>
   )

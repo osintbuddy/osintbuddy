@@ -559,11 +559,20 @@ export default function OverlayMenus({
           </li>
         </ol>
         {/* Tabs */}
-        <div className='mx-2 flex flex-nowrap gap-1 overflow-x-scroll border-b border-slate-800/60 pb-1'>
+        <div
+          className='mx-2 flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60 pb-1'
+          onWheel={(e) => {
+            const el = e.currentTarget as HTMLDivElement
+            if (e.deltaY !== 0) {
+              el.scrollLeft += e.deltaY
+              e.preventDefault()
+            }
+          }}
+        >
           {attachments.tabs.map((t) => (
             <div
               key={t.entityId}
-              className={`flex w-full items-center gap-2 rounded-t border border-slate-800/60 px-2 py-1 text-xs ${
+              className={`flex items-center gap-2 rounded-t border border-slate-800/60 px-2 py-1 text-xs ${
                 attachments.active === t.entityId
                   ? 'bg-slate-900/60 text-slate-200'
                   : 'bg-slate-925/40 text-slate-400'
@@ -573,7 +582,7 @@ export default function OverlayMenus({
                 className='w-full text-left whitespace-nowrap'
                 onClick={() => attachments.setActive(t.entityId)}
               >
-                {t.title}
+                {t.title} - {t.entityId.toUpperCase().substring(0, 8)}
               </button>
               <button
                 title='Close tab'

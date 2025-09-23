@@ -61,7 +61,7 @@ export function EditEntityNode({
               <span className='whitespace-wrap -top-1 mr-0.5 max-w-xl text-[0.4rem] font-light text-inherit'>
                 ID:
               </span>
-              {ctx.id.substring(0, 7).toUpperCase()}
+              {ctx.id.substring(0, 8).toUpperCase()}
             </p>
             <p className='whitespace-wrap font-display max-w-xl text-[0.65rem] font-semibold text-slate-200'>
               {blueprint.label}
