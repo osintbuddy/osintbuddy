@@ -775,3 +775,39 @@ export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
       tabs: get().tabs.map((t) => (t.attachmentId === attachmentId ? { ...t, numPages: n } : t)),
     }),
 }))
+
+// Audio viewer panel store
+interface AudioTab { attachmentId: string; filename?: string }
+interface AudioViewerTabsState {
+  open: boolean
+  tabs: AudioTab[]
+  active?: string
+  openViewer: (attachmentId: string, filename?: string) => void
+  closeTab: (attachmentId: string) => void
+  closeViewer: () => void
+  setActive: (attachmentId: string) => void
+}
+
+export const useAudioViewerStore = create<AudioViewerTabsState>((set, get) => ({
+  open: false,
+  tabs: [],
+  active: undefined,
+  openViewer: (attachmentId, filename) => {
+    const tabs = get().tabs
+    if (!tabs.find((t) => t.attachmentId === attachmentId)) {
+      set({ tabs: [...tabs, { attachmentId, filename }] })
+    }
+    set({ open: true, active: attachmentId })
+  },
+  closeTab: (attachmentId) => {
+    const next = get().tabs.filter((t) => t.attachmentId !== attachmentId)
+    const wasActive = get().active === attachmentId
+    set({ tabs: next })
+    if (wasActive) {
+      set({ active: next.length ? next[next.length - 1].attachmentId : undefined })
+    }
+    if (next.length === 0) set({ open: false })
+  },
+  closeViewer: () => set({ open: false, tabs: [], active: undefined }),
+  setActive: (attachmentId) => set({ active: attachmentId }),
+}))

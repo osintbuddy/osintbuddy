@@ -1,7 +1,11 @@
 import { memo, useState } from 'preact/compat'
 import { Icon } from '@/components/icons'
 import { useParams } from 'react-router-dom'
-import { useAuthStore, usePdfViewerStore } from '@/app/store'
+import {
+  useAuthStore,
+  usePdfViewerStore,
+  useAudioViewerStore,
+} from '@/app/store'
 import { BASE_URL } from '@/app/baseApi'
 import { entitiesApi, type AttachmentItem } from '@/app/api'
 import { useEffect } from 'preact/hooks'
@@ -34,6 +38,7 @@ export function UploadFileInput({
   const [attachments, setAttachments] = useState<AttachmentItem[]>([])
   const [loading, setLoading] = useState(false)
   const { openViewer } = usePdfViewerStore()
+  const { openViewer: openAudioViewer } = useAudioViewerStore()
 
   const fetchAttachments = async () => {
     if (!hid) return
@@ -106,29 +111,48 @@ export function UploadFileInput({
 
   return (
     <>
-      <p className='whitespace-wrap font-display mt-1 ml-1 text-[0.5rem] font-semibold text-slate-400'>
+      <p className='whitespace-wrap font-display mt-1 text-[0.5rem] font-semibold text-slate-400'>
         {label}
       </p>
       {/* Existing attachments */}
-      <div className='mb-1 ml-1 w-64'>
+      <div className='mb-1 w-50'>
         {loading ? (
           <div className='text-[10px] text-slate-500'>Loading attachments…</div>
         ) : attachments.length > 0 ? (
-          <ul className='space-y-0.5'>
+          <ul className='flex w-full flex-col gap-y-1'>
             {attachments.map((a) => (
               <li
                 key={a.attachment_id}
-                className='flex items-center justify-between text-[10px] text-slate-400'
+                className='flex items-center justify-between rounded-sm border border-slate-900 bg-black/20 pl-1 text-[10px] text-slate-400'
               >
                 <span className='truncate'>{a.filename}</span>
-                <span className='shrink-0 space-x-1'>
-                  <button
-                    title='Preview'
-                    className='rounded border border-slate-800 px-1 py-0.5 text-slate-400 hover:text-slate-200'
-                    onClick={() => openViewer(a.attachment_id, a.filename)}
-                  >
-                    <Icon icon='eye' className='h-3.5 w-3.5' />
-                  </button>
+                <span className='shrink-0'>
+                  {a.media_type === 'application/pdf' && (
+                    <button
+                      title='Preview PDF'
+                      className='group rounded-sm px-1 py-1 text-slate-400 transition-all duration-100 hover:text-slate-200'
+                      onClick={() => openViewer(a.attachment_id, a.filename)}
+                    >
+                      <Icon
+                        icon='eye'
+                        className='group-hover:text-primary-350 h-3.5 w-3.5 transition-all duration-100'
+                      />
+                    </button>
+                  )}
+                  {a.media_type?.startsWith('audio/') && (
+                    <button
+                      title='Preview Audio'
+                      className='hover:border-primary-350 group ml-1 px-1 py-1 text-slate-400 transition-all duration-100 hover:text-slate-200'
+                      onClick={() =>
+                        openAudioViewer(a.attachment_id, a.filename)
+                      }
+                    >
+                      <Icon
+                        icon='player-play'
+                        className='group-hover:text-primary-350 h-3.5 w-3.5 transition-all duration-100'
+                      />
+                    </button>
+                  )}
                 </span>
               </li>
             ))}
@@ -138,10 +162,13 @@ export function UploadFileInput({
         )}
       </div>
       <div className='hover:border-mirage-200/50 focus-within:!border-primary-350 border-mirage-200/30 relative flex w-full items-center justify-between rounded-sm border bg-gradient-to-br from-black/10 to-black/35 pl-0.5 text-sm leading-4 text-slate-400 shadow-sm transition-colors duration-75 ease-in-out focus-within:bg-gradient-to-l focus-within:from-black/45 focus-within:to-black/20'>
-        <Icon icon={icon} className='h-6 w-6' />
+        <Icon
+          icon={icon}
+          className='pointer-events-none absolute right-0.5 h-4 w-4 text-slate-900'
+        />
         <label
           for={`${id}-${label}`}
-          className={`ml-5 w-52 ${value?.name && 'text-slate-400'}`}
+          className={`ml-0.5 py-0.5 text-xs ${value?.name && 'text-slate-400'}`}
         >
           <input
             name={label}
@@ -149,10 +176,10 @@ export function UploadFileInput({
             id={`${id}-${label}`}
             type='file'
             accept={accept}
-            className='nodrag'
+            className='nodrag py-[3px] pr-5 pl-1 font-sans text-inherit transition-colors duration-100 ease-in placeholder:text-slate-800 focus:ring-0 focus:outline-hidden'
             onChange={(event: any) => updateValue(event)}
           />
-          {value?.name ? value.name : label}
+          {value?.name ? value.name : 'Upload ' + label}
         </label>
       </div>
     </>
