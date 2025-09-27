@@ -9,19 +9,20 @@ import { Icon } from '../icons'
 import { toast } from 'react-toastify'
 
 const codeLanguage = 'python'
-const code = `import osintbuddy as ob
+const code = `from osintbuddy import Plugin, Registry, transform
 from urllib.parse import urlparse
 
-class URL(ob.Plugin):
+class URL(Plugin):
+    version = "1.0.0"
     label = "URL"
     color = "#642CA9"
     entity = [TextInput(label="URL", icon="link")]
-    author = ["Team@OSIB"]
+    author = ["OSIB"]
     icon = "link"
 
-    @ob.transform(label="To website", icon="world-www")
+    @transform(label="To website", icon="world-www")
     async def transform_to_website(self, node, **kwargs):
-        website_entity = await ob.Registry.get_plugin('website')
+        website_entity = await Registry.get_entity('website')
         domain = urlparse(node.url).netloc
         return website_entity.blueprint(domain=domain)
 `
@@ -31,16 +32,6 @@ const tabs = [
   { name: 'shodan.plugin.py', isActive: false },
   { name: 'searxng.plugin.py', isActive: false },
 ]
-
-const QUOTES = [
-  'Vision is the art of seeing insight in the invisible',
-  'Find the connections that matter to you',
-  'Vision is the art of seeing insight in the invisible',
-  'Unlock the potential of public data',
-  'Vision is the art of seeing insight in the invisible',
-  'Transform data into connected knowledge',
-]
-;('/docs/intro/roadmap')
 
 export function Hero() {
   const navigate = useNavigate()

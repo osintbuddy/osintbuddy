@@ -65,7 +65,7 @@ interface ProjectGraphProps {
   readyState: ReadyState
   graph: GraphState | null
   fitView: (fitViewOptions?: FitViewOptions | undefined) => void
-  blueprints: Blueprint[]
+  blueprints: { [any: string]: Blueprint }
 }
 
 const DBL_CLICK_THRESHOLD = 340
@@ -187,17 +187,18 @@ export default function Graph({
         return (
           <EditEntityNode
             ctx={entity}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
             sendJsonMessage={sendJsonMessage}
           />
         )
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
+        console.log(blueprints, 'NAD LABEL:', label)
         return (
           <ViewEntityNode
             ctx={entity}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
           />
         )
       },

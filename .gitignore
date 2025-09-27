@@ -2,7 +2,7 @@ env
 venv
 .venv
 backend/venv
-plugins/
+# plugins/
 **/__pycache__/
 osintbuddy-plugins/
 .vscode/

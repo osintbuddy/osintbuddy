@@ -185,7 +185,8 @@ pub async fn handle_create_entity(
     };
 
     if let Some(props_obj) = properties.as_object_mut() {
-        props_obj.insert("label".to_string(), json!(to_snake_case(label)));
+        props_obj.insert("label".to_string(), json!(label));
+        props_obj.insert("entity_type".to_string(), json!(to_snake_case(label)));
     }
 
     let entity_id = Uuid::new_v4();
@@ -806,28 +807,84 @@ pub async fn graphing_websocket_handler(
                     // Handle graph events
                     match graph_action {
                         "update:edge" => {
-                            handle_update_edge(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_update_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "delete:edge" => {
-                            handle_delete_edge(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_delete_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "create:edge" => {
-                            handle_create_edge(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_create_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "read:graph" => {
                             handle_materialized_read(&pool, graph_uuid, &mut session).await;
                         }
                         "create:entity" => {
-                            handle_create_entity(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_create_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "update:entity" => {
-                            handle_update_entity(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_update_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "delete:entity" => {
-                            handle_delete_entity(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_delete_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
                         "transform:entity" => {
-                            handle_transform_entity(&pool, graph_uuid, event, &mut session, actor_id, actor_name).await;
+                            handle_transform_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                actor_id,
+                                actor_name,
+                            )
+                            .await;
                         }
 
                         _ => {}
@@ -1084,6 +1141,11 @@ async fn persist_transform_outputs(
             .unwrap_or("unknown")
             .to_string();
 
+        let edge_label_s = item
+            .get("edge_label")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| label_s.clone());
         // Build entity document
         let entity_id = Uuid::new_v4();
         // Arrange entities in rows of 4: increment X across, then Y down by 200.
@@ -1101,7 +1163,6 @@ async fn persist_transform_outputs(
             obj.remove("edge_label");
             obj.remove("label");
         }
-
         let mut entity_doc = json!({
             "id": entity_id,
             "position": pos,
@@ -1119,6 +1180,7 @@ async fn persist_transform_outputs(
 
         // Append entity:create event
         if let Some(obj) = entity_doc.as_object_mut() {
+            // TODO Abstract into column
             obj.insert(
                 "actor".to_string(),
                 json!({"id": actor_id, "name": actor_name}),
@@ -1145,7 +1207,7 @@ async fn persist_transform_outputs(
             "id": edge_id,
             "source": src_id,
             "target": entity_id,
-            "data": { "label": edge_label, "type": "sfloat" }
+            "data": { "label": edge_label,  }
         });
         if let Some(obj) = edge_doc.as_object_mut() {
             obj.insert(
@@ -1178,7 +1240,7 @@ async fn persist_transform_outputs(
             "id": edge_id,
             "source": src_id,
             "target": entity_id,
-            "data": { "label": edge_label, "type": "sfloat" },
+            "data": { "label": edge_label },
             "type": "sfloat"
         }));
         // Immediately inform UI about the new edge so it appears without a refresh
