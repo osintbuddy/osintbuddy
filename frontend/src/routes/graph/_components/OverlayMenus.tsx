@@ -295,12 +295,14 @@ export default function OverlayMenus({
       style={{ width: '100vw', height: '100vh', display: 'absolute' }}
       rowHeight={4}
       resizeHandles={['se']}
-      onLayoutChange={(currentLayout, _) => {
-        setEntitiesLayout(currentLayout.find((l) => l.i === 'entities'))
-        setAppbarLayout(currentLayout.find((l) => l.i === 'appbar'))
-        setAttachmentsLayout(currentLayout.find((l) => l.i === 'attachments'))
-        setPdfLayout(currentLayout.find((l) => l.i === 'pdfviewer'))
-        setAudioLayout(currentLayout.find((l) => l.i === 'audioviewer'))
+      onLayoutChange={(currentLayout: any, _) => {
+        setEntitiesLayout(currentLayout.find((l: Layout) => l.i === 'entities'))
+        setAppbarLayout(currentLayout.find((l: Layout) => l.i === 'appbar'))
+        setAttachmentsLayout(
+          currentLayout.find((l: Layout) => l.i === 'attachments')
+        )
+        setPdfLayout(currentLayout.find((l: Layout) => l.i === 'pdfviewer'))
+        setAudioLayout(currentLayout.find((l: Layout) => l.i === 'audioviewer'))
       }}
       isResizable={true}
     >
