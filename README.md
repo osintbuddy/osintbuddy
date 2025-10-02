@@ -97,9 +97,9 @@ As is, this project is more of a toy environment that's been useful while protot
 
 | Repository | Description | Language | Purpose | ETA |
 |------------|-------------|----------|---------|-----|
-| [`osintbuddy`](https://github.com/osintbuddy/osintbuddy) | The core application *(this repo)* | Rust, TypeScript/Preact |  Web interface and backend services | 3-5 months from alpha |
-| [`plugins`](https://github.com/osintbuddy/plugins) | The Python plugin system package on PyPi | Python |  Extensible data collection framework | 3-5 months |
-| [`entities`](https://github.com/osintbuddy/entities) | The default OSIB entity definitions | Python  | Default entity types and schemas | 4-6 months |
+| [`osintbuddy`](https://github.com/osintbuddy/osintbuddy) | The core application *(this repo)* | Rust, TypeScript/Preact |  Web interface and backend services | 2-4 months from alpha |
+| [`plugins`](https://github.com/osintbuddy/plugins) | The Python plugin system package on PyPi | Python |  Extensible data collection framework | 2-4 months |
+| [`entities`](https://github.com/osintbuddy/entities) | The default OSIB entity definitions | Python  | Default entity types and schemas | 4-5 months |
 
 ### Key Alpha Features
 
