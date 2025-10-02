@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks'
 import { Link, useNavigate } from 'react-router-dom'
-import { Responsive, WidthProvider, Layout } from 'react-grid-layout'
+import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
 import {
   PositionMode,
@@ -76,6 +76,13 @@ export default function OverlayMenus({
   setShowEdges,
   showEdges,
 }: OverlayMenusProps) {
+  const { setPositionMode } = useFlowStore()
+  const [isForceActive, setIsForceActive] = useState(false)
+  const navigate = useNavigate()
+  const { hid } = useParams()
+  const attachments = useAttachmentsStore()
+  const pdfViewer = usePdfViewerStore()
+  const audioViewer = useAudioViewerStore()
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
   const { plugins } = useEntitiesStore()
@@ -99,79 +106,42 @@ export default function OverlayMenus({
     }
     event.stopPropagation()
   }
-  const [isEntitiesDraggable, setIsEntitiesDraggable] = useState(false)
-  const [isPositionsDraggable, setIsPositionDraggable] = useState(false)
-  const [isAttachmentsDraggable, setIsAttachmentsDraggable] = useState(false)
-  const [isPdfDraggable, setIsPdfDraggable] = useState(false)
-  const [isAudioDraggable, setIsAudioDraggable] = useState(false)
 
-  const [entitiesLayout, setEntitiesLayout] = useState<Layout>({
+  // entities panel
+  const [isEntitiesDraggable, setIsEntitiesDraggable] = useState(false)
+  const [entitiesLayout, setEntitiesLayout] = useState({
     i: 'entities',
-    w: 7,
+    w: 2,
     h: 57,
     x: 34,
     y: 4,
-    minW: 7,
+    minW: 2,
     maxW: 44,
     minH: 3,
     maxH: 60,
-    isDraggable: false,
+    isDraggable: isEntitiesDraggable,
     isBounded: true,
   })
 
-  const [appbarLayout, setAppbarLayout] = useState<Layout>({
+  // appbar panel
+  const [isAppbarDraggable, setIsAppbarDraggable] = useState(false)
+  const [appbarLayout, setAppbarLayout] = useState({
     i: 'appbar',
     w: 44,
     h: 4,
     x: 0,
     y: 0,
-    minW: 10,
+    minW: 3,
     maxW: 44,
     minH: 4,
     maxH: 4,
-    isDraggable: false,
+    isDraggable: isAppbarDraggable,
     isBounded: true,
   })
 
-  const { setPositionMode } = useFlowStore()
-  const [isForceActive, setIsForceActive] = useState(false)
-  const navigate = useNavigate()
-  const { hid } = useParams()
-
-  const closedPanelLayout: (i: string) => Layout = (i: string) => ({
-    i,
-    w: 0,
-    h: 0,
-    x: 0,
-    y: 100,
-    minW: 0,
-    maxW: 0,
-    minH: 0,
-    maxH: 0,
-    isDraggable: false,
-    isBounded: true,
-  })
-
-  // Attachments panel state
-  const attachments = useAttachmentsStore()
-  const pdfViewer = usePdfViewerStore()
-  const defaultAttachmentsLayout: Layout = {
-    i: 'attachments',
-    w: 10,
-    h: 26,
-    x: 0,
-    y: 4,
-    minW: 7,
-    maxW: 44,
-    minH: 6,
-    maxH: 60,
-    isDraggable: false,
-    isBounded: true,
-  }
-  const [attachmentsLayout, setAttachmentsLayout] = useState<Layout>(
-    closedPanelLayout('attachments')
-  )
-  const defaultPdfLayout: Layout = {
+  // pdf preview panel
+  const [isPdfDraggable, setIsPdfDraggable] = useState(false)
+  const [pdfLayout, setPdfLayout] = useState({
     i: 'pdfviewer',
     w: 14,
     h: 56,
@@ -181,11 +151,37 @@ export default function OverlayMenus({
     maxW: 24,
     minH: 12,
     maxH: 84,
-    isDraggable: false,
-    isBounded: false,
-  }
-  const [pdfLayout, setPdfLayout] = useState<Layout>(defaultPdfLayout)
-  const defaultAudioLayout: Layout = {
+  })
+  useEffect(() => {
+    if (pdfViewer.open)
+      setPdfLayout({
+        i: 'pdfviewer',
+        w: 4,
+        h: 60,
+        x: 0,
+        y: 4,
+        minW: 1,
+        maxW: 44,
+        minH: 6,
+        maxH: 60,
+      })
+    else
+      setPdfLayout({
+        i: 'pdfviewer',
+        w: 2,
+        h: 0,
+        x: 0,
+        y: 80,
+        minW: 0,
+        maxW: 0,
+        minH: 0,
+        maxH: 0,
+      })
+  }, [pdfViewer.open])
+
+  // audio preview panel
+  const [isAudioDraggable, setIsAudioDraggable] = useState(false)
+  const [audioLayout, setAudioLayout] = useState({
     i: 'audioviewer',
     w: 14,
     h: 18,
@@ -195,10 +191,74 @@ export default function OverlayMenus({
     maxW: 24,
     minH: 10,
     maxH: 40,
-    isDraggable: false,
-    isBounded: false,
-  }
-  const [audioLayout, setAudioLayout] = useState<Layout>(defaultAudioLayout)
+  })
+  useEffect(() => {
+    if (audioViewer.open)
+      setAudioLayout({
+        i: 'audioviewer',
+        w: 4,
+        h: 18,
+        x: 0,
+        y: 4,
+        minW: 2,
+        maxW: 100,
+        minH: 4,
+        maxH: 100,
+      })
+    else
+      setAudioLayout({
+        i: 'audioviewer',
+        w: 2,
+        h: 4,
+        x: 0,
+        y: 80,
+        minW: 0,
+        maxW: 0,
+        minH: 0,
+        maxH: 0,
+      })
+  }, [audioViewer.open])
+
+  // Attachments panel
+  const [isAttachmentsDraggable, setIsAttachmentsDraggable] = useState(false)
+  const [attachmentsLayout, setAttachmentsLayout] = useState({
+    i: 'attachments',
+    w: 0,
+    h: 0,
+    x: 900,
+    y: 500,
+    minW: 0,
+    maxW: 20,
+    minH: 0,
+    maxH: 200,
+  })
+  useEffect(() => {
+    if (attachments.open)
+      setAttachmentsLayout({
+        i: 'attachments',
+        w: 2,
+        h: 26,
+        x: 0,
+        y: 4,
+        minW: 7,
+        maxW: 44,
+        minH: 6,
+        maxH: 60,
+      })
+    else
+      setAttachmentsLayout({
+        i: 'attachments',
+        w: 2,
+        h: 0,
+        x: 0,
+        y: 80,
+        minW: 0,
+        maxW: 0,
+        minH: 0,
+        maxH: 0,
+      })
+  }, [attachments.open])
+
   const [itemsCache, setItemsCache] = useState<
     Record<string, AttachmentItem[]>
   >({})
@@ -226,24 +286,6 @@ export default function OverlayMenus({
     load()
   }, [attachments.open, attachments.active, hid])
 
-  // Reset attachments layout when panel closes so it reopens at default size
-  useEffect(() => {
-    if (!attachments.open) {
-      setAttachmentsLayout(closedPanelLayout('attachments'))
-    }
-  }, [attachments.open])
-  useEffect(() => {
-    if (!pdfViewer.open) {
-      setPdfLayout(closedPanelLayout('pdfviewer'))
-    }
-  }, [pdfViewer.open])
-  const audioViewer = useAudioViewerStore()
-  useEffect(() => {
-    if (!audioViewer.open) {
-      setAudioLayout(closedPanelLayout('audioviewer'))
-    }
-  }, [audioViewer.open])
-
   return (
     <ResponsiveGridLayout
       allowOverlap={true}
@@ -253,66 +295,18 @@ export default function OverlayMenus({
       style={{ width: '100vw', height: '100vh', display: 'absolute' }}
       rowHeight={4}
       resizeHandles={['se']}
-      breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-      cols={{ lg: 40, md: 40, sm: 28, xs: 22, xxs: 18 }}
-      isDraggable={true}
+      onLayoutChange={(currentLayout, _) => {
+        setEntitiesLayout(currentLayout.find((l) => l.i === 'entities'))
+        setAppbarLayout(currentLayout.find((l) => l.i === 'appbar'))
+        setAttachmentsLayout(currentLayout.find((l) => l.i === 'attachments'))
+        setPdfLayout(currentLayout.find((l) => l.i === 'pdfviewer'))
+        setAudioLayout(currentLayout.find((l) => l.i === 'audioviewer'))
+      }}
       isResizable={true}
-      isBounded={true}
-      layouts={{
-        lg: [
-          { ...appbarLayout, isDraggable: isPositionsDraggable },
-          { ...entitiesLayout, isDraggable: isEntitiesDraggable },
-          ...(attachments.open
-            ? [
-                {
-                  ...defaultAttachmentsLayout,
-                  isDraggable: isAttachmentsDraggable,
-                },
-              ]
-            : [closedPanelLayout('attachments')]),
-          ...(pdfViewer.open
-            ? [{ ...pdfLayout, isDraggable: isPdfDraggable }]
-            : [closedPanelLayout('pdfviewer')]),
-          ...(audioViewer.open
-            ? [{ ...audioLayout, isDraggable: isAudioDraggable }]
-            : [closedPanelLayout('audioviewer')]),
-        ],
-      }}
-      onLayoutChange={(layout, layouts) => {
-        setAppbarLayout({
-          ...(layouts.lg.find((layout) => layout.i === 'appbar') as Layout),
-          isDraggable: isPositionsDraggable,
-          isBounded: true,
-        })
-        setEntitiesLayout({
-          ...(layouts.lg.find((layout) => layout.i === 'entities') as Layout),
-          isDraggable: isEntitiesDraggable,
-        })
-        if (attachments.open) {
-          const att = layouts.lg.find((l) => l.i === 'attachments') as Layout
-          if (att) {
-            setAttachmentsLayout({
-              ...att,
-              isDraggable: isAttachmentsDraggable,
-            })
-          }
-        }
-        if (pdfViewer.open) {
-          const pv = layouts.lg.find((l) => l.i === 'pdfviewer') as Layout
-          if (pv) {
-            setPdfLayout(defaultPdfLayout)
-          }
-        }
-        if (audioViewer.open) {
-          const av = layouts.lg.find((l) => l.i === 'audioviewer') as Layout
-          if (av) {
-            setAudioLayout(defaultAudioLayout)
-          }
-        }
-      }}
     >
       <div
         key='appbar'
+        data-grid={{ ...appbarLayout, isDraggable: isAppbarDraggable }}
         className='pointer-events-auto flex w-full flex-col rounded-md border-black/10 bg-gradient-to-tr from-black/40 to-black/50 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
       >
         <div className='flex w-full items-center justify-center'>
@@ -327,10 +321,10 @@ export default function OverlayMenus({
           </button>
 
           <button
-            onClick={() => setIsPositionDraggable(!isPositionsDraggable)}
+            onClick={() => setIsAppbarDraggable(!isAppbarDraggable)}
             className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
           >
-            {isPositionsDraggable ? (
+            {isAppbarDraggable ? (
               <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
             ) : (
               <Icon icon='lock' className='h-5 w-5 text-inherit' />
@@ -488,10 +482,11 @@ export default function OverlayMenus({
           </button>
         </div>
       </div>
-      {/* TODO: clear entity searchfield input value onBlur */}
+
       <div
         className='pointer-events-auto z-10 flex h-min w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='entities'
+        data-grid={{ ...entitiesLayout, isDraggable: isEntitiesDraggable }}
         id='node-options-tour'
       >
         <ol className='relative flex px-4 pt-2 text-sm select-none'>
@@ -548,6 +543,10 @@ export default function OverlayMenus({
       <div
         className='pointer-events-auto z-10 flex h-min w-full flex-col rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
         key='attachments'
+        data-grid={{
+          ...attachmentsLayout,
+          isDraggable: isAttachmentsDraggable,
+        }}
         id='attachments-panel'
       >
         <ol className='relative flex px-4 pt-2 text-sm select-none'>
@@ -577,7 +576,7 @@ export default function OverlayMenus({
             <div className='flex w-full items-center justify-between'>
               <button
                 onClick={() => attachments.closePanel()}
-                className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
+                className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
                 title='Close attachments'
               >
                 <Icon icon='x' className='h-5 w-5 text-inherit' />
@@ -585,7 +584,6 @@ export default function OverlayMenus({
             </div>
           </li>
         </ol>
-        {/* Tabs */}
         <div
           className='mx-2 flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60 pb-1'
           onWheel={(e) => {
@@ -621,12 +619,18 @@ export default function OverlayMenus({
             </div>
           ))}
         </div>
-        {/* Content */}
         <div className='max-h-64 overflow-y-auto px-3 pr-4'>
           {(!attachments.active || loading) && (
-            <div className='p-2 text-xs text-slate-400'>
-              {loading ? 'Loading…' : 'Select a tab to view attachments.'}
-            </div>
+            <p className='p-2 text-sm text-slate-400'>
+              {loading ? (
+                <>
+                  Loading selected attachments
+                  <span class='dot-flashing !top-[3px] ml-2.5' />
+                </>
+              ) : (
+                'Select an entity and click the tab to view your attachments.'
+              )}
+            </p>
           )}
           {attachments.active && !loading && (
             <ul className='space-y-1'>
@@ -723,28 +727,26 @@ export default function OverlayMenus({
         </div>
       </div>
 
-      {pdfViewer.open && (
-        <div
-          key='pdfviewer'
-          className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
-        >
-          <PdfViewerPanel
-            draggable={isPdfDraggable}
-            onToggleDrag={() => setIsPdfDraggable((v) => !v)}
-          />
-        </div>
-      )}
-      {audioViewer.open && (
-        <div
-          key='audioviewer'
-          className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
-        >
-          <AudioViewerPanel
-            draggable={isAudioDraggable}
-            onToggleDrag={() => setIsAudioDraggable((v) => !v)}
-          />
-        </div>
-      )}
+      <div
+        key='pdfviewer'
+        data-grid={{ ...pdfLayout, isDraggable: isPdfDraggable }}
+        className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+      >
+        <PdfViewerPanel
+          draggable={isPdfDraggable}
+          onToggleDrag={() => setIsPdfDraggable((v) => !v)}
+        />
+      </div>
+      <div
+        data-grid={{ ...audioLayout, isDraggable: isAudioDraggable }}
+        key='audioviewer'
+        className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+      >
+        <AudioViewerPanel
+          draggable={isAudioDraggable}
+          onToggleDrag={() => setIsAudioDraggable((v) => !v)}
+        />
+      </div>
     </ResponsiveGridLayout>
   )
 }

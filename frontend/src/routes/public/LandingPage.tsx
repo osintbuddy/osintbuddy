@@ -92,10 +92,7 @@ export default function LandingPage(): JSX.Element {
           </h1>
           <p class='text-slate-350 mb-2'>
             Email me at&nbsp;
-            <a
-              href='mailto:oss@osintbuddy.com'
-              class='text-primary-50 font-sans transition-all duration-100 ease-in-out hover:underline'
-            >
+            <a href='mailto:oss@osintbuddy.com' class='link'>
               oss@osintbuddy.com
             </a>
             &nbsp;to share ideas, bugs, and or{' '}

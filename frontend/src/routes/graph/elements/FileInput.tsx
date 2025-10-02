@@ -179,7 +179,7 @@ export function UploadFileInput({
             className='nodrag py-[3px] pr-5 pl-1 font-sans text-inherit transition-colors duration-100 ease-in placeholder:text-slate-800 focus:ring-0 focus:outline-hidden'
             onChange={(event: any) => updateValue(event)}
           />
-          {value?.name ? value.name : 'Upload ' + label}
+          {value?.name ? value.name : label}
         </label>
       </div>
     </>

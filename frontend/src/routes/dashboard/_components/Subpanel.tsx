@@ -28,7 +28,7 @@ interface SubpanelProps {
   label: string
   onClick: (hid: string) => void
   items: Entity[] | Graph[]
-  to: '/dashboard/entities' | '/dashboard/cases'
+  to: '/dashboard/entities' | '/dashboard/case'
   errorMessage?: string | null
 }
 
