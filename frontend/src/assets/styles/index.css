@@ -208,15 +208,25 @@ body {
 }
 
 .link {
-  @apply border-b-primary-300 text-slate-350 inline-flex h-[11px] border-b-3 hover:border-b-5 leading-0 font-medium transition-all duration-100 ease-in-out hover:text-slate-200
+  @apply border-b-primary-300 text-slate-350 inline-flex h-[11px] border-b-3 hover:border-b-4 leading-0 font-medium transition-all duration-100 ease-in-out hover:text-slate-200
 }
 
+.card {
+  width: 300px;
+  padding: 20px;
+  background: #0b74a8;
+  color: white;
 
-::-moz-selection,
-::selection {
-  color: var(--color-slate-50);
-  background-color:  color-mix(in srgb, var(--color-radiance-700) 80%, transparent);
-  opacity: .1
+  --r: 40px; /* bevel radius */
+
+  clip-path: polygon(
+    0 var(--r),
+    var(--r) 0,
+    calc(100% - var(--r)) 0,
+    100% var(--r),
+    100% 100%,
+    0 100%
+  );
 }
 
 #app {

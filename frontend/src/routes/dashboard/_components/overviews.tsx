@@ -24,6 +24,10 @@ export function GraphOverview() {
     <>
       <div className='relative -top-16 my-auto w-full items-center justify-center'>
         <div className='flex h-full flex-col items-center justify-center text-slate-400'>
+
+
+          {/* <div class='card svg-rounded'>Rounded-bevel top corners</div> */}
+
           <div className='shadow-primary-950/60 from-cod-900/25 to-cod-950/60 grid w-full max-w-2xl place-items-start rounded-md border-2 border-slate-950/50 bg-gradient-to-br px-13 py-10 shadow-lg backdrop-blur-sm'>
             {sortedFavorites.length === 0 && sortedGraphs.length === 0 && (
               <>
