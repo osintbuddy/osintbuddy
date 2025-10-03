@@ -5,8 +5,6 @@ use tokio::process::Command;
 
 #[derive(thiserror::Error, Debug)]
 pub enum VmError {
-    #[error("unsupported job kind: {0}")]
-    Unsupported(String),
     #[error("vm launch error: {0}")]
     Launch(String),
 }

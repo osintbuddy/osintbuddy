@@ -14,7 +14,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
     );
     loop {
         match jobs::lease_jobs(&pool, &owner, lease_secs, batch).await {
-            Ok(mut leased) if leased.is_empty() => {
+            Ok(leased) if leased.is_empty() => {
                 tokio::time::sleep(Duration::from_millis(tick_ms)).await;
             }
             Ok(mut leased) => {
