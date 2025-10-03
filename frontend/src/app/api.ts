@@ -233,6 +233,11 @@ export interface Plugins {
   favorites: string[]
 }
 
+export interface PluginsFull {
+  entities: any[]
+  favorites: string[]
+}
+
 export const entitiesApi = {
   create: async (
     payload: CreateEntityPayload,
@@ -333,6 +338,13 @@ export const entitiesApi = {
     onExp?: OnExp
   ): Promise<Plugins> => {
     return request<Plugins>('/entity', token, {}, onExp)
+  },
+  // Full plugin entities including blueprint and transforms (via ob entities json)
+  getPluginEntitiesFull: async (
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<PluginsFull> => {
+    return request<PluginsFull>('/entity/plugins/all', token, {}, onExp)
   },
   getEntityDetails: async (
     hid: string,

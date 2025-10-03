@@ -88,12 +88,12 @@ export default function DashboardPage() {
             icon={
               <Icon
                 icon='search'
-                className='-left-2 h-6 w-6 text-slate-800 transition duration-300 ease-in-out hover:text-slate-600'
+                className='relative right-2 h-6 w-6 text-slate-800 transition duration-300 ease-in-out hover:text-slate-600'
               />
             }
             onBtnClick={() => console.warn('TODO: fix search')}
             type='text'
-            className='relative left-px mb-2.5 w-full'
+            className='relative mb-2.5 w-full'
             placeholder={`Search...`}
           />
           <div className='relative left-0.75'>

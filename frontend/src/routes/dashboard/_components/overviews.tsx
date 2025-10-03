@@ -337,7 +337,7 @@ export function EntitiesOverview() {
             className={`group bg-cod-900/50 relative mt-8 grid w-full max-w-3xl place-items-start overflow-hidden rounded-xl border border-slate-800/40 px-10 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_20px_60px_-20px_rgba(0,0,0,0.6)] backdrop-blur-md transition-colors before:absolute before:inset-0 before:-z-10 before:bg-[repeating-linear-gradient(0deg,rgba(255,255,255,0.05)_0_1px,transparent_1px_24px)] before:opacity-5 after:absolute after:inset-0 after:-z-10 after:bg-[radial-gradient(70%_70%_at_-10%_80%,rgba(148,163,184,0.10),transparent_70%)] after:opacity-20`}
           >
             <div className='text-slate-350 mb-6 inline-flex items-center gap-2 rounded-sm border border-slate-700/60 bg-slate-900/60 px-2 py-1 font-mono text-[10px] tracking-[0.25em] uppercase'>
-              cognitive note
+              Analyst advisory
             </div>
             <h1 className='font-display text-slate-350 text-3xl font-semibold tracking-tight md:text-4xl'>
               Confirmation bias
@@ -347,6 +347,11 @@ export function EntitiesOverview() {
               that confirms prior beliefs. What you ask and how you frame it
               matters.
             </p>
+            <div className='pointer-events-none mt-2 inline-flex items-center gap-2 rounded-sm border border-slate-800/40 bg-slate-900/40 px-2 py-1 font-mono text-[10px] tracking-[0.25em] text-slate-300/85 uppercase select-none'>
+              Bias influences judgment
+              <span className='h-1 w-1 rounded-full bg-slate-400/60' />
+              Remain skeptical
+            </div>
             {/* Watermark ring */}
             <div className='pointer-events-none absolute -bottom-12 -left-10 -z-0 h-44 w-44 rotate-6 rounded-full border border-slate-700/10' />
             <div className='pointer-events-none absolute -bottom-10 -left-6 -z-0 h-32 w-32 rotate-6 rounded-full border border-slate-700/10' />
