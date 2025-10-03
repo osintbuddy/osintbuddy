@@ -21,7 +21,7 @@
 
   🚧 ⚠️ <ins> **Work in progress; Not ready for use, _yet_** </ins> ⚠️  🚧
 
-  ## 🛡 Introducing OSINTBuddy
+  ## Introducing OSINTBuddy
 
   <p>
       Welcome to the OSINTBuddy project where you can connect, combine,
@@ -171,11 +171,11 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 3. [**Initialize default entities** _(aka plugins)_](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSIB:
    ```sh
-   git clone https://github.com/osintbuddy/plugins.git
+   git clone https://github.com/osintbuddy/plugins.git osintbuddy-plugins
    python3 -m venv venv
    . ./venv/bin/activate
-   pip install ./plugins/
-   ob init
+   pip install -e ./osintbuddy-plugins/
+   git clone https://github.com/osintbuddy/plugins.git plugins
    ```
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
@@ -193,7 +193,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 6. **Run OSIB**
    Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
-   # NOTE: Make sure to run this terminal with Python env activated
+   # NOTE: Must run all terminals with Python (3.12.9) venv activated!
    . /venv/bin/activate
    cargo watch -q -c -w crates/api -x "run -p api"
 
