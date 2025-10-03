@@ -457,3 +457,32 @@ async fn get_entities_from_plugins(_auth: AuthMiddleware) -> Result<HttpResponse
 
     Ok(HttpResponse::Ok().json(entities))
 }
+
+/// Return full plugin entity information by invoking the `ob entities json` CLI.
+/// This includes blueprint and transforms and is intended for richer UI displays.
+#[get("/entity/plugins/all")]
+async fn get_all_plugin_entities_from_cli(_auth: AuthMiddleware) -> Result<HttpResponse, AppError> {
+    use std::process::Command;
+
+    let output = Command::new("ob")
+        .args(&["entities", "json"])
+        .output()
+        .map_err(|err| {
+            error!("Error running 'ob entities json': {}", err);
+            AppError { message: "Failed to execute 'ob entities json' command." }
+        })?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        error!("Command 'ob entities json' failed: {}", stderr);
+        return Err(AppError { message: "Command 'ob entities json' execution failed." });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let payload: Value = serde_json::from_str(&stdout).map_err(|err| {
+        error!("Error parsing entities json payload: {}", err);
+        AppError { message: "Failed to parse entities json output." }
+    })?;
+
+    Ok(HttpResponse::Ok().json(payload))
+}

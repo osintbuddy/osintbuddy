@@ -48,6 +48,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(entities::get_entity_transforms)
         .service(entities::get_entity_details)
         .service(entities::get_entities_from_plugins)
+        .service(entities::get_all_plugin_entities_from_cli)
         .service(organization::get_my_organization_handler)
         .service(organization::update_my_organization_handler)
         .service(organization::delete_my_organization_handler)
