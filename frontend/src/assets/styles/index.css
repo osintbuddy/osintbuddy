@@ -29,6 +29,12 @@
     100% { background-position: 100% 50%; }
   }
 
+  /* Near-invisible vertical scanline for advisory card */
+  @keyframes scanline {
+    0% { transform: translateY(-120%); }
+    100% { transform: translateY(120%); }
+  }
+
   --color-primary: #1628FF;
   --color-primary-50: #5E6AFF;
   --color-primary-100: #5460FF;
