@@ -1,5 +1,5 @@
 import { HTMLAttributes } from 'preact/compat'
-import Sprite from '../assets/images/tabler-sprite.svg'
+import Sprite from '../assets/images/osib-sprite.svg'
 
 // TODO: Swap out tabler-icons for osib-icons
 // (osib-icons aka an osintbuddy tabler-icons fork with more icon additions)
@@ -17,7 +17,7 @@ export function Icon({ icon, className, ...props }: OsibProps) {
         fill='none'
         stroke='currentColor'
       >
-        <use href={`${Sprite}#tabler-${icon}`} />
+        <use href={`${Sprite}#osib-${icon}`} />
       </svg>
     </>
   )
