@@ -181,8 +181,6 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    pip install -e ./osintbuddy-plugins/
 
    git clone https://github.com/osintbuddy/entities.git plugins
-
-   ob init
    ```
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
