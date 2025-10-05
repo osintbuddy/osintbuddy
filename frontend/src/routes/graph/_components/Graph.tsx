@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, useRef } from 'preact/hooks'
+import { useCallback, useState, useMemo, useRef, useEffect } from 'preact/hooks'
 import { DragEventHandler } from 'preact/compat'
 import {
   Edge,
@@ -23,6 +23,8 @@ import {
   addEdge,
   FinalConnectionState,
 } from '@xyflow/react'
+import { Excalidraw } from '@excalidraw/excalidraw'
+import "@excalidraw/excalidraw/index.css";
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
 import { ViewEntityNode } from './EntityViewNode'
@@ -37,6 +39,7 @@ import { ReadyState } from 'react-use-websocket'
 import { Graph as GraphState } from '@/app/api'
 import { ElkLayoutArguments } from 'elkjs/lib/elk-api'
 import { toSnakeCase } from '../utils'
+import { Icon } from '@/components/icons'
 
 export interface CtxPosition {
   top: number
@@ -102,6 +105,72 @@ export default function Graph({
 
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
+  const [mode, setMode] = useState<'select' | 'draw'>('select')
+  const drawRef = useRef<HTMLDivElement>(null)
+  const [drawSize, setDrawSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
+  const spaceDownRef = useRef(false)
+  const panningRef = useRef(false)
+
+  // Observe overlay container size and clamp canvas dimensions to viewport bounds
+  useEffect(() => {
+    if (mode !== 'draw') return
+    const el = drawRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const cr = entry.contentRect
+        // Clamp to viewport to prevent exceeding canvas size limits on some browsers
+        const maxW = Math.min(window.innerWidth, 1920)
+        const maxH = Math.min(window.innerHeight, 1080)
+        const w = Math.max(1, Math.min(Math.floor(cr.width), maxW))
+        const h = Math.max(1, Math.min(Math.floor(cr.height), maxH))
+        setDrawSize({ w, h })
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [mode])
+
+  // Track space key state for Excalidraw pan gesture
+  useEffect(() => {
+    if (mode !== 'draw') return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') spaceDownRef.current = true
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') spaceDownRef.current = false
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [mode])
+
+  const handleDrawPointerDownCapture = useCallback((e: PointerEvent) => {
+    // Start syncing pan when Excalidraw pan gesture starts (Space + primary button)
+    if (spaceDownRef.current && e.isPrimary && (e.buttons & 1) === 1) {
+      panningRef.current = true
+    }
+  }, [])
+
+  const handleDrawPointerMoveCapture = useCallback(
+    (e: PointerEvent) => {
+      if (!panningRef.current || !graphInstance) return
+      const vp = graphInstance.getViewport?.()
+      if (!vp) return
+      // movementX/Y are deltas in screen pixels; adjust viewport translate accordingly
+      const nx = vp.x + (e as any).movementX
+      const ny = vp.y + (e as any).movementY
+      graphInstance.setViewport?.({ x: nx, y: ny, zoom: vp.zoom })
+    },
+    [graphInstance]
+  )
+
+  const stopPanning = useCallback(() => {
+    panningRef.current = false
+  }, [])
 
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
@@ -194,7 +263,6 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
-        console.log(blueprints, 'NAD LABEL:', label)
         return (
           <ViewEntityNode
             ctx={entity}
@@ -325,10 +393,11 @@ export default function Graph({
   )
 
   return (
-    <ReactFlow
-      ref={ref}
-      zoomOnScroll={true}
-      zoomOnPinch={true}
+    <div className='relative h-full w-full'>
+      <ReactFlow
+        ref={ref}
+        zoomOnScroll={mode !== 'draw'}
+        zoomOnPinch={mode !== 'draw'}
       zoomOnDoubleClick={false}
       minZoom={MIN_ZOOM}
       nodeDragThreshold={2}
@@ -362,24 +431,90 @@ export default function Graph({
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
       defaultMarkerColor='#3b419eee'
       onlyRenderVisibleElements={false}
-    >
-      <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
-      <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
-        <OverlayMenus
-          readyState={readyState}
-          positionMode={positionMode}
-          graph={graph}
-          setElkLayout={setElkLayout}
-          fitView={fitView}
-          clearGraph={clearGraph}
+      nodesDraggable={mode !== 'draw'}
+      nodesConnectable={mode !== 'draw'}
+      elementsSelectable={mode !== 'draw'}
+      selectionOnDrag={mode !== 'draw'}
+      panOnDrag={mode !== 'draw'}
+      >
+        <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
+        <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
+          <OverlayMenus
+            readyState={readyState}
+            positionMode={positionMode}
+            graph={graph}
+            setElkLayout={setElkLayout}
+            fitView={fitView}
+            clearGraph={clearGraph}
+          />
+        </Panel>
+        {/* Mode toggle controls */}
+        <Panel position='top-right' style={{ pointerEvents: 'auto' }}>
+          <div className='flex gap-1 rounded-md border border-slate-900/50 bg-black/30 p-1 backdrop-blur-md'>
+            <button
+              className={`flex items-center gap-1 rounded px-2 py-1 text-xs ${
+                mode === 'select'
+                  ? 'bg-slate-800/70 text-slate-200'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+              onClick={() => setMode('select')}
+              title='Selection mode'
+            >
+              <Icon icon='cursor' className='h-4 w-4' />
+              Select
+            </button>
+            <button
+              className={`flex items-center gap-1 rounded px-2 py-1 text-xs ${
+                mode === 'draw'
+                  ? 'bg-slate-800/70 text-slate-200'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+              }`}
+              onClick={() => setMode('draw')}
+              title='Drawing mode'
+            >
+              <Icon icon='pencil' className='h-4 w-4' />
+              Draw
+            </button>
+          </div>
+        </Panel>
+        <ContextMenu
+          sendJsonMessage={sendJsonMessage}
+          selection={ctxMenu?.entity}
+          position={ctxMenu?.position as CtxPosition}
+          closeMenu={() => setCtxMenu(null)}
         />
-      </Panel>
-      <ContextMenu
-        sendJsonMessage={sendJsonMessage}
-        selection={ctxMenu?.entity}
-        position={ctxMenu?.position as CtxPosition}
-        closeMenu={() => setCtxMenu(null)}
-      />
-    </ReactFlow>
+      </ReactFlow>
+      {/* Excalidraw overlay for freehand drawings, rendered as sibling to avoid RF transforms */}
+      {mode === 'draw' && (
+        <div className='pointer-events-none absolute inset-0 z-20'>
+          <div
+            ref={drawRef}
+            className='pointer-events-auto absolute inset-0'
+            style={{
+              // Ensure no transforms affect canvas size calculations
+              transform: 'none',
+              overflow: 'hidden',
+              contain: 'layout size style',
+            }}
+            onPointerDownCapture={handleDrawPointerDownCapture as any}
+            onPointerMoveCapture={handleDrawPointerMoveCapture as any}
+            onPointerUpCapture={stopPanning as any}
+            onPointerCancelCapture={stopPanning as any}
+            onPointerLeaveCapture={stopPanning as any}
+          >
+            <Excalidraw
+              gridModeEnabled={false}
+              theme='dark'
+              viewModeEnabled={false}
+              width={drawSize.w || undefined}
+              height={drawSize.h || undefined}
+              initialData={{ appState: { viewBackgroundColor: 'transparent' } }}
+              UIOptions={{ canvasActions: { toggleGrid: false } } as any}
+              style={{ background: 'transparent' }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
