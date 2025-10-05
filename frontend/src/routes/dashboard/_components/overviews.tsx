@@ -2,6 +2,7 @@ import { useMemo } from 'preact/hooks'
 import { useOutletContext } from 'react-router-dom'
 import { DashboardContextType } from '..'
 
+
 export function GraphOverview() {
   const { graphs, favoriteGraphs } = useOutletContext<DashboardContextType>()
   const sortedGraphs = useMemo(() => {
@@ -19,6 +20,7 @@ export function GraphOverview() {
     filteredGraphs.sort((a: any, b: any) => b.ctime.localeCompare(a.ctime))
     return filteredGraphs
   }, [graphs, favoriteGraphs])
+
 
   return (
     <>

@@ -4,6 +4,7 @@ import { Icon } from '@/components/icons'
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ActivityGrid from '@/components/ActivityGrid'
 
 interface GraphHeaderProps {
   graph: any
@@ -392,8 +393,50 @@ export default function GraphDetails() {
   const { hid = '' } = useParams()
   const { getGraph, graph, vertices_count, edges_count, degree2_count } =
     useGraphStore()
-
   useEffect(() => getGraph(hid), [hid])
+  const token = useAuthStore.getState().access_token as string
+  const [activityData, setActivityData] = useState<Record<string, number>>({})
+  useEffect(() => {
+    let cancelled = false
+    setActivityData({})
+    if (!hid) return
+    // Build a full-year (53 weeks) date map initialized to 0 so the UI always
+    // renders a complete year regardless of returned buckets.
+    const buildFullYearMap = (): Record<string, number> => {
+      const map: Record<string, number> = {}
+      const sizeWeeks = 53
+      const end = new Date()
+      const daysToSunday = end.getDay()
+      const endShift = 6 - daysToSunday
+      end.setDate(end.getDate() + endShift)
+      const totalDays = sizeWeeks * 7
+      for (let i = totalDays - 1; i >= 0; i--) {
+        const d = new Date(end)
+        d.setDate(end.getDate() - i)
+        const year = d.getFullYear()
+        const month = `${d.getMonth() + 1}`.padStart(2, '0')
+        const day = `${d.getDate()}`.padStart(2, '0')
+        const key = `${year}-${month}-${day}`
+        map[key] = 0
+      }
+      return map
+    }
+
+    casesApi
+      .activitySummary(hid, 365, token)
+      .then((res) => {
+        if (cancelled) return
+        const map = buildFullYearMap()
+        for (const b of res.buckets ?? []) {
+          map[b.date] = b.count ?? 0
+        }
+        setActivityData(map)
+      })
+      .catch(() => !cancelled && setActivityData({}))
+    return () => {
+      cancelled = true
+    }
+  }, [hid, token])
 
   return (
     <>
@@ -401,8 +444,13 @@ export default function GraphDetails() {
         <CaseAppbarPanel graph={graph} />
         <div className='mt-3 flex h-full flex-col'>
           <div class='flex h-full w-full'>
-            <div class='flex w-7/9 flex-col pr-3'>
-              <div className='flex'>
+            <div class='flex flex-col pr-3'>
+          
+          
+            <ActivityGrid data={activityData}  />
+        
+              <div className='flex flex-col'>
+       
                 <h2 className='text-slate-600'>
                   TODO Add content to center area here... Plan to add some
                   graphs/diagrams for more case stats, maybe an activity

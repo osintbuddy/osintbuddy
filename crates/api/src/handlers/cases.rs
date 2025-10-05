@@ -190,3 +190,102 @@ pub async fn get_case_stats_handler(
         events_count,
     }))
 }
+
+// ---- Activity summary (heatmap) ----
+use actix_web::web::Query;
+use chrono::Duration as ChronoDuration;
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+pub struct ActivitySummaryQuery {
+    pub days: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ActivityBucket {
+    pub date: String, // YYYY-MM-DD
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ActivitySummaryResponse {
+    pub start: String, // ISO start date
+    pub end: String,   // ISO end date
+    pub buckets: Vec<ActivityBucket>,
+}
+
+#[get("/cases/{id}/activity/summary")]
+pub async fn get_case_activity_summary_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    graph_id: Path<String>,
+    q: Query<ActivitySummaryQuery>,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    // Fixed default window of ~1 year if not provided
+    let days = q.days.unwrap_or(365).max(1).min(366 * 2);
+
+    // Decode sqid and authorize access
+    let ids = sqids.decode(&graph_id);
+    let decoded_id = ids.first().ok_or(AppError {
+        message: "Invalid graph ID.",
+    })?;
+    let decoded_id = *decoded_id as i64;
+
+    let graph = sqlx::query!(
+        "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
+        decoded_id,
+        auth.account_id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|_| AppError { message: "We ran into an error getting this case." })?;
+
+    let Some(graph_uuid) = graph.uuid else {
+        return Err(AppError { message: "Case has no UUID." });
+    };
+
+    // Compute start and end timestamps (UTC)
+    let end_ts = Utc::now();
+    let start_ts = end_ts - ChronoDuration::days(days);
+
+    // Aggregate events by day within window
+    let rows = sqlx::query!(
+        r#"
+        WITH s AS (
+            SELECT stream_id FROM event_streams WHERE key = $1
+        )
+        SELECT (e.recorded_at AT TIME ZONE 'UTC')::date AS day,
+               COUNT(*)::BIGINT AS count
+          FROM events e
+          JOIN s ON e.stream_id = s.stream_id
+         WHERE e.recorded_at >= $2
+           AND e.recorded_at <= $3
+         GROUP BY day
+         ORDER BY day ASC
+        "#,
+        graph_uuid.to_string(),
+        start_ts,
+        end_ts,
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|_| AppError { message: "We ran into an error summarizing activity." })?;
+
+    let buckets: Vec<ActivityBucket> = rows
+        .into_iter()
+        .map(|r| ActivityBucket {
+            date: r
+                .day
+                .map(|d| d.format("%Y-%m-%d").to_string())
+                .unwrap_or_else(|| "".to_string()),
+            count: r.count.unwrap_or(0),
+        })
+        .collect();
+
+    Ok(HttpResponse::Ok().json(ActivitySummaryResponse {
+        start: start_ts.format("%Y-%m-%d").to_string(),
+        end: end_ts.format("%Y-%m-%d").to_string(),
+        buckets,
+    }))
+}

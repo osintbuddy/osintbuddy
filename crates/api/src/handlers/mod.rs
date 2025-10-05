@@ -25,6 +25,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(attachments::get_entity_attachment_handler)
         .service(attachments::delete_entity_attachment_handler)
         .service(cases::list_case_activity_handler)
+        .service(cases::get_case_activity_summary_handler)
         .service(events::append_event_handler)
         .service(cases::get_case_stats_handler)
         .service(user::register_user_handler)

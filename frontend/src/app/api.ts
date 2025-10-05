@@ -527,6 +527,19 @@ export const casesApi = {
       onExp
     )
   },
+  activitySummary: async (
+    id: string,
+    days: number,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<CaseActivitySummary> => {
+    return request<CaseActivitySummary>(
+      `/cases/${id}/activity/summary?days=${days}`,
+      token,
+      {},
+      onExp
+    )
+  },
   stats: async (
     id: string,
     token: Tokens['access_token'],
@@ -540,4 +553,16 @@ export interface CaseStats {
   entities_count: number
   edges_count: number
   events_count: number
+}
+
+// Activity summary for heatmap
+export interface CaseActivityBucket {
+  date: string
+  count: number
+}
+
+export interface CaseActivitySummary {
+  start: string
+  end: string
+  buckets: CaseActivityBucket[]
 }
