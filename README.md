@@ -162,6 +162,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 1. **Clone the repo**
    ```sh
    git clone https://github.com/osintbuddy/osintbuddy.git
+
    cd osintbuddy
    # using ssh?
    # git clone git@github.com:osintbuddy/osintbuddy.git
@@ -172,10 +173,16 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 3. [**Initialize default entities** _(aka plugins)_](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSIB:
    ```sh
    git clone https://github.com/osintbuddy/plugins.git osintbuddy-plugins
+
    python3 -m venv venv
-   . ./venv/bin/activate
+
+   source ./venv/bin/activate
+
    pip install -e ./osintbuddy-plugins/
-   git clone https://github.com/osintbuddy/plugins.git plugins
+
+   git clone https://github.com/osintbuddy/entities.git plugins
+
+   ob init
    ```
 
 4. **Start [the stack](https://github.com/osintbuddy/osintbuddy/blob/main/docker-compose.yml)**.
@@ -187,6 +194,7 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    ```bash
    cargo install sqlx-cli --no-default-features --features native-tls,postgres
    cargo install cargo-watch
+
    cd crates/ && sqlx migrate run && cd ..
    ```
 
@@ -194,10 +202,13 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
    # NOTE: Must run all terminals with Python (3.12.9) venv activated!
-   . /venv/bin/activate
+
+   # In one terminal run:
+   source ./venv/bin/activate
    cargo watch -q -c -w crates/api -x "run -p api"
 
    # In another terminal run:
+   source ./venv/bin/activate
    cargo watch -q -c -w crates/worker -x "run -p worker"
    ```
 

@@ -5,6 +5,7 @@ backend/venv
 plugins/
 **/__pycache__/
 osintbuddy-plugins/
+osib-icons/
 .vscode/
 rs/target/
 target/

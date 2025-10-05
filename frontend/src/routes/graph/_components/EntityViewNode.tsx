@@ -9,6 +9,8 @@ import { useStore } from '@xyflow/react'
 const toolbarZoomSelector = (s: any) => s.transform[2] >= 0.3
 
 export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
+  if (!blueprint) return // In case blueprints weren't loaded
+
   const { color: backgroundColor, icon, elements } = blueprint
   const value = useMemo(
     () =>
