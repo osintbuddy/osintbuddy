@@ -172,13 +172,15 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
 
 3. [**Initialize default entities** _(aka plugins)_](https://github.com/osintbuddy/plugins/blob/main/src/osintbuddy/ob.py#L85) for OSIB:
    ```sh
-   git clone https://github.com/osintbuddy/plugins.git
+   git clone https://github.com/osintbuddy/plugins.git osintbuddy-plugins
 
    python3 -m venv venv
 
    source ./venv/bin/activate
 
-   pip install -e ./plugins/
+   pip install -e ./osintbuddy-plugins/
+
+   git clone https://github.com/osintbuddy/entities.git plugins
 
    ob init
    ```
@@ -200,12 +202,13 @@ If you want to start developing for OSINTBuddy, create or pick up an [issue](htt
    Run the backend `api` and `worker` on your host system in separate terminals:
    ```bash
    # NOTE: Must run all terminals with Python (3.12.9) venv activated!
-   source ./venv/bin/activate
 
    # In one terminal run:
+   source ./venv/bin/activate
    cargo watch -q -c -w crates/api -x "run -p api"
 
    # In another terminal run:
+   source ./venv/bin/activate
    cargo watch -q -c -w crates/worker -x "run -p worker"
    ```
 
