@@ -151,12 +151,12 @@ const ActivityGrid: FunctionComponent<ActivityGridProps> = ({
           </div>
         </div>
         {/* Grid with left day labels */}
-        <div className='mt-1 ml-4 flex items-start'>
+        <div className='mt-1 flex items-start'>
           {/* Day labels: Mon Wed Fri */}
-          <div style={dayColStyle} className='mr-1 text-[10px] text-slate-500'>
+          <div style={dayColStyle} className=' text-[10px] text-slate-500'>
             {[0, 1, 2, 3, 4, 5, 6].map((row) => (
-              <div key={row} className='flex items-center justify-end pr-0.5' style={{ width: 26 }}>
-                {row === 1 ? 'Monday' : row === 3 ? 'Wednesday' : row === 5 ? 'Friday' : ''}
+              <div key={row} className='flex items-center justify-end pr-1.5' style={{ width: 26 }}>
+                {row === 1 ? 'Mon' : row === 3 ? 'Wed' : row === 5 ? 'Fri' : ''}
               </div>
             ))}
           </div>

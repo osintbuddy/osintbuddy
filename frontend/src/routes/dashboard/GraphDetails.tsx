@@ -1,10 +1,11 @@
-import { Graph, CaseActivityItem, casesApi, CaseStats } from '@/app/api'
+import { Graph, CaseActivityItem, casesApi, CaseStats, ChordNode, ChordLink } from '@/app/api'
 import { useAuthStore, useGraphStore, useGraphsStore } from '@/app/store'
 import { Icon } from '@/components/icons'
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import ActivityGrid from '@/components/ActivityGrid'
+import ChordDiagram from '@/components/charts/ChordDiagram'
 
 interface GraphHeaderProps {
   graph: any
@@ -176,8 +177,7 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
   )
 
   const titleByEvent = (e: CaseActivityItem) =>
-    `${e.category.charAt(0).toUpperCase()}${e.category.slice(1)} ${
-      e.event_type
+    `${e.category.charAt(0).toUpperCase()}${e.category.slice(1)} ${e.event_type
     }`
 
   const formatTime = (iso: string) =>
@@ -199,7 +199,7 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         const dst = e.payload?.target
         return src && dst ? `Link ${src} → ${dst}` : `Edge ${e.event_type}`
       }
-    } catch {}
+    } catch { }
     return `${e.category}:${e.event_type}`
   }
 
@@ -243,11 +243,10 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         <button
           type='button'
           onClick={() => setMineOnly(!mineOnly)}
-          class={`rounded px-2 py-0.5 text-xs transition-colors ${
-            mineOnly
+          class={`rounded px-2 py-0.5 text-xs transition-colors ${mineOnly
               ? 'bg-primary-500/20 text-primary-200'
               : 'bg-black/10 text-slate-500 hover:bg-black/30 hover:text-slate-300'
-          }`}
+            }`}
           title='Show only my activity'
         >
           Mine only
@@ -262,10 +261,10 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         >
           {(mineOnly
             ? events.filter(
-                (e) =>
-                  (e.actor_id && e.actor_id === myId) ||
-                  (e.payload?.actor?.id && e.payload.actor.id === myId)
-              )
+              (e) =>
+                (e.actor_id && e.actor_id === myId) ||
+                (e.payload?.actor?.id && e.payload.actor.id === myId)
+            )
             : events
           ).map((e) => {
             const key = `${e.category}:${e.event_type}`
@@ -349,7 +348,7 @@ function CaseOverviewPanel({ graph }: CaseOverviewProps) {
   const events = stats?.events_count ?? 0
 
   return (
-    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-2/9 min-w-2/9 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+    <div className='text-slate-350 from-cod-900/60 to-cod-950/40 border-cod-900/20 mr-auto flex h-full max-w-2/8 min-w-2/8 flex-col overflow-hidden rounded-md border-2 bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
       {/* details section: */}
       <section class='group'>
         <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
@@ -438,30 +437,101 @@ export default function GraphDetails() {
     }
   }, [hid, token])
 
+  // chord data from API
+  const [chordNodes, setChordNodes] = useState<ChordNode[]>([])
+  const [chordLinks, setChordLinks] = useState<ChordLink[]>([])
+  useEffect(() => {
+    let cancelled = false
+    setChordNodes([])
+    setChordLinks([])
+    if (!hid || !token) return
+    casesApi
+      .chord(hid, token)
+      .then((res) => {
+        if (cancelled) return
+        setChordNodes(res.nodes || [])
+        setChordLinks(res.links || [])
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setChordNodes([])
+          setChordLinks([])
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [hid, token])
+
+  // zoom & pan for chord diagram (panel stays fixed)
+  const [chordZoom, setChordZoom] = useState(1)
+  const [chordPan, setChordPan] = useState({ x: 0, y: 0 })
+  const zoomIn = () => setChordZoom((z) => Math.min(2, Number((z + 0.1).toFixed(2))))
+  const zoomOut = () => setChordZoom((z) => Math.max(0.5, Number((z - 0.1).toFixed(2))))
+  const resetView = () => {
+    setChordZoom(1)
+    setChordPan({ x: 0, y: 0 })
+  }
+
   return (
     <>
       <div class='flex w-full flex-col pl-3'>
         <CaseAppbarPanel graph={graph} />
-        <div className='mt-3 flex h-full flex-col'>
-          <div class='flex h-full w-full'>
-            <div class='flex flex-col pr-3'>
-          
-          
-            <ActivityGrid data={activityData}  />
-        
-              <div className='flex flex-col'>
-       
-                <h2 className='text-slate-600'>
-                  TODO Add content to center area here... Plan to add some
-                  graphs/diagrams for more case stats, maybe an activity
-                  (alerts?) heatmap, chord diagrams, sankey diagrams, opinion
-                  spectrum (if public?), need a reporting ui that can export to
-                  pdf/markdown or something too, also maybe traffic stats for
-                  (public?) cases could go here, maybe could have world map tab
-                  if case has entities that are tied to locations too, etc. I'll
-                  keep brainstorming for now...
-                </h2>
+        <div className='mt-3 flex h-full flex-col w-full overflow-y-scroll'>
+          <div class='flex h-full w-full justify-between'>
+            <div class='flex flex-col w-full gap-y-3 pr-3 max-w-6/8 min-w-6/8'>
+              <ActivityGrid data={activityData} />
+              <div className='text-slate-350 from-cod-900/60 to-cod-950/40 py-0 flex min-h-0 flex-col overflow-hidden rounded-md bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
+
+                <div className='relative flex py-3 flex-col items-center justify-center' style={{ width: '100%', height: '100%' }}>
+                  {/* TODO: Add dropdown+tag based queries+filters for multiple diagrams */}
+                  <div className=' inline-flex items-center rounded-sm border border-slate-700/60 bg-slate-900/60 px-2 py-1 font-mono text-[10px] tracking-[0.25em] text-slate-300/80 uppercase'>
+                    entity types // relationships
+                  </div>
+                  <div className='absolute right-2 top-2 z-10 flex gap-1'>
+                    <button
+                      type='button'
+                      onClick={zoomOut}
+                      className='rounded bg-black/40 px-2 py-1 text-slate-300 hover:bg-black/60'
+                      title='Zoom out'
+                    >
+                      −
+                    </button>
+                    <button
+                      type='button'
+                      onClick={zoomIn}
+                      className='rounded bg-black/40 px-2 py-1 text-slate-300 hover:bg-black/60'
+                      title='Zoom in'
+                    >
+                      +
+                    </button>
+                    <button
+                      type='button'
+                      onClick={resetView}
+                      className='rounded bg-black/40 px-2 py-1 text-slate-300 hover:bg-black/60'
+                      title='Reset view'
+                    >
+                      ○
+                    </button>
+                  </div>
+                  {/* Info box: pan instructions */}
+                  <div className='absolute flex items-center left-2 bottom-2 z-10 rounded bg-black/40 group p-1 justify-center text-xs text-slate-300 transition-all'>
+                    <Icon icon='help' className="btn-icon  !mx-1.5 px-0 text-slate-400 group-hover:text-slate-350" />
+                    <span className="  w-px text-nowrap h-4 text-transparent group-hover:text-slate-350 group-hover:w-30 transition-all duration-150">Click and drag to pan</span>
+                  </div>
+                  <ChordDiagram
+                    width={450}
+                    height={300}
+                    nodes={chordNodes as any}
+                    links={chordLinks as any}
+                    scale={chordZoom}
+                    panX={chordPan.x}
+                    panY={chordPan.y}
+                  />
+                </div>
               </div>
+
+
               <CaseActivityPanel graphId={hid} />
             </div>
             {/* far right dashboard panel */}

@@ -1167,7 +1167,8 @@ async fn persist_transform_outputs(
             "id": entity_id,
             "position": pos,
             "data": {
-                "label": to_snake_case(&label_s),
+                "label": label_s,
+                "entity_type": to_snake_case(&label_s),
             }
         });
         if let (Some(dst), Value::Object(src)) = (entity_doc.get_mut("data"), &item) {

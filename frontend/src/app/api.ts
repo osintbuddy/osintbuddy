@@ -513,6 +513,13 @@ export const graphsApi = {
 }
 
 export const casesApi = {
+  chord: async (
+    id: string,
+    token: Tokens['access_token'],
+    onExp?: OnExp
+  ): Promise<ChordResponse> => {
+    return request<ChordResponse>(`/cases/${id}/chord`, token, {}, onExp)
+  },
   activity: async (
     id: string,
     payload: Paginate,
@@ -565,4 +572,22 @@ export interface CaseActivitySummary {
   start: string
   end: string
   buckets: CaseActivityBucket[]
+}
+
+// Chord diagram response
+export interface ChordNode {
+  id: string
+  label: string
+  color: string
+}
+
+export interface ChordLink {
+  source: string
+  target: string
+  value: number
+}
+
+export interface ChordResponse {
+  nodes: ChordNode[]
+  links: ChordLink[]
 }

@@ -289,3 +289,173 @@ pub async fn get_case_activity_summary_handler(
         buckets,
     }))
 }
+
+// ---- Chord diagram (entity-type relationships) ----
+use std::collections::{HashMap, HashSet};
+use common::utils::to_snake_case;
+
+#[derive(Debug, Serialize)]
+struct ChordNode {
+    id: String,
+    label: String,
+    color: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ChordLink {
+    source: String,
+    target: String,
+    value: i64,
+}
+
+#[derive(Debug, Serialize)]
+struct ChordResponse {
+    nodes: Vec<ChordNode>,
+    links: Vec<ChordLink>,
+}
+
+fn title_case(s: &str) -> String {
+    s.split('_')
+        .filter(|p| !p.is_empty())
+        .map(|p| {
+            let mut c = p.chars();
+            match c.next() {
+                Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn color_for_type(ty: &str) -> String {
+    // Tailwind-esque palette (400-ish)
+    const PALETTE: [&str; 14] = [
+        "#60a5fa", // sky-400
+        "#a78bfa", // violet-400
+        "#34d399", // emerald-400
+        "#fbbf24", // amber-400
+        "#f472b6", // pink-400
+        "#22d3ee", // cyan-400
+        "#818cf8", // indigo-400
+        "#84cc16", // lime-500 (brighter)
+        "#fb7185", // rose-400
+        "#14b8a6", // teal-500
+        "#f59e0b", // orange-500
+        "#e879f9", // fuchsia-400
+        "#94a3b8", // slate-400
+        "#4ade80", // green-400
+    ];
+    let mut h: u64 = 1469598103934665603; // FNV offset basis
+    for b in ty.as_bytes() {
+        h ^= *b as u64;
+        h = h.wrapping_mul(1099511628211);
+    }
+    let idx = (h as usize) % PALETTE.len();
+    PALETTE[idx].to_string()
+}
+
+#[get("/cases/{id}/chord")]
+pub async fn get_case_chord_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    graph_id: Path<String>,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    // Decode sqid to internal numeric id
+    let ids = sqids.decode(&graph_id);
+    let decoded_id = ids.first().ok_or(AppError {
+        message: "Invalid graph ID.",
+    })?;
+    let decoded_id = *decoded_id as i64;
+
+    // Resolve and authorize graph UUID
+    let graph = sqlx::query!(
+        "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
+        decoded_id,
+        auth.account_id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|_| AppError {
+        message: "We ran into an error getting this case.",
+    })?;
+
+    let Some(graph_uuid) = graph.uuid else {
+        return Err(AppError { message: "Case has no UUID." });
+    };
+
+    // Aggregate edge counts by entity_type(source) -> entity_type(target)
+    let rows = sqlx::query!(
+        r#"
+        SELECT
+            e_src.doc->'data'->>'entity_type' AS src_type,
+            e_dst.doc->'data'->>'entity_type' AS dst_type,
+            e_src.doc->'data'->>'label'       AS src_label,
+            e_dst.doc->'data'->>'label'       AS dst_label,
+            COUNT(*)::BIGINT AS value
+        FROM edges_current ec
+        JOIN entities_current e_src
+          ON e_src.entity_id = ec.src_id
+         AND e_src.graph_id  = ec.graph_id
+         AND e_src.sys_to IS NULL
+        JOIN entities_current e_dst
+          ON e_dst.entity_id = ec.dst_id
+         AND e_dst.graph_id  = ec.graph_id
+         AND e_dst.sys_to IS NULL
+        WHERE ec.graph_id = $1
+          AND ec.sys_to IS NULL
+        GROUP BY src_type, dst_type, src_label, dst_label
+        ORDER BY value DESC
+        "#,
+        graph_uuid
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|_| AppError {
+        message: "We ran into an error aggregating chord data.",
+    })?;
+
+    // Build links and collect type set
+    let mut links: Vec<ChordLink> = Vec::new();
+    let mut types: HashSet<String> = HashSet::new();
+    let mut label_map: HashMap<String, String> = HashMap::new();
+    for r in rows {
+        let mut src = r.src_type.unwrap_or_default();
+        let mut dst = r.dst_type.unwrap_or_default();
+        let src_label = r.src_label.unwrap_or_default();
+        let dst_label = r.dst_label.unwrap_or_default();
+        // Derive missing types from labels when possible
+        if src.is_empty() && !src_label.is_empty() { src = to_snake_case(&src_label); }
+        if dst.is_empty() && !dst_label.is_empty() { dst = to_snake_case(&dst_label); }
+        if src.is_empty() { src = "unknown".to_string(); }
+        if dst.is_empty() { dst = "unknown".to_string(); }
+        let val = r.value.unwrap_or(0);
+        if val <= 0 { continue; }
+        types.insert(src.clone());
+        types.insert(dst.clone());
+        // prefer first-seen human label mapping
+        label_map.entry(src.clone()).or_insert_with(|| if !src_label.is_empty() { src_label.clone() } else { title_case(&src) });
+        label_map.entry(dst.clone()).or_insert_with(|| if !dst_label.is_empty() { dst_label.clone() } else { title_case(&dst) });
+        links.push(ChordLink { source: src, target: dst, value: val });
+    }
+
+    // If no links, short-circuit with empty response
+    if links.is_empty() {
+        return Ok(HttpResponse::Ok().json(ChordResponse { nodes: vec![], links }));
+    }
+
+    // Optional: ensure types present even if there are dangling entities with no edges
+    // We keep the chord scoped to connected types to avoid clutter.
+    let mut nodes: Vec<ChordNode> = types
+        .into_iter()
+        .map(|t| {
+            let label = label_map.get(&t).cloned().unwrap_or_else(|| title_case(&t));
+            ChordNode { id: t.clone(), label, color: color_for_type(&t) }
+        })
+        .collect();
+    // Stable ordering for deterministic layout (by label)
+    nodes.sort_by(|a, b| a.label.cmp(&b.label));
+
+    Ok(HttpResponse::Ok().json(ChordResponse { nodes, links }))
+}

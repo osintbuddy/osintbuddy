@@ -119,14 +119,24 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                         return Ok(());
                     };
 
-                    // shallow merge fields into current doc
+                    // merge fields into current doc; perform a deep merge for the `data` object
                     if let (Some(dst), Some(src)) = (doc.as_object_mut(), ev.payload.as_object()) {
                         for (k, v) in src.iter() {
-                            // never allow id overwrite
-                            if k == "id" {
-                                continue;
+                            if k == "id" { continue; }
+                            if k == "data" {
+                                match (dst.get_mut("data"), v) {
+                                    (Some(JsonValue::Object(dst_obj)), JsonValue::Object(src_obj)) => {
+                                        for (sk, sv) in src_obj.iter() {
+                                            dst_obj.insert(sk.clone(), sv.clone());
+                                        }
+                                    }
+                                    _ => {
+                                        dst.insert(k.clone(), v.clone());
+                                    }
+                                }
+                            } else {
+                                dst.insert(k.clone(), v.clone());
                             }
-                            dst.insert(k.clone(), v.clone());
                         }
                     }
 

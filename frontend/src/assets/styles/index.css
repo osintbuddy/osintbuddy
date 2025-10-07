@@ -194,7 +194,10 @@ html {
     var(--grid-e) var(--grid-e);
   z-index: -99;
 }
-
+::selection {
+    background-color: #1628FF99;
+    color: #fff;
+}
 body {
   background-image:
     radial-gradient(49% 81% at 45% 47%, rgba(0, 1, 17, 0.0) 0%, rgba(1, 11, 39, 0.155) 100%),
@@ -215,24 +218,6 @@ body {
 
 .link {
   @apply border-b-primary-300 text-slate-350 inline-flex h-[11px] border-b-3 hover:border-b-4 leading-0 font-medium transition-all duration-100 ease-in-out hover:text-slate-200
-}
-
-.card {
-  width: 300px;
-  padding: 20px;
-  background: #0b74a8;
-  color: white;
-
-  --r: 40px; /* bevel radius */
-
-  clip-path: polygon(
-    0 var(--r),
-    var(--r) 0,
-    calc(100% - var(--r)) 0,
-    100% var(--r),
-    100% 100%,
-    0 100%
-  );
 }
 
 #app {
