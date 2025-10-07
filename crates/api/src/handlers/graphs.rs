@@ -64,12 +64,21 @@ async fn update_graph_handler(
     auth: AuthMiddleware,
     sqids: Data<Sqids>,
 ) -> Result<Graph, AppError> {
+    // Decode sqid to i64
+    let graph_ids = sqids.decode(&body.id);
+    let decoded_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.id);
+        AppError {
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
     sqlx::query_as!(
         DbGraph,
         "UPDATE cases SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
-        body.id,
+        *decoded_id as i64,
         auth.account_id
     )
     .fetch_one(pool.as_ref())
@@ -86,8 +95,9 @@ async fn update_graph_handler(
     .map_err(|err| {
         error!("{err}");
         AppError {
-        message: "We ran into an error updating this graph.",
-    }})
+            message: "We ran into an error updating this graph.",
+        }
+    })
 }
 
 #[delete("/graphs")]

@@ -329,6 +329,83 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
   const token = useAuthStore.getState().access_token as string
   const [stats, setStats] = useState<CaseStats | null>(null)
   const [loading, setLoading] = useState(false)
+  const { updateGraph, isUpdating } = useGraphsStore()
+  const { getGraph } = useGraphStore()
+
+  // Inline edit state
+  const [editing, setEditing] = useState<null | 'label' | 'description'>(null)
+  const [labelVal, setLabelVal] = useState<string>('')
+  const [descVal, setDescVal] = useState<string>('')
+  const [saving, setSaving] = useState<boolean>(false)
+  const labelRef = useRef<HTMLTextAreaElement>(null)
+  const descRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    // Reset edit values on graph change
+    setEditing(null)
+    setLabelVal('')
+    setDescVal('')
+  }, [graph?.id])
+
+  const autosize = (el: HTMLTextAreaElement | null) => {
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = Math.min(Math.max(el.scrollHeight, 24), 300) + 'px'
+  }
+
+  const beginEdit = (field: 'label' | 'description') => {
+    if (!graph) return
+    setEditing(field)
+    if (field === 'label') {
+      const v = graph.label ?? ''
+      setLabelVal(v)
+      setTimeout(() => {
+        if (labelRef.current) {
+          autosize(labelRef.current)
+          labelRef.current.focus()
+          labelRef.current.select()
+        }
+      }, 0)
+    } else {
+      const v = graph.description ?? ''
+      setDescVal(v)
+      setTimeout(() => {
+        if (descRef.current) {
+          autosize(descRef.current)
+          descRef.current.focus()
+        }
+      }, 0)
+    }
+  }
+
+  const cancelEdit = () => {
+    setEditing(null)
+    setLabelVal('')
+    setDescVal('')
+  }
+
+  const commitEdit = async () => {
+    if (!graph || saving) return
+    const newLabel = editing === 'label' ? labelVal.trim() : graph.label
+    const newDesc = editing === 'description' ? descVal.trim() : (graph.description ?? '')
+    const changed = newLabel !== graph.label || newDesc !== (graph.description ?? '')
+    if (!changed) {
+      cancelEdit()
+      return
+    }
+    try {
+      setSaving(true)
+      await updateGraph({ id: graph.id, label: newLabel, description: newDesc })
+      // Refresh details view store
+      await getGraph(graph.id)
+      toast.success('Case details updated')
+    } catch (e) {
+      toast.error('Failed to update case')
+    } finally {
+      setSaving(false)
+      cancelEdit()
+    }
+  }
 
   useEffect(() => {
     if (!graph?.id) return
@@ -352,19 +429,82 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
       {/* details section: */}
       <section class='group'>
         <h5 className='font-display flex w-full items-center justify-between px-2 text-lg font-medium text-inherit'>
-          {graph?.label}
-        </h5>
-        <hr class='text-primary-300 mb-1 border-1' />
-        <p className='text-md line-clamp-24 max-w-xs px-2 leading-normal'>
-          {graph?.description ? (
-            graph.description
+          {editing === 'label' ? (
+            <textarea
+              ref={labelRef}
+              value={labelVal}
+              onInput={(e: any) => {
+                setLabelVal(e.currentTarget.value)
+                autosize(labelRef.current)
+              }}
+              onKeyDown={(e: any) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  ;(e.currentTarget as HTMLTextAreaElement).blur()
+                } else if (e.key === 'Escape') {
+                  e.preventDefault()
+                  cancelEdit()
+                }
+              }}
+              onBlur={commitEdit}
+              rows={1}
+              disabled={saving || isUpdating}
+              className='bg-transparent w-full border-none outline-none resize-none text-inherit p-0 m-0 focus:ring-0 focus:outline-none'
+              placeholder='Enter case title'
+            />
           ) : (
-            <span class='text-slate-600'>
-              No description could be found for this case. TODO: Double click to
-              create or edit this description.
+            <span
+              className='w-full cursor-text'
+              onDblClick={() => beginEdit('label')}
+              title='Double-click to edit title'
+            >
+              {graph?.label}
             </span>
           )}
-        </p>
+        </h5>
+        <hr class='text-primary-300 mb-1 border-1' />
+        <div className='text-md max-w-xs px-2 leading-normal'>
+          {editing === 'description' ? (
+            <textarea
+              ref={descRef}
+              value={descVal}
+              onInput={(e: any) => {
+                setDescVal(e.currentTarget.value)
+                autosize(descRef.current)
+              }}
+              onKeyDown={(e: any) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                  e.preventDefault()
+                  ;(e.currentTarget as HTMLTextAreaElement).blur()
+                } else if (e.key === 'Escape') {
+                  e.preventDefault()
+                  cancelEdit()
+                }
+              }}
+              onBlur={commitEdit}
+              rows={3}
+              disabled={saving || isUpdating}
+              className='bg-transparent w-full border-none outline-none resize-none text-inherit p-0 m-0 focus:ring-0 focus:outline-none'
+              placeholder='Add a description for this case'
+            />
+          ) : graph?.description ? (
+            <p
+              className='text-md whitespace-pre-wrap cursor-text'
+              onDblClick={() => beginEdit('description')}
+              title='Double-click to edit description'
+            >
+              {graph.description}
+            </p>
+          ) : (
+            <p
+              className='text-md text-slate-600 cursor-text'
+              onDblClick={() => beginEdit('description')}
+              title='Double-click to add description'
+            >
+              No description yet. Double-click to add one.
+            </p>
+          )}
+        </div>
       </section>
       {/* stats section: */}
       <section class='relative z-10 mt-auto flex flex-col'>

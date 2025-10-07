@@ -98,7 +98,8 @@ pub type DeleteGraph = Json<IdSchema>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateGraphSchema {
-    pub id: i64,
+    // Accept sqid string from clients; decode in handler
+    pub id: String,
     pub label: String,
     pub description: String,
 }
