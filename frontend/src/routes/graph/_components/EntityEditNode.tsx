@@ -43,7 +43,7 @@ export function EditEntityNode({
   return (
     <>
       <EntityHandles />
-      <EntityToolbar entityId={ctx.id} entityTitle={blueprint.label} />
+      <EntityToolbar entityId={ctx.id} entityTitle={blueprint.label} entityData={ctx.data} />
       <div className='node container'>
         <div
           // 99 === 0.6 opacity

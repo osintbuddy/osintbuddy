@@ -194,7 +194,6 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const { label } = entity.data
-        console.log(blueprints, 'NAD LABEL:', label)
         return (
           <ViewEntityNode
             ctx={entity}

@@ -131,7 +131,6 @@ export default function Graphing() {
   )
   const handleNotification = (data: any) => {
     const notification = data.notification
-    console.log('notification', notification)
     if (notification) {
       const { message, isLoading, toastId, ...notificationProps } = notification
       if (toastId) {

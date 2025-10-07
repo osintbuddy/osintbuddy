@@ -811,3 +811,44 @@ export const useAudioViewerStore = create<AudioViewerTabsState>((set, get) => ({
   closeViewer: () => set({ open: false, tabs: [], active: undefined }),
   setActive: (attachmentId) => set({ active: attachmentId }),
 }))
+
+// Properties panel store (blank overlay panel)
+interface PropertiesTab { entityId: string; title: string; data?: any }
+interface PropertiesState {
+  open: boolean
+  tabs: PropertiesTab[]
+  active?: string
+  openWith: (entityId: string, title: string, data?: any) => void
+  closeTab: (entityId: string) => void
+  closePanel: () => void
+  setActive: (entityId: string) => void
+  setData: (entityId: string, data: any) => void
+}
+
+export const usePropertiesStore = create<PropertiesState>((set, get) => ({
+  open: false,
+  tabs: [],
+  active: undefined,
+  openWith: (entityId, title, data) => {
+    const tabs = get().tabs
+    if (!tabs.find((t) => t.entityId === entityId)) {
+      set({ tabs: [...tabs, { entityId, title, data }] })
+    }
+    set({ open: true, active: entityId })
+  },
+  closeTab: (entityId) => {
+    const next = get().tabs.filter((t) => t.entityId !== entityId)
+    const wasActive = get().active === entityId
+    set({ tabs: next })
+    if (wasActive) {
+      set({ active: next.length ? next[next.length - 1].entityId : undefined })
+    }
+    if (next.length === 0) set({ open: false })
+  },
+  closePanel: () => set({ open: false }),
+  setActive: (entityId) => set({ active: entityId, open: true }),
+  setData: (entityId, data) =>
+    set({
+      tabs: get().tabs.map((t) => (t.entityId === entityId ? { ...t, data } : t)),
+    }),
+}))
