@@ -325,7 +325,7 @@ interface CaseOverviewProps {
   graph: Graph
 }
 
-function CaseOverviewPanel({ graph }: CaseOverviewProps) {
+function CaseContextPanel({ graph }: CaseOverviewProps) {
   const token = useAuthStore.getState().access_token as string
   const [stats, setStats] = useState<CaseStats | null>(null)
   const [loading, setLoading] = useState(false)
@@ -514,7 +514,7 @@ export default function GraphDetails() {
                       ○
                     </button>
                   </div>
-                  {/* Info box: pan instructions */}
+                  {/* TODO: clean me up, info box pan instructions */}
                   <div className='absolute flex items-center left-2 bottom-2 z-10 rounded bg-black/40 group p-1 justify-center text-xs text-slate-300 transition-all'>
                     <Icon icon='help' className="btn-icon  !mx-1.5 px-0 text-slate-400 group-hover:text-slate-350" />
                     <span className="  w-px text-nowrap h-4 text-transparent group-hover:text-slate-350 group-hover:w-30 transition-all duration-150">Click and drag to pan</span>
@@ -530,12 +530,10 @@ export default function GraphDetails() {
                   />
                 </div>
               </div>
-
-
               <CaseActivityPanel graphId={hid} />
             </div>
-            {/* far right dashboard panel */}
-            <CaseOverviewPanel graph={graph as Graph} />
+            {/* far right case context panel */}
+            <CaseContextPanel graph={graph as Graph} />
           </div>
         </div>
       </div>
