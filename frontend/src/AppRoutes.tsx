@@ -4,7 +4,7 @@ import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
 import NotFound from '@/routes/public/NotFound'
 import AppLayout from '@/components/layouts/AppLayout'
 import PublicLayout from '@/components/layouts/PublicLayout'
-import { TourProvider } from '@reactour/tour'
+import { StepType, TourProvider } from '@reactour/tour'
 import GraphLayout from '@/components/layouts/GraphLayout'
 import Button from './components/buttons'
 import RoundLoader from './components/loaders'
@@ -165,7 +165,8 @@ const router = createBrowserRouter([
 
 export default function AppRoutes(): JSX.Element {
   // const [tourSteps, _] = useAtom(tourAtom)
-  const tourSteps = [{ todo: 'zustand' }]
+  // todo: use 'zustand' to set multiple tours around app 
+  const tourSteps: StepType[] = []
 
   return (
     <TourProvider
