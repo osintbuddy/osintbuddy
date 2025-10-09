@@ -41,7 +41,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                 correlation_id: None,
                                 causation_id: None,
                                 expected_version: None,
-                                actor_id: Some("osib".to_string()),
+                                actor_id: None,
                             },
                         )
                         .await;
@@ -62,7 +62,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                             correlation_id: None,
                                             causation_id: None,
                                             expected_version: None,
-                                            actor_id: Some("osib".to_string()),
+                                            actor_id: None,
                                         },
                                     )
                                     .await;
@@ -86,9 +86,9 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                         valid_to: None,
                                         correlation_id: None,
                                         causation_id: None,
-                                        expected_version: None,
-                                        actor_id: Some("osib".to_string()),
-                                    },
+                                expected_version: None,
+                                actor_id: None,
+                            },
                                 )
                                 .await;
                                 // simple backoff: 10s

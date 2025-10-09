@@ -83,11 +83,43 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
             };
             match ev.event_type.as_str() {
                 "create" => {
-                    // Store the entire event payload as the document (id, position, data)
-                    // UI will add {type: "view" or "edit" } on read for Reactflow.
+                    // Store normalized entity document (label/entity_type at top-level)
+                    let mut doc = ev.payload.clone();
+                    if let Some(obj) = doc.as_object_mut() {
+                        // If label/entity_type were sent under data, lift them up
+                        let (lab_opt, ent_opt) = if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
+                            (data.remove("label"), data.remove("entity_type"))
+                        } else {
+                            (None, None)
+                        };
+                        if let Some(lab) = lab_opt { obj.entry("label").or_insert(lab); }
+                        if let Some(ent) = ent_opt { obj.entry("entity_type").or_insert(ent); }
+
+                        // Ensure doc.data.label mirrors entity_type for downstream usage
+                        let etype = obj
+                            .get("entity_type")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        if let Some(etype) = etype {
+                            // Set or create data object with label = entity_type
+                            let make_data_with_label = || {
+                                let mut m = serde_json::Map::new();
+                                m.insert("label".to_string(), JsonValue::String(etype.clone()));
+                                JsonValue::Object(m)
+                            };
+                            match obj.get_mut("data") {
+                                Some(JsonValue::Object(d)) => {
+                                    d.insert("label".to_string(), JsonValue::String(etype));
+                                }
+                                _ => {
+                                    obj.insert("data".to_string(), make_data_with_label());
+                                }
+                            }
+                        }
+                    }
                     sqlx::query!(
                 r#"
-                INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)
+                INSERT INTO entities_current(entity_id, graph_id, doc,valid_from, valid_to, sys_from, sys_to)
                 VALUES ($1, $2, $3, $4, $5, now(), NULL)
                 ON CONFLICT (graph_id, entity_id) DO UPDATE SET
                   graph_id = EXCLUDED.graph_id,
@@ -99,7 +131,7 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                 "#,
                 entity_uuid,
                 graph_uuid,
-                ev.payload,
+                doc,
                 ev.valid_from,
                 ev.valid_to
             )
@@ -140,6 +172,37 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                         }
                     }
 
+                    // Ensure label/entity_type are top-level (normalize from data if present)
+                    if let Some(obj) = doc.as_object_mut() {
+                        let (lab_opt, ent_opt) = if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
+                            (data.remove("label"), data.remove("entity_type"))
+                        } else {
+                            (None, None)
+                        };
+                        if let Some(lab) = lab_opt { obj.insert("label".to_string(), lab); }
+                        if let Some(ent) = ent_opt { obj.insert("entity_type".to_string(), ent); }
+
+                        // Ensure doc.data.label mirrors entity_type for downstream usage
+                        let etype = obj
+                            .get("entity_type")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        if let Some(etype) = etype {
+                            let make_data_with_label = || {
+                                let mut m = serde_json::Map::new();
+                                m.insert("label".to_string(), JsonValue::String(etype.clone()));
+                                JsonValue::Object(m)
+                            };
+                            match obj.get_mut("data") {
+                                Some(JsonValue::Object(d)) => {
+                                    d.insert("label".to_string(), JsonValue::String(etype));
+                                }
+                                _ => {
+                                    obj.insert("data".to_string(), make_data_with_label());
+                                }
+                            }
+                        }
+                    }
                     sqlx::query!(
                 r#"
                 INSERT INTO entities_current(entity_id, graph_id, doc, valid_from, valid_to, sys_from, sys_to)

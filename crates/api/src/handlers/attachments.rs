@@ -163,7 +163,7 @@ pub async fn upload_entity_attachment_handler(
             correlation_id: None,
             causation_id: None,
             expected_version: None,
-            actor_id: Some(auth.account_id.to_string()),
+            actor_id: Some(auth.account_id),
         },
     )
     .await;
