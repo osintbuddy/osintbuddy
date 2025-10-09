@@ -348,6 +348,14 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
 
+"@embedpdf/plugin-zoom@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-zoom/-/plugin-zoom-1.3.14.tgz#950cb5f03233d99d0a19ab76b1dfb05f40e47887"
+  integrity sha512-/N5tyMk+8OzhObrS3O9yPkcmX8EPiuTo+WaT2QCVSmIUqKnOO4AnKpHJ6Vl0uVhcuXHCMwLucZKyhJ7tRqavwg==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+    hammerjs "^2.0.8"
+
 "@emnapi/core@^1.4.3":
   version "1.4.5"
   resolved "https://registry.yarnpkg.com/@emnapi/core/-/core-1.4.5.tgz#bfbb0cbbbb9f96ec4e2c4fd917b7bbe5495ceccb"
@@ -2711,6 +2719,11 @@ hachure-fill@^0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/hachure-fill/-/hachure-fill-0.5.2.tgz#d19bc4cc8750a5962b47fb1300557a85fcf934cc"
   integrity sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==
+
+hammerjs@^2.0.8:
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/hammerjs/-/hammerjs-2.0.8.tgz#04ef77862cff2bb79d30f7692095930222bf60f1"
+  integrity sha512-tSQXBXS/MWQOn/RKckawJ61vvsDpCom87JgxiYdGwHdOa0ht0vzUWDlfioofFCRU0L+6NGDt6XzbgoJvZkMeRQ==
 
 he@1.2.0:
   version "1.2.0"
