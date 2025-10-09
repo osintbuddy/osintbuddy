@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'preact/hooks'
 import Input from '@/components/inputs'
 import { useEntitiesStore, useFlowStore } from '@/app/store'
 import { toSnakeCase } from '../utils'
-import { CtxPosition } from '..'
+import { CtxPosition } from './Graph'
 import { toast } from 'react-toastify'
 import ShinyText from '@/components/ShinyText'
 
@@ -32,20 +32,21 @@ export default function ContextMenu({
     }
   }, [])
 
+  const selectedLabel = (selection?.label as string) ?? selection?.data?.label
   const filteredTransforms = useMemo(
     () =>
       query
-        ? transforms[selection?.data?.label].filter((transform: any) =>
+        ? (transforms[selectedLabel] ?? []).filter((transform: any) =>
             transform.label.toLowerCase().includes(query.toLowerCase())
           )
-        : (transforms[selection?.data?.label] ?? []),
-    [transforms, selection?.data?.label]
+        : (transforms[selectedLabel] ?? []),
+    [transforms, selectedLabel, query]
   )
 
   // Fetch transforms if ctx selection change
   useEffect(() => {
-    if (selection?.data?.label) fetchTransforms(selection.data.label)
-  }, [selection?.data?.label, fetchTransforms])
+    if (selectedLabel) fetchTransforms(selectedLabel)
+  }, [selectedLabel, fetchTransforms])
   return (
     <>
       <div
@@ -76,7 +77,7 @@ export default function ContextMenu({
               No entity selected!
             </p>
           )}
-          {transforms[selection?.data?.label] &&
+          {transforms[selectedLabel] &&
             !isLoadingTransforms &&
             selection?.id && (
               <div className='border-mirage-950 cursor flex min-h-[115px] flex-col items-start divide-slate-400 overflow-y-scroll text-sm'>
@@ -118,7 +119,7 @@ export default function ContextMenu({
                         action: 'transform:entity',
                         entity: {
                           id: selection.id,
-                          type: selection.data?.label,
+                          type: selectedLabel,
                           data: rawData,
                           position: selection.position,
                           transform: transform.label,

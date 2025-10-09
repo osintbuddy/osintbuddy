@@ -1,5 +1,46 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- tenant (aka teams) discriminator
+CREATE TABLE IF NOT EXISTS organizations (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    website VARCHAR(255),
+    contact_email VARCHAR(255),
+    subscription_level VARCHAR(20) NOT NULL DEFAULT 'trial',
+    max_users INTEGER NOT NULL DEFAULT 3,
+    max_cases INTEGER NOT NULL DEFAULT 3,
+    max_entities INTEGER NOT NULL DEFAULT 100,
+    can_export BOOLEAN NOT NULL DEFAULT FALSE,
+    can_share BOOLEAN NOT NULL DEFAULT FALSE,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX organizations_name_idx ON organizations (name);
+
+-- osintbuddy members 
+-- + every member has a DEFAULT organization created with their name
+-- + this is their DEFAULT "team"
+-- + TODO: create organization signup flow to allow
+--         customizing initial organization details on new account
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    password VARCHAR(100) NOT NULL,
+    user_type VARCHAR(20) NOT NULL DEFAULT 'standard',
+    org_id BIGSERIAL NOT NULL,
+    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT valid_user_type CHECK (user_type IN (
+      'standard', 'owner', 'moderator', 'sudo'
+    ))
+);
+CREATE INDEX users_email_idx ON users (email);
+CREATE INDEX users_org_id_idx ON users (org_id);
+
 -- Streams provide ordering and tenant/category scoping
 CREATE TABLE IF NOT EXISTS event_streams (
   stream_id         UUID PRIMARY KEY,
@@ -23,6 +64,7 @@ CREATE TABLE IF NOT EXISTS events (
   recorded_at       TIMESTAMPTZ NOT NULL DEFAULT now(), -- system time (tx-time)
   causation_id      UUID,                    -- event that caused this (optional)
   correlation_id    UUID,                    -- request/task correlation
+  actor_id          BIGSERIAL NOT NULL REFERENCES users(id) ON DELETE CASCADE,        
   UNIQUE (stream_id, version)
 );
 
@@ -88,46 +130,6 @@ END $$;
 CREATE TRIGGER trg_jobs_new AFTER INSERT ON jobs
 FOR EACH ROW EXECUTE FUNCTION notify_jobs_new();
 
--- tenant (aka teams) discriminator
-CREATE TABLE IF NOT EXISTS organizations (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT,
-    website VARCHAR(255),
-    contact_email VARCHAR(255),
-    subscription_level VARCHAR(20) NOT NULL DEFAULT 'trial',
-    max_users INTEGER NOT NULL DEFAULT 3,
-    max_cases INTEGER NOT NULL DEFAULT 3,
-    max_entities INTEGER NOT NULL DEFAULT 100,
-    can_export BOOLEAN NOT NULL DEFAULT FALSE,
-    can_share BOOLEAN NOT NULL DEFAULT FALSE,
-    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-CREATE INDEX organizations_name_idx ON organizations (name);
-
--- osintbuddy members 
--- + every member has a DEFAULT organization created with their name
--- + this is their DEFAULT "team"
--- + TODO: create organization signup flow to allow
---         customizing initial organization details on new account
-CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    verified BOOLEAN NOT NULL DEFAULT FALSE,
-    password VARCHAR(100) NOT NULL,
-    user_type VARCHAR(20) NOT NULL DEFAULT 'standard',
-    org_id BIGSERIAL NOT NULL,
-    ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    CONSTRAINT valid_user_type CHECK (user_type IN (
-      'standard', 'owner', 'moderator', 'sudo'
-    ))
-);
-CREATE INDEX users_email_idx ON users (email);
-CREATE INDEX users_org_id_idx ON users (org_id);
 
 -- Cases are the reference to a specific set entities and their relationships
 CREATE TABLE IF NOT EXISTS cases (
@@ -349,3 +351,23 @@ CREATE TABLE IF NOT EXISTS post_tags (
 );
 CREATE INDEX post_tags_post_id_idx ON post_tags (post_id);
 CREATE INDEX post_tags_tag_id_idx ON post_tags (tag_id);
+
+
+-- Attachments uploaded for entities (small files inline, larger via URI)
+CREATE TABLE IF NOT EXISTS entity_attachments (
+  attachment_id   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  graph_id        UUID NOT NULL REFERENCES cases(uuid) ON DELETE CASCADE,
+  entity_id       UUID NOT NULL,
+  owner_id        BIGINT NOT NULL,
+  filename        TEXT NOT NULL,
+  media_type      TEXT NOT NULL,
+  size            BIGINT NOT NULL,
+  bytes           BYTEA,
+  uri             TEXT,
+  meta            JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS entity_attachments_entity_idx
+  ON entity_attachments (graph_id, entity_id, created_at DESC);
+

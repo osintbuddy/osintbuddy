@@ -4,6 +4,7 @@ use serde::Deserialize;
 use serde_json::{Value as JsonValue, json};
 
 use common::eventstore::{self, AppendEvent};
+use crate::middleware::auth::AuthMiddleware;
 
 #[derive(Deserialize)]
 pub struct AppendEventBody {
@@ -21,6 +22,7 @@ pub async fn append_event_handler(
     pool: web::Data<sqlx::PgPool>,
     path: web::Path<(String, String)>,
     body: web::Json<AppendEventBody>,
+    auth: AuthMiddleware,
 ) -> impl Responder {
     let (category, key) = path.into_inner();
     let b = body.into_inner();
@@ -43,7 +45,7 @@ pub async fn append_event_handler(
         correlation_id: b.correlation_id,
         causation_id: b.causation_id,
         expected_version,
-        actor_id: Some("osib".to_string()),
+        actor_id: Some(auth.account_id),
     };
 
     match eventstore::append_event(&pool, req).await {

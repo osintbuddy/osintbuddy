@@ -3,7 +3,6 @@ use actix_web::{HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
 use common::db::Database;
 use common::errors::AppError;
-use common::utils::to_snake_case;
 use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
 use log::{error, info};
@@ -132,8 +131,7 @@ pub async fn handle_create_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     // Event validation and error messages
     let Some(mut entity) = event.entity else {
@@ -174,8 +172,7 @@ pub async fn handle_create_entity(
     };
     // end validation
 
-    // Extract position and remaining properties from payload
-    let (x, y, mut properties) = match entity {
+    let (x, y, properties) = match entity {
         Value::Object(mut obj) => {
             let x = obj.remove("x").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
             let y = obj.remove("y").and_then(|v| v.as_f64()).unwrap_or(0.0_f64);
@@ -184,27 +181,13 @@ pub async fn handle_create_entity(
         _ => (0.0_f64, 0.0_f64, json!({})),
     };
 
-    if let Some(props_obj) = properties.as_object_mut() {
-        props_obj.insert("label".to_string(), json!(label));
-        props_obj.insert("entity_type".to_string(), json!(to_snake_case(label)));
-    }
-
-    let entity_id = Uuid::new_v4();
-
-    // Build domain event payload
     let mut payload = json!({
-        "id": entity_id,
+        "id":  Uuid::new_v4(),
+        "label": label,
         "position": { "x": x, "y": y },
         "data": properties,
     });
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
 
-    // Append to event store on the graph stream
     let event = AppendEvent {
         category: "entity".to_string(),
         key: graph_uuid.to_string(),
@@ -215,7 +198,7 @@ pub async fn handle_create_entity(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
 
     if let Err(e) = eventstore::append_event(pool, event).await {
@@ -236,6 +219,19 @@ pub async fn handle_create_entity(
     // insert type which is used only in reactflow, don't store this
     entity.insert("type".to_string(), json!("view"));
 
+         let entity_label = entity
+                        .get("label")
+                        .cloned()
+                        .unwrap_or_else(|| json!("unknown"));
+    entity.remove("label");
+    match entity.get_mut("data") {
+        Some(Value::Object(map)) => {
+            map.entry("label".to_string()).or_insert(entity_label);
+        }
+        _ => {
+            entity.insert("data".to_string(), json!({ "label": entity_label }));
+        }
+    };
     let message = json!({
         "action": "created".to_string(),
         "notification": {
@@ -252,8 +248,7 @@ pub async fn handle_create_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     // Normalize
     let Some(edge) = event.edge else {
@@ -287,39 +282,29 @@ pub async fn handle_create_edge(
     };
 
     let edge_id = Uuid::new_v4();
-    // Build domain event payload
-    let mut payload = json!({
-        "id": edge_id,
-        "source": source,
-        "target": target,
-        "data": data,
-    });
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
 
-    // Append to event store on the graph stream
     let event = AppendEvent {
         category: "edge".to_string(),
         key: graph_uuid.to_string(),
         event_type: "create".to_string(),
-        payload: payload.clone(),
+        payload: json!({
+            "id": edge_id,
+            "source": source,
+            "target": target,
+            "data": data,
+        }),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
 
     if let Err(e) = eventstore::append_event(pool, event).await {
         error!("Failed to append edge:create event: {}", e);
     }
 
-    // Return the created edge document for immediate UI usage
     let message = json!({
         "action": "created",
         "edge": {
@@ -338,8 +323,7 @@ pub async fn handle_delete_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     let Some(edge) = event.edge else {
         let message = json!({
@@ -353,25 +337,17 @@ pub async fn handle_delete_edge(
         return;
     };
 
-    // Include actor on delete payload
-    let mut payload = edge.clone();
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
     let ev = AppendEvent {
         category: "edge".to_string(),
         key: graph_uuid.to_string(),
         event_type: "delete".to_string(),
-        payload,
+        payload: edge.clone(),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
 
     if let Err(e) = eventstore::append_event(pool, ev).await {
@@ -399,8 +375,7 @@ pub async fn handle_update_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     let Some(edge) = event.edge else {
         let message = json!({
@@ -414,14 +389,8 @@ pub async fn handle_update_edge(
         return;
     };
 
-    // Append update event
-    let mut payload = edge.clone();
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
+    let payload = edge.clone();
+
     let ev = AppendEvent {
         category: "edge".to_string(),
         key: graph_uuid.to_string(),
@@ -432,7 +401,7 @@ pub async fn handle_update_edge(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append edge:update: {}", e);
@@ -451,8 +420,7 @@ pub async fn handle_update_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     let Some(mut entity) = event.entity else {
         return;
@@ -466,25 +434,17 @@ pub async fn handle_update_entity(
         }
     }
 
-    // Append update event
-    let mut payload = entity.clone();
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
     let ev = AppendEvent {
         category: "entity".to_string(),
         key: graph_uuid.to_string(),
         event_type: "update".to_string(),
-        payload,
+        payload: entity.clone(),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:update event: {}", e);
@@ -503,8 +463,7 @@ pub async fn handle_delete_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     let Some(entity) = event.entity else {
         return;
@@ -522,25 +481,17 @@ pub async fn handle_delete_entity(
         }
     };
 
-    // include actor
-    let mut payload = json!({ "id": id_val });
-    if let Some(obj) = payload.as_object_mut() {
-        obj.insert(
-            "actor".to_string(),
-            json!({"id": actor_id, "name": actor_name}),
-        );
-    }
     let ev = AppendEvent {
         category: "entity".to_string(),
         key: graph_uuid.to_string(),
         event_type: "delete".to_string(),
-        payload,
+        payload: json!({ "id": id_val }),
         valid_from: Utc::now(),
         valid_to: None,
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id.to_string()),
+        actor_id: Some(actor_id),
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:delete: {}", e);
@@ -612,7 +563,26 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
             .map(|r| {
                 let mut entity_doc = r.doc;
                 if let Some(obj) = entity_doc.as_object_mut() {
+                    // Surface ReactFlow node type for UI rendering
                     obj.insert("type".to_string(), json!("view"));
+
+                    // Insert the label into the `data` object for ReactFlow consumers
+                    let label_value = obj
+                        .get("label")
+                        .cloned()
+                        .unwrap_or_else(|| json!("unknown"));
+                    // Remove top-level label as only data properties are visible with Reactflow
+                    obj.remove("label");
+
+                    match obj.get_mut("data") {
+                        Some(Value::Object(map)) => {
+                            map.entry("label".to_string()).or_insert(label_value);
+                        }
+                        _ => {
+                            obj.insert("data".to_string(), json!({ "label": label_value }));
+                        }
+                    }
+
                     return json!(obj);
                 }
                 entity_doc
@@ -695,8 +665,7 @@ pub async fn graphing_websocket_handler(
     // We'll authenticate when we receive the first message
     let mut authenticated = false;
     let mut total_events = 0;
-    let mut actor_id_sqid: Option<String> = None;
-    let mut actor_name: Option<String> = None;
+    let mut actor_id_num: Option<i64> = None;
 
     // Extract and decode graph id from path parameters
     let graph_ids = sqids.decode(&graph_id);
@@ -711,7 +680,7 @@ pub async fn graphing_websocket_handler(
         }
     };
     let decoded_id = *decoded_id as i64;
-
+    let deauth_msg = json!({"action": "deauth"});
     actix_web::rt::spawn(async move {
         let mut graph_uuid: Option<Uuid> = None;
         let Ok(blueprints) = get_entity_blueprints().await else {
@@ -721,11 +690,12 @@ pub async fn graphing_websocket_handler(
             );
             return;
         };
+        
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
                 Message::Text(text) => {
                     let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) else {
-                        let _ = session.text(json!({"action": "deauth"}).to_string());
+                        let _ = session.text(deauth_msg.to_string());
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
@@ -741,7 +711,7 @@ pub async fn graphing_websocket_handler(
                             let user_ids = sqids.decode(&claims.sub);
                             let Some(decoded_user_id) = user_ids.first() else {
                                 // Invalid user ID in token
-                                let _ = session.text(json!({"action": "deauth"}).to_string());
+                                let _ = session.text(deauth_msg.to_string());
                                 let _ = session
                                     .close(Some(actix_ws::CloseCode::Policy.into()))
                                     .await;
@@ -767,8 +737,7 @@ pub async fn graphing_websocket_handler(
                             };
                             authenticated = true;
                             graph_uuid = graph.uuid;
-                            actor_id_sqid = Some(claims.sub.clone());
-                            actor_name = Some(claims.name.clone());
+                            actor_id_num = Some(user_id_i64);
                             let _ = session
                                 .text(
                                     json!({
@@ -790,14 +759,16 @@ pub async fn graphing_websocket_handler(
 
                     let graph_action = event.action.as_str();
                     let Some(graph_uuid) = graph_uuid else {
+                         let _ = session.text(deauth_msg.to_string());
+                               
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
                         return;
                     };
-                    let (Some(actor_id), Some(actor_name)) =
-                        (actor_id_sqid.as_deref(), actor_name.as_deref())
+                    let Some(actor_id) = actor_id_num
                     else {
+                         let _ = session.text(deauth_msg.to_string());
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
@@ -813,7 +784,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -824,7 +794,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -835,7 +804,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -849,7 +817,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -860,7 +827,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -871,7 +837,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -882,7 +847,6 @@ pub async fn graphing_websocket_handler(
                                 event,
                                 &mut session,
                                 actor_id,
-                                actor_name,
                             )
                             .await;
                         }
@@ -909,8 +873,7 @@ async fn handle_transform_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     let Some(entity) = event.entity else {
         let _ = session
@@ -966,7 +929,6 @@ async fn handle_transform_entity(
                 graph_uuid,
                 job.payload["entity"].clone(),
                 actor_id,
-                actor_name,
             )
             .await;
         }
@@ -995,8 +957,7 @@ async fn stream_job_events(
     job_id: Uuid,
     graph_uuid: Uuid,
     source_entity: Value,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) {
     // Ensure stream exists and get its id
     let Ok(stream) = eventstore::ensure_stream(pool, "job", &job_id.to_string()).await else {
@@ -1067,7 +1028,6 @@ async fn stream_job_events(
                             data,
                             session,
                             actor_id,
-                            actor_name,
                         )
                         .await
                         {
@@ -1093,8 +1053,7 @@ async fn persist_transform_outputs(
     source_entity: &Value,
     outputs: &Value,
     session: &mut Session,
-    actor_id: &str,
-    actor_name: &str,
+    actor_id: i64,
 ) -> Result<(), sqlx::Error> {
     use chrono::Utc;
     use common::eventstore::{self, AppendEvent};
@@ -1141,11 +1100,6 @@ async fn persist_transform_outputs(
             .unwrap_or("unknown")
             .to_string();
 
-        let edge_label_s = item
-            .get("edge_label")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| label_s.clone());
         // Build entity document
         let entity_id = Uuid::new_v4();
         // Arrange entities in rows of 4: increment X across, then Y down by 200.
@@ -1166,10 +1120,8 @@ async fn persist_transform_outputs(
         let mut entity_doc = json!({
             "id": entity_id,
             "position": pos,
-            "data": {
-                "label": label_s,
-                "entity_type": to_snake_case(&label_s),
-            }
+            "label": label_s,
+            "data": {}
         });
         if let (Some(dst), Value::Object(src)) = (entity_doc.get_mut("data"), &item) {
             if let Some(dst_obj) = dst.as_object_mut() {
@@ -1179,14 +1131,6 @@ async fn persist_transform_outputs(
             }
         }
 
-        // Append entity:create event
-        if let Some(obj) = entity_doc.as_object_mut() {
-            // TODO Abstract into column
-            obj.insert(
-                "actor".to_string(),
-                json!({"id": actor_id, "name": actor_name}),
-            );
-        }
         let ev_entity = AppendEvent {
             category: "entity".into(),
             key: graph_uuid.to_string(),
@@ -1197,25 +1141,21 @@ async fn persist_transform_outputs(
             correlation_id: Some(job_id),
             causation_id: None,
             expected_version: None,
-            actor_id: Some(actor_id.to_string()),
+            actor_id: Some(actor_id),
         };
         let _ = eventstore::append_event(pool, ev_entity).await;
 
         // Append edge:create event from source -> new entity
         let edge_id = Uuid::new_v4();
         let edge_label = transform_label;
-        let mut edge_doc = json!({
+        let edge_doc = json!({
             "id": edge_id,
             "source": src_id,
             "target": entity_id,
-            "data": { "label": edge_label,  }
+            "label": edge_label,
+            "data": {   }
         });
-        if let Some(obj) = edge_doc.as_object_mut() {
-            obj.insert(
-                "actor".to_string(),
-                json!({"id": actor_id, "name": actor_name}),
-            );
-        }
+  
         let ev_edge = AppendEvent {
             category: "edge".into(),
             key: graph_uuid.to_string(),
@@ -1226,7 +1166,7 @@ async fn persist_transform_outputs(
             correlation_id: Some(job_id),
             causation_id: None,
             expected_version: None,
-            actor_id: Some(actor_id.to_string()),
+            actor_id: Some(actor_id),
         };
         let _ = eventstore::append_event(pool, ev_edge).await;
 
@@ -1241,7 +1181,8 @@ async fn persist_transform_outputs(
             "id": edge_id,
             "source": src_id,
             "target": entity_id,
-            "data": { "label": edge_label },
+            "label": edge_label,
+            "data": {  },
             "type": "sfloat"
         }));
         // Immediately inform UI about the new edge so it appears without a refresh

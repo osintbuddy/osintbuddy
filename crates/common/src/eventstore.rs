@@ -23,7 +23,7 @@ pub struct EventRecord {
     pub recorded_at: DateTime<Utc>,
     pub causation_id: Option<Uuid>,
     pub correlation_id: Option<Uuid>,
-    pub actor_id: Option<String>,
+    pub actor_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,7 +37,7 @@ pub struct AppendEvent {
     pub correlation_id: Option<Uuid>,
     pub causation_id: Option<Uuid>,
     pub expected_version: Option<i32>,
-    pub actor_id: Option<String>,
+    pub actor_id: Option<i64>,
 }
 
 pub async fn ensure_stream(
@@ -150,7 +150,7 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         recorded_at: rec.recorded_at,
         causation_id: rec.causation_id,
         correlation_id: rec.correlation_id,
-        actor_id: rec.actor_id,
+        actor_id: Some(rec.actor_id),
     })
 }
 
@@ -187,7 +187,7 @@ pub async fn events_after(
             recorded_at: rec.recorded_at,
             causation_id: rec.causation_id,
             correlation_id: rec.correlation_id,
-            actor_id: rec.actor_id,
+            actor_id: Some(rec.actor_id),
         })
         .collect())
 }

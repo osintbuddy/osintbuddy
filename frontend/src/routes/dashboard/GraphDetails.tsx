@@ -202,7 +202,6 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
     } catch { }
     return `${e.category}:${e.event_type}`
   }
-
   const loadMore = async () => {
     if (loading || !hasMore) return
     setLoading(true)
@@ -271,10 +270,17 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
             const icon = iconByEvent[key as keyof typeof iconByEvent] ?? 'dots'
             const ring =
               colorByCategory[e.category] ?? colorByCategory['default']
+            const actorRaw =
+              e.payload?.actor?.name ??
+              (e.actor_id === 'osib' ? 'osib' : e.actor_id)
             const actorName =
-              e.payload?.actor?.name ||
-              (e.actor_id === 'osib' ? 'osib' : e.actor_id || '')
+              typeof actorRaw === 'string'
+                ? actorRaw
+                : actorRaw != null
+                ? String(actorRaw)
+                : ''
             const initials = (actorName || 'os')
+              .toString()
               .split(/\s+/)
               .map((w: string) => w.slice(0, 1))
               .join('')

@@ -10,6 +10,7 @@ import {
   useFlowStore,
   usePdfViewerStore,
   useAudioViewerStore,
+  usePropertiesStore,
 } from '@/app/store'
 import { AttachmentItem, Graph, entitiesApi } from '@/app/api'
 import { BASE_URL } from '@/app/baseApi'
@@ -18,6 +19,8 @@ import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
 import PdfViewerPanel from './PdfViewerPanel'
 import AudioViewerPanel from './AudioViewerPanel'
+import PropertiesViewer from './PropertiesViewer'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -62,6 +65,7 @@ interface OverlayMenusProps {
   readyState: ReadyState
   setShowEdges: (value: boolean) => void
   showEdges: boolean
+  sendJsonMessage: SendJsonMessage
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -75,6 +79,7 @@ export default function OverlayMenus({
   readyState,
   setShowEdges,
   showEdges,
+  sendJsonMessage,
 }: OverlayMenusProps) {
   const { setPositionMode } = useFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
@@ -83,6 +88,7 @@ export default function OverlayMenus({
   const attachments = useAttachmentsStore()
   const pdfViewer = usePdfViewerStore()
   const audioViewer = useAudioViewerStore()
+  const properties = usePropertiesStore()
   // Use the entities store to fetch plugin entities
   const [searchFilter, setSearchFilter] = useState('')
   const { plugins } = useEntitiesStore()
@@ -286,6 +292,46 @@ export default function OverlayMenus({
     load()
   }, [attachments.open, attachments.active, hid])
 
+  // Properties panel
+  const [isPropertiesDraggable, setIsPropertiesDraggable] = useState(false)
+  const [propertiesLayout, setPropertiesLayout] = useState({
+    i: 'properties',
+    w: 0,
+    h: 0,
+    x: 900,
+    y: 500,
+    minW: 0,
+    maxW: 44,
+    minH: 0,
+    maxH: 60,
+  })
+  useEffect(() => {
+    if (properties.open)
+      setPropertiesLayout({
+        i: 'properties',
+        w: 4,
+        h: 16,
+        x: 0,
+        y: 56,
+        minW: 1,
+        maxW: 60,
+        minH: 3,
+        maxH: 60,
+      })
+    else
+      setPropertiesLayout({
+        i: 'properties',
+        w: 0,
+        h: 0,
+        x: 900,
+        y: 500,
+        minW: 0,
+        maxW: 44,
+        minH: 0,
+        maxH: 60,
+      })
+  }, [properties.open])
+
   return (
     <ResponsiveGridLayout
       allowOverlap={true}
@@ -300,6 +346,9 @@ export default function OverlayMenus({
         setAppbarLayout(currentLayout.find((l: Layout) => l.i === 'appbar'))
         setAttachmentsLayout(
           currentLayout.find((l: Layout) => l.i === 'attachments')
+        )
+        setPropertiesLayout(
+          currentLayout.find((l: Layout) => l.i === 'properties')
         )
         setPdfLayout(currentLayout.find((l: Layout) => l.i === 'pdfviewer'))
         setAudioLayout(currentLayout.find((l: Layout) => l.i === 'audioviewer'))
@@ -725,6 +774,100 @@ export default function OverlayMenus({
                   </div>
                 )}
             </ul>
+          )}
+        </div>
+      </div>
+
+      <div
+        className='pointer-events-auto z-10 flex h-min w-full flex-col rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'
+        key='properties'
+        data-grid={{
+          ...propertiesLayout,
+          isDraggable: isPropertiesDraggable,
+        }}
+        id='properties-panel'
+      >
+        <ol className='relative flex px-2 pt-2 text-sm select-none'>
+          <li className='mr-auto flex'>
+            <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
+              <span className='font-display flex w-full items-center justify-between font-medium text-slate-500'>
+                <Icon icon='file-code' />
+                <span className='ml-1'>Properties</span>
+              </span>
+            </h5>
+          </li>
+          <li className='flex'>
+            <div className='flex w-full items-center justify-between'>
+              <button
+                onClick={() => setIsPropertiesDraggable(!isPropertiesDraggable)}
+                className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
+              >
+                {isPropertiesDraggable ? (
+                  <Icon icon='lock-open' className='h-5 w-5 text-inherit' />
+                ) : (
+                  <Icon icon='lock' className='h-5 w-5 text-inherit' />
+                )}
+              </button>
+            </div>
+            <div className='flex w-full items-center justify-between'>
+              <button
+                onClick={() => properties.closePanel()}
+                className='hover:text-alert-700 font-display whitespace-nowrap text-slate-800'
+                title='Close properties'
+              >
+                <Icon icon='x' className='h-5 w-5 text-inherit' />
+              </button>
+            </div>
+          </li>
+        </ol>
+        <div className='px-3 pb-3 text-sm text-slate-200 overflow-y-scroll'>
+          <div
+            className='flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60'
+            onWheel={(e) => {
+              const el = e.currentTarget as HTMLDivElement
+              if (e.deltaY !== 0) {
+                el.scrollLeft += e.deltaY
+                e.preventDefault()
+              }
+            }}
+          >
+            {properties.tabs.map((t) => (
+              <div
+                key={t.entityId}
+                className={`flex items-center gap-2 rounded-t border border-slate-800/60 px-2 py-1 text-xs ${
+                  properties.active === t.entityId
+                    ? 'bg-slate-900/60 text-slate-200'
+                    : 'bg-slate-925/40 text-slate-400'
+                }`}
+              >
+                <button
+                  className='w-full text-left whitespace-nowrap'
+                  onClick={() => properties.setActive(t.entityId)}
+                >
+                  {t.title} - {t.entityId.toUpperCase().substring(0, 8)}
+                </button>
+                <button
+                  title='Close tab'
+                  onClick={() => properties.closeTab(t.entityId)}
+                  className='text-slate-500 hover:text-slate-300'
+                >
+                  <Icon icon='x' className='h-3 w-3' />
+                </button>
+              </div>
+            ))}
+          </div>
+          {properties.active ? (
+            <PropertiesViewer
+              src={
+                properties.tabs.find((t) => t.entityId === properties.active)
+                  ?.data ?? {}
+              }
+              sendJsonMessage={sendJsonMessage}
+            />
+          ) : (
+            <div className='p-2 text-xs text-slate-500'>
+              Open a node’s properties to view/edit JSON.
+            </div>
           )}
         </div>
       </div>

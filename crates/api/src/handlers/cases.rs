@@ -4,7 +4,8 @@ use common::{db, errors::AppError};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use sqids::Sqids;
-
+use std::collections::{HashMap, HashSet};
+use common::utils::to_snake_case;
 use crate::{
     middleware::auth::AuthMiddleware,
     schemas::Paginate,
@@ -20,7 +21,7 @@ struct CaseActivityItem {
     valid_from: DateTime<Utc>,
     valid_to: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
-    actor_id: Option<String>,
+    actor_id: Option<i64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -104,7 +105,7 @@ pub async fn list_case_activity_handler(
             valid_from: r.valid_from,
             valid_to: r.valid_to,
             recorded_at: r.recorded_at,
-            actor_id: r.actor_id,
+            actor_id: Some(r.actor_id),
         })
         .collect();
 
@@ -291,9 +292,6 @@ pub async fn get_case_activity_summary_handler(
 }
 
 // ---- Chord diagram (entity-type relationships) ----
-use std::collections::{HashMap, HashSet};
-use common::utils::to_snake_case;
-
 #[derive(Debug, Serialize)]
 struct ChordNode {
     id: String,
@@ -386,13 +384,31 @@ pub async fn get_case_chord_handler(
     };
 
     // Aggregate edge counts by entity_type(source) -> entity_type(target)
+    // Derive a stable type key from `entity_type` (preferred), falling back to data.label/label
+    // and capture a human-readable label for display.
     let rows = sqlx::query!(
         r#"
         SELECT
-            e_src.doc->'data'->>'entity_type' AS src_type,
-            e_dst.doc->'data'->>'entity_type' AS dst_type,
-            e_src.doc->'data'->>'label'       AS src_label,
-            e_dst.doc->'data'->>'label'       AS dst_label,
+            COALESCE(
+                e_src.doc->>'entity_type',
+                e_src.doc->'data'->>'label',
+                e_src.doc->>'label'
+            ) AS src_type,
+            COALESCE(
+                e_dst.doc->>'entity_type',
+                e_dst.doc->'data'->>'label',
+                e_dst.doc->>'label'
+            ) AS dst_type,
+            COALESCE(
+                e_src.doc->>'label',
+                e_src.doc->'data'->>'label',
+                e_src.doc->>'entity_type'
+            ) AS src_label,
+            COALESCE(
+                e_dst.doc->>'label',
+                e_dst.doc->'data'->>'label',
+                e_dst.doc->>'entity_type'
+            ) AS dst_label,
             COUNT(*)::BIGINT AS value
         FROM edges_current ec
         JOIN entities_current e_src
@@ -416,28 +432,36 @@ pub async fn get_case_chord_handler(
         message: "We ran into an error aggregating chord data.",
     })?;
 
-    // Build links and collect type set
+    // Build links and collect node labels. We normalize type keys for colors,
+    // but expose human labels as node ids to match frontend expectations.
     let mut links: Vec<ChordLink> = Vec::new();
-    let mut types: HashSet<String> = HashSet::new();
-    let mut label_map: HashMap<String, String> = HashMap::new();
+    let mut node_labels: HashSet<String> = HashSet::new();
+    let mut color_key_for_label: HashMap<String, String> = HashMap::new(); // label -> color_key
     for r in rows {
-        let mut src = r.src_type.unwrap_or_default();
-        let mut dst = r.dst_type.unwrap_or_default();
-        let src_label = r.src_label.unwrap_or_default();
-        let dst_label = r.dst_label.unwrap_or_default();
-        // Derive missing types from labels when possible
-        if src.is_empty() && !src_label.is_empty() { src = to_snake_case(&src_label); }
-        if dst.is_empty() && !dst_label.is_empty() { dst = to_snake_case(&dst_label); }
-        if src.is_empty() { src = "unknown".to_string(); }
-        if dst.is_empty() { dst = "unknown".to_string(); }
+        let src_type_raw = r.src_type.unwrap_or_default();
+        let dst_type_raw = r.dst_type.unwrap_or_default();
+        let src_label_raw = r.src_label.unwrap_or_default();
+        let dst_label_raw = r.dst_label.unwrap_or_default();
+
+        // Normalize type keys (snake_case) for stable color hashing
+        let src_key = if !src_type_raw.is_empty() { to_snake_case(&src_type_raw) } else { String::from("unknown") };
+        let dst_key = if !dst_type_raw.is_empty() { to_snake_case(&dst_type_raw) } else { String::from("unknown") };
+
+        // Human-readable labels (fallback to title-cased keys)
+        let src_label = if !src_label_raw.is_empty() { src_label_raw.clone() } else { title_case(&src_key) };
+        let dst_label = if !dst_label_raw.is_empty() { dst_label_raw.clone() } else { title_case(&dst_key) };
+
         let val = r.value.unwrap_or(0);
         if val <= 0 { continue; }
-        types.insert(src.clone());
-        types.insert(dst.clone());
-        // prefer first-seen human label mapping
-        label_map.entry(src.clone()).or_insert_with(|| if !src_label.is_empty() { src_label.clone() } else { title_case(&src) });
-        label_map.entry(dst.clone()).or_insert_with(|| if !dst_label.is_empty() { dst_label.clone() } else { title_case(&dst) });
-        links.push(ChordLink { source: src, target: dst, value: val });
+
+        // Track labels and their color keys (first seen wins)
+        node_labels.insert(src_label.clone());
+        node_labels.insert(dst_label.clone());
+        color_key_for_label.entry(src_label.clone()).or_insert(src_key.clone());
+        color_key_for_label.entry(dst_label.clone()).or_insert(dst_key.clone());
+
+        // Use human labels as node ids in links to align with example response
+        links.push(ChordLink { source: src_label, target: dst_label, value: val });
     }
 
     // If no links, short-circuit with empty response
@@ -447,11 +471,13 @@ pub async fn get_case_chord_handler(
 
     // Optional: ensure types present even if there are dangling entities with no edges
     // We keep the chord scoped to connected types to avoid clutter.
-    let mut nodes: Vec<ChordNode> = types
+    let mut nodes: Vec<ChordNode> = node_labels
         .into_iter()
-        .map(|t| {
-            let label = label_map.get(&t).cloned().unwrap_or_else(|| title_case(&t));
-            ChordNode { id: t.clone(), label, color: color_for_type(&t) }
+        .map(|label| {
+            let color_key = color_key_for_label.get(&label).cloned().unwrap_or_else(|| to_snake_case(&label));
+            let color = color_for_type(&color_key);
+            // Use the human label for both id and label fields (matches example)
+            ChordNode { id: label.clone(), label, color }
         })
         .collect();
     // Stable ordering for deterministic layout (by label)

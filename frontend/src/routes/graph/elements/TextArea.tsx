@@ -1,6 +1,7 @@
 import { Icon } from '@/components/icons'
 import { memo, useState } from 'preact/compat'
 import { toSnakeCase } from '../utils'
+import { usePropertiesStore } from '@/app/store'
 
 interface TextAreaElement {
   id: string
@@ -41,16 +42,24 @@ export function TextArea({
           value={value}
           onChange={(event) => setValue(event.currentTarget.value)}
           onBlur={() => {
+            const key = toSnakeCase(label)
+            const nextData = { ...data, [key]: value }
             sendJsonMessage({
               action: 'update:entity',
               entity: {
                 id: id,
-                data: {
-                  ...data,
-                  [toSnakeCase(label)]: value,
-                },
+                data: nextData,
               },
             })
+            try {
+              const st = usePropertiesStore.getState()
+              const tab = st.tabs.find((t) => t.entityId === id)
+              if (tab) {
+                const currStr = JSON.stringify(tab.data ?? {})
+                const nextStr = JSON.stringify(nextData)
+                if (currStr !== nextStr) st.setData(id, nextData)
+              }
+            } catch (_) {}
           }}
         />
       </div>
