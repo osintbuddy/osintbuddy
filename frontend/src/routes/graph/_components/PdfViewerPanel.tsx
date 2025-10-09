@@ -15,101 +15,150 @@ import { LoaderPluginPackage } from '@embedpdf/plugin-loader/react'
 import { RenderLayer, RenderPluginPackage } from '@embedpdf/plugin-render/react'
 import type { LoaderPlugin } from '@embedpdf/plugin-loader'
 import type { ScrollPlugin } from '@embedpdf/plugin-scroll'
+import ShinyText from '@/components/ShinyText'
+import Tabs from './Tabs'
 
 type PDFViewerProps = {
   blobUrl: string
   page: number
+  coords?: { x: number; y: number }
   onNumPages?: (n: number) => void
 }
 
-export const PDFViewer = ({ blobUrl, page, onNumPages }: PDFViewerProps) => {
-  const pdf = usePdfViewerStore()
+export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps) => {
+  const pdfStore = usePdfViewerStore()
   const { engine, isLoading } = usePdfiumEngine()
 
-  // Register plugins with current blob url and initial page
   const plugins = [
     createPluginRegistration(LoaderPluginPackage, {
       loadingOptions: {
         type: 'url',
-        pdfFile: { id: pdf.active || 'active-pdf', url: blobUrl },
+        pdfFile: { id: pdfStore.active || 'active-pdf', url: blobUrl },
       },
     }),
     createPluginRegistration(ViewportPluginPackage),
-    createPluginRegistration(ScrollPluginPackage, { initialPage: page }),
+    // Ensure initial page defaults to 1 but respects saved page
+    createPluginRegistration(ScrollPluginPackage, { initialPage: Math.max(1, page || 1) }),
     createPluginRegistration(RenderPluginPackage),
   ]
 
-  // Access loader + scroll capabilities
   const loaderCap = useCapability<LoaderPlugin>('loader')
   const scrollCap = useCapability<ScrollPlugin>('scroll')
 
-  // Load/Reload document when blob changes
+  // Load/reload document when blob changes and re-apply saved position
   useEffect(() => {
     if (!blobUrl) return
     if (!loaderCap.provides) return
     loaderCap.provides
       .loadDocument({
         type: 'url',
-        pdfFile: { id: pdf.active || 'active-pdf', url: blobUrl },
+        pdfFile: { id: pdfStore.active || 'active-pdf', url: blobUrl },
       })
-      .catch(() => void 0)
-  }, [blobUrl, loaderCap.provides, pdf.active])
+      .then(() => {
+        if (scrollCap.provides && page) {
+          scrollCap.provides.scrollToPage({
+            pageNumber: page,
+            behavior: 'auto',
+            center: coords ? false : true,
+            pageCoordinates: coords,
+          })
+        }
+      })
+      .catch((err) => console.error(err))
+  }, [blobUrl, loaderCap.provides, scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
-  // Subscribe for document loaded -> set num pages
+  // Subscribe for document loaded -> set num pages and restore scroll
   useEffect(() => {
     if (!loaderCap.provides) return
     const unsub = loaderCap.provides.onDocumentLoaded.subscribe((doc) => {
       const n = doc?.pageCount ?? 0
-      if (n > 0 && pdf.active) {
+      if (n > 0 && pdfStore.active) {
         onNumPages?.(n)
-        pdf.setNumPages(pdf.active, n)
+        pdfStore.setNumPages(pdfStore.active, n)
+        if (scrollCap.provides && page) {
+          scrollCap.provides.scrollToPage({
+            pageNumber: page,
+            behavior: 'auto',
+            center: coords ? false : true,
+            pageCoordinates: coords,
+          })
+        }
       }
     })
     return () => unsub()
-  }, [loaderCap.provides, pdf.active])
+  }, [loaderCap.provides, scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
-  // Keep scroll position in sync with selected page
+  // Keep scroll position in sync with selected page + coordinates
+  // Include pdf.active so switching tabs re-applies the saved position
   useEffect(() => {
     if (!scrollCap.provides || !page) return
-    // center the requested page; fall back to instant behavior
     scrollCap.provides.scrollToPage({
       pageNumber: page,
       behavior: 'auto',
-      center: true,
+      center: coords ? false : true,
+      pageCoordinates: coords,
     })
-  }, [scrollCap.provides, page])
+  }, [scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
-  // Reflect page changes back to store when user scrolls
+  // After layout ready, re-apply scroll target (helps when switching tabs)
+  // Include pdf.active so listener captures the right tab state
   useEffect(() => {
-    if (!scrollCap.provides || !pdf.active) return
-    const unsub = scrollCap.provides.onPageChange.subscribe(
-      ({ pageNumber }) => {
-        if (pdf.active) pdf.setPage(pdf.active, pageNumber)
-      }
-    )
+    if (!scrollCap.provides || !page) return
+    const unsub = scrollCap.provides.onLayoutReady.subscribe(() => {
+      scrollCap.provides.scrollToPage({
+        pageNumber: page,
+        behavior: 'auto',
+        center: coords ? false : true,
+        pageCoordinates: coords,
+      })
+    })
     return () => unsub()
-  }, [scrollCap.provides, pdf.active])
+  }, [scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
+
+  // Reflect page + per-page coordinates back to store when user scrolls
+  useEffect(() => {
+    if (!scrollCap.provides || !pdfStore.active) return
+    const unsubChange = scrollCap.provides.onPageChange.subscribe(({ pageNumber }) => {
+      if (pdfStore.active) pdfStore.setPage(pdfStore.active, pageNumber)
+    })
+    const unsubScroll = scrollCap.provides.onScroll.subscribe((metrics) => {
+      const current = metrics.currentPage
+      const pm = metrics.pageVisibilityMetrics.find((m) => m.pageNumber === current)
+      if (!pm || !pdfStore.active) return
+      pdfStore.setPageCoords(pdfStore.active, { x: pm.original.pageX, y: pm.original.pageY })
+    })
+    return () => {
+      unsubChange()
+      unsubScroll()
+    }
+  }, [scrollCap.provides, pdfStore.active])
 
   if (isLoading || !engine) {
     return (
-      <div className='p-2 text-xs text-slate-400'>Initializing PDF engine…</div>
+          <p class='relative flex w-full px-2 py-1'>
+            <ShinyText className='text-sm tracking-wide text-slate-600'>
+              Initializing PDF engine
+            </ShinyText>
+            <span class='dot-flashing top-3.5 left-2' />
+          </p>
     )
   }
-
   return (
-    <div style={{ height: '100%' }}>
-      <EmbedPDF engine={engine} plugins={plugins}>
-        <Viewport style={{ backgroundColor: 'transparent' }}>
-          <Scroller
-            renderPage={({ width, height, pageIndex, scale }) => (
-              <div style={{ width, height }}>
-                <RenderLayer pageIndex={pageIndex} scale={scale} />
-              </div>
-            )}
-          />
-        </Viewport>
-      </EmbedPDF>
-    </div>
+    <>
+      <div style={{ height: '100%', minHeight: 420, overflow: 'scroll' }}>
+        <EmbedPDF engine={engine} plugins={plugins}>
+          <Viewport style={{ backgroundColor: 'transparent' }}>
+            <Scroller
+              renderPage={({ width, height, pageIndex, scale }) => (
+                <div style={{ width, height }}>
+                  <RenderLayer pageIndex={pageIndex} scale={scale} />
+                </div>
+              )}
+            />
+          </Viewport>
+        </EmbedPDF>
+      </div>
+    </>
   )
 }
 
@@ -125,14 +174,12 @@ export default function PdfViewerPanel({
   const pdf = usePdfViewerStore()
   const { access_token } = useAuthStore()
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let revoke: string | null = null
     const load = async () => {
       if (!pdf.open || !pdf.active) return
-      setLoading(true)
       setError(null)
       setBlobUrl(null)
       try {
@@ -148,9 +195,9 @@ export default function PdfViewerPanel({
         setBlobUrl(url)
         revoke = url
       } catch (e: any) {
+        console.log('e', e)
         setError(e?.message || 'Failed to load PDF')
       } finally {
-        setLoading(false)
       }
     }
     load()
@@ -160,20 +207,20 @@ export default function PdfViewerPanel({
   }, [pdf.open, pdf.active])
 
   if (!pdf.open) return null
+  const activePdf = pdf.tabs.find((t) => t.attachmentId === pdf.active)
+  console.log('error panel', error, activePdf)
+
+  const onTabChange = (tabId: string) => pdf.setActive(tabId)
+  const onTabClose = (tabId: string) => pdf.closeTab(tabId)
   return (
-    <div className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/40 to-black/30 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
+    <div className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/10 to-black/10 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
       <div className='flex flex-col'>
-        <ol className='relative flex px-2 pt-2 text-sm select-none'>
+        <ol className='relative flex px-2 text-sm select-none'>
           <li className='mr-auto flex'>
-            <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
-              <span className='font-display flex w-full items-center justify-between font-medium text-slate-500'>
-                <Icon icon='file-type-pdf' />
-                <span className='ml-1 truncate'>
-                  {pdf.tabs.find((t) => t.attachmentId === pdf.active)
-                    ?.filename || 'PDF Preview'}
-                </span>
-              </span>
-            </h5>
+            <p className='font-display flex w-full items-center justify-between font-medium text-slate-500 truncate'>
+              <Icon icon='file-type-pdf' className='mr-1 w-4 h-4' />
+                {'View and annotate PDFs'}
+            </p>
           </li>
           <li className='flex items-center gap-2'>
             <button
@@ -189,17 +236,12 @@ export default function PdfViewerPanel({
                 <Icon icon='lock' className='h-5 w-5 text-inherit' />
               )}
             </button>
-            {pdf.active &&
-              pdf.tabs.find((t) => t.attachmentId === pdf.active)?.numPages && (
-                <div className='text-[11px] text-slate-400'>
-                  Page{' '}
-                  {pdf.tabs.find((t) => t.attachmentId === pdf.active)?.page} of{' '}
-                  {
-                    pdf.tabs.find((t) => t.attachmentId === pdf.active)
-                      ?.numPages
-                  }
-                </div>
-              )}
+            {pdf.active && activePdf?.numPages && (
+              <div className='text-[11px] text-slate-400'>
+                Page <span class='text-slate-300'>{activePdf?.page}</span> of{' '}
+                {activePdf?.numPages}
+              </div>
+            )}
             <button
               onClick={() => pdf.closeViewer()}
               className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
@@ -210,64 +252,15 @@ export default function PdfViewerPanel({
           </li>
         </ol>
         {/* Tabs */}
-        <div
-          className='relative z-10 mx-2 flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60'
-          onWheel={(e) => {
-            const el = e.currentTarget as HTMLDivElement
-            if (e.deltaY !== 0) {
-              el.scrollLeft += e.deltaY
-              e.preventDefault()
-            }
-          }}
-        >
-          {pdf.tabs.map((t) => (
-            <div
-              key={t.attachmentId}
-              className={`flex items-center rounded-t border border-slate-800/60 px-2 py-1 text-xs ${
-                pdf.active === t.attachmentId
-                  ? 'bg-slate-900/60 text-slate-200'
-                  : 'bg-slate-925/40 text-slate-400'
-              }`}
-            >
-              <button
-                className='text-left whitespace-nowrap'
-                onClick={() => pdf.setActive(t.attachmentId)}
-              >
-                {t.filename || 'PDF'}
-              </button>
-              <button
-                title='Close tab'
-                onClick={() => pdf.closeTab(t.attachmentId)}
-                className='text-slate-500 hover:text-slate-300'
-              >
-                <Icon icon='x' className='h-3 w-3' />
-              </button>
-            </div>
-          ))}
-        </div>
+        <Tabs tabs={pdf.tabs} onTabChange={onTabChange} onTabClose={onTabClose} activeTabId={pdf?.active ?? ''} />
       </div>
-
-      <div className='relative z-0 overflow-auto'>
-        {loading && (
-          <div className='p-2 text-xs text-slate-400'>Loading PDF…</div>
-        )}
-        {error && <div className='p-2 text-xs text-red-400'>{error}</div>}
-        {!loading && !error && blobUrl && (
-          <div className='relative z-0'>
-            <PDFViewer
-              blobUrl={blobUrl}
-              page={
-                (pdf.active &&
-                  (pdf.tabs.find((t) => t.attachmentId === pdf.active)?.page ||
-                    1)) ||
-                1
-              }
-              onNumPages={(n) => {
-                if (pdf.active) pdf.setNumPages(pdf.active, n)
-              }}
-            />
-          </div>
-        )}
+      <div className='relative z-0 overflow-x-scroll'>
+        <PDFViewer
+          blobUrl={blobUrl ?? ''}
+          page={activePdf?.page ?? 1}
+          coords={activePdf?.pageCoords}
+          onNumPages={(n) => pdf.active && pdf.setNumPages(pdf.active, n)}
+        />
       </div>
     </div>
   )

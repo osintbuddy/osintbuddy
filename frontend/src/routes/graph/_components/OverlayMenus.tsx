@@ -167,9 +167,9 @@ export default function OverlayMenus({
         x: 0,
         y: 4,
         minW: 1,
-        maxW: 44,
-        minH: 6,
-        maxH: 60,
+        maxW: 50,
+        minH: 4,
+        maxH: 64,
       })
     else
       setPdfLayout({
@@ -246,10 +246,10 @@ export default function OverlayMenus({
         h: 26,
         x: 0,
         y: 4,
-        minW: 7,
-        maxW: 44,
-        minH: 6,
-        maxH: 60,
+        minW: 2,
+        maxW: 64,
+        minH: 2,
+        maxH: 72,
       })
     else
       setAttachmentsLayout({
