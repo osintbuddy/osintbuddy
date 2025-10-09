@@ -14,6 +14,7 @@ import {
   useAuthStore,
   useFlowStore,
   useEntitiesStore,
+  usePropertiesStore,
 } from '@/app/store'
 import '@xyflow/react/dist/style.css'
 
@@ -160,6 +161,20 @@ export default function Graphing() {
       setNodesBeforeLayout(data.nodes || [])
       setRelationships(data.edges || [])
       setEdgesBeforeLayout(data.edges || [])
+      // Sync open Properties tabs with fresh node data from server
+      try {
+        const props = usePropertiesStore.getState()
+        if (props.tabs.length) {
+          for (const t of props.tabs) {
+            const node = (data.nodes || []).find((n: any) => n.id === t.entityId)
+            if (node?.data) {
+              const currStr = JSON.stringify(t.data ?? {})
+              const nextStr = JSON.stringify(node.data)
+              if (currStr !== nextStr) props.setData(t.entityId, node.data)
+            }
+          }
+        }
+      } catch (_) {}
       toast.dismiss('graph')
       fitView()
     },
@@ -169,6 +184,15 @@ export default function Graphing() {
     update: (data) => {
       if (data?.entity) {
         updateEntity(data.entity.id, data.entity)
+        // Keep properties preview in sync when an entity's data changes
+        const props = usePropertiesStore.getState()
+        if (
+          props.tabs.find((t) => t.entityId === data.entity.id) &&
+          data.entity && 'data' in data.entity && data.entity.data
+        ) {
+          const { label, ...propsData } = (data.entity.data as any) ?? {}
+          props.setData(data.entity.id, propsData)
+        }
       }
       if (data.edge) {
         const { id, ...update } = data.edge
@@ -193,9 +217,7 @@ export default function Graphing() {
     loading: (data) => {
       const { toastId, type, isLoading, autoClose, ...notification } =
         data?.notification
-      // Update existing loading toast to success
       if (isLoading) {
-        // Create new loading toast
         toast.loading(notification.message ?? 'Loading...', {
           closeButton: true,
           isLoading: true,

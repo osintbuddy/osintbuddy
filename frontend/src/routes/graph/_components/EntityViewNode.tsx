@@ -10,7 +10,6 @@ const toolbarZoomSelector = (s: any) => s.transform[2] >= 0.3
 
 export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
   if (!blueprint) return // In case blueprints weren't loaded
-
   const { color: backgroundColor, icon, elements } = blueprint
   const value = useMemo(
     () =>
@@ -24,6 +23,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
     [elements]
   )
   const showContent = useStore(toolbarZoomSelector)
+  const {label, ...data} = ctx.data 
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>
@@ -31,7 +31,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
           <EntityToolbar
             entityId={ctx.id}
             entityTitle={blueprint.label}
-            entityData={ctx.data}
+            properties={data}
           />
         )}
         <div style={{ backgroundColor }} class='header !rounded-full !p-2'>

@@ -1,6 +1,7 @@
 import { Icon } from '@/components/icons'
 
 import { toSnakeCase } from '../utils'
+import { usePropertiesStore } from '@/app/store'
 import { useReactFlow } from '@xyflow/react'
 import {
   ChangeEvent,
@@ -73,6 +74,17 @@ export function DropdownInput({
       const key = toSnakeCase(label)
       // Update local node data so UI reflects the change immediately
       updateNodeData(id, { [key]: optionValue })
+      // Update Properties panel if open and changed
+      try {
+        const propsStore = usePropertiesStore.getState()
+        const tab = propsStore.tabs.find((t) => t.entityId === id)
+        if (tab) {
+          const nextData = { ...(data || {}), [key]: optionValue }
+          const currStr = JSON.stringify(tab.data ?? {})
+          const nextStr = JSON.stringify(nextData)
+          if (currStr !== nextStr) propsStore.setData(id, nextData)
+        }
+      } catch (_) {}
       sendJsonMessage({
         action: 'update:entity',
         entity: {

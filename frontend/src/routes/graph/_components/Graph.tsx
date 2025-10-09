@@ -179,7 +179,7 @@ export default function Graph({
     },
     [graphInstance, createGraphEntity, hid]
   )
-
+  console.log('nodes', nodes)
   const nodeTypes = useMemo(
     () => ({
       edit: (entity: JSONObject) => {
@@ -187,17 +187,20 @@ export default function Graph({
         return (
           <EditEntityNode
             ctx={entity}
-            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
+            label={label}
+            blueprint={structuredClone(blueprints[label])}
             sendJsonMessage={sendJsonMessage}
           />
         )
       },
       view: (entity: JSONObject) => {
+        console.log(entity)
         const { label } = entity.data
         return (
           <ViewEntityNode
             ctx={entity}
-            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
+            label={label}
+            blueprint={structuredClone(blueprints[label])}
           />
         )
       },
@@ -371,6 +374,7 @@ export default function Graph({
           setElkLayout={setElkLayout}
           fitView={fitView}
           clearGraph={clearGraph}
+          sendJsonMessage={sendJsonMessage}
         />
       </Panel>
       <ContextMenu

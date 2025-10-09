@@ -18,8 +18,9 @@ import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
 import PdfViewerPanel from './PdfViewerPanel'
-import ReactJson from 'react-json-view'
 import AudioViewerPanel from './AudioViewerPanel'
+import PropertiesViewer from './PropertiesViewer'
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 
 export function EntityOption({ entity, onDragStart }: JSONObject) {
   return (
@@ -64,6 +65,7 @@ interface OverlayMenusProps {
   readyState: ReadyState
   setShowEdges: (value: boolean) => void
   showEdges: boolean
+  sendJsonMessage: SendJsonMessage
 }
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -77,6 +79,7 @@ export default function OverlayMenus({
   readyState,
   setShowEdges,
   showEdges,
+  sendJsonMessage,
 }: OverlayMenusProps) {
   const { setPositionMode } = useFlowStore()
   const [isForceActive, setIsForceActive] = useState(false)
@@ -262,46 +265,6 @@ export default function OverlayMenus({
       })
   }, [attachments.open])
 
-  // Properties panel (blank)
-  const [isPropertiesDraggable, setIsPropertiesDraggable] = useState(false)
-  const [propertiesLayout, setPropertiesLayout] = useState({
-    i: 'properties',
-    w: 0,
-    h: 0,
-    x: 900,
-    y: 500,
-    minW: 0,
-    maxW: 44,
-    minH: 0,
-    maxH: 60,
-  })
-  useEffect(() => {
-    if (properties.open)
-      setPropertiesLayout({
-        i: 'properties',
-        w: 6,
-        h: 20,
-        x: 0,
-        y: 44,
-        minW: 6,
-        maxW: 44,
-        minH: 6,
-        maxH: 60,
-      })
-    else
-      setPropertiesLayout({
-        i: 'properties',
-        w: 0,
-        h: 0,
-        x: 900,
-        y: 500,
-        minW: 0,
-        maxW: 44,
-        minH: 0,
-        maxH: 60,
-      })
-  }, [properties.open])
-
   const [itemsCache, setItemsCache] = useState<
     Record<string, AttachmentItem[]>
   >({})
@@ -328,6 +291,46 @@ export default function OverlayMenus({
     }
     load()
   }, [attachments.open, attachments.active, hid])
+
+  // Properties panel
+  const [isPropertiesDraggable, setIsPropertiesDraggable] = useState(false)
+  const [propertiesLayout, setPropertiesLayout] = useState({
+    i: 'properties',
+    w: 0,
+    h: 0,
+    x: 900,
+    y: 500,
+    minW: 0,
+    maxW: 44,
+    minH: 0,
+    maxH: 60,
+  })
+  useEffect(() => {
+    if (properties.open)
+      setPropertiesLayout({
+        i: 'properties',
+        w: 4,
+        h: 16,
+        x: 0,
+        y: 56,
+        minW: 1,
+        maxW: 60,
+        minH: 3,
+        maxH: 60,
+      })
+    else
+      setPropertiesLayout({
+        i: 'properties',
+        w: 0,
+        h: 0,
+        x: 900,
+        y: 500,
+        minW: 0,
+        maxW: 44,
+        minH: 0,
+        maxH: 60,
+      })
+  }, [properties.open])
 
   return (
     <ResponsiveGridLayout
@@ -784,7 +787,7 @@ export default function OverlayMenus({
         }}
         id='properties-panel'
       >
-        <ol className='relative flex px-4 pt-2 text-sm select-none'>
+        <ol className='relative flex px-2 pt-2 text-sm select-none'>
           <li className='mr-auto flex'>
             <h5 className='font-display flex w-full grow items-center justify-between truncate whitespace-nowrap text-inherit'>
               <span className='font-display flex w-full items-center justify-between font-medium text-slate-500'>
@@ -817,9 +820,9 @@ export default function OverlayMenus({
             </div>
           </li>
         </ol>
-        <div className='px-3 pb-3 text-sm text-slate-200'>
+        <div className='px-3 pb-3 text-sm text-slate-200 overflow-y-scroll'>
           <div
-            className='mx-2 mb-1 flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60 pb-1'
+            className='flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60'
             onWheel={(e) => {
               const el = e.currentTarget as HTMLDivElement
               if (e.deltaY !== 0) {
@@ -853,36 +856,19 @@ export default function OverlayMenus({
               </div>
             ))}
           </div>
-          <div className=' overflow-auto rounded bg-black/20 p-2'>
-            {properties.active ? (
-              <ReactJson
-                src={
-                  properties.tabs.find((t) => t.entityId === properties.active)?.data ?? {}
-                }
-                theme='shapeshifter'
-                name={false}
-                displayDataTypes={false}
-                displayObjectSize={false}
-                enableClipboard={true}
-                onEdit={(edit: any) => {
-                  if (edit?.updated_src && properties.active)
-                    properties.setData(properties.active, edit.updated_src)
-                }}
-                onAdd={(add: any) => {
-                  if (add?.updated_src && properties.active)
-                    properties.setData(properties.active, add.updated_src)
-                }}
-                onDelete={(del: any) => {
-                  if (del?.updated_src && properties.active)
-                    properties.setData(properties.active, del.updated_src)
-                }}
-              />
-            ) : (
-              <div className='p-2 text-xs text-slate-500'>
-                Open a node’s properties to view/edit JSON.
-              </div>
-            )}
-          </div>
+          {properties.active ? (
+            <PropertiesViewer
+              src={
+                properties.tabs.find((t) => t.entityId === properties.active)
+                  ?.data ?? {}
+              }
+              sendJsonMessage={sendJsonMessage}
+            />
+          ) : (
+            <div className='p-2 text-xs text-slate-500'>
+              Open a node’s properties to view/edit JSON.
+            </div>
+          )}
         </div>
       </div>
 
