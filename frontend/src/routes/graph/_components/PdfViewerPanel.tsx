@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 import { useAuthStore, usePdfViewerStore } from '@/app/store'
 import { BASE_URL } from '@/app/baseApi'
 import { Icon } from '@/components/icons'
@@ -10,13 +10,28 @@ import {
   Viewport,
   ViewportPluginPackage,
 } from '@embedpdf/plugin-viewport/react'
-import { Scroller, ScrollPluginPackage } from '@embedpdf/plugin-scroll/react'
+import {
+  ZoomPluginPackage,
+  ZoomMode,
+  useZoom,
+  MarqueeZoom,
+} from '@embedpdf/plugin-zoom/react'
+import {
+  PagePointerProvider,
+  InteractionManagerPluginPackage,
+} from '@embedpdf/plugin-interaction-manager/react'
+import {
+  RenderPageProps,
+  Scroller,
+  ScrollPluginPackage,
+} from '@embedpdf/plugin-scroll/react'
 import { LoaderPluginPackage } from '@embedpdf/plugin-loader/react'
 import { RenderLayer, RenderPluginPackage } from '@embedpdf/plugin-render/react'
 import type { LoaderPlugin } from '@embedpdf/plugin-loader'
 import type { ScrollPlugin } from '@embedpdf/plugin-scroll'
 import ShinyText from '@/components/ShinyText'
 import Tabs from './Tabs'
+import Button from '@/components/buttons'
 
 type PDFViewerProps = {
   blobUrl: string
@@ -25,27 +40,92 @@ type PDFViewerProps = {
   onNumPages?: (n: number) => void
 }
 
-export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps) => {
+const PDFToolbar = () => {
+  const { provides: zoom, state } = useZoom()
+  if (!zoom) return null
+  const [isAreaZoomActive, setIsAreaZoomActive] = useState(
+    zoom.isMarqueeZoomActive()
+  )
+
+  return (
+    // TODO: ensure toolbar has ability to expand/collapse by clicking an ellipsis button somewhere...
+    <div className='relative -right-1/2 flex items-center gap-2 text-slate-400'>
+      <div className='flex items-center gap-x-1'>
+        <Button.Icon
+          variant='toolbar'
+          title='Click once to reset zoom. Double click to set zoom to 50%'
+          onClick={() => zoom.requestZoom(1.0)}
+          onDblClick={() => zoom.requestZoom(0.5)}
+        >
+          <Icon icon='zoom-reset' />
+        </Button.Icon>
+        <Button.Icon variant='toolbar' title='Zoom out' onClick={zoom.zoomOut}>
+          <Icon icon='zoom-out' />
+        </Button.Icon>
+        <input
+          className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-11 rounded-sm border border-slate-900 px-2 py-1.5 text-xs outline-none focus:bg-transparent'
+          type='text'
+          value={Math.round(state.currentZoomLevel * 100) + '%'}
+        />
+        <Button.Icon variant='toolbar' onClick={zoom.zoomIn} title='Zoom in'>
+          <Icon icon='zoom-in' />
+        </Button.Icon>
+        <Button.Icon
+          title='Area zoom'
+          variant='toolbar'
+          onClick={() => {
+            zoom.toggleMarqueeZoom()
+            setIsAreaZoomActive(!isAreaZoomActive)
+          }}
+          aria-pressed={isAreaZoomActive}
+        >
+          {isAreaZoomActive ? (
+            <Icon icon='zoom-cancel' />
+          ) : (
+            <Icon icon='zoom-in-area' />
+          )}
+        </Button.Icon>
+      </div>
+    </div>
+  )
+}
+
+export const PDFViewer = ({
+  blobUrl,
+  page,
+  coords,
+  onNumPages,
+}: PDFViewerProps) => {
   const pdfStore = usePdfViewerStore()
   const { engine, isLoading } = usePdfiumEngine()
 
-  const plugins = [
-    createPluginRegistration(LoaderPluginPackage, {
-      loadingOptions: {
-        type: 'url',
-        pdfFile: { id: pdfStore.active || 'active-pdf', url: blobUrl },
-      },
-    }),
-    createPluginRegistration(ViewportPluginPackage),
-    // Ensure initial page defaults to 1 but respects saved page
-    createPluginRegistration(ScrollPluginPackage, { initialPage: Math.max(1, page || 1) }),
-    createPluginRegistration(RenderPluginPackage),
-  ]
+  const plugins = useMemo(
+    () => [
+      createPluginRegistration(LoaderPluginPackage, {
+        loadingOptions: {
+          type: 'url',
+          pdfFile: { id: pdfStore.active || 'active-pdf', url: blobUrl },
+        },
+      }),
+      createPluginRegistration(ViewportPluginPackage),
+      createPluginRegistration(ScrollPluginPackage, {
+        initialPage: Math.max(1, page || 1),
+      }),
+      createPluginRegistration(RenderPluginPackage),
+      // Required for PagePointerProvider and marquee zoom interactions
+      createPluginRegistration(InteractionManagerPluginPackage),
+      createPluginRegistration(ZoomPluginPackage, {
+        defaultZoomLevel: ZoomMode.FitPage,
+      }),
+    ],
+    [blobUrl]
+  )
 
   const loaderCap = useCapability<LoaderPlugin>('loader')
   const scrollCap = useCapability<ScrollPlugin>('scroll')
 
-  // Load/reload document when blob changes and re-apply saved position
+  // Load/reload document ONLY when the blob changes
+  // Avoids unwanted reloads on graph interactions
   useEffect(() => {
     if (!blobUrl) return
     if (!loaderCap.provides) return
@@ -55,6 +135,8 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
         pdfFile: { id: pdfStore.active || 'active-pdf', url: blobUrl },
       })
       .then(() => {
+        // TODO: Fix me
+        // Best-effort restore of position if available (won't trigger reloads)
         if (scrollCap.provides && page) {
           scrollCap.provides.scrollToPage({
             pageNumber: page,
@@ -65,8 +147,10 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
         }
       })
       .catch((err) => console.error(err))
-  }, [blobUrl, loaderCap.provides, scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blobUrl, loaderCap.provides])
 
+  // TODO: Fix me.
   // Subscribe for document loaded -> set num pages and restore scroll
   useEffect(() => {
     if (!loaderCap.provides) return
@@ -86,8 +170,16 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
       }
     })
     return () => unsub()
-  }, [loaderCap.provides, scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
+  }, [
+    loaderCap.provides,
+    scrollCap.provides,
+    page,
+    coords?.x,
+    coords?.y,
+    pdfStore.active,
+  ])
 
+  // TODO: Fix me.
   // Keep scroll position in sync with selected page + coordinates
   // Include pdf.active so switching tabs re-applies the saved position
   useEffect(() => {
@@ -100,6 +192,7 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
     })
   }, [scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
+  // TODO: Fix me.
   // After layout ready, re-apply scroll target (helps when switching tabs)
   // Include pdf.active so listener captures the right tab state
   useEffect(() => {
@@ -115,17 +208,24 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
     return () => unsub()
   }, [scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
-  // Reflect page + per-page coordinates back to store when user scrolls
+  // TODO: Fix me. Reflect page + per-page coordinates back to store when user scrolls
   useEffect(() => {
     if (!scrollCap.provides || !pdfStore.active) return
-    const unsubChange = scrollCap.provides.onPageChange.subscribe(({ pageNumber }) => {
-      if (pdfStore.active) pdfStore.setPage(pdfStore.active, pageNumber)
-    })
+    const unsubChange = scrollCap.provides.onPageChange.subscribe(
+      ({ pageNumber }) => {
+        if (pdfStore.active) pdfStore.setPage(pdfStore.active, pageNumber)
+      }
+    )
     const unsubScroll = scrollCap.provides.onScroll.subscribe((metrics) => {
       const current = metrics.currentPage
-      const pm = metrics.pageVisibilityMetrics.find((m) => m.pageNumber === current)
+      const pm = metrics.pageVisibilityMetrics.find(
+        (m) => m.pageNumber === current
+      )
       if (!pm || !pdfStore.active) return
-      pdfStore.setPageCoords(pdfStore.active, { x: pm.original.pageX, y: pm.original.pageY })
+      pdfStore.setPageCoords(pdfStore.active, {
+        x: pm.original.pageX,
+        y: pm.original.pageY,
+      })
     })
     return () => {
       unsubChange()
@@ -135,30 +235,47 @@ export const PDFViewer = ({ blobUrl, page, coords, onNumPages }: PDFViewerProps)
 
   if (isLoading || !engine) {
     return (
-          <p class='relative flex w-full px-2 py-1'>
-            <ShinyText className='text-sm tracking-wide text-slate-600'>
-              Initializing PDF engine
-            </ShinyText>
-            <span class='dot-flashing top-3.5 left-2' />
-          </p>
+      <p class='relative flex w-full px-2 py-1'>
+        <ShinyText className='text-sm tracking-wide text-slate-600'>
+          Initializing PDF engine
+        </ShinyText>
+        <span class='dot-flashing top-3.5 left-2' />
+      </p>
     )
   }
+
   return (
-    <>
-      <div style={{ height: '100%', minHeight: 420, overflow: 'scroll' }}>
-        <EmbedPDF engine={engine} plugins={plugins}>
-          <Viewport style={{ backgroundColor: 'transparent' }}>
-            <Scroller
-              renderPage={({ width, height, pageIndex, scale }) => (
+    <div className='h-full min-h-[420px] overflow-hidden'>
+      <EmbedPDF engine={engine} plugins={plugins}>
+        <div className='absolute top-0 right-1/2 z-10 flex items-center justify-center'>
+          <PDFToolbar />
+        </div>
+        <Viewport style={{ backgroundColor: 'transparent' }}>
+          <Scroller
+            renderPage={({
+              width,
+              height,
+              pageIndex,
+              scale,
+              rotation,
+            }: RenderPageProps) => (
+              <PagePointerProvider
+                pageIndex={pageIndex}
+                pageWidth={width}
+                pageHeight={height}
+                rotation={rotation}
+                scale={scale}
+              >
                 <div style={{ width, height }}>
                   <RenderLayer pageIndex={pageIndex} scale={scale} />
+                  <MarqueeZoom pageIndex={pageIndex} scale={scale} />
                 </div>
-              )}
-            />
-          </Viewport>
-        </EmbedPDF>
-      </div>
-    </>
+              </PagePointerProvider>
+            )}
+          />
+        </Viewport>
+      </EmbedPDF>
+    </div>
   )
 }
 
@@ -174,13 +291,12 @@ export default function PdfViewerPanel({
   const pdf = usePdfViewerStore()
   const { access_token } = useAuthStore()
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('pdf.open, pdf.active', pdf.open, pdf.active)
     let revoke: string | null = null
     const load = async () => {
       if (!pdf.open || !pdf.active) return
-      setError(null)
       setBlobUrl(null)
       try {
         const resp = await fetch(
@@ -194,10 +310,8 @@ export default function PdfViewerPanel({
         const url = URL.createObjectURL(blob)
         setBlobUrl(url)
         revoke = url
-      } catch (e: any) {
-        console.log('e', e)
-        setError(e?.message || 'Failed to load PDF')
-      } finally {
+      } catch (err) {
+        console.error(err)
       }
     }
     load()
@@ -208,7 +322,6 @@ export default function PdfViewerPanel({
 
   if (!pdf.open) return null
   const activePdf = pdf.tabs.find((t) => t.attachmentId === pdf.active)
-  console.log('error panel', error, activePdf)
 
   const onTabChange = (tabId: string) => pdf.setActive(tabId)
   const onTabClose = (tabId: string) => pdf.closeTab(tabId)
@@ -217,10 +330,10 @@ export default function PdfViewerPanel({
       <div className='flex flex-col'>
         <ol className='relative flex px-2 text-sm select-none'>
           <li className='mr-auto flex'>
-            <p className='font-display flex w-full items-center justify-between font-medium text-slate-500 truncate'>
-              <Icon icon='file-type-pdf' className='mr-1 w-4 h-4' />
-                {'View and annotate PDFs'}
-            </p>
+            <h2 className='font-display flex w-full items-center justify-between truncate font-medium text-slate-500'>
+              <Icon icon='file-type-pdf' className='mr-1 h-4 w-4' />
+              <span>View and annotate PDFs</span>
+            </h2>
           </li>
           <li className='flex items-center gap-2'>
             <button
@@ -251,9 +364,16 @@ export default function PdfViewerPanel({
             </button>
           </li>
         </ol>
+
         {/* Tabs */}
-        <Tabs tabs={pdf.tabs} onTabChange={onTabChange} onTabClose={onTabClose} activeTabId={pdf?.active ?? ''} />
+        <Tabs
+          tabs={pdf.tabs}
+          onTabChange={onTabChange}
+          onTabClose={onTabClose}
+          activeTabId={pdf?.active ?? ''}
+        />
       </div>
+
       <div className='relative z-0 overflow-x-scroll'>
         <PDFViewer
           blobUrl={blobUrl ?? ''}
