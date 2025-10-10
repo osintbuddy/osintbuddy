@@ -18,17 +18,21 @@ Vite + Preact + TypeScript app styled with Tailwind CSS v4. This README onboards
 
 ## Quick Start
 ```bash
+# These instructions assume your current working directory is ./$OSINTBUDDY_REPO/frontend/
 # 1) Install deps
 yarn
 
 # 2) Configure environment
 cp .env.example .env
-# then edit .env
+# then edit .env if needed
 # VITE_BASE_URL="http://localhost:48997"
 
 # 3) Run the dev server
 yarn dev
-# Opens on http://localhost:55173 (hosted on your LAN as well)
+# or from the root of the repo
+# docker compose up ui
+
+# Both approaches open on http://localhost:55173
 
 # 4) Production build + local preview
 yarn build
