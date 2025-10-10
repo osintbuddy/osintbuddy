@@ -25,6 +25,7 @@ import {
   Scroller,
   ScrollPluginPackage,
 } from '@embedpdf/plugin-scroll/react'
+import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { LoaderPluginPackage } from '@embedpdf/plugin-loader/react'
 import { RenderLayer, RenderPluginPackage } from '@embedpdf/plugin-render/react'
 import type { LoaderPlugin } from '@embedpdf/plugin-loader'
@@ -141,6 +142,11 @@ export const PDFViewer = ({
       createPluginRegistration(InteractionManagerPluginPackage),
       createPluginRegistration(ZoomPluginPackage, {
         defaultZoomLevel: ZoomMode.FitPage,
+      }),
+      createPluginRegistration(TilingPluginPackage, {
+        tileSize: 768,
+        overlapPx: 5,
+        extraRings: 1, // Pre-render one ring of tiles outside the viewport
       }),
     ],
     [blobUrl]
@@ -289,7 +295,8 @@ export const PDFViewer = ({
                 scale={scale}
               >
                 <div style={{ width, height }}>
-                  <RenderLayer pageIndex={pageIndex} scale={scale} />
+                  <RenderLayer pageIndex={pageIndex} scale={0.5} />
+                  <TilingLayer pageIndex={pageIndex} scale={scale} />
                   <MarqueeZoom pageIndex={pageIndex} scale={scale} />
                 </div>
               </PagePointerProvider>
