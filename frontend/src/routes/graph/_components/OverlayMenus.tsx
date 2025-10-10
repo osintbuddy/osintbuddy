@@ -149,7 +149,7 @@ export default function OverlayMenus({
   const [isPdfDraggable, setIsPdfDraggable] = useState(false)
   const [pdfLayout, setPdfLayout] = useState({
     i: 'pdfviewer',
-    w: 14,
+    w: 3.5,
     h: 56,
     x: 0,
     y: 4,
@@ -162,7 +162,7 @@ export default function OverlayMenus({
     if (pdfViewer.open)
       setPdfLayout({
         i: 'pdfviewer',
-        w: 4,
+        w: 3.5,
         h: 60,
         x: 0,
         y: 4,
@@ -174,11 +174,11 @@ export default function OverlayMenus({
     else
       setPdfLayout({
         i: 'pdfviewer',
-        w: 2,
+        w: 3.5,
         h: 0,
         x: 0,
         y: 80,
-        minW: 0,
+        minW: 3.5,
         maxW: 0,
         minH: 0,
         maxH: 0,
