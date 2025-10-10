@@ -348,6 +348,13 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
 
+"@embedpdf/plugin-tiling@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-tiling/-/plugin-tiling-1.3.14.tgz#40db407489defc446d0e6df3270eb5cdb33172b9"
+  integrity sha512-SaCTo2LdZwGeE6jCqkwJxvwt8YKbsI3QGxa9S7Ez+5OcBchlhHeTfLQswcErDQ3WH2p8WHtGuucAcOLrVVOm0A==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
 "@embedpdf/plugin-viewport@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-viewport/-/plugin-viewport-1.3.14.tgz#04b2a7b98ef1ecaa4554d185bc52738e93924295"
