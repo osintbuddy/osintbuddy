@@ -40,52 +40,77 @@ type PDFViewerProps = {
   onNumPages?: (n: number) => void
 }
 
-const PDFToolbar = () => {
+function PDFToolbar() {
   const { provides: zoom, state } = useZoom()
   if (!zoom) return null
   const [isAreaZoomActive, setIsAreaZoomActive] = useState(
     zoom.isMarqueeZoomActive()
   )
+  const [showToolbar, setShowToolbar] = useState(false)
 
   return (
-    // TODO: ensure toolbar has ability to expand/collapse by clicking an ellipsis button somewhere...
-    <div className='relative -right-1/2 flex items-center gap-2 text-slate-400'>
-      <div className='flex items-center gap-x-1'>
-        <Button.Icon
-          variant='toolbar'
-          title='Click once to reset zoom. Double click to set zoom to 50%'
-          onClick={() => zoom.requestZoom(1.0)}
-          onDblClick={() => zoom.requestZoom(0.5)}
-        >
-          <Icon icon='zoom-reset' />
-        </Button.Icon>
-        <Button.Icon variant='toolbar' title='Zoom out' onClick={zoom.zoomOut}>
-          <Icon icon='zoom-out' />
-        </Button.Icon>
-        <input
-          className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-11 rounded-sm border border-slate-900 px-2 py-1.5 text-xs outline-none focus:bg-transparent'
-          type='text'
-          value={Math.round(state.currentZoomLevel * 100) + '%'}
+    <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
+      <button
+        onClick={() => setShowToolbar(!showToolbar)}
+        class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute right-0 z-50 ml-auto rounded-sm p-1 text-slate-400'
+        aria-pressed={showToolbar}
+      >
+        <Icon
+          aria-pressed={showToolbar}
+          icon='chevron-left'
+          className='h-4 w-4 rotate-0 transition-all duration-100 aria-pressed:rotate-180'
         />
-        <Button.Icon variant='toolbar' onClick={zoom.zoomIn} title='Zoom in'>
-          <Icon icon='zoom-in' />
-        </Button.Icon>
-        <Button.Icon
-          title='Area zoom'
-          variant='toolbar'
-          onClick={() => {
-            zoom.toggleMarqueeZoom()
-            setIsAreaZoomActive(!isAreaZoomActive)
-          }}
-          aria-pressed={isAreaZoomActive}
-        >
-          {isAreaZoomActive ? (
-            <Icon icon='zoom-cancel' />
-          ) : (
-            <Icon icon='zoom-in-area' />
-          )}
-        </Button.Icon>
-      </div>
+      </button>
+      {/* Expandable pdf controls section */}
+      <section
+        aria-hidden={!showToolbar}
+        aria-expanded={showToolbar}
+        className='relative flex w-full items-center justify-between rounded-sm bg-slate-950/99 transition-all duration-150 ease-out aria-expanded:right-full aria-expanded:translate-x-full aria-hidden:-right-full'
+      >
+        <div className='flex items-center'>{/* TODO: Add more controls */}</div>
+        {/* Zoom controls */}
+        <div className='flex items-center'>
+          <Button.Icon
+            variant='toolbar'
+            title='Click once to reset zoom. Double click to set zoom to 50%'
+            onClick={() => zoom.requestZoom(1.0)}
+            onDblClick={() => zoom.requestZoom(0.5)}
+          >
+            <Icon icon='zoom-reset' />
+          </Button.Icon>
+          <Button.Icon
+            variant='toolbar'
+            title='Zoom out'
+            onClick={zoom.zoomOut}
+          >
+            <Icon icon='zoom-out' />
+          </Button.Icon>
+          <input
+            className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-10 rounded-sm border border-slate-900 p-1.5 text-xs outline-none focus:bg-transparent'
+            type='text'
+            value={Math.round(state.currentZoomLevel * 100) + '%'}
+          />
+          <Button.Icon variant='toolbar' onClick={zoom.zoomIn} title='Zoom in'>
+            <Icon icon='zoom-in' />
+          </Button.Icon>
+          <Button.Icon
+            title='Toggle area zoom'
+            variant='toolbar'
+            onClick={() => {
+              zoom.toggleMarqueeZoom()
+              setIsAreaZoomActive(!isAreaZoomActive)
+            }}
+            aria-pressed={isAreaZoomActive}
+          >
+            {isAreaZoomActive ? (
+              <Icon icon='zoom-cancel' />
+            ) : (
+              <Icon icon='zoom-in-area' />
+            )}
+          </Button.Icon>
+        </div>
+        <div className='flex items-center'>{/* TODO: Add more controls */}</div>
+      </section>
     </div>
   )
 }
@@ -236,20 +261,17 @@ export const PDFViewer = ({
   if (isLoading || !engine) {
     return (
       <p class='relative flex w-full px-2 py-1'>
-        <ShinyText className='text-sm tracking-wide text-slate-600'>
+        <ShinyText className='tracking-wide text-slate-600'>
           Initializing PDF engine
         </ShinyText>
         <span class='dot-flashing top-3.5 left-2' />
       </p>
     )
   }
-
   return (
     <div className='h-full min-h-[420px] overflow-hidden'>
       <EmbedPDF engine={engine} plugins={plugins}>
-        <div className='absolute top-0 right-1/2 z-10 flex items-center justify-center'>
-          <PDFToolbar />
-        </div>
+        <PDFToolbar />
         <Viewport style={{ backgroundColor: 'transparent' }}>
           <Scroller
             renderPage={({
@@ -293,7 +315,6 @@ export default function PdfViewerPanel({
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log('pdf.open, pdf.active', pdf.open, pdf.active)
     let revoke: string | null = null
     const load = async () => {
       if (!pdf.open || !pdf.active) return
@@ -320,11 +341,12 @@ export default function PdfViewerPanel({
     }
   }, [pdf.open, pdf.active])
 
-  if (!pdf.open) return null
   const activePdf = pdf.tabs.find((t) => t.attachmentId === pdf.active)
 
   const onTabChange = (tabId: string) => pdf.setActive(tabId)
   const onTabClose = (tabId: string) => pdf.closeTab(tabId)
+  if (!pdf.open) return null
+
   return (
     <div className='pointer-events-auto z-10 flex h-full w-full flex-col overflow-hidden rounded-md border border-black/10 bg-gradient-to-br from-black/10 to-black/10 py-px shadow-2xl shadow-black/25 backdrop-blur-md'>
       <div className='flex flex-col'>
@@ -364,8 +386,6 @@ export default function PdfViewerPanel({
             </button>
           </li>
         </ol>
-
-        {/* Tabs */}
         <Tabs
           tabs={pdf.tabs}
           onTabChange={onTabChange}
@@ -373,7 +393,6 @@ export default function PdfViewerPanel({
           activeTabId={pdf?.active ?? ''}
         />
       </div>
-
       <div className='relative z-0 overflow-x-scroll'>
         <PDFViewer
           blobUrl={blobUrl ?? ''}
