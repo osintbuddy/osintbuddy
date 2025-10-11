@@ -190,7 +190,7 @@ function PDFToolbar({
             </Button.Icon>
           </div>
           {/* Zoom controls */}
-          <div className='flex items-center gap-x-1'>
+          <div className='ml-14 flex items-center gap-x-1'>
             <Button.Icon
               variant='toolbar'
               title='Click once to reset zoom. Double click to set zoom to 50%'
@@ -251,7 +251,7 @@ function PDFToolbar({
               onClick={() => redact?.toggleMarqueeRedact()}
             >
               <Icon
-                icon='rectangle'
+                icon='background'
                 className={`h-5 w-5 ${redactState.activeType === 'marqueeRedact' && redactState.isRedacting && 'text-primary-300'}`}
               />
             </Button.Icon>
@@ -261,9 +261,12 @@ function PDFToolbar({
               onClick={() => redact?.commitAllPending()}
               disabled={redactState.pendingCount === 0}
             >
-              <Icon icon='file-text-shield' />
+              <Icon
+                icon='file-text-shield'
+                className={`h-5 w-5 ${redactState.pendingCount > 0 && 'text-green-700'}`}
+              />
             </Button.Icon>
-            <span className='text-code ml-2' title='Total pending redactions'>
+            <span className='text-code ml-3' title='Total pending redactions'>
               {redactState.pendingCount}
             </span>
           </div>

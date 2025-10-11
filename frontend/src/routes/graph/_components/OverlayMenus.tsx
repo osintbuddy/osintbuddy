@@ -156,7 +156,7 @@ export default function OverlayMenus({
     minW: 12,
     maxW: 24,
     minH: 12,
-    maxH: 84,
+    maxH: 70,
   })
   useEffect(() => {
     if (pdfViewer.open)
@@ -169,7 +169,7 @@ export default function OverlayMenus({
         minW: 1,
         maxW: 50,
         minH: 4,
-        maxH: 64,
+        maxH: 70,
       })
     else
       setPdfLayout({
