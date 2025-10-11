@@ -42,6 +42,11 @@ import {
   ExportPluginPackage,
   useExportCapability,
 } from '@embedpdf/plugin-export/react'
+import {
+  SpreadPluginPackage,
+  SpreadMode,
+  useSpread,
+} from '@embedpdf/plugin-spread/react'
 import { PanPluginPackage, usePan } from '@embedpdf/plugin-pan/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
@@ -108,11 +113,12 @@ function PDFToolbar({
   const { provides: redact, state: redactState } = useRedaction()
   const { provides: selection } = useSelectionCapability()
   const { provides: exportApi } = useExportCapability()
-
+  const { provides: spread, spreadMode } = useSpread()
+  console.log(spreadMode)
   const [hasSelection, setHasSelection] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
 
-  if (!zoom || !pan || !redact) return null
+  if (!zoom || !pan || !redact || !spread) return null
 
   const [isAreaZoomActive, setIsAreaZoomActive] = useState(
     zoom.isMarqueeZoomActive()
@@ -166,6 +172,26 @@ function PDFToolbar({
                 <Icon icon='layout-sidebar-left-collapse' />
               ) : (
                 <Icon icon='layout-sidebar-left-expand' />
+              )}
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              title='Click toggles two-page odd view. Double click toggles two-page even view'
+              onClick={() => {
+                if (spreadMode === SpreadMode.None)
+                  spread.setSpreadMode(SpreadMode.Odd)
+                else spread.setSpreadMode(SpreadMode.None)
+              }}
+              onDblClick={() => {
+                if (spreadMode === SpreadMode.Even)
+                  spread.setSpreadMode(SpreadMode.None)
+                else spread.setSpreadMode(SpreadMode.Even)
+              }}
+            >
+              {spreadMode !== SpreadMode.None ? (
+                <Icon icon='book' className='text-primary-300 h-5 w-5' />
+              ) : (
+                <Icon icon='book-2' />
               )}
             </Button.Icon>
             <Button.Icon
@@ -336,6 +362,9 @@ export const PDFViewer = ({
       createPluginRegistration(SelectionPluginPackage),
       createPluginRegistration(ExportPluginPackage, {
         defaultFileName: `${pdfStore.active?.slice(0, 8).toUpperCase()}_${activeFilename.replace('.pdf', '')}.pdf`,
+      }),
+      createPluginRegistration(SpreadPluginPackage, {
+        defaultSpreadMode: SpreadMode.None,
       }),
     ],
     [blobUrl]
