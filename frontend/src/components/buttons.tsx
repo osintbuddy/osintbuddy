@@ -1,11 +1,35 @@
 import type { JSX, ComponentChildren } from 'preact'
 
 export type ButtonStyle = 'primary' | 'danger'
-
 export interface ButtonProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ComponentChildren
+  children?: ComponentChildren
   variant: ButtonStyle
+}
+
+export type ButtonIconStyle = 'toolbar'
+export interface IconButtonProps
+  extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
+  children?: ComponentChildren
+  variant: ButtonIconStyle
+}
+
+const icon = {
+  toolbar:
+    'bg-mirage-950 hover:border-primary-350 hover:text-slate-350 border-slate-900 hover:bg-slate-900 focus:bg-slate-900/60',
+}
+
+export function Icon(props: IconButtonProps): JSX.Element {
+  const { children, className, variant, ...btnProps } = props
+
+  return (
+    <button
+      {...btnProps}
+      class={`group rounded-sm border p-1 text-xs ${icon[variant]} ${className ?? ''} `}
+    >
+      {children}
+    </button>
+  )
 }
 
 const solid = {
@@ -51,6 +75,7 @@ export function Ghost(props: ButtonProps): JSX.Element {
 const Button = {
   Ghost,
   Solid,
+  Icon,
 }
 
 export default Button

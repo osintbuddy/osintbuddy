@@ -730,7 +730,14 @@ interface PdfViewerState {
   setNumPages: (n: number) => void
 }
 
-interface PdfTab { attachmentId: string; filename?: string; page: number; numPages?: number }
+interface PdfTab {
+  attachmentId: string
+  filename?: string
+  page: number
+  numPages?: number
+  // Top-left coordinates (in page space) for current page view
+  pageCoords?: { x: number; y: number }
+}
 
 interface PdfViewerTabsState {
   open: boolean
@@ -742,6 +749,7 @@ interface PdfViewerTabsState {
   setActive: (attachmentId: string) => void
   setPage: (attachmentId: string, page: number) => void
   setNumPages: (attachmentId: string, n: number) => void
+  setPageCoords: (attachmentId: string, coords: { x: number; y: number }) => void
 }
 
 export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
@@ -760,7 +768,9 @@ export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
     const wasActive = get().active === attachmentId
     set({ tabs: next })
     if (wasActive) {
-      set({ active: next.length ? next[next.length - 1].attachmentId : undefined })
+      set({
+        active: next.length ? next[next.length - 1].attachmentId : undefined,
+      })
     }
     if (next.length === 0) set({ open: false })
   },
@@ -768,16 +778,29 @@ export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
   setActive: (attachmentId) => set({ active: attachmentId }),
   setPage: (attachmentId, page) =>
     set({
-      tabs: get().tabs.map((t) => (t.attachmentId === attachmentId ? { ...t, page } : t)),
+      tabs: get().tabs.map((t) =>
+        t.attachmentId === attachmentId ? { ...t, page } : t
+      ),
     }),
   setNumPages: (attachmentId, n) =>
     set({
-      tabs: get().tabs.map((t) => (t.attachmentId === attachmentId ? { ...t, numPages: n } : t)),
+      tabs: get().tabs.map((t) =>
+        t.attachmentId === attachmentId ? { ...t, numPages: n } : t
+      ),
+    }),
+  setPageCoords: (attachmentId, coords) =>
+    set({
+      tabs: get().tabs.map((t) =>
+        t.attachmentId === attachmentId ? { ...t, pageCoords: coords } : t
+      ),
     }),
 }))
 
 // Audio viewer panel store
-interface AudioTab { attachmentId: string; filename?: string }
+interface AudioTab {
+  attachmentId: string
+  filename?: string
+}
 interface AudioViewerTabsState {
   open: boolean
   tabs: AudioTab[]
@@ -804,7 +827,9 @@ export const useAudioViewerStore = create<AudioViewerTabsState>((set, get) => ({
     const wasActive = get().active === attachmentId
     set({ tabs: next })
     if (wasActive) {
-      set({ active: next.length ? next[next.length - 1].attachmentId : undefined })
+      set({
+        active: next.length ? next[next.length - 1].attachmentId : undefined,
+      })
     }
     if (next.length === 0) set({ open: false })
   },
@@ -813,7 +838,11 @@ export const useAudioViewerStore = create<AudioViewerTabsState>((set, get) => ({
 }))
 
 // Properties panel store (blank overlay panel)
-interface PropertiesTab { entityId: string; title: string; data?: any }
+interface PropertiesTab {
+  entityId: string
+  title: string
+  data?: any
+}
 interface PropertiesState {
   open: boolean
   tabs: PropertiesTab[]
@@ -849,6 +878,8 @@ export const usePropertiesStore = create<PropertiesState>((set, get) => ({
   setActive: (entityId) => set({ active: entityId, open: true }),
   setData: (entityId, data) =>
     set({
-      tabs: get().tabs.map((t) => (t.entityId === entityId ? { ...t, data } : t)),
+      tabs: get().tabs.map((t) =>
+        t.entityId === entityId ? { ...t, data } : t
+      ),
     }),
 }))

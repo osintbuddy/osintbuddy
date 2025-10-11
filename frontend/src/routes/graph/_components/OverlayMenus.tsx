@@ -17,7 +17,7 @@ import { BASE_URL } from '@/app/baseApi'
 import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
-import PdfViewerPanel from './PdfViewerPanel'
+import PdfViewerPanel, { CaptureResultPopup } from './PdfViewerPanel'
 import AudioViewerPanel from './AudioViewerPanel'
 import PropertiesViewer from './PropertiesViewer'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -149,14 +149,14 @@ export default function OverlayMenus({
   const [isPdfDraggable, setIsPdfDraggable] = useState(false)
   const [pdfLayout, setPdfLayout] = useState({
     i: 'pdfviewer',
-    w: 14,
+    w: 4,
     h: 56,
     x: 0,
     y: 4,
     minW: 12,
     maxW: 24,
     minH: 12,
-    maxH: 84,
+    maxH: 70,
   })
   useEffect(() => {
     if (pdfViewer.open)
@@ -167,18 +167,18 @@ export default function OverlayMenus({
         x: 0,
         y: 4,
         minW: 1,
-        maxW: 44,
-        minH: 6,
-        maxH: 60,
+        maxW: 50,
+        minH: 4,
+        maxH: 70,
       })
     else
       setPdfLayout({
         i: 'pdfviewer',
-        w: 2,
+        w: 4,
         h: 0,
         x: 0,
         y: 80,
-        minW: 0,
+        minW: 3.5,
         maxW: 0,
         minH: 0,
         maxH: 0,
@@ -246,10 +246,10 @@ export default function OverlayMenus({
         h: 26,
         x: 0,
         y: 4,
-        minW: 7,
-        maxW: 44,
-        minH: 6,
-        maxH: 60,
+        minW: 2,
+        maxW: 64,
+        minH: 2,
+        maxH: 72,
       })
     else
       setAttachmentsLayout({
@@ -820,7 +820,7 @@ export default function OverlayMenus({
             </div>
           </li>
         </ol>
-        <div className='px-3 pb-3 text-sm text-slate-200 overflow-y-scroll'>
+        <div className='overflow-y-scroll px-3 pb-3 text-sm text-slate-200'>
           <div
             className='flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60'
             onWheel={(e) => {
