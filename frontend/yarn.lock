@@ -341,6 +341,14 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
 
+"@embedpdf/plugin-redaction@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-redaction/-/plugin-redaction-1.3.14.tgz#23a40eaf4e00da36e584f8052cdf904c34722699"
+  integrity sha512-svf+hiOTLVQkYm4XacK9cE+FSZKzKJ9/t4boGPo2lP9/rS5mCarECBHWXvPUzBZ82MoZcRnz8Jw6+3+fVkRBhA==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+    "@embedpdf/utils" "1.3.14"
+
 "@embedpdf/plugin-render@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-render/-/plugin-render-1.3.14.tgz#b41950ff2dd3331663d8f0b8c41246856869224e"
@@ -352,6 +360,13 @@
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-scroll/-/plugin-scroll-1.3.14.tgz#b3c1bbb4727002ca8d6469baacd3342f4107e704"
   integrity sha512-fQbt7OlRMLQJMuZj/Bzh0qpRxMw1ld5Qe/OTw8N54b/plljnFA52joE7cITl3H03huWWyHS3NKOScbw7f34dog==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
+"@embedpdf/plugin-selection@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-selection/-/plugin-selection-1.3.14.tgz#27cb1c97e32edb897d33780bf38ab303433261a8"
+  integrity sha512-EXENuaAsse3rT6cjA1nYzyrNvoy62ojJl28wblCng6zcs3HSlGPemIQZAvaYKPUxoY608M+6nKlcMQ5neRnk/A==
   dependencies:
     "@embedpdf/models" "1.3.14"
 
@@ -383,6 +398,11 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
     hammerjs "^2.0.8"
+
+"@embedpdf/utils@1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/utils/-/utils-1.3.14.tgz#c1c8890b380396411dfe6c2682ac823ce6f50d5f"
+  integrity sha512-gxEJD12nageCMqAjdbicNfDQolXU3nvnV0EX96OdZITRNj0Q1tisutVYoaxcCiJu3vvIEOzipjsAnQOubbFCEA==
 
 "@emnapi/core@^1.4.3":
   version "1.4.5"
