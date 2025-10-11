@@ -267,7 +267,7 @@ function PDFToolbar({
             </Button.Icon>
           </div>
           {/* Zoom controls */}
-          <div className='ml-14 flex items-center gap-x-1'>
+          <div className='flex items-center gap-x-1'>
             <Button.Icon
               variant='toolbar'
               title='Click once to reset zoom. Double click to set zoom to 50%'
