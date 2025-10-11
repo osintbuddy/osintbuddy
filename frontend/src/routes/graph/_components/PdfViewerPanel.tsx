@@ -38,6 +38,10 @@ import {
   useSelectionCapability,
   SelectionRangeX,
 } from '@embedpdf/plugin-selection/react'
+import {
+  ExportPluginPackage,
+  useExportCapability,
+} from '@embedpdf/plugin-export/react'
 import { PanPluginPackage, usePan } from '@embedpdf/plugin-pan/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
@@ -49,13 +53,6 @@ import ShinyText from '@/components/ShinyText'
 import Tabs from './Tabs'
 import Button from '@/components/buttons'
 import { ThumbnailsPane, ThumbImg } from '@embedpdf/plugin-thumbnail/react'
-
-type PDFViewerProps = {
-  blobUrl: string
-  page: number
-  coords?: { x: number; y: number }
-  onNumPages?: (n: number) => void
-}
 
 interface ThumbnailSidebarProps {
   showThumbnailBar: boolean
@@ -110,6 +107,8 @@ function PDFToolbar({
   const { provides: pan, isPanning } = usePan()
   const { provides: redact, state: redactState } = useRedaction()
   const { provides: selection } = useSelectionCapability()
+  const { provides: exportApi } = useExportCapability()
+
   const [hasSelection, setHasSelection] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
 
@@ -187,6 +186,14 @@ function PDFToolbar({
               title='Copy selected text'
             >
               <Icon icon='copy' />
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              onClick={() => exportApi?.download()}
+              disabled={!exportApi}
+              title='Export this PDF'
+            >
+              <Icon icon='download' />
             </Button.Icon>
           </div>
           {/* Zoom controls */}
@@ -277,11 +284,20 @@ function PDFToolbar({
   )
 }
 
+interface PDFViewerProps {
+  blobUrl: string
+  page: number
+  coords?: { x: number; y: number }
+  onNumPages?: (n: number) => void
+  activeFilename: string
+}
+
 export const PDFViewer = ({
   blobUrl,
   page,
   coords,
   onNumPages,
+  activeFilename,
 }: PDFViewerProps) => {
   const pdfStore = usePdfViewerStore()
   const { engine, isLoading } = usePdfiumEngine()
@@ -318,6 +334,9 @@ export const PDFViewer = ({
         drawBlackBoxes: true,
       }),
       createPluginRegistration(SelectionPluginPackage),
+      createPluginRegistration(ExportPluginPackage, {
+        defaultFileName: `${pdfStore.active?.slice(0, 8).toUpperCase()}_${activeFilename.replace('.pdf', '')}.pdf`,
+      }),
     ],
     [blobUrl]
   )
@@ -560,12 +579,12 @@ export default function PdfViewerPanel({
                 <Icon icon='lock' className='h-5 w-5 text-inherit' />
               )}
             </button>
-            {pdf.active && activePdf?.numPages && (
+            {/* {pdf.active && activePdf?.numPages && (
               <div className='text-[11px] text-slate-400'>
                 Page <span class='text-slate-300'>{activePdf?.page}</span> of{' '}
                 {activePdf?.numPages}
               </div>
-            )}
+            )} */}
             <button
               onClick={() => pdf.closeViewer()}
               className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
@@ -584,6 +603,7 @@ export default function PdfViewerPanel({
       </div>
       <div className='relative z-0 h-full'>
         <PDFViewer
+          activeFilename={activePdf?.filename}
           blobUrl={blobUrl ?? ''}
           page={activePdf?.page ?? 1}
           coords={activePdf?.pageCoords}
