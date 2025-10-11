@@ -17,7 +17,7 @@ import { BASE_URL } from '@/app/baseApi'
 import { ReadyState } from 'react-use-websocket'
 import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
-import PdfViewerPanel from './PdfViewerPanel'
+import PdfViewerPanel, { CaptureResultPopup } from './PdfViewerPanel'
 import AudioViewerPanel from './AudioViewerPanel'
 import PropertiesViewer from './PropertiesViewer'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
@@ -820,7 +820,7 @@ export default function OverlayMenus({
             </div>
           </li>
         </ol>
-        <div className='px-3 pb-3 text-sm text-slate-200 overflow-y-scroll'>
+        <div className='overflow-y-scroll px-3 pb-3 text-sm text-slate-200'>
           <div
             className='flex flex-nowrap gap-1 overflow-x-hidden border-b border-slate-800/60'
             onWheel={(e) => {

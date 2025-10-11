@@ -384,6 +384,13 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
 
+"@embedpdf/plugin-spread@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-spread/-/plugin-spread-1.3.14.tgz#56f6634e58f1bfddb23523fbc839d09a7882371a"
+  integrity sha512-DVlk6tDgUoDRkp2S4Jc3LrRTuf4DPMlph9vywJw5z6Qpbh0vgcMnObg896/S0Eu5FgACNAj0WGcXpLrcrn5b9Q==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
 "@embedpdf/plugin-thumbnail@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-thumbnail/-/plugin-thumbnail-1.3.14.tgz#686e791acd7d6bf0536bc2fad713d4625a2392ef"

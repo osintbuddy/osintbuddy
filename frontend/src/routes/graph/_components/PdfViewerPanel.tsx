@@ -47,6 +47,12 @@ import {
   SpreadMode,
   useSpread,
 } from '@embedpdf/plugin-spread/react'
+import {
+  CaptureAreaEvent,
+  CapturePluginPackage,
+  MarqueeCapture,
+  useCaptureCapability,
+} from '@embedpdf/plugin-capture/react'
 import { PanPluginPackage, usePan } from '@embedpdf/plugin-pan/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
@@ -102,11 +108,13 @@ function ThumbnailSidebar({ showThumbnailBar }: ThumbnailSidebarProps) {
 interface PDFToolbarProps {
   showThumbnailBar: boolean
   setShowThumbnailBar: (value: boolean) => void
+  activeFilename: string
 }
 
 function PDFToolbar({
   showThumbnailBar,
   setShowThumbnailBar,
+  activeFilename,
 }: PDFToolbarProps) {
   const { provides: zoom, state: zoomState } = useZoom()
   const { provides: pan, isPanning } = usePan()
@@ -114,7 +122,9 @@ function PDFToolbar({
   const { provides: selection } = useSelectionCapability()
   const { provides: exportApi } = useExportCapability()
   const { provides: spread, spreadMode } = useSpread()
-  console.log(spreadMode)
+  const { provides: capture } = useCaptureCapability()
+  const isCaptureActive = capture?.isMarqueeCaptureActive()
+
   const [hasSelection, setHasSelection] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
 
@@ -130,12 +140,35 @@ function PDFToolbar({
       setHasSelection(!!sel)
     })
   }, [selection])
-  console.log(
-    'wtf',
-    redactState,
-    redactState.activeType,
-    redactState.isRedacting
-  )
+  console.log('wtf', capture, isCaptureActive)
+
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+
+  // Download images on capture
+  useEffect(() => {
+    console.log('useEffect', capture)
+    if (!capture) return
+
+    const unsubscribe = capture.onCaptureArea((result: CaptureAreaEvent) => {
+      const newUrl = URL.createObjectURL(result.blob)
+      setImageUrl(newUrl)
+      const link = document.createElement('a')
+      link.href = newUrl
+      link.setAttribute(
+        'download',
+        `${Date.now()}_${activeFilename.replace('.pdf', '')}.png`
+      )
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+    })
+
+    return () => {
+      unsubscribe()
+      if (imageUrl) URL.revokeObjectURL(imageUrl)
+    }
+  }, [capture])
+
   return (
     <>
       <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
@@ -203,6 +236,17 @@ function PDFToolbar({
                 <Icon icon='hand-off' className='text-primary-300 h-5 w-5' />
               ) : (
                 <Icon icon='hand-stop' />
+              )}
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              onClick={() => capture?.toggleMarqueeCapture()}
+              title='Capture a selected region on this pdf as an image'
+            >
+              {isCaptureActive ? (
+                <Icon icon='maximize-off' className='text-danger-500 h-5 w-5' />
+              ) : (
+                <Icon icon='screenshot' />
               )}
             </Button.Icon>
             <Button.Icon
@@ -366,6 +410,11 @@ export const PDFViewer = ({
       createPluginRegistration(SpreadPluginPackage, {
         defaultSpreadMode: SpreadMode.None,
       }),
+      createPluginRegistration(CapturePluginPackage, {
+        scale: 2.0, // Render captured image at 2x resolution
+        imageType: 'image/png',
+        withAnnotations: true,
+      }),
     ],
     [blobUrl]
   )
@@ -491,50 +540,55 @@ export const PDFViewer = ({
       </p>
     )
   }
+
   return (
-    <div className='h-full overflow-x-scroll'>
-      <EmbedPDF engine={engine} plugins={plugins}>
-        <PDFToolbar
-          showThumbnailBar={showThumbnailBar}
-          setShowThumbnailBar={setShowThumbnailBar}
-        />
-        <GlobalPointerProvider>
-          <Viewport
-            className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
-          >
-            <Scroller
-              renderPage={({
-                width,
-                height,
-                pageIndex,
-                scale,
-                rotation,
-              }: RenderPageProps) => (
-                <PagePointerProvider
-                  pageIndex={pageIndex}
-                  pageWidth={width}
-                  pageHeight={height}
-                  rotation={rotation}
-                  scale={scale}
-                >
-                  <div style={{ width, height }}>
-                    <RenderLayer pageIndex={pageIndex} scale={0.5} />
-                    <TilingLayer pageIndex={pageIndex} scale={scale} />
-                    <SelectionLayer pageIndex={pageIndex} scale={scale} />
-                    <RedactionLayer
-                      pageIndex={pageIndex}
-                      scale={scale}
-                      rotation={rotation}
-                    />
-                    <MarqueeZoom pageIndex={pageIndex} scale={scale} />
-                  </div>
-                </PagePointerProvider>
-              )}
-            />
-          </Viewport>
-        </GlobalPointerProvider>
-      </EmbedPDF>
-    </div>
+    <>
+      <div className='h-full overflow-x-scroll'>
+        <EmbedPDF engine={engine} plugins={plugins}>
+          <PDFToolbar
+            activeFilename={activeFilename}
+            showThumbnailBar={showThumbnailBar}
+            setShowThumbnailBar={setShowThumbnailBar}
+          />
+          <GlobalPointerProvider>
+            <Viewport
+              className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
+            >
+              <Scroller
+                renderPage={({
+                  width,
+                  height,
+                  pageIndex,
+                  scale,
+                  rotation,
+                }: RenderPageProps) => (
+                  <PagePointerProvider
+                    pageIndex={pageIndex}
+                    pageWidth={width}
+                    pageHeight={height}
+                    rotation={rotation}
+                    scale={scale}
+                  >
+                    <div style={{ width, height }}>
+                      <RenderLayer pageIndex={pageIndex} scale={0.5} />
+                      <TilingLayer pageIndex={pageIndex} scale={scale} />
+                      <SelectionLayer pageIndex={pageIndex} scale={scale} />
+                      <RedactionLayer
+                        pageIndex={pageIndex}
+                        scale={scale}
+                        rotation={rotation}
+                      />
+                      <MarqueeZoom pageIndex={pageIndex} scale={scale} />
+                      <MarqueeCapture pageIndex={pageIndex} scale={scale} />
+                    </div>
+                  </PagePointerProvider>
+                )}
+              />
+            </Viewport>
+          </GlobalPointerProvider>
+        </EmbedPDF>
+      </div>
+    </>
   )
 }
 
@@ -632,7 +686,7 @@ export default function PdfViewerPanel({
       </div>
       <div className='relative z-0 h-full'>
         <PDFViewer
-          activeFilename={activePdf?.filename}
+          activeFilename={activePdf?.filename ?? 'unknown.pdf'}
           blobUrl={blobUrl ?? ''}
           page={activePdf?.page ?? 1}
           coords={activePdf?.pageCoords}
