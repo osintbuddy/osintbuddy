@@ -348,6 +348,13 @@
   dependencies:
     "@embedpdf/models" "1.3.14"
 
+"@embedpdf/plugin-thumbnail@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-thumbnail/-/plugin-thumbnail-1.3.14.tgz#686e791acd7d6bf0536bc2fad713d4625a2392ef"
+  integrity sha512-cnwb5dG8Jph8XSArys1WFCQ6kK2R5FKoO0B5mDrHFv9Fcm2pKszlmZC/NDoskX4pgNUgSnwhI1X3cP37ebF9Ng==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
 "@embedpdf/plugin-tiling@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-tiling/-/plugin-tiling-1.3.14.tgz#40db407489defc446d0e6df3270eb5cdb33172b9"
