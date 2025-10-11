@@ -27,6 +27,17 @@ import {
   ScrollPluginPackage,
   useScroll,
 } from '@embedpdf/plugin-scroll/react'
+import {
+  RedactionPluginPackage,
+  RedactionLayer,
+  useRedaction,
+} from '@embedpdf/plugin-redaction/react'
+import {
+  SelectionPluginPackage,
+  SelectionLayer,
+  useSelectionCapability,
+  SelectionRangeX,
+} from '@embedpdf/plugin-selection/react'
 import { PanPluginPackage, usePan } from '@embedpdf/plugin-pan/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
@@ -95,16 +106,31 @@ function PDFToolbar({
   showThumbnailBar,
   setShowThumbnailBar,
 }: PDFToolbarProps) {
-  const { provides: zoom, state } = useZoom()
+  const { provides: zoom, state: zoomState } = useZoom()
   const { provides: pan, isPanning } = usePan()
-
-  if (!zoom || !pan) return null
+  const { provides: redact, state: redactState } = useRedaction()
+  const { provides: selection } = useSelectionCapability()
+  const [hasSelection, setHasSelection] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
+
+  if (!zoom || !pan || !redact) return null
+
   const [isAreaZoomActive, setIsAreaZoomActive] = useState(
     zoom.isMarqueeZoomActive()
   )
-  console.log('pan, isPanning', pan, isPanning)
 
+  useEffect(() => {
+    if (!selection) return
+    return selection.onSelectionChange((sel: SelectionRangeX | null) => {
+      setHasSelection(!!sel)
+    })
+  }, [selection])
+  console.log(
+    'wtf',
+    redactState,
+    redactState.activeType,
+    redactState.isRedacting
+  )
   return (
     <>
       <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
@@ -133,8 +159,8 @@ function PDFToolbar({
               onClick={() => {
                 setShowThumbnailBar(!showThumbnailBar)
                 if (!showThumbnailBar)
-                  zoom.requestZoom(state.currentZoomLevel - 0.11)
-                else zoom.requestZoom(state.currentZoomLevel + 0.11)
+                  zoom.requestZoom(zoomState.currentZoomLevel - 0.11)
+                else zoom.requestZoom(zoomState.currentZoomLevel + 0.11)
               }}
             >
               {showThumbnailBar ? (
@@ -153,6 +179,14 @@ function PDFToolbar({
               ) : (
                 <Icon icon='hand-stop' />
               )}
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              onClick={() => selection?.copyToClipboard()}
+              disabled={!hasSelection}
+              title='Copy selected text'
+            >
+              <Icon icon='copy' />
             </Button.Icon>
           </div>
           {/* Zoom controls */}
@@ -175,7 +209,7 @@ function PDFToolbar({
             <input
               className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-10 rounded-sm border border-slate-900 p-1.5 text-xs outline-none focus:bg-transparent'
               type='text'
-              value={Math.round(state.currentZoomLevel * 100) + '%'}
+              value={Math.round(zoomState.currentZoomLevel * 100) + '%'}
             />
             <Button.Icon
               variant='toolbar'
@@ -200,8 +234,38 @@ function PDFToolbar({
               )}
             </Button.Icon>
           </div>
-          <div className='flex items-center'>
-            {/* TODO: Add more controls */}
+          <div className='mr-10 flex items-center'>
+            <Button.Icon
+              variant='toolbar'
+              title='Redact selected text'
+              onClick={() => redact?.toggleRedactSelection()}
+            >
+              <Icon
+                icon='pencil-minus'
+                className={`h-5 w-5 ${redactState.activeType === 'redactSelection' && redactState.isRedacting && 'text-primary-300'}`}
+              />
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              title='Mark redaction area'
+              onClick={() => redact?.toggleMarqueeRedact()}
+            >
+              <Icon
+                icon='rectangle'
+                className={`h-5 w-5 ${redactState.activeType === 'marqueeRedact' && redactState.isRedacting && 'text-primary-300'}`}
+              />
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              title='Apply all redactions'
+              onClick={() => redact?.commitAllPending()}
+              disabled={redactState.pendingCount === 0}
+            >
+              <Icon icon='file-text-shield' />
+            </Button.Icon>
+            <span className='text-code ml-2' title='Total pending redactions'>
+              {redactState.pendingCount}
+            </span>
           </div>
         </section>
       </div>
@@ -241,12 +305,16 @@ export const PDFViewer = ({
       createPluginRegistration(TilingPluginPackage, {
         tileSize: 768,
         overlapPx: 5,
-        extraRings: 1, // Pre-render one ring of tiles outside the viewport
+        extraRings: 1,
       }),
       createPluginRegistration(ThumbnailPluginPackage, {
-        width: 80, // Sets the width of thumbnail images
+        width: 80,
       }),
       createPluginRegistration(PanPluginPackage),
+      createPluginRegistration(RedactionPluginPackage, {
+        drawBlackBoxes: true,
+      }),
+      createPluginRegistration(SelectionPluginPackage),
     ],
     [blobUrl]
   )
@@ -254,8 +322,7 @@ export const PDFViewer = ({
   const loaderCap = useCapability<LoaderPlugin>('loader')
   const scrollCap = useCapability<ScrollPlugin>('scroll')
 
-  // Load/reload document ONLY when the blob changes
-  // Avoids unwanted reloads on graph interactions
+  // Load/reload document ONLY when the blob changes, avoids unwanted reloads on graph interactions
   useEffect(() => {
     if (!blobUrl) return
     if (!loaderCap.provides) return
@@ -402,6 +469,12 @@ export const PDFViewer = ({
                   <div style={{ width, height }}>
                     <RenderLayer pageIndex={pageIndex} scale={0.5} />
                     <TilingLayer pageIndex={pageIndex} scale={scale} />
+                    <SelectionLayer pageIndex={pageIndex} scale={scale} />
+                    <RedactionLayer
+                      pageIndex={pageIndex}
+                      scale={scale}
+                      rotation={rotation}
+                    />
                     <MarqueeZoom pageIndex={pageIndex} scale={scale} />
                   </div>
                 </PagePointerProvider>
