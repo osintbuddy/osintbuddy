@@ -13,6 +13,7 @@
     "@editorjs/editorjs": "^2.30.8",
     "@embedpdf/core": "^1.3.14",
     "@embedpdf/engines": "^1.3.14",
+    "@embedpdf/plugin-capture": "^1.3.14",
     "@embedpdf/plugin-export": "^1.3.14",
     "@embedpdf/plugin-interaction-manager": "^1.3.14",
     "@embedpdf/plugin-loader": "^1.3.14",

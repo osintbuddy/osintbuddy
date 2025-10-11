@@ -320,6 +320,13 @@
   resolved "https://registry.yarnpkg.com/@embedpdf/pdfium/-/pdfium-1.3.14.tgz#d58b59ef18521348d39cb548b44be4490aba4d9c"
   integrity sha512-TQMZabXzHmzvvfPwopubFcYgQuYV7POvMgjICYu3Pgfn3sgr+UdIUh3aNXR/COcl3q8sXPMFQ2GDuyOHR9QQnA==
 
+"@embedpdf/plugin-capture@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-capture/-/plugin-capture-1.3.14.tgz#a71d9deeca128d0709bca47d2bad97221f0f93e8"
+  integrity sha512-rdxBQTv6AOQffthtedj66WMrrX/U5ykRbK4s7FKXAlYekWmYWssZ+B9HanIAmxOQ2UGfCncUTzzRh30n03aWbA==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
 "@embedpdf/plugin-export@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-export/-/plugin-export-1.3.14.tgz#e633d38d9538189e04fac4a7dd277c771412a24f"
