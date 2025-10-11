@@ -24,8 +24,10 @@ import {
   RenderPageProps,
   Scroller,
   ScrollPluginPackage,
+  useScroll,
 } from '@embedpdf/plugin-scroll/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
+import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
 import { LoaderPluginPackage } from '@embedpdf/plugin-loader/react'
 import { RenderLayer, RenderPluginPackage } from '@embedpdf/plugin-render/react'
 import type { LoaderPlugin } from '@embedpdf/plugin-loader'
@@ -33,6 +35,7 @@ import type { ScrollPlugin } from '@embedpdf/plugin-scroll'
 import ShinyText from '@/components/ShinyText'
 import Tabs from './Tabs'
 import Button from '@/components/buttons'
+import { ThumbnailsPane, ThumbImg } from '@embedpdf/plugin-thumbnail/react'
 
 type PDFViewerProps = {
   blobUrl: string
@@ -41,78 +44,147 @@ type PDFViewerProps = {
   onNumPages?: (n: number) => void
 }
 
-function PDFToolbar() {
+interface ThumbnailSidebarProps {
+  showThumbnailBar: boolean
+}
+
+function ThumbnailSidebar({ showThumbnailBar }: ThumbnailSidebarProps) {
+  const { state, provides } = useScroll()
+  if (!showThumbnailBar) return null
+  return (
+    <ThumbnailsPane className='z-20 w-20 bg-black/60'>
+      {(m) => {
+        const isActive = state.currentPage === m.pageIndex + 1
+        return (
+          <div
+            key={m.pageIndex}
+            style={{
+              position: 'absolute',
+              top: m.top,
+              height: m.wrapperHeight,
+            }}
+            onClick={() =>
+              provides?.scrollToPage({ pageNumber: m.pageIndex + 1 })
+            }
+          >
+            <div
+              style={{
+                border: `2px solid ${isActive ? 'blue' : 'grey'}`,
+                width: m.width,
+                height: m.height,
+              }}
+            >
+              <ThumbImg meta={m} />
+            </div>
+            <span style={{ height: m.labelHeight }}>{m.pageIndex + 1}</span>
+          </div>
+        )
+      }}
+    </ThumbnailsPane>
+  )
+}
+
+interface PDFToolbarProps {
+  showThumbnailBar: boolean
+  setShowThumbnailBar: (value: boolean) => void
+}
+
+function PDFToolbar({
+  showThumbnailBar,
+  setShowThumbnailBar,
+}: PDFToolbarProps) {
   const { provides: zoom, state } = useZoom()
   if (!zoom) return null
   const [isAreaZoomActive, setIsAreaZoomActive] = useState(
     zoom.isMarqueeZoomActive()
   )
   const [showToolbar, setShowToolbar] = useState(false)
-
   return (
-    <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
-      <button
-        onClick={() => setShowToolbar(!showToolbar)}
-        class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute right-0 z-50 ml-auto rounded-sm p-1 text-slate-400'
-        aria-pressed={showToolbar}
-      >
-        <Icon
+    <>
+      <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
+        <button
+          onClick={() => setShowToolbar(!showToolbar)}
+          class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute right-0 z-50 ml-auto p-1 text-slate-400'
           aria-pressed={showToolbar}
-          icon='chevron-left'
-          className='h-4 w-4 rotate-0 transition-all duration-100 aria-pressed:rotate-180'
-        />
-      </button>
-      {/* Expandable pdf controls section */}
-      <section
-        aria-hidden={!showToolbar}
-        aria-expanded={showToolbar}
-        className='relative flex w-full items-center justify-between rounded-sm bg-slate-950/99 transition-all duration-150 ease-out aria-expanded:right-full aria-expanded:translate-x-full aria-hidden:-right-full'
-      >
-        <div className='flex items-center'>{/* TODO: Add more controls */}</div>
-        {/* Zoom controls */}
-        <div className='flex items-center'>
-          <Button.Icon
-            variant='toolbar'
-            title='Click once to reset zoom. Double click to set zoom to 50%'
-            onClick={() => zoom.requestZoom(1.0)}
-            onDblClick={() => zoom.requestZoom(0.5)}
-          >
-            <Icon icon='zoom-reset' />
-          </Button.Icon>
-          <Button.Icon
-            variant='toolbar'
-            title='Zoom out'
-            onClick={zoom.zoomOut}
-          >
-            <Icon icon='zoom-out' />
-          </Button.Icon>
-          <input
-            className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-10 rounded-sm border border-slate-900 p-1.5 text-xs outline-none focus:bg-transparent'
-            type='text'
-            value={Math.round(state.currentZoomLevel * 100) + '%'}
+        >
+          <Icon
+            aria-pressed={showToolbar}
+            icon='chevron-left'
+            className='h-4 w-4 rotate-0 transition-all duration-100 aria-pressed:rotate-180'
           />
-          <Button.Icon variant='toolbar' onClick={zoom.zoomIn} title='Zoom in'>
-            <Icon icon='zoom-in' />
-          </Button.Icon>
-          <Button.Icon
-            title='Toggle area zoom'
-            variant='toolbar'
-            onClick={() => {
-              zoom.toggleMarqueeZoom()
-              setIsAreaZoomActive(!isAreaZoomActive)
-            }}
-            aria-pressed={isAreaZoomActive}
-          >
-            {isAreaZoomActive ? (
-              <Icon icon='zoom-cancel' />
-            ) : (
-              <Icon icon='zoom-in-area' />
-            )}
-          </Button.Icon>
-        </div>
-        <div className='flex items-center'>{/* TODO: Add more controls */}</div>
-      </section>
-    </div>
+        </button>
+        {/* Expandable pdf controls section */}
+        <section
+          aria-hidden={!showToolbar}
+          aria-expanded={showToolbar}
+          className='relative z-40 flex w-full items-center justify-between rounded-sm bg-slate-950/99 transition-all duration-150 ease-out aria-expanded:left-full aria-expanded:-translate-x-full aria-hidden:left-full'
+        >
+          {/* Thumbnail toggle control */}
+          <div className='flex items-center'>
+            <Button.Icon
+              variant='toolbar'
+              onClick={() => {
+                setShowThumbnailBar(!showThumbnailBar)
+                if (!showThumbnailBar)
+                  zoom.requestZoom(state.currentZoomLevel - 0.11)
+                else zoom.requestZoom(state.currentZoomLevel + 0.11)
+              }}
+            >
+              <Icon icon='layout-sidebar-left-expand' />
+            </Button.Icon>
+          </div>
+          {/* Zoom controls */}
+          <div className='flex items-center'>
+            <Button.Icon
+              variant='toolbar'
+              title='Click once to reset zoom. Double click to set zoom to 50%'
+              onClick={() => zoom.requestZoom(1.0)}
+              onDblClick={() => zoom.requestZoom(0.5)}
+            >
+              <Icon icon='zoom-reset' />
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              title='Zoom out'
+              onClick={zoom.zoomOut}
+            >
+              <Icon icon='zoom-out' />
+            </Button.Icon>
+            <input
+              className='bg-mirage-950 hover:text-slate-350 focus:text-slate-350 focus:border-primary-350 hover:border-primary-350 w-10 rounded-sm border border-slate-900 p-1.5 text-xs outline-none focus:bg-transparent'
+              type='text'
+              value={Math.round(state.currentZoomLevel * 100) + '%'}
+            />
+            <Button.Icon
+              variant='toolbar'
+              onClick={zoom.zoomIn}
+              title='Zoom in'
+            >
+              <Icon icon='zoom-in' />
+            </Button.Icon>
+            <Button.Icon
+              title='Toggle area zoom'
+              variant='toolbar'
+              onClick={() => {
+                zoom.toggleMarqueeZoom()
+                setIsAreaZoomActive(!isAreaZoomActive)
+              }}
+              aria-pressed={isAreaZoomActive}
+            >
+              {isAreaZoomActive ? (
+                <Icon icon='zoom-cancel' />
+              ) : (
+                <Icon icon='zoom-in-area' />
+              )}
+            </Button.Icon>
+          </div>
+          <div className='flex items-center'>
+            {/* TODO: Add more controls */}
+          </div>
+        </section>
+      </div>
+      <ThumbnailSidebar showThumbnailBar={showThumbnailBar} />
+    </>
   )
 }
 
@@ -124,6 +196,7 @@ export const PDFViewer = ({
 }: PDFViewerProps) => {
   const pdfStore = usePdfViewerStore()
   const { engine, isLoading } = usePdfiumEngine()
+  const [showThumbnailBar, setShowThumbnailBar] = useState(false)
 
   const plugins = useMemo(
     () => [
@@ -147,6 +220,9 @@ export const PDFViewer = ({
         tileSize: 768,
         overlapPx: 5,
         extraRings: 1, // Pre-render one ring of tiles outside the viewport
+      }),
+      createPluginRegistration(ThumbnailPluginPackage, {
+        width: 80, // Sets the width of thumbnail images
       }),
     ],
     [blobUrl]
@@ -274,11 +350,17 @@ export const PDFViewer = ({
       </p>
     )
   }
+
   return (
-    <div className='h-full min-h-[420px] overflow-hidden'>
+    <div className='h-full overflow-x-scroll'>
       <EmbedPDF engine={engine} plugins={plugins}>
-        <PDFToolbar />
-        <Viewport style={{ backgroundColor: 'transparent' }}>
+        <PDFToolbar
+          showThumbnailBar={showThumbnailBar}
+          setShowThumbnailBar={setShowThumbnailBar}
+        />
+        <Viewport
+          className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
+        >
           <Scroller
             renderPage={({
               width,
@@ -400,7 +482,7 @@ export default function PdfViewerPanel({
           activeTabId={pdf?.active ?? ''}
         />
       </div>
-      <div className='relative z-0 overflow-x-scroll'>
+      <div className='relative z-0 h-full'>
         <PDFViewer
           blobUrl={blobUrl ?? ''}
           page={activePdf?.page ?? 1}
