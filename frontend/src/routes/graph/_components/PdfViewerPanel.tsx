@@ -19,6 +19,7 @@ import {
 import {
   PagePointerProvider,
   InteractionManagerPluginPackage,
+  GlobalPointerProvider,
 } from '@embedpdf/plugin-interaction-manager/react'
 import {
   RenderPageProps,
@@ -26,6 +27,7 @@ import {
   ScrollPluginPackage,
   useScroll,
 } from '@embedpdf/plugin-scroll/react'
+import { PanPluginPackage, usePan } from '@embedpdf/plugin-pan/react'
 import { TilingLayer, TilingPluginPackage } from '@embedpdf/plugin-tiling/react'
 import { ThumbnailPluginPackage } from '@embedpdf/plugin-thumbnail/react'
 import { LoaderPluginPackage } from '@embedpdf/plugin-loader/react'
@@ -94,35 +96,40 @@ function PDFToolbar({
   setShowThumbnailBar,
 }: PDFToolbarProps) {
   const { provides: zoom, state } = useZoom()
-  if (!zoom) return null
+  const { provides: pan, isPanning } = usePan()
+
+  if (!zoom || !pan) return null
+  const [showToolbar, setShowToolbar] = useState(false)
   const [isAreaZoomActive, setIsAreaZoomActive] = useState(
     zoom.isMarqueeZoomActive()
   )
-  const [showToolbar, setShowToolbar] = useState(false)
+  console.log('pan, isPanning', pan, isPanning)
+
   return (
     <>
       <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
         <button
           onClick={() => setShowToolbar(!showToolbar)}
-          class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute right-0 z-50 ml-auto p-1 text-slate-400'
+          class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute top-0 right-0 z-50 ml-auto rounded-sm p-1 text-slate-400'
           aria-pressed={showToolbar}
         >
           <Icon
             aria-pressed={showToolbar}
             icon='chevron-left'
-            className='h-4 w-4 rotate-0 transition-all duration-100 aria-pressed:rotate-180'
+            className='h-5 w-5 rotate-0 transition-all duration-100 aria-pressed:rotate-180'
           />
         </button>
         {/* Expandable pdf controls section */}
         <section
           aria-hidden={!showToolbar}
           aria-expanded={showToolbar}
-          className='relative z-40 flex w-full items-center justify-between rounded-sm bg-slate-950/99 transition-all duration-150 ease-out aria-expanded:left-full aria-expanded:-translate-x-full aria-hidden:left-full'
+          className='relative z-40 flex w-full items-center justify-between bg-slate-950/99 py-0.5 transition-all duration-150 ease-out aria-expanded:left-full aria-expanded:-translate-x-full aria-hidden:left-full'
         >
           {/* Thumbnail toggle control */}
           <div className='flex items-center'>
             <Button.Icon
               variant='toolbar'
+              title='Click to toggle PDF thumbnails'
               onClick={() => {
                 setShowThumbnailBar(!showThumbnailBar)
                 if (!showThumbnailBar)
@@ -130,11 +137,26 @@ function PDFToolbar({
                 else zoom.requestZoom(state.currentZoomLevel + 0.11)
               }}
             >
-              <Icon icon='layout-sidebar-left-expand' />
+              {showThumbnailBar ? (
+                <Icon icon='layout-sidebar-left-collapse' />
+              ) : (
+                <Icon icon='layout-sidebar-left-expand' />
+              )}
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
+              title='Click to toggle pan mode'
+              onClick={pan.togglePan}
+            >
+              {isPanning ? (
+                <Icon icon='hand-off' className='text-primary-300 h-5 w-5' />
+              ) : (
+                <Icon icon='hand-stop' />
+              )}
             </Button.Icon>
           </div>
           {/* Zoom controls */}
-          <div className='flex items-center'>
+          <div className='flex items-center gap-x-1'>
             <Button.Icon
               variant='toolbar'
               title='Click once to reset zoom. Double click to set zoom to 50%'
@@ -172,9 +194,9 @@ function PDFToolbar({
               aria-pressed={isAreaZoomActive}
             >
               {isAreaZoomActive ? (
-                <Icon icon='zoom-cancel' />
+                <Icon icon='zoom-cancel' className='text-primary-300 h-5 w-5' />
               ) : (
-                <Icon icon='zoom-in-area' />
+                <Icon icon='zoom-in-area' className='h-5 w-5' />
               )}
             </Button.Icon>
           </div>
@@ -224,6 +246,7 @@ export const PDFViewer = ({
       createPluginRegistration(ThumbnailPluginPackage, {
         width: 80, // Sets the width of thumbnail images
       }),
+      createPluginRegistration(PanPluginPackage),
     ],
     [blobUrl]
   )
@@ -350,7 +373,6 @@ export const PDFViewer = ({
       </p>
     )
   }
-
   return (
     <div className='h-full overflow-x-scroll'>
       <EmbedPDF engine={engine} plugins={plugins}>
@@ -358,33 +380,35 @@ export const PDFViewer = ({
           showThumbnailBar={showThumbnailBar}
           setShowThumbnailBar={setShowThumbnailBar}
         />
-        <Viewport
-          className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
-        >
-          <Scroller
-            renderPage={({
-              width,
-              height,
-              pageIndex,
-              scale,
-              rotation,
-            }: RenderPageProps) => (
-              <PagePointerProvider
-                pageIndex={pageIndex}
-                pageWidth={width}
-                pageHeight={height}
-                rotation={rotation}
-                scale={scale}
-              >
-                <div style={{ width, height }}>
-                  <RenderLayer pageIndex={pageIndex} scale={0.5} />
-                  <TilingLayer pageIndex={pageIndex} scale={scale} />
-                  <MarqueeZoom pageIndex={pageIndex} scale={scale} />
-                </div>
-              </PagePointerProvider>
-            )}
-          />
-        </Viewport>
+        <GlobalPointerProvider>
+          <Viewport
+            className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
+          >
+            <Scroller
+              renderPage={({
+                width,
+                height,
+                pageIndex,
+                scale,
+                rotation,
+              }: RenderPageProps) => (
+                <PagePointerProvider
+                  pageIndex={pageIndex}
+                  pageWidth={width}
+                  pageHeight={height}
+                  rotation={rotation}
+                  scale={scale}
+                >
+                  <div style={{ width, height }}>
+                    <RenderLayer pageIndex={pageIndex} scale={0.5} />
+                    <TilingLayer pageIndex={pageIndex} scale={scale} />
+                    <MarqueeZoom pageIndex={pageIndex} scale={scale} />
+                  </div>
+                </PagePointerProvider>
+              )}
+            />
+          </Viewport>
+        </GlobalPointerProvider>
       </EmbedPDF>
     </div>
   )
