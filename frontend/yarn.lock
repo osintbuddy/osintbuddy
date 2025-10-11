@@ -320,6 +320,13 @@
   resolved "https://registry.yarnpkg.com/@embedpdf/pdfium/-/pdfium-1.3.14.tgz#d58b59ef18521348d39cb548b44be4490aba4d9c"
   integrity sha512-TQMZabXzHmzvvfPwopubFcYgQuYV7POvMgjICYu3Pgfn3sgr+UdIUh3aNXR/COcl3q8sXPMFQ2GDuyOHR9QQnA==
 
+"@embedpdf/plugin-export@^1.3.14":
+  version "1.3.14"
+  resolved "https://registry.yarnpkg.com/@embedpdf/plugin-export/-/plugin-export-1.3.14.tgz#e633d38d9538189e04fac4a7dd277c771412a24f"
+  integrity sha512-fMGp2YxvI4uTRIViUKxfnJts2Jw/vktEM45XUNGNSjT/kAW6znVNgdceYjpK++xU8CGs2grAQ1i5UvMd3aRNDA==
+  dependencies:
+    "@embedpdf/models" "1.3.14"
+
 "@embedpdf/plugin-interaction-manager@^1.3.14":
   version "1.3.14"
   resolved "https://registry.yarnpkg.com/@embedpdf/plugin-interaction-manager/-/plugin-interaction-manager-1.3.14.tgz#bff98be022f49faa0b80f41bb19a1c8ba9fb0433"
