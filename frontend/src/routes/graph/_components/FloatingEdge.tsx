@@ -131,14 +131,20 @@ function FloatingEdge({
     },
     [updateEdge]
   )
+
+  const edgeClasses = (data && data.isActivated) 
+    ? 'react-flow__edge-path connected'
+    : 'react-flow__edge-path'
+
   return (
     <>
       <path
         markerEnd={markerEnd as string}
-        class='react-flow__edge-path'
+        class={edgeClasses}
         d={edgePath}
         style={pathStyle}
       />
+
       {showEdgeLabel && (
         <EdgeLabelRenderer>
           <div

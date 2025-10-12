@@ -4,12 +4,20 @@ import { Icon } from '@/components/icons'
 import EntityToolbar from './EntityToolbar'
 import EntityHandles from './EntityHandles'
 import { toSnakeCase } from '../utils'
-import { useStore } from '@xyflow/react'
+import { ReactFlowState, useStore } from '@xyflow/react'
+import { toast } from 'react-toastify'
 
-const toolbarZoomSelector = (s: any) => s.transform[2] >= 0.3
+// Makes sure we don't see the entity's toolbar when zoomed out too far
+const toolbarZoomSelector = (state: ReactFlowState) => {
+  return state.transform[2] >= 0.3
+}
 
 export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
-  if (!blueprint) return // In case blueprints weren't loaded
+  if (!blueprint) {
+    toast("blueprint not found.", { type: "error" })
+    return 
+  }
+
   const { color: backgroundColor, icon, elements } = blueprint
   const value = useMemo(
     () =>
@@ -22,8 +30,10 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
       ] ?? <span class='text-slate-800'>No data found</span>,
     [elements]
   )
+
   const showContent = useStore(toolbarZoomSelector)
   const {label, ...data} = ctx.data 
+
   return (
     <>
       <div class='node container !h-18 !w-18 !rounded-full'>

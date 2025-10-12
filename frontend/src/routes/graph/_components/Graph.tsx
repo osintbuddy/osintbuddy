@@ -22,6 +22,10 @@ import {
   OnConnect,
   addEdge,
   FinalConnectionState,
+  NodeChange,
+  getConnectedEdges,
+  EdgeChange,
+  NodeSelectionChange,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -103,6 +107,102 @@ export default function Graph({
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
 
+  /* 
+   * Unhighlights edges  
+   *
+   * @returns {EdgeChange[]} - edge changes to be applied
+   **/
+  const unhighlightEdges = useCallback((edges: Edge[]): EdgeChange[] => {
+    const edgeChanges: EdgeChange[] = []
+
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: false,
+        }
+      }
+
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, []);
+
+  /* 
+   * Highlights edges  
+   *
+   * @returns {EdgeChange[]} - edge changes to be applied
+   **/
+  const highlightEdges = useCallback((edges: Edge[]) => {
+    const edgeChanges: EdgeChange[] = []
+
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: true,
+        }
+      }
+
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, []);
+
+  /* 
+   * Handles edge highlighting when a node is selected/unselected
+   **/
+  const handleEdgeHighlightingOnNodeSelection = useCallback((changes: NodeSelectionChange[]) => {
+    console.log(changes)
+    if (changes[0].type !== 'select') return
+
+    // Sort edge changes so that unselected nodes go first to avoid highlighting overlaps
+    const sortedEdgeChanges = changes.sort((a, b) => {
+      if (!a.selected && b.selected) return -1
+      if (a.selected && !b.selected) return 1
+      else return -1
+    })
+
+    // Highlight/Unhighlight edges connected to the node
+    for (const change of sortedEdgeChanges) {
+      if (change.type === 'select') {
+        const changedNode = nodes.find((node) => node.id === change.id)
+        console.log(changedNode)
+        if (changedNode) {
+          const connectedEdges = getConnectedEdges([changedNode], edges)
+
+          if (change.selected) {
+            const edgeChanges: EdgeChange[] = highlightEdges(connectedEdges)
+            console.log("Edge changes:")
+            console.log(edgeChanges)
+            handleRelationshipsChange(edgeChanges)
+          }
+          else {
+            const edgeChanges: EdgeChange[] = unhighlightEdges(connectedEdges)
+            handleRelationshipsChange(edgeChanges)
+          }
+        }
+      }
+    }
+  }, [nodes]);
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    handleEdgeHighlightingOnNodeSelection(changes as NodeSelectionChange[]);
+    handleEntityChange(changes)
+  }, [nodes]);
+
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
   // just delete/save position on drag/etc?
@@ -179,33 +279,36 @@ export default function Graph({
     },
     [graphInstance, createGraphEntity, hid]
   )
-  console.log('nodes', nodes)
+
   const nodeTypes = useMemo(
     () => ({
       edit: (entity: JSONObject) => {
         const { label } = entity.data
+
         return (
           <EditEntityNode
             ctx={entity}
             label={label}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
             sendJsonMessage={sendJsonMessage}
           />
         )
       },
       view: (entity: JSONObject) => {
-        console.log(entity)
         const { label } = entity.data
+
         return (
           <ViewEntityNode
             ctx={entity}
             label={label}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
+            edges={edges}
+            handleRelationshipsChange={handleRelationshipsChange}
           />
         )
       },
     }),
-    [blueprints]
+    [blueprints, edges]
   )
   const [showEdges, setShowEdges] = useState(false)
   const edgeTypes = useMemo(
@@ -348,7 +451,7 @@ export default function Graph({
       onReconnect={onReconnect}
       onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
-      onNodesChange={handleEntityChange}
+      onNodesChange={onNodesChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       panActivationKeyCode='Space'
