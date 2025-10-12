@@ -300,9 +300,6 @@ export default function Graph({
           <ViewEntityNode
             ctx={entity}
             label={label}
-            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
-            edges={edges}
-            handleRelationshipsChange={handleRelationshipsChange}
           />
         )
       },
