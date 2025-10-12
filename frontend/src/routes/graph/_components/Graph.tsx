@@ -299,7 +299,7 @@ export default function Graph({
         return (
           <ViewEntityNode
             ctx={entity}
-            label={label}
+            blueprint={structuredClone(blueprints[toSnakeCase(label)])}
           />
         )
       },
