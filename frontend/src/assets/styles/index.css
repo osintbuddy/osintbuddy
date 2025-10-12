@@ -384,6 +384,10 @@ input[type='number'] {
   stroke: #373c83 !important;
   stroke-width: 2;
 }
+.react-flow__edge .react-flow__edge-path.connected {
+  stroke: var(--color-primary-350) !important;
+  stroke-width: 2;
+}
 .react-flow__handle.connectingto {
   cursor: cell
 }
