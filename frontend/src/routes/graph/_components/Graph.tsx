@@ -132,7 +132,7 @@ export default function Graph({
     }
 
     return edgeChanges
-  }, []);
+  }, [])
 
   /* 
    * Highlights edges  
@@ -159,7 +159,7 @@ export default function Graph({
     }
 
     return edgeChanges
-  }, []);
+  }, [])
 
   /* 
    * Handles edge highlighting when a node is selected/unselected
@@ -196,12 +196,12 @@ export default function Graph({
         }
       }
     }
-  }, [nodes]);
+  }, [nodes])
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
-    handleEdgeHighlightingOnNodeSelection(changes as NodeSelectionChange[]);
+    handleEdgeHighlightingOnNodeSelection(changes as NodeSelectionChange[])
     handleEntityChange(changes)
-  }, [nodes]);
+  }, [nodes])
 
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
