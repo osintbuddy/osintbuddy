@@ -279,7 +279,6 @@ export default function Graph({
     },
     [graphInstance, createGraphEntity, hid]
   )
-
   const nodeTypes = useMemo(
     () => ({
       edit: (entity: JSONObject) => {
@@ -399,7 +398,8 @@ export default function Graph({
     },
     [setRelationships, reconnectEdge, edges, sendJsonMessage]
   )
-  const onReconnectEnd: ReactFlowProps['onReconnectEnd'] = useCallback(
+
+  const onReconnectEnd = useCallback(
     (
       _: MouseEvent | TouchEvent,
       edge: Edge,

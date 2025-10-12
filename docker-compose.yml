@@ -21,5 +21,16 @@ services:
     ports:
       - "55432:5432"
 
+  mail:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    environment:
+      - MH_HOSTNAME=mailhog.local
+      - MH_STORAGE=memory
+
 volumes:
   ob-db-data:
