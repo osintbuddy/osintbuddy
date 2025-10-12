@@ -32,8 +32,8 @@ export function EditEntityNode({
   blueprint,
 }: JSONObject) {
   if (!blueprint) {
-    toast("blueprint not found.", { type: "error" });
-    return;
+    toast("blueprint not found.", { type: "error" })
+    return
   }
 
   const columnsCount = useMemo(() => {
