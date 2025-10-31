@@ -22,6 +22,7 @@ struct CaseActivityItem {
     valid_to: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
     actor_id: Option<i64>,
+    actor_name: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -79,9 +80,11 @@ pub async fn list_case_activity_handler(
                e.valid_from,
                e.valid_to,
                e.recorded_at,
-               e.actor_id
+               e.actor_id,
+               u.name as "actor_name?"
           FROM events e
           JOIN s ON e.stream_id = s.stream_id
+          LEFT JOIN users u ON u.id = e.actor_id
          ORDER BY e.seq DESC
          OFFSET $2
          LIMIT $3
@@ -108,6 +111,7 @@ pub async fn list_case_activity_handler(
             valid_to: r.valid_to,
             recorded_at: r.recorded_at,
             actor_id: Some(r.actor_id),
+            actor_name: r.actor_name,
         })
         .collect();
 

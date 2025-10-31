@@ -422,7 +422,8 @@ export interface CaseActivityItem {
   valid_from: string
   valid_to: string | null
   recorded_at: string
-  actor_id?: string | null
+  actor_id?: number | null
+  actor_name?: string | null
 }
 
 export interface CaseActivityPage {

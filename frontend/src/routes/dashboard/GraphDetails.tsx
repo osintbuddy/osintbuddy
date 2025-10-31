@@ -259,11 +259,14 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
           class='relative h-full overflow-y-auto border-l border-slate-900 px-2 pb-3'
         >
           {(mineOnly
-            ? events.filter(
-              (e) =>
-                (e.actor_id && e.actor_id === myId) ||
-                (e.payload?.actor?.id && e.payload.actor.id === myId)
-            )
+            ? events.filter((e) => {
+              const actorMatch =
+                e.actor_id != null && String(e.actor_id) === myId
+              const payloadMatch =
+                e.payload?.actor?.id &&
+                String(e.payload.actor.id) === myId
+              return actorMatch || payloadMatch
+            })
             : events
           ).map((e) => {
             const key = `${e.category}:${e.event_type}`
@@ -272,7 +275,8 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
               colorByCategory[e.category] ?? colorByCategory['default']
             const actorRaw =
               e.payload?.actor?.name ??
-              (e.actor_id === 'osib' ? 'osib' : e.actor_id)
+              e.actor_name ??
+              (e.actor_id != null ? String(e.actor_id) : 'osib')
             const actorName =
               typeof actorRaw === 'string'
                 ? actorRaw
