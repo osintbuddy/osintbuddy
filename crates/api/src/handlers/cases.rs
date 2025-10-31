@@ -1,15 +1,15 @@
-use actix_web::{get, HttpResponse, Result, web::{Data, Path}};
+use crate::{middleware::auth::AuthMiddleware, schemas::Paginate};
+use actix_web::{
+    HttpResponse, Result, get,
+    web::{Data, Path},
+};
 use chrono::{DateTime, Utc};
+use common::utils::to_snake_case;
 use common::{db, errors::AppError};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use sqids::Sqids;
 use std::collections::{HashMap, HashSet};
-use common::utils::to_snake_case;
-use crate::{
-    middleware::auth::AuthMiddleware,
-    schemas::Paginate,
-};
 
 #[derive(Debug, Serialize)]
 struct CaseActivityItem {
@@ -57,7 +57,9 @@ pub async fn list_case_activity_handler(
     })?;
 
     let Some(graph_uuid) = graph.uuid else {
-        return Err(AppError { message: "Case has no UUID." });
+        return Err(AppError {
+            message: "Case has no UUID.",
+        });
     };
 
     // Fetch events across all categories for this graph's stream key
@@ -145,7 +147,9 @@ pub async fn get_case_stats_handler(
     })?;
 
     let Some(graph_uuid) = graph.uuid else {
-        return Err(AppError { message: "Case has no UUID." });
+        return Err(AppError {
+            message: "Case has no UUID.",
+        });
     };
 
     // Entities count (current open rows)
@@ -182,7 +186,9 @@ pub async fn get_case_stats_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "We ran into an error counting events." })?
+    .map_err(|_| AppError {
+        message: "We ran into an error counting events.",
+    })?
     .unwrap_or(0);
 
     Ok(HttpResponse::Ok().json(CaseStatsResponse {
@@ -240,10 +246,14 @@ pub async fn get_case_activity_summary_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "We ran into an error getting this case." })?;
+    .map_err(|_| AppError {
+        message: "We ran into an error getting this case.",
+    })?;
 
     let Some(graph_uuid) = graph.uuid else {
-        return Err(AppError { message: "Case has no UUID." });
+        return Err(AppError {
+            message: "Case has no UUID.",
+        });
     };
 
     // Compute start and end timestamps (UTC)
@@ -271,7 +281,9 @@ pub async fn get_case_activity_summary_handler(
     )
     .fetch_all(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "We ran into an error summarizing activity." })?;
+    .map_err(|_| AppError {
+        message: "We ran into an error summarizing activity.",
+    })?;
 
     let buckets: Vec<ActivityBucket> = rows
         .into_iter()
@@ -380,7 +392,9 @@ pub async fn get_case_chord_handler(
     })?;
 
     let Some(graph_uuid) = graph.uuid else {
-        return Err(AppError { message: "Case has no UUID." });
+        return Err(AppError {
+            message: "Case has no UUID.",
+        });
     };
 
     // Aggregate edge counts by entity_type(source) -> entity_type(target)
@@ -444,29 +458,58 @@ pub async fn get_case_chord_handler(
         let dst_label_raw = r.dst_label.unwrap_or_default();
 
         // Normalize type keys (snake_case) for stable color hashing
-        let src_key = if !src_type_raw.is_empty() { to_snake_case(&src_type_raw) } else { String::from("unknown") };
-        let dst_key = if !dst_type_raw.is_empty() { to_snake_case(&dst_type_raw) } else { String::from("unknown") };
+        let src_key = if !src_type_raw.is_empty() {
+            to_snake_case(&src_type_raw)
+        } else {
+            String::from("unknown")
+        };
+        let dst_key = if !dst_type_raw.is_empty() {
+            to_snake_case(&dst_type_raw)
+        } else {
+            String::from("unknown")
+        };
 
         // Human-readable labels (fallback to title-cased keys)
-        let src_label = if !src_label_raw.is_empty() { src_label_raw.clone() } else { title_case(&src_key) };
-        let dst_label = if !dst_label_raw.is_empty() { dst_label_raw.clone() } else { title_case(&dst_key) };
+        let src_label = if !src_label_raw.is_empty() {
+            src_label_raw.clone()
+        } else {
+            title_case(&src_key)
+        };
+        let dst_label = if !dst_label_raw.is_empty() {
+            dst_label_raw.clone()
+        } else {
+            title_case(&dst_key)
+        };
 
         let val = r.value.unwrap_or(0);
-        if val <= 0 { continue; }
+        if val <= 0 {
+            continue;
+        }
 
         // Track labels and their color keys (first seen wins)
         node_labels.insert(src_label.clone());
         node_labels.insert(dst_label.clone());
-        color_key_for_label.entry(src_label.clone()).or_insert(src_key.clone());
-        color_key_for_label.entry(dst_label.clone()).or_insert(dst_key.clone());
+        color_key_for_label
+            .entry(src_label.clone())
+            .or_insert(src_key.clone());
+        color_key_for_label
+            .entry(dst_label.clone())
+            .or_insert(dst_key.clone());
 
         // Use human labels as node ids in links to align with example response
-        links.push(ChordLink { source: src_label, target: dst_label, value: val });
+        links.push(ChordLink {
+            source: src_label,
+            target: dst_label,
+            value: val,
+        });
     }
 
     // If no links, short-circuit with empty response
     if links.is_empty() {
-        return Ok(HttpResponse::Ok().json(ChordResponse { nodes: vec![], links }));
+        return Ok(HttpResponse::Ok().json(ChordResponse {
+            nodes: vec![],
+            links,
+        }));
     }
 
     // Optional: ensure types present even if there are dangling entities with no edges
@@ -474,10 +517,17 @@ pub async fn get_case_chord_handler(
     let mut nodes: Vec<ChordNode> = node_labels
         .into_iter()
         .map(|label| {
-            let color_key = color_key_for_label.get(&label).cloned().unwrap_or_else(|| to_snake_case(&label));
+            let color_key = color_key_for_label
+                .get(&label)
+                .cloned()
+                .unwrap_or_else(|| to_snake_case(&label));
             let color = color_for_type(&color_key);
             // Use the human label for both id and label fields (matches example)
-            ChordNode { id: label.clone(), label, color }
+            ChordNode {
+                id: label.clone(),
+                label,
+                color,
+            }
         })
         .collect();
     // Stable ordering for deterministic layout (by label)

@@ -3,11 +3,11 @@ use actix_web::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod attachments;
 pub mod entities;
 pub mod graphs;
 pub mod organization;
 pub mod user;
-pub mod attachments;
 
 #[derive(Deserialize, Serialize)]
 pub struct Notification {

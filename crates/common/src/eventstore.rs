@@ -45,6 +45,8 @@ pub async fn ensure_stream(
     category: &str,
     key: &str,
 ) -> Result<Stream, sqlx::Error> {
+    println!("ensure_stream()");
+
     let rec = sqlx::query!(
         r#"
         INSERT INTO event_streams(stream_id, category, key)
@@ -58,6 +60,7 @@ pub async fn ensure_stream(
     )
     .fetch_one(pool)
     .await?;
+    println!("ensure_stream() OK!");
 
     Ok(Stream {
         stream_id: rec.stream_id,
@@ -86,16 +89,41 @@ pub async fn current_version(pool: &PgPool, category: &str, key: &str) -> Result
 }
 
 pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord, sqlx::Error> {
+    let AppendEvent {
+        category,
+        key,
+        event_type,
+        payload,
+        valid_from,
+        valid_to,
+        correlation_id,
+        causation_id,
+        expected_version,
+        actor_id,
+    } = ev;
+
     let mut tx = pool.begin().await?;
 
-    let stream = ensure_stream(&pool, &ev.category, &ev.key).await?;
+    let stream_row = sqlx::query!(
+        r#"
+        INSERT INTO event_streams(stream_id, category, key)
+        VALUES (uuid_generate_v4(), $1, $2)
+        ON CONFLICT (category, key)
+        DO UPDATE SET category = excluded.category
+        RETURNING stream_id, category, key, created_at
+        "#,
+        category,
+        key
+    )
+    .fetch_one(&mut *tx)
+    .await?;
 
     // Determine next version and optimistic check
     let cur = sqlx::query!(
         r#"
         SELECT COALESCE(MAX(version), 0) AS max
         FROM events WHERE stream_id = $1"#,
-        stream.stream_id
+        stream_row.stream_id
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -104,7 +132,7 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         Some(v) => v + 1,
         None => 1,
     };
-    if let Some(exp) = ev.expected_version {
+    if let Some(exp) = expected_version {
         if exp + 1 != next_version {
             // fail fast to let caller retry with correct concurrency
             return Err(sqlx::Error::Protocol(
@@ -124,15 +152,15 @@ pub async fn append_event(pool: &PgPool, ev: AppendEvent) -> Result<EventRecord,
         RETURNING seq, stream_id, version, event_type, payload,
         valid_from, valid_to, recorded_at, causation_id, correlation_id, actor_id
         "#,
-        stream.stream_id,
+        stream_row.stream_id,
         next_version,
-        ev.event_type,
-        ev.payload,
-        ev.valid_from,
-        ev.valid_to,
-        ev.causation_id,
-        ev.correlation_id,
-        ev.actor_id,
+        event_type,
+        payload,
+        valid_from,
+        valid_to,
+        causation_id,
+        correlation_id,
+        actor_id,
     )
     .fetch_one(&mut *tx)
     .await?;

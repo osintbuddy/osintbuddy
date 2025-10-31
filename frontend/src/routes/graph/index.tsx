@@ -31,6 +31,7 @@ type ActionTypes =
   | 'created'
   | 'loading'
   | 'error'
+  | 'transform:completed'
 
 interface SocketActions {
   authenticated: (data: any) => void
@@ -51,7 +52,7 @@ export default function Graphing() {
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins, setBlueprints, blueprints } = useEntitiesStore()
   const { access_token } = useAuthStore()
-
+  console.log('blueprints', blueprints)
   const {
     nodes,
     edges,
@@ -145,6 +146,10 @@ export default function Graphing() {
       } else {
         toast.success(notification.message, notificationProps)
       }
+    } else if (data?.job) {
+      toast.success('Transform completed successfully.', {
+        toastId: data.job.job_id || data.notification?.toastId,
+      })
     }
   }
 
@@ -166,7 +171,9 @@ export default function Graphing() {
         const props = usePropertiesStore.getState()
         if (props.tabs.length) {
           for (const t of props.tabs) {
-            const node = (data.nodes || []).find((n: any) => n.id === t.entityId)
+            const node = (data.nodes || []).find(
+              (n: any) => n.id === t.entityId
+            )
             if (node?.data) {
               const currStr = JSON.stringify(t.data ?? {})
               const nextStr = JSON.stringify(node.data)
@@ -188,7 +195,9 @@ export default function Graphing() {
         const props = usePropertiesStore.getState()
         if (
           props.tabs.find((t) => t.entityId === data.entity.id) &&
-          data.entity && 'data' in data.entity && data.entity.data
+          data.entity &&
+          'data' in data.entity &&
+          data.entity.data
         ) {
           const { label, ...propsData } = (data.entity.data as any) ?? {}
           props.setData(data.entity.id, propsData)
@@ -240,6 +249,9 @@ export default function Graphing() {
         // Create new error toast if no toastId
         toast.error(notification?.message || 'An error occurred')
       }
+    },
+    'transform:completed': (data) => {
+      socketActions.created(data)
     },
   }
 

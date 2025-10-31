@@ -87,13 +87,18 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                     let mut doc = ev.payload.clone();
                     if let Some(obj) = doc.as_object_mut() {
                         // If label/entity_type were sent under data, lift them up
-                        let (lab_opt, ent_opt) = if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
-                            (data.remove("label"), data.remove("entity_type"))
-                        } else {
-                            (None, None)
-                        };
-                        if let Some(lab) = lab_opt { obj.entry("label").or_insert(lab); }
-                        if let Some(ent) = ent_opt { obj.entry("entity_type").or_insert(ent); }
+                        let (lab_opt, ent_opt) =
+                            if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
+                                (data.remove("label"), data.remove("entity_type"))
+                            } else {
+                                (None, None)
+                            };
+                        if let Some(lab) = lab_opt {
+                            obj.entry("label").or_insert(lab);
+                        }
+                        if let Some(ent) = ent_opt {
+                            obj.entry("entity_type").or_insert(ent);
+                        }
 
                         // Ensure doc.data.label mirrors entity_type for downstream usage
                         let etype = obj
@@ -154,10 +159,15 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
                     // merge fields into current doc; perform a deep merge for the `data` object
                     if let (Some(dst), Some(src)) = (doc.as_object_mut(), ev.payload.as_object()) {
                         for (k, v) in src.iter() {
-                            if k == "id" { continue; }
+                            if k == "id" {
+                                continue;
+                            }
                             if k == "data" {
                                 match (dst.get_mut("data"), v) {
-                                    (Some(JsonValue::Object(dst_obj)), JsonValue::Object(src_obj)) => {
+                                    (
+                                        Some(JsonValue::Object(dst_obj)),
+                                        JsonValue::Object(src_obj),
+                                    ) => {
                                         for (sk, sv) in src_obj.iter() {
                                             dst_obj.insert(sk.clone(), sv.clone());
                                         }
@@ -174,13 +184,18 @@ async fn apply_event(pool: &PgPool, ev: &EventRecord) -> Result<(), sqlx::Error>
 
                     // Ensure label/entity_type are top-level (normalize from data if present)
                     if let Some(obj) = doc.as_object_mut() {
-                        let (lab_opt, ent_opt) = if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
-                            (data.remove("label"), data.remove("entity_type"))
-                        } else {
-                            (None, None)
-                        };
-                        if let Some(lab) = lab_opt { obj.insert("label".to_string(), lab); }
-                        if let Some(ent) = ent_opt { obj.insert("entity_type".to_string(), ent); }
+                        let (lab_opt, ent_opt) =
+                            if let Some(JsonValue::Object(data)) = obj.get_mut("data") {
+                                (data.remove("label"), data.remove("entity_type"))
+                            } else {
+                                (None, None)
+                            };
+                        if let Some(lab) = lab_opt {
+                            obj.insert("label".to_string(), lab);
+                        }
+                        if let Some(ent) = ent_opt {
+                            obj.insert("entity_type".to_string(), ent);
+                        }
 
                         // Ensure doc.data.label mirrors entity_type for downstream usage
                         let etype = obj

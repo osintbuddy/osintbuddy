@@ -332,7 +332,6 @@ interface Transforms {
 // TODO: type frfr ong
 interface Blueprint {
   [any: string]: {
-    [any: string]: any
     value: string
   }
 }
@@ -342,7 +341,7 @@ interface EntitiesState {
   entities: Entity[]
   favorites: string[]
   plugins: Entity[]
-  blueprints: Blueprint[]
+  blueprints: any
   currentEntity: Entity | null
   transforms: Transforms
   isLoading: boolean
@@ -749,7 +748,10 @@ interface PdfViewerTabsState {
   setActive: (attachmentId: string) => void
   setPage: (attachmentId: string, page: number) => void
   setNumPages: (attachmentId: string, n: number) => void
-  setPageCoords: (attachmentId: string, coords: { x: number; y: number }) => void
+  setPageCoords: (
+    attachmentId: string,
+    coords: { x: number; y: number }
+  ) => void
 }
 
 export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
