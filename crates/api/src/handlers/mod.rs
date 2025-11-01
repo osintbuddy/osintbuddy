@@ -2,10 +2,10 @@ use actix_web::{HttpResponse, Responder, get, web};
 
 use crate::schemas::Notification;
 
+mod attachments;
 mod cases;
 mod entities;
 mod events;
-mod attachments;
 mod graphing;
 mod graphs;
 mod jobs;

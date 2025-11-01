@@ -23,13 +23,20 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                     let pool_clone = pool.clone();
                     let owner_clone = owner.clone();
                     tokio::spawn(async move {
+                        let actor_id = Some(
+                            job.payload
+                                .get("actor_id")
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0),
+                        );
+
                         if let Err(e) = jobs::start_job(&pool_clone, job.job_id, &owner_clone).await
                         {
                             error!("start_job failed {}: {}", job.job_id, e);
                             return;
                         }
-                        // announce job start
-                        let _ = eventstore::append_event(
+
+                        if let Err(e) = eventstore::append_event(
                             &pool_clone,
                             eventstore::AppendEvent {
                                 category: "job".into(),
@@ -41,16 +48,19 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                 correlation_id: None,
                                 causation_id: None,
                                 expected_version: None,
-                                actor_id: None,
+                                actor_id,
                             },
                         )
-                        .await;
-                        // Execute job (dev -> ob CLI, prod -> VM stub for now)
+                        .await
+                        {
+                            error!("append job progress event failed {}: {}", job.job_id, e);
+                        }
+
                         let res = vm::execute_job(&job.payload).await;
                         match res {
                             Ok(maybe_json) => {
                                 if let Some(data) = maybe_json {
-                                    let _ = eventstore::append_event(
+                                    if let Err(e) = eventstore::append_event(
                                         &pool_clone,
                                         eventstore::AppendEvent {
                                             category: "job".into(),
@@ -62,11 +72,18 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                             correlation_id: None,
                                             causation_id: None,
                                             expected_version: None,
-                                            actor_id: None,
+                                            actor_id,
                                         },
                                     )
-                                    .await;
+                                    .await
+                                    {
+                                        error!(
+                                            "append job result event failed {}: {}",
+                                            job.job_id, e
+                                        );
+                                    }
                                 }
+
                                 if let Err(e) =
                                     jobs::complete_job(&pool_clone, job.job_id, &owner_clone).await
                                 {
@@ -75,7 +92,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                             }
                             Err(e) => {
                                 warn!("job failed {}: {}", job.job_id, e);
-                                let _ = eventstore::append_event(
+                                if let Err(err) = eventstore::append_event(
                                     &pool_clone,
                                     eventstore::AppendEvent {
                                         category: "job".into(),
@@ -86,12 +103,18 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                         valid_to: None,
                                         correlation_id: None,
                                         causation_id: None,
-                                expected_version: None,
-                                actor_id: None,
-                            },
+                                        expected_version: None,
+                                        actor_id,
+                                    },
                                 )
-                                .await;
-                                // simple backoff: 10s
+                                .await
+                                {
+                                    error!(
+                                        "append job error event failed {}: {}",
+                                        job.job_id, err
+                                    );
+                                }
+
                                 let _ =
                                     jobs::fail_job(&pool_clone, job.job_id, &owner_clone, 10).await;
                             }

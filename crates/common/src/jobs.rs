@@ -62,6 +62,66 @@ pub async fn enqueue_job(pool: &PgPool, j: NewJob) -> Result<Job, sqlx::Error> {
     })
 }
 
+pub async fn get_job(pool: &PgPool, job_id: Uuid) -> Result<Option<Job>, sqlx::Error> {
+    let rec = sqlx::query!(
+        r#"
+        SELECT job_id,
+               payload,
+               status::text as status,
+               priority,
+               attempts,
+               max_attempts,
+               lease_owner,
+               lease_until,
+               created_at,
+               scheduled_at,
+               started_at,
+               finished_at,
+               backoff_until
+        FROM jobs
+        WHERE job_id = $1
+        "#,
+        job_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(rec.map(|rec| Job {
+        job_id: rec.job_id,
+        payload: rec.payload,
+        status: rec.status.unwrap_or_else(|| "unknown".to_string()),
+        priority: rec.priority,
+        attempts: rec.attempts,
+        max_attempts: rec.max_attempts,
+        lease_owner: rec.lease_owner,
+        lease_until: rec.lease_until,
+        created_at: rec.created_at,
+        scheduled_at: rec.scheduled_at,
+        started_at: rec.started_at,
+        finished_at: rec.finished_at,
+        backoff_until: rec.backoff_until,
+    }))
+}
+
+pub async fn try_claim_job(pool: &PgPool, job_id: Uuid, owner: &str) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query!(
+        r#"
+        UPDATE jobs
+        SET lease_owner = $2,
+            lease_until = now() + interval '60 seconds'
+        WHERE job_id = $1
+          AND status = 'enqueued'::job_status
+          AND lease_owner IS NULL
+        "#,
+        job_id,
+        owner
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(result.rows_affected() == 1)
+}
+
 pub async fn lease_jobs(
     pool: &PgPool,
     owner: &str,

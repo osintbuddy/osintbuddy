@@ -1,14 +1,14 @@
 use actix_multipart::Multipart;
-use actix_web::{HttpResponse, Result, post, get, delete};
-use actix_web::web::{Data, Query, Path};
+use actix_web::web::{Data, Path, Query};
+use actix_web::{HttpResponse, Result, delete, get, post};
 use chrono::Utc;
 use futures_util::TryStreamExt as _;
 use serde_json::Value as JsonValue;
-use sqlx::types::Uuid;
 use sqids::Sqids;
+use sqlx::types::Uuid;
 
-use crate::db;
 use crate::AppData;
+use crate::db;
 use crate::middleware::auth::AuthMiddleware;
 use crate::schemas::attachments::UploadAttachmentResponse;
 use common::errors::AppError;
@@ -30,38 +30,50 @@ pub async fn upload_entity_attachment_handler(
     let mut bytes: Vec<u8> = Vec::new();
     let mut meta: JsonValue = JsonValue::Object(Default::default());
 
-    while let Some(field) = payload
-        .try_next()
-        .await
-        .map_err(|_| AppError { message: "Malformed multipart payload." })?
-    {
+    while let Some(field) = payload.try_next().await.map_err(|_| AppError {
+        message: "Malformed multipart payload.",
+    })? {
         let mut field = field;
         let name = field.name().to_string();
         match name.as_str() {
             "graph_id" => {
                 let mut buf = Vec::new();
-                while let Some(chunk) = field.try_next().await.map_err(|_| AppError { message: "Invalid form field graph_id." })? {
+                while let Some(chunk) = field.try_next().await.map_err(|_| AppError {
+                    message: "Invalid form field graph_id.",
+                })? {
                     buf.extend_from_slice(&chunk);
                 }
-                let s = String::from_utf8(buf).map_err(|_| AppError { message: "graph_id must be UTF-8." })?;
+                let s = String::from_utf8(buf).map_err(|_| AppError {
+                    message: "graph_id must be UTF-8.",
+                })?;
                 graph_id_str = Some(s.trim().to_string());
             }
             "entity_id" => {
                 let mut buf = Vec::new();
-                while let Some(chunk) = field.try_next().await.map_err(|_| AppError { message: "Invalid form field entity_id." })? {
+                while let Some(chunk) = field.try_next().await.map_err(|_| AppError {
+                    message: "Invalid form field entity_id.",
+                })? {
                     buf.extend_from_slice(&chunk);
                 }
-                let s = String::from_utf8(buf).map_err(|_| AppError { message: "entity_id must be UTF-8." })?;
+                let s = String::from_utf8(buf).map_err(|_| AppError {
+                    message: "entity_id must be UTF-8.",
+                })?;
                 entity_id = Uuid::parse_str(s.trim()).ok();
             }
             "meta" => {
                 let mut buf = Vec::new();
-                while let Some(chunk) = field.try_next().await.map_err(|_| AppError { message: "Invalid form field meta." })? {
+                while let Some(chunk) = field.try_next().await.map_err(|_| AppError {
+                    message: "Invalid form field meta.",
+                })? {
                     buf.extend_from_slice(&chunk);
                 }
                 if !buf.is_empty() {
-                    let s = String::from_utf8(buf).map_err(|_| AppError { message: "meta must be UTF-8 JSON." })?;
-                    meta = serde_json::from_str(&s).map_err(|_| AppError { message: "meta must be valid JSON." })?;
+                    let s = String::from_utf8(buf).map_err(|_| AppError {
+                        message: "meta must be UTF-8 JSON.",
+                    })?;
+                    meta = serde_json::from_str(&s).map_err(|_| AppError {
+                        message: "meta must be valid JSON.",
+                    })?;
                 }
             }
             "file" => {
@@ -74,18 +86,24 @@ pub async fn upload_entity_attachment_handler(
                 if let Some(ct) = ct {
                     media_type = Some(ct.to_string());
                 }
-                while let Some(chunk) = field.try_next().await.map_err(|_| AppError { message: "Error reading upload stream." })? {
+                while let Some(chunk) = field.try_next().await.map_err(|_| AppError {
+                    message: "Error reading upload stream.",
+                })? {
                     bytes.extend_from_slice(&chunk);
                     let max_mb = app.cfg.upload_max_inline_mb.unwrap_or(10);
                     let max_bytes = (max_mb as usize).saturating_mul(1024 * 1024);
                     if bytes.len() > max_bytes {
-                        return Err(AppError { message: "File too large." });
+                        return Err(AppError {
+                            message: "File too large.",
+                        });
                     }
                 }
             }
             _ => {
                 // Drain unknown field to keep parser happy
-                while let Some(_) = field.try_next().await.map_err(|_| AppError { message: "Invalid multipart." })? {}
+                while let Some(_) = field.try_next().await.map_err(|_| AppError {
+                    message: "Invalid multipart.",
+                })? {}
             }
         }
     }
@@ -114,7 +132,9 @@ pub async fn upload_entity_attachment_handler(
     let (graph_uuid, entity_id) = match (graph_uuid, entity_id) {
         (Some(g), Some(e)) => (g, e),
         _ => {
-            return Err(AppError { message: "Missing required fields: graph_id and entity_id." });
+            return Err(AppError {
+                message: "Missing required fields: graph_id and entity_id.",
+            });
         }
     };
     let filename = filename.unwrap_or_else(|| "upload".to_string());
@@ -128,7 +148,7 @@ pub async fn upload_entity_attachment_handler(
                 graph_id, entity_id, owner_id, filename, media_type, size, bytes, uri, meta
             ) VALUES ($1,$2,$3,$4,$5,$6,$7,NULL,$8)
             RETURNING attachment_id, created_at
-        "#
+        "#,
     )
     .bind(graph_uuid)
     .bind(entity_id)
@@ -140,7 +160,9 @@ pub async fn upload_entity_attachment_handler(
     .bind(meta)
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "Failed to store attachment." })?;
+    .map_err(|_| AppError {
+        message: "Failed to store attachment.",
+    })?;
 
     // Append an event linking the attachment to the entity
     let payload = serde_json::json!({
@@ -222,10 +244,14 @@ pub async fn list_entity_attachments_handler(
         }
     }
     let Some(graph_uuid) = graph_uuid else {
-        return Err(AppError { message: "Invalid graph id." });
+        return Err(AppError {
+            message: "Invalid graph id.",
+        });
     };
     let Ok(entity_uuid) = Uuid::parse_str(query.entity_id.as_str()) else {
-        return Err(AppError { message: "Invalid entity id." });
+        return Err(AppError {
+            message: "Invalid entity id.",
+        });
     };
 
     let rows = sqlx::query!(
@@ -241,7 +267,9 @@ pub async fn list_entity_attachments_handler(
     )
     .fetch_all(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "Failed to list attachments." })?;
+    .map_err(|_| AppError {
+        message: "Failed to list attachments.",
+    })?;
 
     let items: Vec<AttachmentItem> = rows
         .into_iter()
@@ -265,7 +293,11 @@ pub async fn get_entity_attachment_handler(
 ) -> Result<HttpResponse, AppError> {
     let attachment_id = match Uuid::parse_str(path.as_str()) {
         Ok(u) => u,
-        Err(_) => return Err(AppError { message: "Invalid attachment id." }),
+        Err(_) => {
+            return Err(AppError {
+                message: "Invalid attachment id.",
+            });
+        }
     };
 
     let row = sqlx::query!(
@@ -279,10 +311,14 @@ pub async fn get_entity_attachment_handler(
     )
     .fetch_one(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "Attachment not found." })?;
+    .map_err(|_| AppError {
+        message: "Attachment not found.",
+    })?;
 
     let Some(bytes) = row.bytes else {
-        return Err(AppError { message: "Attachment stored externally." });
+        return Err(AppError {
+            message: "Attachment stored externally.",
+        });
     };
 
     Ok(HttpResponse::Ok()
@@ -302,7 +338,11 @@ pub async fn delete_entity_attachment_handler(
 ) -> Result<HttpResponse, AppError> {
     let attachment_id = match Uuid::parse_str(path.as_str()) {
         Ok(u) => u,
-        Err(_) => return Err(AppError { message: "Invalid attachment id." }),
+        Err(_) => {
+            return Err(AppError {
+                message: "Invalid attachment id.",
+            });
+        }
     };
 
     let res = sqlx::query!(
@@ -312,10 +352,14 @@ pub async fn delete_entity_attachment_handler(
     )
     .execute(pool.as_ref())
     .await
-    .map_err(|_| AppError { message: "Failed to delete attachment." })?;
+    .map_err(|_| AppError {
+        message: "Failed to delete attachment.",
+    })?;
 
     if res.rows_affected() == 0 {
-        return Err(AppError { message: "Attachment not found." });
+        return Err(AppError {
+            message: "Attachment not found.",
+        });
     }
     Ok(HttpResponse::Ok().finish())
 }

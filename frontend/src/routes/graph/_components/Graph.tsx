@@ -179,31 +179,50 @@ export default function Graph({
     },
     [graphInstance, createGraphEntity, hid]
   )
+  const renderMissingBlueprint = useCallback((entity: JSONObject) => {
+    return (
+      <div className='rounded-md border border-rose-900 bg-rose-950/60 p-2 text-rose-200 text-xs shadow-lg shadow-rose-900/20'>
+        <p className='font-semibold text-rose-100'>Missing blueprint</p>
+        <p className='mt-1 break-all'>Unable to render entity type: {entity?.data?.label ?? entity?.label ?? 'unknown'}</p>
+      </div>
+    )
+  }, [])
+
   const nodeTypes = useMemo(
     () => ({
       edit: (entity: JSONObject) => {
-        const { label } = entity.data
+        const label = entity?.data?.label ?? entity?.label
+        const blueprint = label ? blueprints[label] : undefined
+        if (!label || !blueprint) {
+          console.warn('Missing blueprint for entity', { label, entity })
+          return renderMissingBlueprint(entity)
+        }
         return (
           <EditEntityNode
             ctx={entity}
             label={label}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprint)}
             sendJsonMessage={sendJsonMessage}
           />
         )
       },
       view: (entity: JSONObject) => {
-        const { label } = entity.data
+        const label = entity?.data?.label ?? entity?.label
+        const blueprint = label ? blueprints[label] : undefined
+        if (!label || !blueprint) {
+          console.warn('Missing blueprint for entity', { label, entity })
+          return renderMissingBlueprint(entity)
+        }
         return (
           <ViewEntityNode
             ctx={entity}
             label={label}
-            blueprint={structuredClone(blueprints[label])}
+            blueprint={structuredClone(blueprint)}
           />
         )
       },
     }),
-    [blueprints]
+    [blueprints, renderMissingBlueprint]
   )
   const [showEdges, setShowEdges] = useState(false)
   const edgeTypes = useMemo(

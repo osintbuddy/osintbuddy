@@ -9,4 +9,3 @@ pub struct UploadAttachmentResponse {
     pub size: i64,
     pub created_at: DateTime<Utc>,
 }
-
