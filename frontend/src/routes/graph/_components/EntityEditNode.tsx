@@ -31,6 +31,11 @@ export function EditEntityNode({
   sendJsonMessage,
   blueprint,
 }: JSONObject) {
+  if (!blueprint) {
+    toast("blueprint not found.", { type: "error" })
+    return
+  }
+
   const columnsCount = useMemo(() => {
     return Math.max(
       0,
@@ -39,7 +44,9 @@ export function EditEntityNode({
       })
     )
   }, [blueprint])
+
   const {label, ...data} = ctx.data 
+
   return (
     <>
       <EntityHandles />
