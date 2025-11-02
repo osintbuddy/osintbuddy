@@ -325,11 +325,13 @@ export default function Graph({
     () => ({
       edit: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
-        const blueprint = label ? blueprints[label] : undefined
+        const blueprint = label ? blueprints[toSnakeCase(label)] : undefined
+
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
           return renderMissingBlueprint(entity)
         }
+
         return (
           <EditEntityNode
             ctx={entity}
@@ -341,11 +343,13 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
-        const blueprint = label ? blueprints[label] : undefined
+        const blueprint = label ? blueprints[toSnakeCase(label)] : undefined
+
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
           return renderMissingBlueprint(entity)
         }
+
         return (
           <ViewEntityNode
             ctx={entity}
