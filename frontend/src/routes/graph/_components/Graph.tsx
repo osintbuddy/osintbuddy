@@ -18,9 +18,7 @@ import {
   ReactFlowProps,
   OnReconnect,
   XYPosition,
-  OnConnectEnd,
   OnConnect,
-  addEdge,
   FinalConnectionState,
   NodeChange,
   getConnectedEdges,
@@ -34,14 +32,13 @@ import { ViewEntityNode } from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import FloatingEdge from './FloatingEdge'
-import { useEntitiesStore, useFlowStore } from '@/app/store'
+import { useFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import OverlayMenus from './OverlayMenus'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import { ReadyState } from 'react-use-websocket'
 import { Graph as GraphState } from '@/app/api'
 import { ElkLayoutArguments } from 'elkjs/lib/elk-api'
-import { toSnakeCase } from '../utils'
 
 export interface CtxPosition {
   top: number
@@ -113,77 +110,69 @@ export default function Graph({
    *
    * @returns {EdgeChange[]} - edge changes to be applied
    **/
-  const unhighlightEdges = useCallback(
-    (edges: Edge[]): EdgeChange[] => {
-      const edgeChanges: EdgeChange[] = []
+  const unhighlightEdges = useCallback((edges: Edge[]): EdgeChange[] => {
+    const edgeChanges: EdgeChange[] = []
 
-      for (const edge of edges) {
-        const newEdge = {
-          ...edge,
-          data: {
-            ...edge.data,
-            isActivated: false,
-          },
-        }
-
-        edgeChanges.push({
-          id: newEdge.id,
-          type: 'replace',
-          item: newEdge,
-        } as EdgeChange)
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: false,
+        },
       }
 
-      return edgeChanges
-    }, 
-    []
-  )
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, [])
 
   /*
    * Highlights edges
    *
    * @returns {EdgeChange[]} - edge changes to be applied
    **/
-  const highlightEdges = useCallback(
-    (edges: Edge[]) => {
-      const edgeChanges: EdgeChange[] = []
+  const highlightEdges = useCallback((edges: Edge[]) => {
+    const edgeChanges: EdgeChange[] = []
 
-      for (const edge of edges) {
-        const newEdge = {
-          ...edge,
-          data: {
-            ...edge.data,
-            isActivated: true,
-          },
-        }
-
-        edgeChanges.push({
-          id: newEdge.id,
-          type: 'replace',
-          item: newEdge,
-        } as EdgeChange)
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: true,
+        },
       }
 
-      return edgeChanges
-    }, 
-    []
-  )
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, [])
 
   /*
    * Handles edge highlighting when a node is selected/unselected
    **/
   const handleEdgeHighlightingOnNodeSelection = useCallback(
     (changes: NodeSelectionChange[]) => {
-
       // Make sure the first change is selection
       if (changes.length > 0 && changes[0].type !== 'select') return
 
       // Sort node changes so that unselected nodes go first to avoid highlighting overlaps
-      const sortedNodeChanges = changes.sort(
-        (a, b) => {
-          if (!a.selected && b.selected) return -1
-          if (a.selected && !b.selected) return 1
-          else return -1
-        })
+      const sortedNodeChanges = changes.sort((a, b) => {
+        if (!a.selected && b.selected) return -1
+        if (a.selected && !b.selected) return 1
+        else return -1
+      })
 
       // Highlight/Unhighlight edges connected to the node
       for (const change of sortedNodeChanges) {
@@ -211,15 +200,18 @@ export default function Graph({
    **/
   const handleEdgeHighlightingOnEdgeChange = useCallback(
     (changes: EdgeReplaceChange[]): EdgeChange[] => {
-      const newChanges: EdgeChange[] = [];
+      const newChanges: EdgeChange[] = []
       for (const change of changes) {
-        const targetNode = nodes.find((node) => node.id === (change.item?.target ?? ""))
-        const sourceNode = nodes.find((node) => node.id === (change.item?.source ?? ""))
+        const targetNode = nodes.find(
+          (node) => node.id === (change.item?.target ?? '')
+        )
+        const sourceNode = nodes.find(
+          (node) => node.id === (change.item?.source ?? '')
+        )
 
         if (targetNode?.selected || sourceNode?.selected) {
           newChanges.push(...highlightEdges([change.item]))
-        }
-        else {
+        } else {
           newChanges.push(change)
         }
       }
@@ -314,9 +306,12 @@ export default function Graph({
   )
   const renderMissingBlueprint = useCallback((entity: JSONObject) => {
     return (
-      <div className='rounded-md border border-rose-900 bg-rose-950/60 p-2 text-rose-200 text-xs shadow-lg shadow-rose-900/20'>
+      <div className='rounded-md border border-rose-900 bg-rose-950/60 p-2 text-xs text-rose-200 shadow-lg shadow-rose-900/20'>
         <p className='font-semibold text-rose-100'>Missing blueprint</p>
-        <p className='mt-1 break-all'>Unable to render entity type: {entity?.data?.label ?? entity?.label ?? 'unknown'}</p>
+        <p className='mt-1 break-all'>
+          Unable to render entity type:{' '}
+          {entity?.data?.label ?? entity?.label ?? 'unknown'}
+        </p>
       </div>
     )
   }, [])
@@ -325,7 +320,7 @@ export default function Graph({
     () => ({
       edit: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
-        const blueprint = label ? blueprints[toSnakeCase(label)] : undefined
+        const blueprint = label ? blueprints[label] : undefined
 
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
@@ -343,7 +338,7 @@ export default function Graph({
       },
       view: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
-        const blueprint = label ? blueprints[toSnakeCase(label)] : undefined
+        const blueprint = label ? blueprints[label] : undefined
 
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
@@ -416,21 +411,18 @@ export default function Graph({
     [clickDelta, setEntityEdit, setEntityView]
   )
 
-  const onConnect: OnConnect = useCallback(
-    (connection) => {
-      onRelationshipConnect(connection)
-      sendJsonMessage({
-        action: 'create:edge',
-        edge: {
-          temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
-          source: connection.source,
-          target: connection.target,
-          data: {},
-        },
-      })
-    },
-    []
-  )
+  const onConnect: OnConnect = useCallback((connection) => {
+    onRelationshipConnect(connection)
+    sendJsonMessage({
+      action: 'create:edge',
+      edge: {
+        temp_id: `xy-edge__${connection.source}${connection.sourceHandle}-${connection.target}${connection.targetHandle}`,
+        source: connection.source,
+        target: connection.target,
+        data: {},
+      },
+    })
+  }, [])
   // used for handling edge deletions. e.g. when a user
   // selects and drags  an existing connection line/edge
   // to a blank spot on the graph, the edge will be removed
@@ -485,17 +477,14 @@ export default function Graph({
     [onNodeContextMenu]
   )
 
-  const onError = useCallback(
-    (msgId: string, msg: string) => {
-      // Get rid of the unnecessary warning
-      if (msgId === '002') {
-        return
-      }
+  const onError = useCallback((msgId: string, msg: string) => {
+    // Get rid of the unnecessary warning
+    if (msgId === '002') {
+      return
+    }
 
-      console.warn(msg)
-    },
-    []
-  )
+    console.warn(msg)
+  }, [])
 
   return (
     <ReactFlow
