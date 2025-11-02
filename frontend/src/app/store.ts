@@ -634,11 +634,6 @@ export const useFlowStore = create<FlowState>((set, get) => ({
         get().edges
       ),
     }),
-
-  // TODO: Maybe move edge highlighting functions here
-  // TODO: Figure out why the nodes start lagging on drag after a few seconds
-  // TODO: Simplify if possible
-  
   // start (entity/reactflow node) logic
   setEntities: (nodes) => set({ nodes }),
   addEntity: (node) => set({ nodes: [...get().nodes, node] }),
