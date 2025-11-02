@@ -19,6 +19,7 @@ export function ViewEntityNode({ ctx, blueprint }: JSONObject) {
   }
 
   const { color: backgroundColor, icon, elements } = blueprint
+
   const value = useMemo(
     () =>
       ctx.data[

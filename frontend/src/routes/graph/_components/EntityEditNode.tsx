@@ -44,7 +44,9 @@ export function EditEntityNode({
       })
     )
   }, [blueprint])
+
   const {label, ...data} = ctx.data 
+
   return (
     <>
       <EntityHandles />

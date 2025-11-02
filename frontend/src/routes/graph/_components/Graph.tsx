@@ -463,6 +463,18 @@ export default function Graph({
     [onNodeContextMenu]
   )
 
+  const onError = useCallback(
+    (msgId: string, msg: string) => {
+      // Get rid of the unnecessary warning
+      if (msgId === '002') {
+        return
+      }
+
+      console.warn(msg)
+    },
+    []
+  )
+
   return (
     <ReactFlow
       ref={ref}
@@ -501,6 +513,7 @@ export default function Graph({
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
       defaultMarkerColor='#3b419eee'
       onlyRenderVisibleElements={false}
+      onError={onError}
     >
       <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
       <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
