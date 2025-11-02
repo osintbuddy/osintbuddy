@@ -469,19 +469,25 @@ async fn get_all_plugin_entities_from_cli(_auth: AuthMiddleware) -> Result<HttpR
         .output()
         .map_err(|err| {
             error!("Error running 'ob entities json': {}", err);
-            AppError { message: "Failed to execute 'ob entities json' command." }
+            AppError {
+                message: "Failed to execute 'ob entities json' command.",
+            }
         })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         error!("Command 'ob entities json' failed: {}", stderr);
-        return Err(AppError { message: "Command 'ob entities json' execution failed." });
+        return Err(AppError {
+            message: "Command 'ob entities json' execution failed.",
+        });
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let payload: Value = serde_json::from_str(&stdout).map_err(|err| {
         error!("Error parsing entities json payload: {}", err);
-        AppError { message: "Failed to parse entities json output." }
+        AppError {
+            message: "Failed to parse entities json output.",
+        }
     })?;
 
     Ok(HttpResponse::Ok().json(payload))

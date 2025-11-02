@@ -3,8 +3,8 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::{Value as JsonValue, json};
 
-use common::eventstore::{self, AppendEvent};
 use crate::middleware::auth::AuthMiddleware;
+use common::eventstore::{self, AppendEvent};
 
 #[derive(Deserialize)]
 pub struct AppendEventBody {

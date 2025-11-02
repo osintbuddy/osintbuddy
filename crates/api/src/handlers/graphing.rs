@@ -1,23 +1,24 @@
 use crate::middleware::auth::decode_jwt;
 use actix_web::{HttpRequest, HttpResponse, Result, web};
 use actix_ws::{Message, Session};
+use chrono::Utc;
 use common::db::Database;
 use common::errors::AppError;
+use common::eventstore::{self, AppendEvent};
+use common::jobs;
 use futures_util::StreamExt;
 use futures_util::future::BoxFuture;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
-use std::process::Command;
-use tokio::time::{Duration, sleep};
-use uuid::Uuid;
-
-use chrono::Utc;
-use common::eventstore::{self, AppendEvent};
-use common::jobs;
 use serde_json::{Value, json};
 use sqids::Sqids;
 use sqlx::PgPool;
 use std::collections::HashMap;
+use std::fmt;
+use std::process::Command;
+use tokio::process::Command as TokioCommand;
+use tokio::time::{Duration, sleep};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Position {
@@ -77,13 +78,13 @@ pub async fn get_entity_blueprints() -> Result<HashMap<String, Value>, AppError>
         .args(&["blueprints"])
         .output()
         .map_err(|err| {
-            error!("Error running 'ob ls entities': {}", err);
+            error!("Error running 'ob blueprints': {}", err);
             AppError { message: "" }
         })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        error!("Command 'ob ls entities' failed: {}", stderr);
+        error!("Command 'ob blueprints' failed: {}", stderr);
         return Err(AppError { message: "" });
     };
 
@@ -219,10 +220,10 @@ pub async fn handle_create_entity(
     // insert type which is used only in reactflow, don't store this
     entity.insert("type".to_string(), json!("view"));
 
-         let entity_label = entity
-                        .get("label")
-                        .cloned()
-                        .unwrap_or_else(|| json!("unknown"));
+    let entity_label = entity
+        .get("label")
+        .cloned()
+        .unwrap_or_else(|| json!("unknown"));
     entity.remove("label");
     match entity.get_mut("data") {
         Some(Value::Object(map)) => {
@@ -690,7 +691,7 @@ pub async fn graphing_websocket_handler(
             );
             return;
         };
-        
+
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
                 Message::Text(text) => {
@@ -759,16 +760,15 @@ pub async fn graphing_websocket_handler(
 
                     let graph_action = event.action.as_str();
                     let Some(graph_uuid) = graph_uuid else {
-                         let _ = session.text(deauth_msg.to_string());
-                               
+                        let _ = session.text(deauth_msg.to_string());
+
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
                         return;
                     };
-                    let Some(actor_id) = actor_id_num
-                    else {
-                         let _ = session.text(deauth_msg.to_string());
+                    let Some(actor_id) = actor_id_num else {
+                        let _ = session.text(deauth_msg.to_string());
                         let _ = session
                             .close(Some(actix_ws::CloseCode::Policy.into()))
                             .await;
@@ -778,69 +778,34 @@ pub async fn graphing_websocket_handler(
                     // Handle graph events
                     match graph_action {
                         "update:edge" => {
-                            handle_update_edge(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_update_edge(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "delete:edge" => {
-                            handle_delete_edge(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_delete_edge(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "create:edge" => {
-                            handle_create_edge(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_create_edge(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "read:graph" => {
                             handle_materialized_read(&pool, graph_uuid, &mut session).await;
                         }
                         "create:entity" => {
-                            handle_create_entity(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_create_entity(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "update:entity" => {
-                            handle_update_entity(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_update_entity(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "delete:entity" => {
-                            handle_delete_entity(
-                                &pool,
-                                graph_uuid,
-                                event,
-                                &mut session,
-                                actor_id,
-                            )
-                            .await;
+                            handle_delete_entity(&pool, graph_uuid, event, &mut session, actor_id)
+                                .await;
                         }
                         "transform:entity" => {
+                            println!("HANDSLING 'transform:entity' CASE");
                             handle_transform_entity(
                                 &pool,
                                 graph_uuid,
@@ -875,7 +840,9 @@ async fn handle_transform_entity(
     session: &mut Session,
     actor_id: i64,
 ) {
+    println!("handle_transform_entity()");
     let Some(entity) = event.entity else {
+        println!("let Some(entity)");
         let _ = session
             .text(
                 json!({
@@ -894,8 +861,11 @@ async fn handle_transform_entity(
     // Build job payload expected by worker dev runner: `ob run -T '<payload>'`
     let payload = json!({
         "action": "transform:entity",
+        "graph_id": graph_uuid,
         "entity": entity,
+        "actor_id": actor_id,
     });
+    println!("enqueye job()");
 
     match jobs::enqueue_job(
         pool,
@@ -959,15 +929,25 @@ async fn stream_job_events(
     source_entity: Value,
     actor_id: i64,
 ) {
+    println!("stream_job_events()");
+
     // Ensure stream exists and get its id
     let Ok(stream) = eventstore::ensure_stream(pool, "job", &job_id.to_string()).await else {
+        println!("let Ok(stream) RETURNING>?!");
         return;
     };
+    println!("let Ok(stream)");
+
     let mut last_version: i32 = 0;
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_secs(60);
+    let fallback_delay = std::time::Duration::from_secs(5);
+    let mut fallback_attempted = false;
     loop {
+        println!("ensure_stream() loop");
         if start.elapsed() > timeout {
+            println!("ensure_stream() loop BREAK");
+
             break;
         }
         let rows = sqlx::query!(
@@ -983,17 +963,55 @@ async fn stream_job_events(
         )
         .fetch_all(pool)
         .await;
-
+        println!("{:?}", rows);
         let Ok(rows) = rows else {
+            println!("OK(rows)!");
             sleep(Duration::from_millis(250)).await;
             continue;
         };
         if rows.is_empty() {
+            println!("is empty!");
+            if !fallback_attempted && start.elapsed() > fallback_delay {
+                fallback_attempted = true;
+                match jobs::get_job(pool, job_id).await {
+                    Ok(Some(job)) => {
+                        if job.status == "enqueued" && job.lease_owner.is_none() {
+                            match inline_job_fallback(pool, job_id, &job.payload).await {
+                                Ok(true) => {
+                                    info!("inline fallback executed for job {}", job_id);
+                                }
+                                Ok(false) => {
+                                    info!(
+                                        "inline fallback skipped for job {} (already claimed)",
+                                        job_id
+                                    );
+                                }
+                                Err(err) => {
+                                    error!(
+                                        "inline job fallback failed for job {}: {}",
+                                        job_id, err
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    Ok(None) => {
+                        error!(
+                            "inline fallback unable to load job {} from database",
+                            job_id
+                        );
+                    }
+                    Err(err) => {
+                        error!("inline fallback get_job error for {}: {}", job_id, err);
+                    }
+                }
+            }
             sleep(Duration::from_millis(250)).await;
             continue;
         }
         let mut done = false;
         for r in rows {
+            println!("ensure_stream() for r in rows");
             last_version = r.version;
             let payload = r.payload;
             let _ = session
@@ -1006,6 +1024,7 @@ async fn stream_job_events(
                     .to_string(),
                 )
                 .await;
+
             if payload
                 .get("type")
                 .and_then(|v| v.as_str())
@@ -1055,8 +1074,7 @@ async fn persist_transform_outputs(
     session: &mut Session,
     actor_id: i64,
 ) -> Result<(), sqlx::Error> {
-    use chrono::Utc;
-    use common::eventstore::{self, AppendEvent};
+    println!("persist_transform_outputs()");
 
     // Extract source entity context
     let src_id = source_entity
@@ -1069,8 +1087,10 @@ async fn persist_transform_outputs(
         .and_then(|v| v.as_str())
         .unwrap_or("transform");
     let Some(src_id) = src_id else {
+        println!("Some(src_id()");
         return Ok(());
     };
+    println!("persist_transform_outputs()");
 
     // Normalize outputs to an array of objects
     let items: Vec<Value> = match outputs {
@@ -1099,7 +1119,7 @@ async fn persist_transform_outputs(
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
-
+        println!("{}", label_s);
         // Build entity document
         let entity_id = Uuid::new_v4();
         // Arrange entities in rows of 4: increment X across, then Y down by 200.
@@ -1123,11 +1143,14 @@ async fn persist_transform_outputs(
             "label": label_s,
             "data": {}
         });
+        println!("entity-doc: {}", entity_doc);
+
         if let (Some(dst), Value::Object(src)) = (entity_doc.get_mut("data"), &item) {
             if let Some(dst_obj) = dst.as_object_mut() {
                 for (k, v) in src.iter() {
                     dst_obj.insert(k.clone(), v.clone());
                 }
+                dst_obj.entry("label".to_string()).or_insert(json!(label_s));
             }
         }
 
@@ -1143,6 +1166,7 @@ async fn persist_transform_outputs(
             expected_version: None,
             actor_id: Some(actor_id),
         };
+        println!("evs aooebd {:?}", ev_entity);
         let _ = eventstore::append_event(pool, ev_entity).await;
 
         // Append edge:create event from source -> new entity
@@ -1155,7 +1179,7 @@ async fn persist_transform_outputs(
             "label": edge_label,
             "data": {   }
         });
-  
+
         let ev_edge = AppendEvent {
             category: "edge".into(),
             key: graph_uuid.to_string(),
@@ -1168,6 +1192,7 @@ async fn persist_transform_outputs(
             expected_version: None,
             actor_id: Some(actor_id),
         };
+        println!("edfge append {:?}", ev_edge);
         let _ = eventstore::append_event(pool, ev_edge).await;
 
         // Immediately inform UI about the new entity (ReactFlow node)
@@ -1187,12 +1212,228 @@ async fn persist_transform_outputs(
         }));
         // Immediately inform UI about the new edge so it appears without a refresh
     }
+    let toast_id = source_entity
+        .get("id")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| job_id.to_string());
+
+    let mut job_payload = match jobs::get_job(pool, job_id).await {
+        Ok(Some(mut job)) => {
+            job.status = "completed".to_string();
+            serde_json::to_value(job).unwrap_or_else(|_| json!({"job_id": job_id}))
+        }
+        Ok(None) => json!({"job_id": job_id}),
+        Err(err) => {
+            error!(
+                "failed to load job {} for websocket completion payload: {}",
+                job_id, err
+            );
+            json!({"job_id": job_id})
+        }
+    };
+
+    if let Some(job_obj) = job_payload.as_object_mut() {
+        job_obj.insert("status".into(), json!("completed"));
+        job_obj.insert("results_count".into(), json!(ui_entities.len()));
+        job_obj.insert("result".into(), outputs.clone());
+    }
+
     let message = json!({
-        "action": "created",
-        "notification": {"toastId": source_entity["id"], "shouldClose": true, "message": "Transform completed successfully."},
+        "action": "transform:completed",
+        "notification": {
+            "toastId": toast_id,
+            "shouldClose": true,
+            "message": "Transform completed successfully."
+        },
+        "job": job_payload,
         "entities": ui_entities,
         "edges": ui_edges,
     });
+    println!("sending message: {}", message);
+
     let _ = session.text(message.to_string()).await;
     Ok(())
+}
+
+#[derive(Debug)]
+enum InlineFallbackError {
+    Sql(sqlx::Error),
+    Json(serde_json::Error),
+    Io(std::io::Error),
+    Command { code: i32, stderr: String },
+}
+
+impl fmt::Display for InlineFallbackError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            InlineFallbackError::Sql(err) => write!(f, "sql error: {}", err),
+            InlineFallbackError::Json(err) => write!(f, "json error: {}", err),
+            InlineFallbackError::Io(err) => write!(f, "io error: {}", err),
+            InlineFallbackError::Command { code, stderr } => {
+                write!(f, "ob exit code {}: {}", code, stderr)
+            }
+        }
+    }
+}
+
+impl std::error::Error for InlineFallbackError {}
+
+impl From<sqlx::Error> for InlineFallbackError {
+    fn from(value: sqlx::Error) -> Self {
+        InlineFallbackError::Sql(value)
+    }
+}
+
+impl From<serde_json::Error> for InlineFallbackError {
+    fn from(value: serde_json::Error) -> Self {
+        InlineFallbackError::Json(value)
+    }
+}
+
+impl From<std::io::Error> for InlineFallbackError {
+    fn from(value: std::io::Error) -> Self {
+        InlineFallbackError::Io(value)
+    }
+}
+
+async fn execute_job_payload_inline(payload: &Value) -> Result<Option<Value>, InlineFallbackError> {
+    let payload_s = serde_json::to_string(payload)?;
+    let mut cmd = TokioCommand::new("ob");
+    cmd.arg("run").arg("-T").arg(payload_s);
+    let output = cmd.output().await?;
+
+    if !output.status.success() {
+        let code = output.status.code().unwrap_or(-1);
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        return Err(InlineFallbackError::Command { code, stderr });
+    }
+
+    let stdout_bytes = output.stdout;
+    if stdout_bytes.is_empty() {
+        return Ok(None);
+    }
+
+    let stdout_str = String::from_utf8_lossy(&stdout_bytes).to_string();
+
+    let parsed = (|| {
+        if let Ok(v) = serde_json::from_str::<Value>(&stdout_str) {
+            return Some(v);
+        }
+        if let Some(idx) = stdout_str.find('{').or_else(|| stdout_str.find('[')) {
+            let tail = &stdout_str[idx..];
+            if let Ok(v) = serde_json::from_str::<Value>(tail.trim()) {
+                return Some(v);
+            }
+        }
+        stdout_str
+            .lines()
+            .rev()
+            .find(|l| !l.trim().is_empty())
+            .and_then(|line| serde_json::from_str::<Value>(line.trim()).ok())
+    })();
+
+    Ok(parsed)
+}
+
+async fn append_job_event(
+    pool: &PgPool,
+    job_id: Uuid,
+    payload: Value,
+    actor_id: Option<i64>,
+) -> Result<(), InlineFallbackError> {
+    let actor_id = actor_id.unwrap_or(0);
+    eventstore::append_event(
+        pool,
+        AppendEvent {
+            category: "job".into(),
+            key: job_id.to_string(),
+            event_type: "job:event".into(),
+            payload,
+            valid_from: Utc::now(),
+            valid_to: None,
+            correlation_id: None,
+            causation_id: None,
+            expected_version: None,
+            actor_id: Some(actor_id),
+        },
+    )
+    .await?;
+    Ok(())
+}
+
+async fn inline_job_fallback(
+    pool: &PgPool,
+    job_id: Uuid,
+    job_payload: &Value,
+) -> Result<bool, InlineFallbackError> {
+    const OWNER: &str = "inline-fallback";
+
+    let actor_id = Some(
+        job_payload
+            .get("actor_id")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(0),
+    );
+
+    if !jobs::try_claim_job(pool, job_id, OWNER).await? {
+        return Ok(false);
+    }
+
+    jobs::start_job(pool, job_id, OWNER).await?;
+
+    append_job_event(
+        pool,
+        job_id,
+        json!({
+            "type": "progress",
+            "data": { "note": "inline fallback executing" }
+        }),
+        actor_id,
+    )
+    .await?;
+
+    match execute_job_payload_inline(job_payload).await {
+        Ok(Some(result)) => {
+            append_job_event(
+                pool,
+                job_id,
+                json!({
+                    "type": "result",
+                    "data": result
+                }),
+                actor_id,
+            )
+            .await?;
+            jobs::complete_job(pool, job_id, OWNER).await?;
+        }
+        Ok(None) => {
+            append_job_event(
+                pool,
+                job_id,
+                json!({
+                    "type": "error",
+                    "data": { "message": "inline fallback produced no data" }
+                }),
+                actor_id,
+            )
+            .await?;
+            jobs::fail_job(pool, job_id, OWNER, 10).await?;
+        }
+        Err(err) => {
+            append_job_event(
+                pool,
+                job_id,
+                json!({
+                    "type": "error",
+                    "data": { "message": err.to_string() }
+                }),
+                actor_id,
+            )
+            .await?;
+            jobs::fail_job(pool, job_id, OWNER, 10).await?;
+        }
+    }
+
+    Ok(true)
 }
