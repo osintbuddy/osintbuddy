@@ -40,6 +40,9 @@ services:
       - "8000:8000"
     environment:
       - GIN_MODE=release
+    volumes:
+      - ./conf:/conf
+      - ./logs:/logs
 
 volumes:
   ob-db-data:
