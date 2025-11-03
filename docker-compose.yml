@@ -45,7 +45,8 @@ services:
     environment:
       - GIN_MODE=release
     volumes:
-      - ./conf:/conf
+      - ./auth:/conf
       - ./logs/casdoor:/var/log/casdoor/
+
 volumes:
   ob-db-data:

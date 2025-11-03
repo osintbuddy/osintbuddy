@@ -24,6 +24,8 @@ perf.data.old
 perf.data
 flamegraph.svg
 AGENTS.md
+SCRATCHPAD.md
+auth.toml 
 
 # Frontend logs
 frontend/logs
