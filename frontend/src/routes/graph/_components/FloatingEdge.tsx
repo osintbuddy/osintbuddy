@@ -33,10 +33,12 @@ function FloatingEdge({
   sendJsonMessage,
 }: FloatingEdgeProps) {
   if (showEdges) return null
+
   const { updateEdge } = useReactFlow()
   const showEdgeLabel = useStore(zoomSelector)
   const [showEdgePanel, setShowEdgePanel] = useState(false)
   const [edgeLabel, setEdgeLabel] = useState((data?.label ?? '') as string)
+
   const edgeInputSize =
     edgeLabel.length <= MAX_LABEL_SIZE
       ? edgeLabel.length === 0
@@ -45,9 +47,11 @@ function FloatingEdge({
           ? edgeLabel.length
           : 10
       : MAX_LABEL_SIZE
+
   const sourceNode = useStore(
     useCallback((store) => store.nodeLookup.get(source), [source])
   )
+
   const targetNode = useStore(
     useCallback((store) => store.nodeLookup.get(target), [target])
   )
@@ -131,14 +135,20 @@ function FloatingEdge({
     },
     [updateEdge]
   )
+
+  const edgeClasses = (data && data.isActivated) 
+    ? 'react-flow__edge-path connected'
+    : 'react-flow__edge-path'
+
   return (
     <>
       <path
         markerEnd={markerEnd as string}
-        class='react-flow__edge-path'
+        class={edgeClasses}
         d={edgePath}
         style={pathStyle}
       />
+
       {showEdgeLabel && (
         <EdgeLabelRenderer>
           <div

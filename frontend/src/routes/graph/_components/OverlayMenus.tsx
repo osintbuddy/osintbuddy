@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks'
 import { Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout'
 import { Icon } from '@/components/icons'
@@ -21,8 +21,9 @@ import PdfViewerPanel, { CaptureResultPopup } from './PdfViewerPanel'
 import AudioViewerPanel from './AudioViewerPanel'
 import PropertiesViewer from './PropertiesViewer'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
+import { memo } from 'preact/compat'
 
-export function EntityOption({ entity, onDragStart }: JSONObject) {
+export const EntityOption = memo(({ entity, onDragStart }: JSONObject) => {
   return (
     <>
       <li
@@ -54,7 +55,7 @@ export function EntityOption({ entity, onDragStart }: JSONObject) {
       </li>
     </>
   )
-}
+})
 
 interface OverlayMenusProps {
   positionMode: PositionMode
@@ -105,13 +106,17 @@ export default function OverlayMenus({
         : plugins,
     [searchFilter, plugins]
   )
-  const onDragStart = (event: DragEvent, nodeType: string) => {
-    if (event?.dataTransfer) {
-      event.dataTransfer.setData('application/reactflow', nodeType)
-      event.dataTransfer.effectAllowed = 'move'
-    }
-    event.stopPropagation()
-  }
+
+  const onDragStart = useCallback(
+    (event: DragEvent, nodeType: string) => {
+      if (event?.dataTransfer) {
+        event.dataTransfer.setData('application/reactflow', nodeType)
+        event.dataTransfer.effectAllowed = 'move'
+      }
+      event.stopPropagation()
+    },
+    []
+  )
 
   // entities panel
   const [isEntitiesDraggable, setIsEntitiesDraggable] = useState(false)

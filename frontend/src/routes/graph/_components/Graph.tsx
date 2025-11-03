@@ -18,10 +18,13 @@ import {
   ReactFlowProps,
   OnReconnect,
   XYPosition,
-  OnConnectEnd,
   OnConnect,
-  addEdge,
   FinalConnectionState,
+  NodeChange,
+  getConnectedEdges,
+  EdgeChange,
+  NodeSelectionChange,
+  EdgeReplaceChange,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -29,14 +32,13 @@ import { ViewEntityNode } from './EntityViewNode'
 import { useParams } from 'react-router-dom'
 import NewConnectionLine from './ConnectionLine'
 import FloatingEdge from './FloatingEdge'
-import { useEntitiesStore, useFlowStore } from '@/app/store'
+import { useFlowStore } from '@/app/store'
 import ContextMenu from './ContextMenu'
 import OverlayMenus from './OverlayMenus'
 import { SendJsonMessage } from 'react-use-websocket/dist/lib/types'
 import { ReadyState } from 'react-use-websocket'
 import { Graph as GraphState } from '@/app/api'
 import { ElkLayoutArguments } from 'elkjs/lib/elk-api'
-import { toSnakeCase } from '../utils'
 
 export interface CtxPosition {
   top: number
@@ -102,6 +104,129 @@ export default function Graph({
 
   const ref = useRef<HTMLDivElement>(null)
   const [ctxMenu, setCtxMenu] = useState<CtxMenu | null>(null)
+
+  /*
+   * Unhighlights edges
+   *
+   * @returns {EdgeChange[]} - edge changes to be applied
+   **/
+  const unhighlightEdges = useCallback((edges: Edge[]): EdgeChange[] => {
+    const edgeChanges: EdgeChange[] = []
+
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: false,
+        },
+      }
+
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, [])
+
+  /*
+   * Highlights edges
+   *
+   * @returns {EdgeChange[]} - edge changes to be applied
+   **/
+  const highlightEdges = useCallback((edges: Edge[]) => {
+    const edgeChanges: EdgeChange[] = []
+
+    for (const edge of edges) {
+      const newEdge = {
+        ...edge,
+        data: {
+          ...edge.data,
+          isActivated: true,
+        },
+      }
+
+      edgeChanges.push({
+        id: newEdge.id,
+        type: 'replace',
+        item: newEdge,
+      } as EdgeChange)
+    }
+
+    return edgeChanges
+  }, [])
+
+  /*
+   * Handles edge highlighting when a node is selected/unselected
+   **/
+  const handleEdgeHighlightingOnNodeSelection = useCallback(
+    (changes: NodeSelectionChange[]) => {
+      // Make sure the first change is selection
+      if (changes.length > 0 && changes[0].type !== 'select') return
+
+      // Sort node changes so that unselected nodes go first to avoid highlighting overlaps
+      const sortedNodeChanges = changes.sort((a, b) => {
+        if (!a.selected && b.selected) return -1
+        if (a.selected && !b.selected) return 1
+        else return -1
+      })
+
+      // Highlight/Unhighlight edges connected to the node
+      for (const change of sortedNodeChanges) {
+        if (change.type === 'select') {
+          const changedNode = nodes.find((node) => node.id === change.id)
+          if (changedNode) {
+            const connectedEdges = getConnectedEdges([changedNode], edges)
+
+            if (change.selected) {
+              const edgeChanges: EdgeChange[] = highlightEdges(connectedEdges)
+              handleRelationshipsChange(edgeChanges)
+            } else {
+              const edgeChanges: EdgeChange[] = unhighlightEdges(connectedEdges)
+              handleRelationshipsChange(edgeChanges)
+            }
+          }
+        }
+      }
+    },
+    [nodes, edges]
+  )
+
+  /*
+   * Handles edge highlighting when edges are connected/disconnected
+   **/
+  const handleEdgeHighlightingOnEdgeChange = useCallback(
+    (changes: EdgeReplaceChange[]): EdgeChange[] => {
+      const newChanges: EdgeChange[] = []
+      for (const change of changes) {
+        const targetNode = nodes.find(
+          (node) => node.id === (change.item?.target ?? '')
+        )
+        const sourceNode = nodes.find(
+          (node) => node.id === (change.item?.source ?? '')
+        )
+
+        if (targetNode?.selected || sourceNode?.selected) {
+          newChanges.push(...highlightEdges([change.item]))
+        } else {
+          newChanges.push(change)
+        }
+      }
+      return newChanges
+    },
+    [nodes, edges]
+  )
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      handleEdgeHighlightingOnNodeSelection(changes as NodeSelectionChange[])
+      handleEntityChange(changes)
+    },
+    [nodes, edges]
+  )
 
   // @todo implement support for multi-select transforms -
   // hm, actually, how will the transforms work if different plugin types/nodes are in the selection?
@@ -181,9 +306,12 @@ export default function Graph({
   )
   const renderMissingBlueprint = useCallback((entity: JSONObject) => {
     return (
-      <div className='rounded-md border border-rose-900 bg-rose-950/60 p-2 text-rose-200 text-xs shadow-lg shadow-rose-900/20'>
+      <div className='rounded-md border border-rose-900 bg-rose-950/60 p-2 text-xs text-rose-200 shadow-lg shadow-rose-900/20'>
         <p className='font-semibold text-rose-100'>Missing blueprint</p>
-        <p className='mt-1 break-all'>Unable to render entity type: {entity?.data?.label ?? entity?.label ?? 'unknown'}</p>
+        <p className='mt-1 break-all'>
+          Unable to render entity type:{' '}
+          {entity?.data?.label ?? entity?.label ?? 'unknown'}
+        </p>
       </div>
     )
   }, [])
@@ -193,10 +321,12 @@ export default function Graph({
       edit: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
         const blueprint = label ? blueprints[label] : undefined
+
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
           return renderMissingBlueprint(entity)
         }
+
         return (
           <EditEntityNode
             ctx={entity}
@@ -209,10 +339,12 @@ export default function Graph({
       view: (entity: JSONObject) => {
         const label = entity?.data?.label ?? entity?.label
         const blueprint = label ? blueprints[label] : undefined
+
         if (!label || !blueprint) {
           console.warn('Missing blueprint for entity', { label, entity })
           return renderMissingBlueprint(entity)
         }
+
         return (
           <ViewEntityNode
             ctx={entity}
@@ -258,9 +390,10 @@ export default function Graph({
   const onEdgesChange = useCallback(
     (changes: any) => {
       // Use the store handler if provided, otherwise fallback to WebSocket
-      handleRelationshipsChange(changes)
+      const newChanges = handleEdgeHighlightingOnEdgeChange(changes)
+      handleRelationshipsChange(newChanges)
     },
-    [handleRelationshipsChange, showEdges]
+    [nodes, edges, handleRelationshipsChange, showEdges]
   )
 
   // on double click toggle between entity types
@@ -344,6 +477,15 @@ export default function Graph({
     [onNodeContextMenu]
   )
 
+  const onError = useCallback((msgId: string, msg: string) => {
+    // Get rid of the unnecessary warning
+    if (msgId === '002') {
+      return
+    }
+
+    console.warn(msg)
+  }, [])
+
   return (
     <ReactFlow
       ref={ref}
@@ -366,7 +508,7 @@ export default function Graph({
       onReconnect={onReconnect}
       onReconnectEnd={onReconnectEnd}
       onInit={setGraphInstance}
-      onNodesChange={handleEntityChange}
+      onNodesChange={onNodesChange}
       onNodeClick={onNodeClick}
       fitViewOptions={viewOptions}
       panActivationKeyCode='Space'
@@ -382,6 +524,7 @@ export default function Graph({
       proOptions={{ hideAttribution: true }} // TODO: If osib makes $$$, subscribe2reactflow :)
       defaultMarkerColor='#3b419eee'
       onlyRenderVisibleElements={false}
+      onError={onError}
     >
       <Background color='#5b609bee' variant={BackgroundVariant.Dots} />
       <Panel position='top-left' style={{ margin: 0, pointerEvents: 'none' }}>
