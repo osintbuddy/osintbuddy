@@ -32,5 +32,14 @@ services:
       - MH_HOSTNAME=mailhog.local
       - MH_STORAGE=memory
 
+  casdoor:
+    image: casbin/casdoor:latest
+    container_name: casdoor
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GIN_MODE=release
+
 volumes:
   ob-db-data:
