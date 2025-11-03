@@ -34,15 +34,18 @@ services:
 
   casdoor:
     image: casbin/casdoor:latest
-    container_name: casdoor
-    restart: unless-stopped
+    restart: on-failure
+    depends_on:
+      - db
+    links:
+      - db
     ports:
+      - 45910:45910
       - "8000:8000"
     environment:
       - GIN_MODE=release
     volumes:
       - ./conf:/conf
-      - ./logs:/logs
-
+      - ./logs/casdoor:/var/log/casdoor/
 volumes:
   ob-db-data:
