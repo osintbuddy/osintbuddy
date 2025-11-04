@@ -398,7 +398,6 @@ export default function Graph({
 
   const onEdgesChange = useCallback(
     (changes: any) => {
-      console.log(changes)
       // Use the store handler if provided, otherwise fallback to WebSocket
       const newChanges = handleEdgeHighlightingOnEdgeChange(changes)
       handleRelationshipsChange(newChanges)
