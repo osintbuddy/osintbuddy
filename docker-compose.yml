@@ -41,12 +41,12 @@ services:
       - db
     ports:
       - 45910:45910
-      - "8000:8000"
+      - 8000:8000
     environment:
       - GIN_MODE=release
     volumes:
-      - ./auth:/conf
-      - ./logs/casdoor:/var/log/casdoor/
+      - ./.casdoor/conf:/conf
+      - ./.casdoor/casdoor.log:/var/log/casdoor/casdoor.log
 
 volumes:
   ob-db-data:

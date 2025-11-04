@@ -28,6 +28,12 @@ SCRATCHPAD.md
 auth.toml 
 casdoor/
 casdoor-web/
+auth.toml
+.casdoor/files/
+.casdoor/casdoor-objects/
+.casdoor/osib-objects/
+.casdoor/*.log
+.casdoor/conf/
 
 # Frontend logs
 frontend/logs

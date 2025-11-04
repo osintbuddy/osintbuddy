@@ -1,8 +1,9 @@
-# The following is Casdoor demo site config, replace them with your own Casdoor config
+# The following is OSINTBuddy demo/dev site config,
+# replace them with your own Casdoor config when deploying
 
 endpoint = "http://localhost:55173"
-client_id = "294b09fbc17f95daf2fe"
-client_secret = "dd8982f7046ccba1bbd7851d5c1ece4e52bf039d"
+client_id = "75da425309bb9998c0bc"
+client_secret = "b3b0fedf90a490ad834cbc7a722af56672d1f7b5"
 certificate = """-----BEGIN CERTIFICATE-----
 MIIE2TCCAsGgAwIBAgIDAeJAMA0GCSqGSIb3DQEBCwUAMCYxDjAMBgNVBAoTBWFk
 bWluMRQwEgYDVQQDDAtjZXJ0X3dyMGhpbTAeFw0yNTExMDQwMTI3NTZaFw00NTEx

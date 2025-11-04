@@ -742,6 +742,7 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "casdoor-rust-sdk",
  "chrono",
  "confik",
  "dotenvy",
