@@ -26,6 +26,7 @@ flamegraph.svg
 AGENTS.md
 SCRATCHPAD.md
 auth.toml 
+casdoor/
 casdoor-web/
 
 # Frontend logs
