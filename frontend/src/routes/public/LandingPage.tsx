@@ -31,11 +31,12 @@ export default function LandingPage(): JSX.Element {
               Elevate your Research with
               <br /> Strategic Insights from Public Data
             </h2>
-            <p class='text-slate-350 md:text-md max-w-2xl px-3 pt-1 text-lg md:px-0'>
-              Hi, I'm jerlendds, creator of OSINTBuddy, an open source tool for
-              collecting, processing, and visualizing connections between
-              entities through a Python plugin system. You can identify
-              relationships like what relates to a given domain.
+            <p class='text-slate-350 md:text-md max-w-3xl px-3 pt-1 text-lg md:px-0'>
+              Meet your next-generation research companion. With a Python plugin
+              system you can extract, enrich, and map relationships across
+              public data. From domains to organizations to the humans behind
+              them. Reveal how entities connect, and let the network tell its
+              story.
             </p>
 
             <div class='mt-4 flex justify-center gap-4'>
