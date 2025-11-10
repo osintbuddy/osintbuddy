@@ -52,7 +52,6 @@ export default function Graphing() {
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins, setBlueprints, blueprints } = useEntitiesStore()
   const { access_token } = useAuthStore()
-  console.log('blueprints', blueprints)
   const {
     nodes,
     edges,
