@@ -525,6 +525,13 @@ const markerEnd = {
   height: 16,
 }
 
+/* Edges are SVGs. SVGs have markers. If we want highlighted markers to appear first, we need to draw them at the end.  */
+function highlightedEdgesAtTheEnd(a: Edge, b: Edge): number {
+  if (a.data?.isActivated && !b.data?.isActivated) return 1
+  else if (!a.data?.isActivated && b.data?.isActivated) return -1
+  else return 0
+}
+
 export const useFlowStore = create<FlowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
@@ -558,7 +565,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   removeRelationship: (id) =>
     set({ edges: get().edges.filter((e) => e.id !== id) }),
   handleRelationshipsChange: (changes) =>
-    set({ edges: applyEdgeChanges(changes, get().edges) }),
+    set({ edges: applyEdgeChanges(changes, get().edges).sort(highlightedEdgesAtTheEnd) }),
   onRelationshipConnect: (connection) =>
     set({
       edges: addEdge(

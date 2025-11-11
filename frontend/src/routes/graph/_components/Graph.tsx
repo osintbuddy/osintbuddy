@@ -25,6 +25,7 @@ import {
   EdgeChange,
   NodeSelectionChange,
   EdgeReplaceChange,
+  EdgeMarker,
 } from '@xyflow/react'
 import EditEntityNode from './EntityEditNode'
 import { toast } from 'react-toastify'
@@ -116,6 +117,10 @@ export default function Graph({
     for (const edge of edges) {
       const newEdge = {
         ...edge,
+        markerEnd: { // unhighlight arrow head
+          ...(edge.markerEnd as EdgeMarker),
+          color: '#373c83',
+        },
         data: {
           ...edge.data,
           isActivated: false,
@@ -143,6 +148,10 @@ export default function Graph({
     for (const edge of edges) {
       const newEdge = {
         ...edge,
+        markerEnd: { // highlight arrow head
+          ...(edge.markerEnd as EdgeMarker),
+          color: '#1524ea',
+        },
         data: {
           ...edge.data,
           isActivated: true,
