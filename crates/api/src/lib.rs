@@ -3,6 +3,7 @@ pub mod middleware;
 mod projector;
 pub mod schemas;
 
+use casdoor_rust_sdk::CasdoorConfig;
 // Re-export common database module to preserve existing imports
 pub use common::db;
 
@@ -21,15 +22,22 @@ use sqids::Sqids;
 use std::io;
 use std::time::Duration;
 
+#[derive(Debug)]
 pub struct AppState {
     pub blacklist: Cache<String, bool>,
     pub cfg: &'static AppConfig,
+    pub casdoor_conf: CasdoorConfig,
 }
 
 pub type AppData = Data<AppState>;
 
 async fn spa_index() -> actix_web::Result<NamedFile> {
     Ok(NamedFile::open("./frontend/dist/index.html")?)
+}
+
+fn abs_path(path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let absolute_path = std::env::current_dir()?.join(path);
+    Ok(absolute_path.to_str().unwrap().to_string())
 }
 
 pub async fn run(cfg: &'static AppConfig) -> io::Result<()> {
@@ -55,6 +63,8 @@ pub async fn run(cfg: &'static AppConfig) -> io::Result<()> {
             .expect("Fatal error building Sqids!");
         let app_state = AppState {
             cfg,
+            casdoor_conf: CasdoorConfig::from_toml(abs_path(&cfg.casdoor_conf).unwrap().as_str())
+                .unwrap(),
             blacklist: Cache::builder()
                 .max_capacity(64_000)
                 .time_to_live(Duration::from_secs(cfg.jwt_maxage * 60))
@@ -69,6 +79,7 @@ pub async fn run(cfg: &'static AppConfig) -> io::Result<()> {
             .app_data(web::Data::new(sqids))
             .app_data(web::Data::new(pool.to_owned()))
             .app_data(web::PayloadConfig::new(max_bytes))
+            // .app_data(web::Data::new())
             .wrap(
                 Cors::default()
                     .allowed_origin(&cfg.backend_cors)

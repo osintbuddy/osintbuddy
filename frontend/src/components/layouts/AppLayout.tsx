@@ -1,3 +1,4 @@
+import { type JSX } from 'preact'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import { useAppStore, useAuthStore } from '@/app/store'
@@ -13,7 +14,11 @@ interface HamburgerProps {
   className?: string
 }
 
-export function HamburgerMenu({ isOpen, onClick, className }: HamburgerProps) {
+export function HamburgerMenu({
+  isOpen,
+  onClick,
+  className,
+}: HamburgerProps): JSX.Element {
   return (
     <button
       onClick={onClick}
@@ -49,10 +54,10 @@ function AppLayoutSidebar({
   showSidebar,
   toggleSidebar,
   logout,
-}: SidebarProps) {
+}: SidebarProps): JSX.Element {
   return (
     <div
-      class={`fixed inset-y-0 flex w-52 flex-col border-r border-black/10 bg-gradient-to-br from-black/50 to-black/40 shadow-2xl shadow-black/15 backdrop-blur-sm transition-transform duration-200 ${showSidebar ? 'translate-x-0' : '-translate-x-40 border-r-2'}`}
+      class={`fixed inset-y-0 flex w-52 flex-col border-r border-black/10 bg-slate-950/70 shadow-2xl shadow-black/15 transition-transform duration-200 ${showSidebar ? 'translate-x-0' : '-translate-x-40 border-r-2'}`}
     >
       <div class='mt-2 flex min-h-0 flex-1 flex-col'>
         <div
@@ -129,7 +134,7 @@ function AppLayoutSidebar({
   )
 }
 
-export default function AppLayout() {
+export default function AppLayout(): JSX.Element {
   const location = useLocation()
   const { isAuthenticated, logout } = useAuthStore()
   const { showSidebar, toggleSidebar } = useAppStore()

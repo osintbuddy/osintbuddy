@@ -11,15 +11,14 @@ use sqlx::types::Uuid;
 pub struct DbEntity {
     pub id: i64,
     #[serde(skip_serializing)]
-    pub uuid: Option<Uuid>,
+    pub uuid: Uuid,
     pub label: String,
     pub description: String,
     pub author: String,
-    pub source: String,
-    pub visibility: String,
-    pub org_id: Option<i64>,
+    pub code: String,
+    pub org: String,
     #[serde(skip_serializing)]
-    pub owner_id: i64,
+    pub owner_id: Uuid,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }
@@ -30,7 +29,7 @@ pub struct Entity {
     pub label: String,
     pub description: String,
     pub author: String,
-    pub source: String,
+    pub code: String,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }

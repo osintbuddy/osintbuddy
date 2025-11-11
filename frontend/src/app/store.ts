@@ -13,9 +13,6 @@ import {
   DeleteEntityPayload,
   FavoriteEntityPayload,
   authApi,
-  LoginCredentials,
-  RegisterCredentials,
-  Registered,
   Paginate,
   CreateGraphPayload,
 } from './api'
@@ -33,7 +30,7 @@ import {
 } from '@xyflow/react'
 
 // Auth store
-type UserRoles = 'user' | 'admin'
+type UserRoles = 'admin' | 'superadmin' | 'analyst' | 'client'
 export interface User {
   email: string
   ctime: string
@@ -46,98 +43,41 @@ export interface User {
 
 interface AuthState {
   user: User | null
-  access_token: string | null
-  refresh_token: string | null
+  accessToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
   isRegistering: boolean
-  error: string | null
-  login: (credentials: LoginCredentials) => Promise<void>
-  register: (credentials: RegisterCredentials) => Promise<Registered>
-  logout: () => Promise<void>
+  setAccessToken: (value: string) => void
+  setIsAuthenticated: (value: boolean) => void
+  logout: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      access_token: null,
-      refresh_token: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
       isRegistering: false,
-      error: null,
-      login: async (credentials: LoginCredentials) => {
-        set({ isLoading: true, error: null })
-        try {
-          const response = await authApi.login(credentials)
-          const { access_token, refresh_token } = response
-          const user = jwtParse(access_token)
-          set({
-            user,
-            access_token,
-            refresh_token,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error: any) {
-          set({
-            error: error.message,
-            isLoading: false,
-          })
-          throw error
-        }
+      setAccessToken: (value) => {
+        set({ accessToken: value })
       },
-      register: async (credentials: RegisterCredentials) => {
-        set({ isRegistering: true, error: null })
-        try {
-          const registeredUser = await authApi.register(credentials)
-          set({ isRegistering: false })
-          return registeredUser
-        } catch (error) {
-          set({
-            error: error.message,
-            isRegistering: false,
-          })
-          throw error
-        }
+      setIsAuthenticated: (value) => {
+        set({ isAuthenticated: value })
       },
-      logout: async () => {
-        set({ isLoading: true, error: null })
-        await authApi
-          .logout({
-            access_token: get().access_token as string,
-            refresh_token: get().refresh_token as string,
-            token_type: 'bearer',
-          })
-          .then(() =>
-            set({
-              user: null,
-              refresh_token: null,
-              access_token: null,
-              isAuthenticated: false,
-              isLoading: false,
-            })
-          )
-          .catch((err) => {
-            set({
-              user: null,
-              refresh_token: null,
-              access_token: null,
-              isAuthenticated: false,
-              isLoading: false,
-              error: err.message,
-            })
-          })
+      logout: () => {
+        const token = get().accessToken as string
+        authApi.logout(token)
+        set({ isAuthenticated: false, accessToken: null })
       },
     }),
     {
       name: 'auth',
       // Don't persist loading states and errors
       partialize: (state) => ({
-        user: state.user,
-        access_token: state.access_token,
-        refresh_token: state.refresh_token,
+        user: state?.accessToken ? jwtParse(state.accessToken) : null,
+        accessToken: state.accessToken,
         isAuthenticated: state.isAuthenticated,
       }),
     }
@@ -166,7 +106,7 @@ export const useGraphStore = create<GraphState>()((set, get) => ({
   getGraph: async (id: string) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const data = await graphsApi.getById(id, token)
       set({ ...data, isLoading: false, isError: false, error: null })
     } catch (error) {
@@ -184,15 +124,15 @@ interface GraphsState {
   isUpdating: boolean
   isDeleting: boolean
   error: string | null
-  fetchGraphs: (payload: Paginate) => Promise<void>
-  createGraph: (payload: CreateGraphPayload) => Promise<Graph>
-  updateGraph: (payload: UpdateGraphPayload) => Promise<Graph>
-  deleteGraph: (payload: DeleteGraphPayload) => Promise<void>
-  favoriteGraph: (payload: FavoriteGraphPayload) => Promise<void>
-  unfavoriteGraph: (payload: FavoriteGraphPayload) => Promise<void>
+  fetchCases: (payload: Paginate) => Promise<void>
+  createCase: (payload: CreateGraphPayload) => Promise<Graph>
+  updateCase: (payload: UpdateGraphPayload) => Promise<Graph>
+  deleteCase: (payload: DeleteGraphPayload) => Promise<void>
+  favoriteCase: (payload: FavoriteGraphPayload) => Promise<void>
+  unfavoriteCase: (payload: FavoriteGraphPayload) => Promise<void>
 }
 
-export const useGraphsStore = create<GraphsState>()((set, get) => ({
+export const useCasesStore = create<GraphsState>()((set, get) => ({
   graphs: [],
   favorites: [],
   isLoading: false,
@@ -200,10 +140,10 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
   isUpdating: false,
   isDeleting: false,
   error: null,
-  fetchGraphs: async (payload: Paginate) => {
+  fetchCases: async (payload: Paginate) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const { graphs, favorites } = await graphsApi.list(payload, token)
       set({ graphs, favorites, isLoading: false })
     } catch (error) {
@@ -211,10 +151,10 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
     }
   },
 
-  createGraph: async (payload: CreateGraphPayload) => {
+  createCase: async (payload: CreateGraphPayload) => {
     set({ isCreating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const newGraph = await graphsApi.create(payload, token)
 
       // Add the new graph to the graphs list
@@ -226,10 +166,10 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       throw error
     }
   },
-  updateGraph: async (payload: UpdateGraphPayload) => {
+  updateCase: async (payload: UpdateGraphPayload) => {
     set({ isUpdating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const updatedGraph = await graphsApi.update(payload, token)
 
       // Update the graphs list if the updated graph is in it
@@ -252,10 +192,10 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       throw error
     }
   },
-  deleteGraph: async (payload: DeleteGraphPayload) => {
+  deleteCase: async (payload: DeleteGraphPayload) => {
     set({ isDeleting: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await graphsApi.delete(payload, token)
 
       // Remove the deleted graph from the graphs list
@@ -270,9 +210,9 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       throw error
     }
   },
-  favoriteGraph: async (payload: FavoriteGraphPayload) => {
+  favoriteCase: async (payload: FavoriteGraphPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await graphsApi.favorite({ ...payload, is_favorite: true }, token)
       const currentFavorites = get().favorites
       if (!currentFavorites.includes(payload.graph_id)) {
@@ -283,9 +223,9 @@ export const useGraphsStore = create<GraphsState>()((set, get) => ({
       throw error
     }
   },
-  unfavoriteGraph: async (payload: FavoriteGraphPayload) => {
+  unfavoriteCase: async (payload: FavoriteGraphPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await graphsApi.favorite({ ...payload, is_favorite: false }, token)
       const currentFavorites = get().favorites
       set({
@@ -312,7 +252,7 @@ export const useEntityStore = create<EntityState>()((set, get) => ({
   getEntity: async (id: string) => {
     set({ isLoading: true })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const entity = await entitiesApi.getById(id, token)
       set({ entity, isLoading: false })
     } catch (error) {
@@ -330,11 +270,7 @@ interface Transforms {
 }
 
 // TODO: type frfr ong
-interface Blueprint {
-  [any: string]: {
-    value: string
-  }
-}
+interface Blueprint {}
 
 // Entities store
 interface EntitiesState {
@@ -384,7 +320,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   fetchEntities: async (payload: Paginate) => {
     set({ isLoading: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const response = await entitiesApi.list(payload, token)
       set({
         entities: response.entities,
@@ -403,7 +339,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
     if (!existingTransforms[label]) {
       set({ isLoadingTransforms: true, error: null })
       try {
-        const token = useAuthStore.getState().access_token as string
+        const token = useAuthStore.getState().accessToken as string
         const response = await entitiesApi.getEntityTransforms(label, token)
         set({
           transforms: {
@@ -426,7 +362,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   createEntity: async (payload: CreateEntityPayload) => {
     set({ isCreating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const newEntity = await entitiesApi.create(payload, token)
 
       // Add the new entity to the entities list
@@ -441,7 +377,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   updateEntity: async (payload: UpdateEntityPayload) => {
     set({ isUpdating: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       const updatedEntity = await entitiesApi.update(payload, token)
 
       // Update the entities list if the updated entity is in it
@@ -463,7 +399,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   deleteEntity: async ({ id }: DeleteEntityPayload) => {
     set({ isDeleting: true, error: null })
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await entitiesApi.delete({ id }, token)
 
       // Remove the deleted entity from the entities list
@@ -487,7 +423,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   favoriteEntity: async (payload: FavoriteEntityPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await entitiesApi.favorite({ ...payload, is_favorite: true }, token)
       const currentFavorites = get().favorites
       if (!currentFavorites.includes(payload.entity_id)) {
@@ -500,7 +436,7 @@ export const useEntitiesStore = create<EntitiesState>()((set, get) => ({
   },
   unfavoriteEntity: async (payload: FavoriteEntityPayload) => {
     try {
-      const token = useAuthStore.getState().access_token as string
+      const token = useAuthStore.getState().accessToken as string
       await entitiesApi.favorite({ ...payload, is_favorite: false }, token)
       const currentFavorites = get().favorites
       set({

@@ -34,7 +34,7 @@ export function UploadFileInput({
 }: FileInputProps) {
   const [value, setValue] = useState<File>(initialValue as any)
   const { hid } = useParams()
-  const { access_token } = useAuthStore()
+  const { accessToken: access_token } = useAuthStore()
   const [attachments, setAttachments] = useState<AttachmentItem[]>([])
   const [loading, setLoading] = useState(false)
   const { openViewer } = usePdfViewerStore()

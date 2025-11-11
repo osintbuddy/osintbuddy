@@ -167,7 +167,7 @@ function TimelineRow({ ev }: { ev: JobEvent }) {
         <span className='w-14 text-[11px] text-slate-700'>{ts}</span>
         <WorkspaceIcon
           name={heartbeat ? 'activity' : 'activity'}
-          className='text-info-300 h-4 w-4'
+          className='text-primary-300 h-4 w-4'
         />
         <span className='text-sm text-slate-400'>
           Progress {pct ?? 0}% {note ? `– ${note}` : ''}
@@ -180,7 +180,7 @@ function TimelineRow({ ev }: { ev: JobEvent }) {
     return (
       <div className='flex items-center gap-2 py-1'>
         <span className='w-14 text-[11px] text-slate-700'>{ts}</span>
-        <WorkspaceIcon name='check' className='text-success-400 h-4 w-4' />
+        <WorkspaceIcon name='check' className='h-4 w-4 text-lime-400' />
         <span className='text-sm text-slate-300'>Result received</span>
       </div>
     )
@@ -642,7 +642,7 @@ function TestPanel() {
             <WorkspaceIcon
               name={r.ok ? 'check' : 'alert-triangle'}
               className={
-                r.ok ? 'text-success-400 h-4 w-4' : 'text-danger-500 h-4 w-4'
+                r.ok ? 'h-4 w-4 text-lime-400' : 'text-danger-500 h-4 w-4'
               }
             />
             <span className={r.ok ? 'text-slate-300' : 'text-danger-400'}>

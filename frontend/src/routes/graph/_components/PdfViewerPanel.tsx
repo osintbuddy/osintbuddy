@@ -140,13 +140,11 @@ function PDFToolbar({
       setHasSelection(!!sel)
     })
   }, [selection])
-  console.log('wtf', capture, isCaptureActive)
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   // Download images on capture
   useEffect(() => {
-    console.log('useEffect', capture)
     if (!capture) return
 
     const unsubscribe = capture.onCaptureArea((result: CaptureAreaEvent) => {
@@ -602,7 +600,7 @@ export default function PdfViewerPanel({
   onToggleDrag,
 }: PdfViewerPanelProps) {
   const pdf = usePdfViewerStore()
-  const { access_token } = useAuthStore()
+  const { accessToken: access_token } = useAuthStore()
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
 
   useEffect(() => {

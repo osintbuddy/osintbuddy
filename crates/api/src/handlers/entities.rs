@@ -28,15 +28,15 @@ async fn create_entity_handler(
     auth: AuthMiddleware,
 ) -> Result<DbEntity, AppError> {
     let body = body.into_inner().validate()?;
+    let owner_id = auth.user.id;
     sqlx::query_as!(
         DbEntity,
-        "INSERT INTO entities (label,description,author,source,visibility,owner_id) VALUES ($1, $2, $3,$4,$5,$6) RETURNING *",
+        "INSERT INTO entities (label,description,author,code,owner_id) VALUES ($1, $2, $3,$4,$5) RETURNING *",
         body.label.to_string(),
         body.description.to_string(),
         body.author.to_string(),
         body.source.to_string(),
-        "private",
-        auth.account_id
+        owner_id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -56,13 +56,13 @@ async fn update_entity_handler(
 ) -> Result<DbEntity, AppError> {
     sqlx::query_as!(
       DbEntity,
-      "UPDATE entities SET label = $1, description = $2, author = $3, source = $4 WHERE  id = $5 AND owner_id = $6 RETURNING *",
+      "UPDATE entities SET label = $1, description = $2, author = $3, code = $4 WHERE  id = $5 AND owner_id = $6 RETURNING *",
       body.label.to_string(),
       body.description.to_string(),
       body.author.to_string(),
       body.source.to_string(),
       body.id,
-      auth.account_id
+      auth.user.id
   )
   .fetch_one(pool.as_ref())
   .await
@@ -91,7 +91,7 @@ async fn delete_entity_handler(
 
     sqlx::query("DELETE FROM entities WHERE id = $1 AND owner_id = $2 RETURNING *")
         .bind(*decoded_id as i64)
-        .bind(auth.account_id)
+        .bind(auth.user.id)
         .execute(pool.as_ref())
         .await
         .map(|_| HttpResponse::build(StatusCode::OK).finish())
@@ -113,7 +113,7 @@ async fn list_entities_handler(
     let entities = sqlx::query_as!(
         DbEntity,
         "SELECT * FROM entities WHERE owner_id = $1 OFFSET $2 LIMIT $3",
-        auth.account_id,
+        auth.user.id,
         page.skip,
         page.limit,
     )
@@ -128,7 +128,7 @@ async fn list_entities_handler(
 
     let favorites = sqlx::query_scalar!(
         "SELECT entity_id FROM favorite_entities WHERE owner_id = $1",
-        auth.account_id
+        auth.user.id
     )
     .fetch_all(pool.as_ref())
     .await
@@ -165,7 +165,7 @@ async fn list_entities_handler(
             label: entity.label,
             description: entity.description,
             author: entity.author,
-            source: entity.source,
+            source: entity.code,
             ctime: entity.ctime,
             mtime: entity.mtime,
         });
@@ -197,7 +197,7 @@ async fn get_entity_handler(
         DbEntity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
         *decoded_id as i64,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -223,13 +223,12 @@ async fn favorite_entity_handler(
         AppError {
             message: "Invalid entity ID.",
         }
-    })? as &u64;
-
+    })?;
     let entity = sqlx::query_as!(
         DbEntity,
         "SELECT * FROM entities WHERE id = $1 AND owner_id = $2",
         *entity_id as i64,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -244,7 +243,7 @@ async fn favorite_entity_handler(
         // Add to favorites
         sqlx::query!(
             "INSERT INTO favorite_entities (owner_id, entity_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            auth.account_id,
+            auth.user.id,
             *entity_id as i64
         )
         .execute(pool.as_ref())
@@ -260,7 +259,7 @@ async fn favorite_entity_handler(
         // Remove from favorites
         sqlx::query!(
             "DELETE FROM favorite_entities WHERE owner_id = $1 AND entity_id = $2",
-            auth.account_id,
+            auth.user.id,
             *entity_id as i64
         )
         .execute(pool.as_ref())

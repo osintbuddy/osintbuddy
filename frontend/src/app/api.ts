@@ -19,21 +19,12 @@ export interface Paginate {
   limit: number
 }
 
-type TokenTypes = 'bearer'
-
-export interface Tokens {
-  access_token: string
-  refresh_token: string
-  token_type: TokenTypes
-}
-
-type OnExp = () => void
+type AccessToken = `${string}`
 
 export const request = async <T>(
   endpoint: string,
   token: string,
-  options: ApiOptions = {},
-  onExp?: OnExp
+  options: ApiOptions = {}
 ): Promise<T> => {
   const { method = 'GET', headers = { 'Content-Type': 'application/json' } } =
     options
@@ -47,42 +38,18 @@ export const request = async <T>(
       headers: { Authorization: `Bearer ${authToken}`, ...headers },
     })
   }
-
   let response = await appRequest(token)
-  // TODO: Test me
-  if (response.status > 300 || response.status < 200) {
+  if (response.status >= 400 || response.status < 200) {
     const error = (await response.json()) as ApiError
-    // Handle expiration with refresh logic
     if (error.message.toLowerCase().includes('token')) {
-      try {
-        const refreshToken = useAuthStore.getState().refresh_token
-
-        if (refreshToken) {
-          const newTokens = await authApi.refresh(refreshToken)
-          const { access_token, refresh_token } = newTokens
-          useAuthStore.setState({
-            access_token,
-            refresh_token,
-          })
-          // Retry original request with new token
-          const { status, json } = await appRequest(access_token)
-          if (status >= 200 && status < 300) return await json()
-        }
-      } catch {
-        // Refresh failed
-        useAuthStore.setState({
-          user: null,
-          access_token: null,
-          refresh_token: null,
-          isAuthenticated: false,
-        })
-
-        toast.error('Session expired. Please login again.')
-        if (onExp) onExp()
-        throw error
-      }
+      useAuthStore.setState({
+        user: null,
+        accessToken: null,
+        isAuthenticated: false,
+      })
+      toast.error('Session expired. Please login again.')
+      throw error
     } else {
-      if (onExp) onExp()
       toast.error(error.message)
       throw error
     }
@@ -112,7 +79,7 @@ export interface Registered {
 }
 
 export const authApi = {
-  login: async (user: LoginCredentials): Promise<Tokens> => {
+  login: async (user: LoginCredentials): Promise<AccessToken> => {
     const response = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       body: JSON.stringify(user),
@@ -137,18 +104,14 @@ export const authApi = {
     const data = await response.json()
     return data
   },
-  logout: async (tokens: Tokens) => {
-    const response: { message: string } = await request(
-      '/auth/logout',
-      tokens.access_token,
-      {
-        method: 'POST',
-        body: JSON.stringify(tokens),
-      }
-    )
+  logout: async (token: AccessToken) => {
+    const response: { message: string } = await request('/auth/logout', token, {
+      method: 'POST',
+      body: JSON.stringify(token),
+    })
     toast.success(response.message)
   },
-  refresh: async (refreshToken: string): Promise<Tokens> => {
+  refresh: async (refreshToken: string): Promise<AccessToken> => {
     const response = await fetch(`${BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -161,7 +124,7 @@ export const authApi = {
       throw (await response.json()) as ApiError
     }
     const data = await response.json()
-    return data as Tokens
+    return data
   },
 }
 
@@ -241,133 +204,87 @@ export interface PluginsFull {
 export const entitiesApi = {
   create: async (
     payload: CreateEntityPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<Entity> => {
-    return request<Entity>(
-      '/entities',
-      token,
-      {
-        method: 'POST',
-        body: payload,
-      },
-      onExp
-    )
+    return request<Entity>('/entities', token, {
+      method: 'POST',
+      body: payload,
+    })
   },
   list: async (
     payload: Paginate,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<ListEntitiesResponse> => {
     const { skip, limit } = payload
     return request<ListEntitiesResponse>(
       `/entities?skip=${skip}&limit=${limit}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
-  getById: async (
-    id: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<Entity> => {
-    return request<Entity>(`/entities/${id}`, token, {}, onExp)
+  getById: async (id: string, token: AccessToken): Promise<Entity> => {
+    return request<Entity>(`/entities/${id}`, token, {})
   },
   update: async (
     payload: UpdateEntityPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<Entity> => {
-    return request<Entity>(
-      '/entities',
-      token,
-      {
-        method: 'PATCH',
-        body: payload,
-      },
-      onExp
-    )
+    return request<Entity>('/entities', token, {
+      method: 'PATCH',
+      body: payload,
+    })
   },
   delete: async (
     payload: DeleteEntityPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<void> => {
-    return request<void>(
-      '/entities',
-      token,
-      {
-        method: 'DELETE',
-        body: payload,
-      },
-      onExp
-    )
+    return request<void>('/entities', token, {
+      method: 'DELETE',
+      body: payload,
+    })
   },
   favorite: async (
     payload: FavoriteEntityPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<void> => {
-    return request<void>(
-      '/entities/favorite',
-      token,
-      {
-        method: 'POST',
-        body: payload,
-      },
-      onExp
-    )
+    return request<void>('/entities/favorite', token, {
+      method: 'POST',
+      body: payload,
+    })
   },
   listAttachments: async (
     graph_id: string,
     entity_id: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<AttachmentItem[]> => {
     return request<AttachmentItem[]>(
       `/entities/attachments?graph_id=${encodeURIComponent(graph_id)}&entity_id=${encodeURIComponent(entity_id)}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
   // New plugin-related endpoints
-  getPluginEntities: async (
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<Plugins> => {
-    return request<Plugins>('/entity', token, {}, onExp)
+  getPluginEntities: async (token: AccessToken): Promise<Plugins> => {
+    return request<Plugins>('/entity', token, {})
   },
   // Full plugin entities including blueprint and transforms (via ob entities json)
-  getPluginEntitiesFull: async (
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<PluginsFull> => {
-    return request<PluginsFull>('/entity/plugins/all', token, {}, onExp)
+  getPluginEntitiesFull: async (token: AccessToken): Promise<PluginsFull> => {
+    return request<PluginsFull>('/entity/plugins/all', token, {})
   },
   getEntityDetails: async (
     hid: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<EntityWithTransforms> => {
-    return request<EntityWithTransforms>(
-      `/entity/details/${hid}`,
-      token,
-      {},
-      onExp
-    )
+    return request<EntityWithTransforms>(`/entity/details/${hid}`, token, {})
   },
   getEntityTransforms: async (
     label: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<any[]> => {
     return request<any[]>(
       `/entity/plugins/transform/?label=${encodeURIComponent(label)}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
 }
@@ -433,127 +350,85 @@ export interface CaseActivityPage {
 export const graphsApi = {
   create: async (
     payload: CreateGraphPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<Graph> => {
-    return request<Graph>(
-      '/graphs',
-      token,
-      {
-        method: 'POST',
-        body: payload,
-      },
-      onExp
-    )
+    return request<Graph>('/graphs', token, {
+      method: 'POST',
+      body: payload,
+    })
   },
   list: async (
     payload: Paginate,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<ListGraphsResponse> => {
     const { skip, limit } = payload
     return request<ListGraphsResponse>(
       `/graphs?skip=${skip}&limit=${limit}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
-  getById: async (
-    id: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<GraphDetails> => {
-    return request<GraphDetails>(`/graphs/${id}`, token, {}, onExp)
+  getById: async (id: string, token: AccessToken): Promise<GraphDetails> => {
+    return request<GraphDetails>(`/graphs/${id}`, token, {})
   },
   update: async (
     payload: UpdateGraphPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<Graph> => {
-    return request<Graph>(
-      '/graphs',
-      token,
-      {
-        method: 'PATCH',
-        body: payload,
-      },
-      onExp
-    )
+    return request<Graph>('/graphs', token, {
+      method: 'PATCH',
+      body: payload,
+    })
   },
   delete: async (
     payload: DeleteGraphPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<void> => {
-    return request<void>(
-      '/graphs',
-      token,
-      {
-        method: 'DELETE',
-        body: payload,
-      },
-      onExp
-    )
+    return request<void>('/graphs', token, {
+      method: 'DELETE',
+      body: payload,
+    })
   },
   favorite: async (
     payload: FavoriteGraphPayload,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<void> => {
-    return request<void>(
-      '/graphs/favorite',
-      token,
-      {
-        method: 'POST',
-        body: payload,
-      },
-      onExp
-    )
+    return request<void>('/graphs/favorite', token, {
+      method: 'POST',
+      body: payload,
+    })
   },
 }
 
 export const casesApi = {
-  chord: async (
-    id: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<ChordResponse> => {
-    return request<ChordResponse>(`/cases/${id}/chord`, token, {}, onExp)
+  chord: async (id: string, token: AccessToken): Promise<ChordResponse> => {
+    return request<ChordResponse>(`/cases/${id}/chord`, token, {})
   },
   activity: async (
     id: string,
     payload: Paginate,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<CaseActivityPage> => {
     const { skip, limit } = payload
     return request<CaseActivityPage>(
       `/cases/${id}/activity?skip=${skip}&limit=${limit}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
   activitySummary: async (
     id: string,
     days: number,
-    token: Tokens['access_token'],
-    onExp?: OnExp
+    token: AccessToken
   ): Promise<CaseActivitySummary> => {
     return request<CaseActivitySummary>(
       `/cases/${id}/activity/summary?days=${days}`,
       token,
-      {},
-      onExp
+      {}
     )
   },
-  stats: async (
-    id: string,
-    token: Tokens['access_token'],
-    onExp?: OnExp
-  ): Promise<CaseStats> => {
-    return request<CaseStats>(`/cases/${id}/stats`, token, {}, onExp)
+  stats: async (id: string, token: AccessToken): Promise<CaseStats> => {
+    return request<CaseStats>(`/cases/${id}/stats`, token, {})
   },
 }
 

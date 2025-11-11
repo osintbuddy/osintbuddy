@@ -1,0 +1,74 @@
+/* start react flow style overrides */
+:root {
+  --xy-edge-stroke-default: #b1b1b7;
+  --xy-edge-stroke-width-default: 2;
+  --xy-edge-stroke-selected-default: #555;
+  --xy-connectionline-stroke-default: #b1b1b7;
+  --xy-connectionline-stroke-width-default: 1.5;
+  --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.08);
+  --xy-node-boxshadow-selected-default: 0 0 0 0.5px #1a192b;
+  --xy-node-border-radius-default: 3px;
+
+  --xy-handle-background-color-default: #1a192b;
+  --xy-handle-border-color-default: #fff;
+
+  --xy-selection-background-color-default: rgba(0, 89, 220, 0.08);
+  --xy-selection-border-default: 1px dotted rgba(0, 89, 220, 0.8);
+
+  --xy-background-color-props: #0d101a91;
+}
+
+.react-flow__edge .react-flow__edge-path {
+  stroke: #373c83 !important;
+  stroke-width: 2;
+}
+.react-flow__edge .react-flow__edge-path.connected {
+  stroke: var(--color-primary-350) !important;
+  stroke-width: 2;
+}
+.react-flow__handle.connectingto {
+  cursor: cell;
+}
+.react-flow__handle.react-flow__handle-left {
+  left: -8px;
+}
+.react-flow__handle.react-flow__handle-right {
+  left: calc(100% - 4px);
+}
+.react-flow__handle.react-flow__handle-top {
+  top: -8px;
+}
+.react-flow__handle.react-flow__handle-bottom {
+  top: calc(100% - 4px);
+}
+.validationflow .react-flow__handle.connectingto {
+  border-color: var(--color-red-600);
+}
+.validationflow .react-flow__handle.valid {
+  border-color: var(--color-green-600);
+}
+.react-flow__handle.connectionindicator {
+  border-width: 1.75px;
+  border-color: #24296e99;
+  background-color: #0c0c1f9f;
+  transition:
+    background-color ease-in 75ms,
+    border-color ease-in 75ms;
+}
+.react-flow__handle.connectionindicator:hover {
+  border-color: var(--color-primary-500);
+  background-color: var(--color-primary-500);
+}
+.react-flow__handle.connectionindicator:focus,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-400);
+  cursor: cell;
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path,
+.react-flow__edge.selectable.selected .react-flow__edge-path {
+  stroke: #3b419eee;
+}
+/* end react flow style overrides */

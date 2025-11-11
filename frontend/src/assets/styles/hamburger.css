@@ -1,0 +1,73 @@
+/* start Animated CSS Hamburger Menu */
+.hamburger.is-active {
+  transition: transform;
+  transform: rotate(-45deg);
+  transition-duration: 300ms;
+}
+
+.hamburger {
+  position: relative;
+  transform: rotate(0deg);
+  -webkit-transition: all 0.15s ease-in-out;
+  -o-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+}
+
+.hamburger:hover {
+  cursor: pointer;
+}
+
+.hamburger:hover .line {
+  background-color: rgb(71 85 105);
+}
+
+.hamburger .line {
+  background-color: rgb(51 65 85);
+  border-radius: 50px;
+  height: 2px;
+  display: block;
+  margin: 6px auto;
+  -webkit-transition: all 0.15s ease-in-out;
+  -o-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+}
+
+.hamburger.is-active .line:nth-child(1),
+.hamburger.is-active .line:nth-child(2),
+.hamburger.is-active .line:nth-child(3) {
+  width: 20px;
+}
+
+.hamburger .line:nth-child(1) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger .line:nth-child(2) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger .line:nth-child(3) {
+  width: 26px;
+  margin-right: 100%;
+}
+
+.hamburger.is-active .line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .line:nth-child(1) {
+  -webkit-transform: translateY(8px);
+  -ms-transform: translateY(8px);
+  -o-transform: translateY(8px);
+  transform: translateY(8px);
+}
+
+.hamburger.is-active .line:nth-child(3) {
+  -webkit-transform: translateY(-8px) rotate(90deg);
+  -ms-transform: translateY(-8px) rotate(90deg);
+  -o-transform: translateY(-8px) rotate(90deg);
+  transform: translateY(-8px) rotate(90deg);
+}
+/* end Animated CSS Hamburger Menu */

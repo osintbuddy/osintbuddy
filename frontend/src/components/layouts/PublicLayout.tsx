@@ -1,11 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
-import type { JSX } from 'preact/jsx-runtime'
+import { type JSX } from 'preact/jsx-runtime'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'preact/hooks'
 import { Icon } from '../icons'
 import Logo from '@/assets/images/logo.svg'
-import Button from '../buttons'
 import { useAuthStore } from '@/app/store'
 
 function PublicNavbar(): JSX.Element {
@@ -29,7 +28,7 @@ function PublicNavbar(): JSX.Element {
 
   return (
     <header
-      class={`sticky top-0 z-50 flex w-full flex-nowrap items-center justify-between px-4 py-2.5 shadow-md shadow-slate-900/5 transition duration-500 sm:flex-wrap sm:px-6 lg:px-16 dark:shadow-none ${isScrolled ? 'bg-black/85 backdrop-blur [@supports(backdrop-filter:blur(0))]:bg-black/30' : 'bg-transparent'}`}
+      class={`border-b-mirage-800 sticky top-0 z-50 flex w-full flex-nowrap items-center justify-between border-b px-4 py-2.5 shadow-md shadow-slate-400/5 transition duration-500 sm:flex-wrap sm:px-6 lg:px-22 dark:shadow-none ${isScrolled ? 'bg-backdrop-500/50 backdrop-blur-xs' : 'bg-backdrop-400/60'}`}
     >
       <div class='flex lg:hidden'>
         <NavLink to='/'>
@@ -55,7 +54,7 @@ function PublicNavbar(): JSX.Element {
       >
         <Icon
           icon='brand-discord'
-          className='h-6 w-6 text-slate-500 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
+          className='h-6 w-6 text-slate-400 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
         />
       </a>
       <a
@@ -66,46 +65,43 @@ function PublicNavbar(): JSX.Element {
       >
         <Icon
           icon='brand-github'
-          className='h-6 w-6 text-slate-500 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
+          className='h-6 w-6 text-slate-400 transition-colors duration-150 ease-in-out hover:text-slate-300 focus:text-slate-300'
         />
       </a>
       {!isDocsPage && (
         <button
-          className='font-code before:bg-primary-300 group relative flex border border-slate-400/5 bg-black/1 px-3 py-1 font-semibold text-slate-400 backdrop-blur-sm transition-all duration-300 ease-out before:absolute before:bottom-0 before:left-1/2 before:flex before:h-0.5 before:w-0 before:-translate-1/2 before:items-center before:transition-all before:duration-200 before:content-[""] hover:bg-black/10 hover:text-slate-300 hover:before:w-full'
+          className='font-art before:bg-backdrop-500 hover:text-backdrop-500 relative flex rounded-xs border border-slate-400 px-3.5 py-1 leading-4 font-semibold text-slate-400 uppercase transition-all duration-300 ease-out before:absolute before:-bottom-1.5 before:left-1/2 before:h-1 before:w-0 before:-translate-1/2 before:transition-all before:duration-200 before:content-[""] hover:bg-slate-300 hover:before:w-[calc(100%+2px)]'
           onClick={() => navigate('/docs/overview')}
         >
-          OSIB://BOOK
-          <Icon
-            icon='book'
-            className='btn-icon group-hover:animate-wiggle relative top-[2px]'
-          />
+          The Book
+          <Icon icon='book' className='btn-icon relative' />
         </button>
       )}
       {isAuthenticated && isDocsPage && (
-        <Button.Solid
-          variant='primary'
-          className='!font-code !font-bold'
+        <button
+          className='font-art before:bg-backdrop-500 hover:text-backdrop-500 relative flex rounded-xs border border-slate-400 px-3.5 py-1 leading-4 font-semibold text-slate-400 uppercase transition-all duration-300 ease-out before:absolute before:-bottom-1.5 before:left-1/2 before:h-1 before:w-0 before:-translate-1/2 before:transition-all before:duration-200 before:content-[""] hover:bg-slate-300 hover:before:w-[calc(100%+2px)]'
           onClick={() => navigate('/dashboard/cases')}
         >
-          OSIB://ACCESS
+          Open OSIB
           <Icon icon='folder-open' className='btn-icon' />
-        </Button.Solid>
+        </button>
       )}
       {!isAuthenticated && isDocsPage && (
-        <Button.Solid
-          variant='primary'
-          className='!font-code !font-bold'
-          onClick={() => navigate('/login')}
+        <button
+          className='font-art before:bg-backdrop-500 hover:text-backdrop-500 relative flex rounded-xs border border-slate-400 px-3.5 py-1 leading-4 font-semibold text-slate-400 uppercase transition-all duration-300 ease-out before:absolute before:-bottom-1.5 before:left-1/2 before:h-1 before:w-0 before:-translate-1/2 before:transition-all before:duration-200 before:content-[""] hover:bg-slate-300 hover:before:w-[calc(100%+2px)]'
+          onClick={() => {
+            window.location.href = window.sdk.getSigninUrl()
+          }}
         >
-          OSIB://LOGIN
+          Sign in
           <Icon icon='key' className='btn-icon ml-3' />
-        </Button.Solid>
+        </button>
       )}
     </header>
   )
 }
 
-export default function PublicLayout(): React.ReactElement {
+export default function PublicLayout(): JSX.Element {
   return (
     <>
       <PublicNavbar />

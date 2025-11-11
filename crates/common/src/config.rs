@@ -1,4 +1,3 @@
-use casdoor_rust_sdk::CasdoorConfig;
 use confik::{Configuration, EnvSource};
 use log::error;
 use tokio::sync::OnceCell;
@@ -25,6 +24,12 @@ pub struct AppConfig {
     pub upload_max_inline_mb: Option<u64>,
 
     pub casdoor_conf: String,
+
+    // worker
+    // todo: these should probably be different configs...
+    pub worker_tick_ms: u64,
+    pub worker_batch: i64,
+    pub worker_lease_seconds: i32,
 }
 
 pub static CFG: OnceCell<AppConfig> = OnceCell::const_new();
@@ -52,6 +57,9 @@ pub async fn cfg() -> AppConfig {
                 ),
                 upload_max_inline_mb: Some(100),
                 casdoor_conf: String::from("auth.toml"),
+                worker_tick_ms: 500,
+                worker_batch: 8,
+                worker_lease_seconds: 300,
             };
             error!(
                 "No `.env` file found, using default configuration: {:?}\nError loading env: {}",

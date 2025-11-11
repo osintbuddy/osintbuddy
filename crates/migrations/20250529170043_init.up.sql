@@ -1,6 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-
 -- Streams provide ordering and tenant/category scoping
 CREATE TABLE IF NOT EXISTS event_streams (
   stream_id         UUID PRIMARY KEY,
@@ -24,7 +23,7 @@ CREATE TABLE IF NOT EXISTS events (
   recorded_at       TIMESTAMPTZ NOT NULL DEFAULT now(), -- system time (tx-time)
   causation_id      UUID,                    -- event that caused this (optional)
   correlation_id    UUID,                    -- request/task correlation
-  actor_id          BIGSERIAL NOT NULL,        
+  actor_id          UUID NOT NULL,        
   UNIQUE (stream_id, version)
 );
 
@@ -94,15 +93,15 @@ FOR EACH ROW EXECUTE FUNCTION notify_jobs_new();
 -- Cases are the reference to a specific set entities and their relationships
 CREATE TABLE IF NOT EXISTS cases (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID UNIQUE DEFAULT UUID_generate_v4(),
+    uuid UUID UNIQUE DEFAULT uuid_generate_v4(),
     label TEXT NOT NULL,
     description TEXT NOT NULL,
     ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    org_id BIGSERIAL NOT NULL,
-    owner_id BIGSERIAL NOT NULL
+    org TEXT NOT NULL,
+    owner_id UUID NOT NULL
 );
-CREATE INDEX cases_org_id_idx ON cases (org_id);
+CREATE INDEX cases_org_id_idx ON cases (org);
 
 -- Current entity state
 CREATE TABLE IF NOT EXISTS entities_current (
@@ -143,8 +142,8 @@ CREATE INDEX IF NOT EXISTS edges_current_src_dst_open_idx ON edges_current(src_i
 
 CREATE TABLE IF NOT EXISTS favorite_cases (
     case_id BIGSERIAL NOT NULL,
-    owner_id BIGSERIAL NOT NULL,
-    PRIMARY KEY (owner_id, case_id),
+    owner_id UUID NOT NULL,
+    PRIMARY KEY (owner_id, case_id)
 );
 CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 
@@ -152,22 +151,22 @@ CREATE INDEX favorite_cases_owner_id_idx ON favorite_cases (owner_id);
 -- long as some simple rules and data structures are followed...
 CREATE TABLE IF NOT EXISTS entities (
     id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT UUID_generate_v4(),
+    uuid UUID DEFAULT UUID_generate_v4() NOT NULL,
     label TEXT NOT NULL,
     description TEXT NOT NULL,
     author TEXT NOT NULL,
     code TEXT NOT NULL,
-    org_id BIGSERIAL NOT NULL,
+    org TEXT NOT NULL,
     ctime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     mtime TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    owner_id BIGSERIAL NOT NULL
+    owner_id UUID NOT NULL
 );
 CREATE INDEX entities_owner_id_idx ON entities (owner_id);
-CREATE INDEX entities_shared_with_org_id_idx ON entities (org_id);
+CREATE INDEX entities_shared_with_org_id_idx ON entities (org);
 
 CREATE TABLE IF NOT EXISTS favorite_entities (
     entity_id BIGSERIAL NOT NULL,
-    owner_id BIGSERIAL NOT NULL,
+    owner_id UUID NOT NULL,
     PRIMARY KEY (owner_id, entity_id)
 );
 CREATE INDEX favorite_entities_owner_id_idx ON favorite_entities (owner_id);
@@ -177,7 +176,7 @@ CREATE TABLE IF NOT EXISTS entity_attachments (
   attachment_id   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   graph_id        UUID NOT NULL REFERENCES cases(uuid) ON DELETE CASCADE,
   entity_id       UUID NOT NULL,
-  owner_id        BIGINT NOT NULL,
+  owner_id        UUID NOT NULL,
   filename        TEXT NOT NULL,
   media_type      TEXT NOT NULL,
   size            BIGINT NOT NULL,

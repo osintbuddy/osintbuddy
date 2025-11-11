@@ -10,7 +10,7 @@ import { Icon } from '@/components/icons'
 import { toast } from 'react-toastify'
 import { JSX } from 'preact/jsx-runtime'
 import { Entity, Graph, CreateEntityPayload } from '@/app/api'
-import { useEntitiesStore, useGraphsStore } from '@/app/store'
+import { useEntitiesStore, useCasesStore } from '@/app/store'
 
 export interface ScrollGraphs {
   skip?: number | undefined
@@ -47,11 +47,11 @@ export default function DashboardPage() {
     isLoading: loadingGraphs,
     error: graphsError,
     isCreating: isCreatingGraph,
-    fetchGraphs,
-    createGraph,
-    favoriteGraph,
-    unfavoriteGraph,
-  } = useGraphsStore()
+    fetchCases: fetchGraphs,
+    createCase: createGraph,
+    favoriteCase: favoriteGraph,
+    unfavoriteCase: unfavoriteGraph,
+  } = useCasesStore()
 
   // Integration with useEntities hook
   const {

@@ -34,8 +34,11 @@ pub async fn upload_entity_attachment_handler(
         message: "Malformed multipart payload.",
     })? {
         let mut field = field;
-        let name = field.name().to_string();
-        match name.as_str() {
+        let Some(name) = field.name() else {
+            return Err(AppError { message: "" });
+        };
+
+        match name {
             "graph_id" => {
                 let mut buf = Vec::new();
                 while let Some(chunk) = field.try_next().await.map_err(|_| AppError {
@@ -78,7 +81,10 @@ pub async fn upload_entity_attachment_handler(
             }
             "file" => {
                 // filename and content-type
-                let cd = field.content_disposition();
+                let Some(cd) = field.content_disposition() else {
+                    return Err(AppError { message: "" });
+                };
+
                 if let Some(f) = cd.get_filename() {
                     filename = Some(f.to_string());
                 }
@@ -118,7 +124,7 @@ pub async fn upload_entity_attachment_handler(
                 if let Ok(row) = sqlx::query!(
                     r#"SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2"#,
                     *numeric_id as i64,
-                    auth.account_id
+                    auth.user.id
                 )
                 .fetch_one(pool.as_ref())
                 .await
@@ -152,7 +158,7 @@ pub async fn upload_entity_attachment_handler(
     )
     .bind(graph_uuid)
     .bind(entity_id)
-    .bind(auth.account_id)
+    .bind(auth.user.id)
     .bind(&filename)
     .bind(&media_type)
     .bind(size)
@@ -185,7 +191,7 @@ pub async fn upload_entity_attachment_handler(
             correlation_id: None,
             causation_id: None,
             expected_version: None,
-            actor_id: Some(auth.account_id),
+            actor_id: auth.user.id,
         },
     )
     .await;
@@ -220,7 +226,6 @@ pub struct AttachmentItem {
 pub async fn list_entity_attachments_handler(
     pool: db::Database,
     auth: AuthMiddleware,
-    app: AppData,
     query: Query<ListAttachmentsQuery>,
     sqids: Data<Sqids>,
 ) -> Result<HttpResponse, AppError> {
@@ -234,7 +239,7 @@ pub async fn list_entity_attachments_handler(
             if let Ok(row) = sqlx::query!(
                 r#"SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2"#,
                 *numeric_id as i64,
-                auth.account_id
+                auth.user.id
             )
             .fetch_one(pool.as_ref())
             .await
@@ -263,7 +268,7 @@ pub async fn list_entity_attachments_handler(
         "#,
         graph_uuid,
         entity_uuid,
-        auth.account_id
+        auth.user.id
     )
     .fetch_all(pool.as_ref())
     .await
@@ -307,7 +312,7 @@ pub async fn get_entity_attachment_handler(
         WHERE attachment_id = $1 AND owner_id = $2
         "#,
         attachment_id,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -348,7 +353,7 @@ pub async fn delete_entity_attachment_handler(
     let res = sqlx::query!(
         r#"DELETE FROM entity_attachments WHERE attachment_id=$1 AND owner_id=$2"#,
         attachment_id,
-        auth.account_id
+        auth.user.id
     )
     .execute(pool.as_ref())
     .await

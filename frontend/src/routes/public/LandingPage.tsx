@@ -1,111 +1,96 @@
-import type { JSX } from 'preact'
-import { HeroBackground } from '@/components/HeroBackground'
-import Button from '@/components/buttons'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Icon } from '@/components/icons'
-import { Callout } from '@/components/docs/Callout'
-import { useAuthStore } from '@/app/store'
-
-const QUOTES = [
-  'Find the connections that matter to you',
-  ...Array(2).fill('Unlock the potential of public data'),
-  'Vision is the art of seeing insight in the invisible',
-  'Transform data into connected knowledge',
-  'Unraveling mysteries for insights',
-  ...Array(2).fill(
-    'All truths are easy to understand once they are discovered'
-  ),
-]
+import { type JSX } from 'preact'
+import ScrambleText from '@/components/ScrambleText'
+import HeroSvg from '@/assets/images/grid-tiles-mask.svg'
+import FeatureCard from '@/components/cards/FeatureCard'
+import HeroCard from '@/components/cards/HeroCard'
 
 export default function LandingPage(): JSX.Element {
-  const atfQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)]
-  const navigate = useNavigate()
-  const { isAuthenticated, logout } = useAuthStore()
-
   return (
-    <div class='items-between relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-between'>
-      <div class='mx-auto mt-36 items-center md:mt-52'>
-        <div class='relative text-center'>
-          <section class='relative flex flex-col items-center pb-12'>
-            <h2 class='from-primary-200 to-primary-200 font-display inline max-w-[50rem] bg-gradient-to-br via-blue-500 bg-clip-text px-2 text-center text-2xl font-medium tracking-tight text-transparent md:text-[2.75rem] md:leading-14'>
-              Elevate your Research with
-              <br /> Strategic Insights from Public Data
-            </h2>
-            <p class='text-slate-350 md:text-md max-w-3xl px-3 pt-1 text-lg md:px-0'>
-              Meet your next-generation research companion. With a Python plugin
-              system you can extract, enrich, and map relationships across
-              public data. From domains to organizations to the humans behind
-              them. Reveal how entities connect, and let the network tell its
-              story.
-            </p>
-
-            <div class='mt-4 flex justify-center gap-4'>
-              {isAuthenticated ? (
-                <Button.Solid
-                  variant='primary'
-                  onClick={() => navigate('/dashboard/cases')}
-                >
-                  Launch OSINTBuddy
-                  <Icon icon='rocket' className='btn-icon' />
-                </Button.Solid>
-              ) : (
-                <Button.Solid
-                  variant='primary'
-                  onClick={() => navigate('/login')}
-                >
-                  Sign in
-                  <Icon icon='fingerprint' className='btn-icon' />
-                </Button.Solid>
-              )}
-              {isAuthenticated ? (
-                <Button.Ghost variant='primary' onClick={() => logout()}>
-                  Sign out
-                  <Icon icon='lock' className='btn-icon' />
-                </Button.Ghost>
-              ) : (
-                <Button.Ghost
-                  variant='primary'
-                  onClick={() => navigate('/register')}
-                >
-                  Create account
-                  <Icon icon='user-plus' className='btn-icon' />
-                </Button.Ghost>
-              )}
+    <>
+      <img src={HeroSvg} alt='' className='absolute top-0 left-0' />
+      <main class='bg-backdrop-500 z-0 flex flex-col'>
+        <div class='grid grid-cols-12 grid-rows-1'>
+          {/* diagonal stripe and hero text */}
+          <div className='grid-cols-1'> {/** todo */}</div>
+          <div className='grid-cols-1'> {/** todo */}</div>
+          <div className='flex items-center'>
+            <div className='ml-18 flex h-full flex-col items-center justify-center px-30'>
+              <HeroCard />
             </div>
-          </section>
-          <div className='fixed right-5/11 bottom-1/6 -z-50 [mask-image:linear-gradient(#05050520,,#050505)] select-none md:right-1/11'>
-            <HeroBackground className='absolute translate-y-[-60%] -rotate-90 lg:right-[40%]' />
           </div>
         </div>
-      </div>
-      <div className='absolute top-0 left-4.5 *:mx-0 *:my-2 *:mr-4 lg:top-auto lg:bottom-3 lg:max-w-lg'>
-        <Callout type='warning' title='Experimental Software (v0.3.0)'>
-          <p>
-            Please note that OSINTBuddy is currently experimental software. We
-            do not recommend using this project for anything serious!
-          </p>
-        </Callout>
-      </div>
-      <section class='relative bottom-0 mt-auto flex flex-col justify-center px-4 md:mx-auto md:items-center md:px-0'>
-        <section className='flex flex-col items-center'>
-          <h1 class='font-display text-slate-350 text-2xl tracking-tight'>
-            {atfQuote}
-          </h1>
-          <p class='text-slate-350 mb-2'>
-            Email me at&nbsp;
-            <a href='mailto:oss@osintbuddy.com' class='link'>
-              oss@osintbuddy.com
-            </a>
-            &nbsp;to share ideas, bugs, and or{' '}
-            <NavLink
-              to='/docs/contrib/bugs-security'
-              class='hover:text-danger-500 mx-px font-sans transition-colors duration-100 ease-in-out after:content-[".."] hover:underline hover:after:content-["?"]'
-            >
-              security concerns
-            </NavLink>
-          </p>
-        </section>
-      </section>
-    </div>
+
+        <div class='bg-surface border-mirage-800 relative mt-100 flex h-full justify-center border-t-1 py-10'>
+          <section className='-left-50% right-50% bg-backdrop-500 absolute -top-0.5 flex h-1 w-[34rem] items-center justify-center text-[2em]'>
+            <h3 class='font-display absolute -top-6 left-5 text-nowrap'>
+              <ScrambleText
+                className='text-art illuminate-out-text'
+                delay={0}
+                speed={120}
+                hold={100}
+                phrases={['Introducing OSINTBuddy']}
+              />
+            </h3>
+            <h3 class='font-display absolute -top-6 left-8 text-nowrap'>
+              <ScrambleText
+                style={{ '--vanish-delay': '1.75s' }}
+                className='text-art illuminate-out-hold'
+                delay={3750}
+                speed={60}
+                hold={360}
+                phrases={['Elevate your Research']}
+              />
+            </h3>
+          </section>
+          <div className='flex flex-col gap-y-8'>
+            <div className='flex w-full items-center justify-center gap-x-16 px-16 text-slate-400'>
+              <FeatureCard
+                icon='chart-dots-3'
+                title='Network Visualization'
+                description='Visualize and collect data points through an interactive click and drag graph interface. Attach files, comment, and collaborate like never before.'
+                iconClass='text-blue-600'
+              />
+              <FeatureCard
+                icon='plug-connected'
+                title='Powered by Plugins'
+                description='Create custom plugins for your needs. The osintbuddy python package has everything you need. We keep you safe by running plugins in a battle-tested sandbox.'
+                iconClass='text-amber-600'
+              />
+              <FeatureCard
+                icon='code'
+                title='Workspaces'
+                description='Build entities through a no-code drag and drop builder in the workspace. Drop down to our code editor for creating transforms and for fine-grained control.'
+                iconClass='text-green-600'
+                comingSoon={true}
+              />
+            </div>
+            <div className='flex w-full items-center justify-between gap-x-16 px-16 text-slate-400'>
+              <FeatureCard
+                icon='message'
+                title='Graph Narratives'
+                description='Imagine a timeline or story view that summarizes key relationships and findings. Each pivot you take becomes a paragraph for your reports.'
+                iconClass='text-emerald-600'
+                comingSoon={true}
+              />
+              <FeatureCard
+                icon='building-store'
+                title='Community Marketplace'
+                description='Download verified plugins for entities and transforms from trusted community members. Or place request bounties to get our developers to build what you need.'
+                iconClass='text-violet-500'
+                comingSoon={true}
+              />
+              <FeatureCard
+                icon='hourglass-low'
+                title='Temporal Graphs'
+                description='Replay your investigations over time, see how entities and links evolve with verifiable lineage through public archives and our auditable append-only event log.'
+                iconClass='text-fuchsia-600'
+                comingSoon={true}
+              />
+            </div>
+          </div>
+        </div>
+        <div className='flex h-screen w-screen'></div>
+      </main>
+    </>
   )
 }

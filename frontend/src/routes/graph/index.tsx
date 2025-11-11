@@ -51,8 +51,7 @@ export default function Graphing() {
     useTour()
   const { graph, getGraph, isLoading, isError } = useGraphStore()
   const { setPlugins, setBlueprints, blueprints } = useEntitiesStore()
-  const { access_token } = useAuthStore()
-  console.log('blueprints', blueprints)
+  const { accessToken } = useAuthStore()
   const {
     nodes,
     edges,
@@ -99,17 +98,17 @@ export default function Graphing() {
     useWebSocket(`ws://${WS_URL}/graph/${hid}/ws`, {
       share: true,
       // Always try to reconnect unless it's an intentional close
-      shouldReconnect: (closeEvent) => closeEvent?.code !== 1000,
+      shouldReconnect: (closeEvent) => false,
       retryOnError: false,
       reconnectAttempts: 10,
       reconnectInterval: (attemptNumber) =>
-        Math.min(1000 + attemptNumber * 1000, 1000),
+        Math.min(1000 + attemptNumber * 5000, 5000),
       onOpen: () => {
         toast.dismiss('connection-lost')
         toast.dismiss('connection-error')
         sendJsonMessage({
           action: 'auth',
-          token: access_token,
+          token: accessToken,
         })
       },
       onReconnectStop: (numAttempts) => {

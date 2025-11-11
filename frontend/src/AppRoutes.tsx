@@ -13,7 +13,7 @@ import RegisterPage from './routes/public/RegisterPage'
 import LoginPage from './routes/public/LoginPage'
 import LandingPage from '@/routes/public/LandingPage'
 import TermsOfService from './routes/public/Tos'
-
+import CallbackPage from './routes/public/Callback'
 // Doc routes
 import Documentation from './routes/docs/Documentation'
 import { Icon } from './components/icons'
@@ -60,6 +60,10 @@ const router = createBrowserRouter([
       {
         path: '/docs/*',
         element: <Documentation />,
+      },
+      {
+        path: '/callback',
+        element: <CallbackPage />,
       },
     ],
   },
@@ -165,7 +169,7 @@ const router = createBrowserRouter([
 
 export default function AppRoutes(): JSX.Element {
   // const [tourSteps, _] = useAtom(tourAtom)
-  // todo: use 'zustand' to set multiple tours around app 
+  // todo: use 'zustand' to set multiple tours around app
   const tourSteps: StepType[] = []
 
   return (

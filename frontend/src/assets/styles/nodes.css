@@ -1,26 +1,26 @@
 /* Start node */
 .node.container {
-  @apply flex flex-col w-auto max-w-sm justify-between rounded-md transition-all duration-150 ease-in-out ring-1 ring-slate-900/70 hover:ring-slate-900 bg-slate-925 cursor-grab active:cursor-grabbing focus:cursor-grabbing py-px shadow-lg shadow-black/25;
+  @apply bg-slate-925 flex w-auto max-w-sm cursor-grab flex-col justify-between rounded-md py-px shadow-lg ring-1 shadow-black/25 ring-slate-900/70 transition-all duration-150 ease-in-out hover:ring-slate-900 focus:cursor-grabbing active:cursor-grabbing;
 }
 
 .node .header {
-  @apply flex h-full w-full items-center justify-between rounded-t-md text-slate-50/70 p-1 select-none cursor-grab active:cursor-grabbing focus:cursor-grabbing;
+  @apply flex h-full w-full cursor-grab items-center justify-between rounded-t-md p-1 text-slate-50/70 select-none focus:cursor-grabbing active:cursor-grabbing;
 }
 
 .node .header svg {
-  @apply !h-13 !w-13 cursor-grab active:cursor-grabbing focus:cursor-grabbing;
+  @apply !h-13 !w-13 cursor-grab focus:cursor-grabbing active:cursor-grabbing;
 }
 
 .node .side-header {
-  @apply px-0 py-2 shrink-0 flex flex-col items-center justify-center w-10 text-slate-50 text-sm font-medium rounded-l-sm;
+  @apply flex w-10 shrink-0 flex-col items-center justify-center rounded-l-sm px-0 py-2 text-sm font-medium text-slate-50;
 }
 
 .node .side-header svg {
-  @apply w-5 h-5;
+  @apply h-5 w-5;
 }
 
 .node .node-display {
-  @apply w-full flex flex-col ;
+  @apply flex w-full flex-col;
 }
 
 .node .node-display h1 {
@@ -34,15 +34,14 @@
 .node .node-display h1,
 .node .node-display h2,
 .node .node-display p {
-  @apply font-semibold text-slate-400 font-sans break-words text-sm hover:cursor-pointer;
+  @apply font-sans text-sm font-semibold break-words text-slate-400 hover:cursor-pointer;
 }
 .node .node-display p {
-  @apply text-xs font-normal pt-1.5;
+  @apply pt-1.5 text-xs font-normal;
 }
 .node .node-display h2 {
   @apply text-xs;
 }
-
 
 .text-container {
   @apply flex w-full flex-col px-2 font-medium;
@@ -50,25 +49,24 @@
 
 .text-container p:first-child,
 .text-container p:first-child > span {
-  @apply text-[0.4rem] text-slate-100/90 font-display;
+  @apply font-display text-[0.4rem] text-slate-100/90;
 }
 
 .text-container p:last-child {
-  @apply text-xs text-slate-200 max-w-xl font-display font-medium;
+  @apply font-display max-w-xl text-xs font-medium text-slate-200;
 }
 
 .node-field {
-  @apply block  w-full rounded-sm  relative text-sm leading-4  hover:border-mirage-200/50 transition-colors duration-75 ease-in-out justify-between items-center to-black/35 from-black/10 bg-gradient-to-br border focus-within:!border-primary-350  text-slate-400 shadow-sm border-mirage-200/30  focus-within:from-black/45 focus-within:to-black/20 focus-within:bg-gradient-to-l pl-0.5;
+  @apply hover:border-mirage-200/50 focus-within:!border-primary-350 border-mirage-200/30 relative block w-full items-center justify-between rounded-sm border bg-gradient-to-br from-black/10 to-black/35 pl-0.5 text-sm leading-4 text-slate-400 shadow-sm transition-colors duration-75 ease-in-out focus-within:bg-gradient-to-l focus-within:from-black/45 focus-within:to-black/20;
 }
 
 .node-field svg {
-  @apply h-4 w-4  absolute right-1 top-1 text-slate-900 pointer-events-none;
+  @apply pointer-events-none absolute top-1 right-1 h-4 w-4 text-slate-900;
 }
 
 .node-field input {
-  @apply pr-5 pl-1 py-[3px] text-inherit placeholder:text-slate-800   font-sans focus:outline-hidden focus:ring-0 transition-colors duration-100 ease-in    ;
+  @apply py-[3px] pr-5 pl-1 font-sans text-inherit transition-colors duration-100 ease-in placeholder:text-slate-800 focus:ring-0 focus:outline-hidden;
 }
-
 
 .node-field.dropdown input {
   @apply pl-1.5;
@@ -76,7 +74,7 @@
 
 /* @todo :has is not supported by firefox yet :( */
 .node-field:has(input:focus) {
-  @apply ring-info-400/70;
+  @apply ring-blue-300/40;
 }
 
 .node-field:has(input:focus) svg {
@@ -84,12 +82,12 @@
 }
 
 p.node-label {
-  @apply text-[0.5rem] font-medium text-slate-400 font-display mt-1;
+  @apply font-display mt-1 text-[0.5rem] font-medium text-slate-400;
 }
 /* End node */
 
 .elements {
-  @apply p-2 grid rounded-b-md  gap-x-1;
+  @apply grid gap-x-1 rounded-b-md p-2;
 }
 
 .elements > div:nth-child(even) {
@@ -100,16 +98,11 @@ p.node-label {
   color: #797979;
 }
 
-
-.triangle-left{
+.triangle-left {
   width: 0;
   height: 0;
   margin: 30px auto;
-  border-top:
-    12px solid transparent;
-  border-bottom:
-    12px solid transparent;
-    border-right:
-    20px solid  rgb(23 35 65);
-  
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-right: 20px solid rgb(23 35 65);
 }

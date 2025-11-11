@@ -1,5 +1,12 @@
-import { Graph, CaseActivityItem, casesApi, CaseStats, ChordNode, ChordLink } from '@/app/api'
-import { useAuthStore, useGraphStore, useGraphsStore } from '@/app/store'
+import {
+  Graph,
+  CaseActivityItem,
+  casesApi,
+  CaseStats,
+  ChordNode,
+  ChordLink,
+} from '@/app/api'
+import { useAuthStore, useGraphStore, useCasesStore } from '@/app/store'
 import { Icon } from '@/components/icons'
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -45,7 +52,7 @@ function ActionButton({
 
 function CaseAppbarPanel({ graph }: GraphHeaderProps) {
   const navigate = useNavigate()
-  const { deleteGraph, isDeleting } = useGraphsStore()
+  const { deleteCase: deleteGraph, isDeleting } = useCasesStore()
 
   const handleDeleteGraph = async () => {
     // TODO: open 'confirm delete?' dialog before deletion
@@ -151,7 +158,7 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
   const [loading, setLoading] = useState(false)
   const [mineOnly, setMineOnly] = useState(false)
   const limit = 10
-  const token = useAuthStore.getState().access_token as string
+  const token = useAuthStore.getState().accessToken as string
   const me = useAuthStore.getState().user as any
   const myId = (me?.sub ?? '').toString()
 
@@ -177,7 +184,8 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
   )
 
   const titleByEvent = (e: CaseActivityItem) =>
-    `${e.category.charAt(0).toUpperCase()}${e.category.slice(1)} ${e.event_type
+    `${e.category.charAt(0).toUpperCase()}${e.category.slice(1)} ${
+      e.event_type
     }`
 
   const formatTime = (iso: string) =>
@@ -199,7 +207,7 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         const dst = e.payload?.target
         return src && dst ? `Link ${src} → ${dst}` : `Edge ${e.event_type}`
       }
-    } catch { }
+    } catch {}
     return `${e.category}:${e.event_type}`
   }
   const loadMore = async () => {
@@ -242,10 +250,11 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         <button
           type='button'
           onClick={() => setMineOnly(!mineOnly)}
-          class={`rounded px-2 py-0.5 text-xs transition-colors ${mineOnly
+          class={`rounded px-2 py-0.5 text-xs transition-colors ${
+            mineOnly
               ? 'bg-primary-500/20 text-primary-200'
               : 'bg-black/10 text-slate-500 hover:bg-black/30 hover:text-slate-300'
-            }`}
+          }`}
           title='Show only my activity'
         >
           Mine only
@@ -260,13 +269,12 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
         >
           {(mineOnly
             ? events.filter((e) => {
-              const actorMatch =
-                e.actor_id != null && String(e.actor_id) === myId
-              const payloadMatch =
-                e.payload?.actor?.id &&
-                String(e.payload.actor.id) === myId
-              return actorMatch || payloadMatch
-            })
+                const actorMatch =
+                  e.actor_id != null && String(e.actor_id) === myId
+                const payloadMatch =
+                  e.payload?.actor?.id && String(e.payload.actor.id) === myId
+                return actorMatch || payloadMatch
+              })
             : events
           ).map((e) => {
             const key = `${e.category}:${e.event_type}`
@@ -281,8 +289,8 @@ function CaseActivityPanel({ graphId }: { graphId: string }) {
               typeof actorRaw === 'string'
                 ? actorRaw
                 : actorRaw != null
-                ? String(actorRaw)
-                : ''
+                  ? String(actorRaw)
+                  : ''
             const initials = (actorName || 'os')
               .toString()
               .split(/\s+/)
@@ -336,12 +344,11 @@ interface CaseOverviewProps {
 }
 
 function CaseContextPanel({ graph }: CaseOverviewProps) {
-  const token = useAuthStore.getState().access_token as string
+  const token = useAuthStore.getState().accessToken as string
   const [stats, setStats] = useState<CaseStats | null>(null)
   const [loading, setLoading] = useState(false)
-  const { updateGraph, isUpdating } = useGraphsStore()
+  const { updateCase, isUpdating } = useCasesStore()
   const { getGraph } = useGraphStore()
-
   // Inline edit state
   const [editing, setEditing] = useState<null | 'label' | 'description'>(null)
   const [labelVal, setLabelVal] = useState<string>('')
@@ -397,15 +404,17 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
   const commitEdit = async () => {
     if (!graph || saving) return
     const newLabel = editing === 'label' ? labelVal.trim() : graph.label
-    const newDesc = editing === 'description' ? descVal.trim() : (graph.description ?? '')
-    const changed = newLabel !== graph.label || newDesc !== (graph.description ?? '')
+    const newDesc =
+      editing === 'description' ? descVal.trim() : (graph.description ?? '')
+    const changed =
+      newLabel !== graph.label || newDesc !== (graph.description ?? '')
     if (!changed) {
       cancelEdit()
       return
     }
     try {
       setSaving(true)
-      await updateGraph({ id: graph.id, label: newLabel, description: newDesc })
+      await updateCase({ id: graph.id, label: newLabel, description: newDesc })
       // Refresh details view store
       await getGraph(graph.id)
       toast.success('Case details updated')
@@ -459,7 +468,7 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
               onBlur={commitEdit}
               rows={1}
               disabled={saving || isUpdating}
-              className='bg-transparent w-full border-none outline-none resize-none text-inherit p-0 m-0 focus:ring-0 focus:outline-none'
+              className='m-0 w-full resize-none border-none bg-transparent p-0 text-inherit outline-none focus:ring-0 focus:outline-none'
               placeholder='Enter case title'
             />
           ) : (
@@ -494,12 +503,12 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
               onBlur={commitEdit}
               rows={3}
               disabled={saving || isUpdating}
-              className='bg-transparent w-full border-none outline-none resize-none text-inherit p-0 m-0 focus:ring-0 focus:outline-none'
+              className='m-0 w-full resize-none border-none bg-transparent p-0 text-inherit outline-none focus:ring-0 focus:outline-none'
               placeholder='Add a description for this case'
             />
           ) : graph?.description ? (
             <p
-              className='text-md whitespace-pre-wrap cursor-text'
+              className='text-md cursor-text whitespace-pre-wrap'
               onDblClick={() => beginEdit('description')}
               title='Double-click to edit description'
             >
@@ -507,7 +516,7 @@ function CaseContextPanel({ graph }: CaseOverviewProps) {
             </p>
           ) : (
             <p
-              className='text-md text-slate-600 cursor-text'
+              className='text-md cursor-text text-slate-600'
               onDblClick={() => beginEdit('description')}
               title='Double-click to add description'
             >
@@ -543,7 +552,7 @@ export default function GraphDetails() {
   const { getGraph, graph, vertices_count, edges_count, degree2_count } =
     useGraphStore()
   useEffect(() => getGraph(hid), [hid])
-  const token = useAuthStore.getState().access_token as string
+  const token = useAuthStore.getState().accessToken as string
   const [activityData, setActivityData] = useState<Record<string, number>>({})
   useEffect(() => {
     let cancelled = false
@@ -616,8 +625,10 @@ export default function GraphDetails() {
   // zoom & pan for chord diagram (panel stays fixed)
   const [chordZoom, setChordZoom] = useState(1)
   const [chordPan, setChordPan] = useState({ x: 0, y: 0 })
-  const zoomIn = () => setChordZoom((z) => Math.min(2, Number((z + 0.1).toFixed(2))))
-  const zoomOut = () => setChordZoom((z) => Math.max(0.5, Number((z - 0.1).toFixed(2))))
+  const zoomIn = () =>
+    setChordZoom((z) => Math.min(2, Number((z + 0.1).toFixed(2))))
+  const zoomOut = () =>
+    setChordZoom((z) => Math.max(0.5, Number((z - 0.1).toFixed(2))))
   const resetView = () => {
     setChordZoom(1)
     setChordPan({ x: 0, y: 0 })
@@ -627,18 +638,20 @@ export default function GraphDetails() {
     <>
       <div class='flex w-full flex-col pl-3'>
         <CaseAppbarPanel graph={graph} />
-        <div className='mt-3 flex h-full flex-col w-full overflow-y-scroll'>
+        <div className='mt-3 flex h-full w-full flex-col overflow-y-scroll'>
           <div class='flex h-full w-full justify-between'>
-            <div class='flex flex-col w-full gap-y-3 pr-3 max-w-6/8 min-w-6/8'>
+            <div class='flex w-full max-w-6/8 min-w-6/8 flex-col gap-y-3 pr-3'>
               <ActivityGrid data={activityData} />
-              <div className='text-slate-350 from-cod-900/60 to-cod-950/40 py-0 flex min-h-0 flex-col overflow-hidden rounded-md bg-gradient-to-br shadow-2xl shadow-black/25 backdrop-blur-sm'>
-
-                <div className='relative flex py-3 flex-col items-center justify-center' style={{ width: '100%', height: '100%' }}>
+              <div className='text-slate-350 from-cod-900/60 to-cod-950/40 flex min-h-0 flex-col overflow-hidden rounded-md bg-gradient-to-br py-0 shadow-2xl shadow-black/25 backdrop-blur-sm'>
+                <div
+                  className='relative flex flex-col items-center justify-center py-3'
+                  style={{ width: '100%', height: '100%' }}
+                >
                   {/* TODO: Add dropdown+tag based queries+filters for multiple diagrams */}
-                  <div className=' inline-flex items-center rounded-sm border border-slate-700/60 bg-slate-900/60 px-2 py-1 font-mono text-[10px] tracking-[0.25em] text-slate-300/80 uppercase'>
+                  <div className='inline-flex items-center rounded-sm border border-slate-700/60 bg-slate-900/60 px-2 py-1 font-mono text-[10px] tracking-[0.25em] text-slate-300/80 uppercase'>
                     entity types // relationships
                   </div>
-                  <div className='absolute right-2 top-2 z-10 flex gap-1'>
+                  <div className='absolute top-2 right-2 z-10 flex gap-1'>
                     <button
                       type='button'
                       onClick={zoomOut}
@@ -665,9 +678,14 @@ export default function GraphDetails() {
                     </button>
                   </div>
                   {/* TODO: clean me up, info box pan instructions */}
-                  <div className='absolute flex items-center left-2 bottom-2 z-10 rounded bg-black/40 group p-1 justify-center text-xs text-slate-300 transition-all'>
-                    <Icon icon='help' className="btn-icon  !mx-1.5 px-0 text-slate-400 group-hover:text-slate-350" />
-                    <span className="  w-px text-nowrap h-4 text-transparent group-hover:text-slate-350 group-hover:w-30 transition-all duration-150">Click and drag to pan</span>
+                  <div className='group absolute bottom-2 left-2 z-10 flex items-center justify-center rounded bg-black/40 p-1 text-xs text-slate-300 transition-all'>
+                    <Icon
+                      icon='help'
+                      className='btn-icon group-hover:text-slate-350 !mx-1.5 px-0 text-slate-400'
+                    />
+                    <span className='group-hover:text-slate-350 h-4 w-px text-nowrap text-transparent transition-all duration-150 group-hover:w-30'>
+                      Click and drag to pan
+                    </span>
                   </div>
                   <ChordDiagram
                     width={450}

@@ -16,3 +16,4 @@ log = { workspace = true }
 tokio = { workspace = true }
 dotenvy = { workspace = true }
 confik = { workspace = true }
+casdoor-rust-sdk = { workspace = true}

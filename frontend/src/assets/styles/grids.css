@@ -1,0 +1,93 @@
+/* diagonal repeating stripe */
+.diagonal-stripes {
+  grid-column-start: 1;
+  grid-row: 1 / span var(--row-span-full, 1);
+  grid-row-start: 1;
+
+  display: none;
+
+  border-left: 1px solid var(--pattern-fg, var(--color-black));
+  border-right: 1px solid var(--pattern-fg, var(--color-black));
+
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--pattern-fg, var(--color-black)) 0,
+    var(--pattern-fg, var(--color-black)) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  background-attachment: fixed;
+
+  --pattern-fg: color-mix(in srgb, var(--color-black) 5%, transparent);
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+.grid-gradient-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #060608;
+  z-index: -1;
+}
+
+.grid-gradient-cover {
+  --line: 92, 163, 173;
+  --line-alpha: 0.06; /* darker grid */
+  --size: 32px;
+  --thickness: 1px;
+  --fade-soft: 15%;
+  --fade-hard: 65%;
+
+  --gx: 0px;
+  --gy: 0px;
+  --r1x: 100%;
+  --r1y: 0%;
+  --r2x: 0%;
+  --r2y: 100%;
+  --fade-alpha: 0.85;
+  position: relative;
+  inset: 0;
+  background-color: #05060c;
+  background-image:
+    linear-gradient(
+      to left,
+      rgba(5, 5, 7, 0) var(--fade-soft),
+      rgba(5, 5, 7, calc(1 * var(--fade-alpha))) var(--fade-hard)
+    ),
+    linear-gradient(
+      to bottom right,
+      rgba(5, 5, 7, 0) var(--fade-soft),
+      rgba(5, 5, 7, calc(1 * var(--fade-alpha))) var(--fade-hard)
+    ),
+    linear-gradient(
+      to right,
+      rgba(var(--line), var(--line-alpha)) 0,
+      rgba(var(--line), var(--line-alpha)) var(--thickness),
+      transparent var(--thickness),
+      transparent var(--size)
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(var(--line), var(--line-alpha)) 0,
+      rgba(var(--line), var(--line-alpha)) var(--thickness),
+      transparent var(--thickness),
+      transparent var(--size)
+    );
+  background-size:
+    100% 100%,
+    100% 100%,
+    var(--size) var(--size),
+    var(--size) var(--size);
+  background-position:
+    var(--r1x) var(--r1y),
+    var(--r2x) var(--r2y),
+    calc(var(--gx)) 0px,
+    0px calc(var(--gy));
+}

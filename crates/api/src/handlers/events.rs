@@ -45,7 +45,7 @@ pub async fn append_event_handler(
         correlation_id: b.correlation_id,
         causation_id: b.causation_id,
         expected_version,
-        actor_id: Some(auth.account_id),
+        actor_id: auth.user.id.into(),
     };
 
     match eventstore::append_event(&pool, req).await {

@@ -8,7 +8,7 @@ export function Timelines({
   children: JSX.Element | JSX.Element[] | undefined
 }) {
   return (
-    <ol class='dark:border-mirage-300 relative border-l border-gray-200'>
+    <ol class='dark:border-mirage-300 border-mirage-300 relative border-l'>
       {children}
     </ol>
   )
@@ -32,11 +32,11 @@ export function Timeline({
       <span class='ring-mirage-800/30 from-primary-350 to-primary-200 absolute -left-3 flex h-8 w-8 items-center justify-center rounded-full bg-radial-[at_10%_65%] from-65% ring-8'>
         <Icon icon='calendar-week' className='h-4 w-4' />
       </span>
-      <h3 class='mb-1 flex items-center text-xl font-semibold text-gray-900 dark:text-slate-300'>
+      <h3 class='text-mirage-900 mb-1 flex items-center text-xl font-semibold dark:text-slate-300'>
         {' '}
         {title}
         {downloadLink && (
-          <span class='bg-primary-350 text-radiance-50 mr-2 ml-3 rounded px-2.5 py-0.5 text-sm font-medium'>
+          <span class='bg-primary-350 mr-2 ml-3 rounded px-2.5 py-0.5 text-sm font-medium text-blue-50'>
             Latest
           </span>
         )}

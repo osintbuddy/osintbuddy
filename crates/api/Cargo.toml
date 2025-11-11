@@ -16,7 +16,6 @@ confik = { workspace = true }
 dotenvy = { workspace = true }
 env_logger = { workspace = true }
 futures-util = { workspace = true }
-jsonwebtoken = { workspace = true }
 log = { workspace = true }
 moka = { workspace = true }
 rand_core = { workspace = true }
@@ -28,5 +27,5 @@ sqids = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 uuid = { workspace = true }
+casdoor-rust-sdk = { workspace = true}
 common = { path = "../common" }
-casdoor-rust-sdk = "1.3.0"
