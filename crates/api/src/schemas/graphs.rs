@@ -8,17 +8,16 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DbGraph {
+pub struct DbCase {
     #[serde(skip_serializing)]
     pub id: i64,
     #[serde(skip_serializing)]
     pub uuid: Option<Uuid>,
     pub label: String,
     pub description: String,
-    pub visibility: String,
-    pub org_id: Option<i64>,
+    pub org: String,
     #[serde(skip_serializing)]
-    pub owner_id: i64,
+    pub owner_id: Uuid,
     pub ctime: Option<DateTime<Utc>>,
     pub mtime: Option<DateTime<Utc>>,
 }
@@ -35,7 +34,7 @@ pub struct Graph {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FavoriteGraph {
     pub graph_id: i64,
-    pub owner_id: i64,
+    pub owner_id: Uuid,
 }
 
 #[derive(Deserialize)]
@@ -122,4 +121,4 @@ impl Responder for ListGraphsResponse {
     }
 }
 
-pub type ListGraphs = Json<Vec<DbGraph>>;
+pub type ListGraphs = Json<Vec<DbCase>>;

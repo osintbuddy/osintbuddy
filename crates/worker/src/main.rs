@@ -11,15 +11,14 @@ async fn main() {
     let cfg = common::config::CFG.get_or_init(common::config::cfg).await;
     let pool = common::db::db_pool(Some(0)).await;
 
-    let owner = cfg.worker_owner.clone().unwrap_or_else(|| {
-        hostname::get()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string()
-    });
-    let lease_secs = cfg.worker_lease_seconds.unwrap_or(300);
-    let batch = cfg.worker_batch.unwrap_or(8);
-    let tick = cfg.worker_tick_ms.unwrap_or(500);
+    let owner = hostname::get()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+
+    let lease_secs = cfg.worker_lease_seconds;
+    let batch = cfg.worker_batch;
+    let tick = cfg.worker_tick_ms;
 
     info!(
         "OSIB worker starting: owner={} lease={}s batch={} tick={}ms",

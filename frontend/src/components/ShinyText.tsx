@@ -19,7 +19,7 @@ const ShinyText: FunctionComponent<Props> = ({
     <span
       className={`${
         disabled
-          ? 'text-gray-400'
+          ? 'text-mirage-700'
           : 'animate-shine bg-[linear-gradient(90deg,#475569D5,#4D5D72,#475569D5)] bg-[length:500%_100%] bg-clip-text text-transparent'
       } ${className}`}
       style={{ ['--shine-speed' as any]: `${speed}ms` }}

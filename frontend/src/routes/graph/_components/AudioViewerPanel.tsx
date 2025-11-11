@@ -3,6 +3,7 @@ import { useAuthStore, useAudioViewerStore } from '@/app/store'
 import { BASE_URL } from '@/app/baseApi'
 import { Icon } from '@/components/icons'
 import WaveSurfer from 'wavesurfer.js'
+import { request } from '@/app/api'
 
 interface Props {
   draggable: boolean
@@ -11,7 +12,7 @@ interface Props {
 
 export default function AudioViewerPanel({ draggable, onToggleDrag }: Props) {
   const audio = useAudioViewerStore()
-  const { access_token } = useAuthStore()
+  const { accessToken } = useAuthStore()
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,12 +30,7 @@ export default function AudioViewerPanel({ draggable, onToggleDrag }: Props) {
       setError(null)
       setBlobUrl(null)
       try {
-        const resp = await fetch(
-          `${BASE_URL}/entities/attachments/${audio.active}`,
-          {
-            headers: { Authorization: `Bearer ${access_token}` },
-          }
-        )
+        const resp = await request('/entities/attachments/${audio.active}')
         if (!resp.ok) throw new Error('Failed to load audio')
         const b = await resp.blob()
         const url = URL.createObjectURL(b)
@@ -194,7 +190,7 @@ export default function AudioViewerPanel({ draggable, onToggleDrag }: Props) {
           <div className='flex flex-col items-center gap-3'>
             <div
               ref={containerRef}
-              className='w-[560px] h-[120px]'
+              className='h-[120px] w-[560px]'
               data-testid='wavesurfer-container'
             />
             <div className='flex items-center gap-2'>

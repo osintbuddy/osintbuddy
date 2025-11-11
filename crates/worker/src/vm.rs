@@ -21,7 +21,7 @@ pub async fn execute_job(payload: &JsonValue) -> Result<Option<JsonValue>, VmErr
             .map_err(|e| VmError::Launch(format!("payload encode error: {}", e)))?;
 
         info!("executing job via ob CLI (dev)");
-        debug!("payload: {}", payload_s);
+        info!("payload: {}", payload_s);
 
         let mut cmd = Command::new("ob");
         cmd.arg("run").arg("-T").arg(payload_s);

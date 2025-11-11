@@ -1,13 +1,14 @@
+import { useEffect, useState } from 'preact/hooks'
 
 export function formatTime(date: Date) {
-  var hours = date.getHours();
-  var minutes: string | number = date.getMinutes();
-  var ampm = hours >= 12 ? 'pm' : 'am';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  minutes = minutes < 10 ? '0' + minutes : minutes;
-  var strTime = hours + ':' + minutes + ' ' + ampm;
-  return strTime;
+  var hours = date.getHours()
+  var minutes: string | number = date.getMinutes()
+  var ampm = hours >= 12 ? 'pm' : 'am'
+  hours = hours % 12
+  hours = hours ? hours : 12 // the hour '0' should be '12'
+  minutes = minutes < 10 ? '0' + minutes : minutes
+  var strTime = hours + ':' + minutes + ' ' + ampm
+  return strTime
 }
 
 export function formatPGDate(date: string, showAt: boolean = false): string {
@@ -19,17 +20,35 @@ export function formatPGDate(date: string, showAt: boolean = false): string {
 }
 
 export function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-export const isString = (value: any): boolean => typeof value === 'string';
+export const isString = (value: any): boolean => typeof value === 'string'
 
 export function jwtParse(token: string) {
-  var base64Url = token.split('.')[1];
-  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
+  var base64Url = token.split('.')[1]
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  var jsonPayload = decodeURIComponent(
+    window
+      .atob(base64)
+      .split('')
+      .map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      })
+      .join('')
+  )
 
-  return JSON.parse(jsonPayload);
+  return JSON.parse(jsonPayload)
+}
+
+export function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    const m = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onChange = () => setReduced(!!m.matches)
+    onChange()
+    m.addEventListener('change', onChange)
+    return () => m.removeEventListener('change', onChange)
+  }, [])
+  return reduced
 }

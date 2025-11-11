@@ -1,4 +1,5 @@
 env
+logs/
 venv
 .venv
 backend/venv
@@ -23,6 +24,16 @@ perf.data.old
 perf.data
 flamegraph.svg
 AGENTS.md
+SCRATCHPAD.md
+auth.toml 
+casdoor/
+casdoor-web/
+auth.toml
+.casdoor/files/
+.casdoor/casdoor-objects/
+.casdoor/osib-objects/
+.casdoor/*.log
+.casdoor/conf/
 
 # Frontend logs
 frontend/logs

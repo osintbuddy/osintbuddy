@@ -3,7 +3,8 @@ use common::{eventstore, jobs};
 use log::{error, info, warn};
 use serde_json::json;
 use sqlx::PgPool;
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
+use uuid::Uuid;
 
 use crate::vm;
 
@@ -23,12 +24,17 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                     let pool_clone = pool.clone();
                     let owner_clone = owner.clone();
                     tokio::spawn(async move {
-                        let actor_id = Some(
-                            job.payload
-                                .get("actor_id")
-                                .and_then(|v| v.as_i64())
-                                .unwrap_or(0),
-                        );
+                        let actor_id = job
+                            .payload
+                            .get("actor_id")
+                            .and_then(|v| {
+                                Some(
+                                    Uuid::from_str(v.as_str().expect("valid uuid as str"))
+                                        .expect("invalid job actor_id!?"),
+                                    // see this? todo...
+                                )
+                            })
+                            .unwrap_or(Uuid::new_v4());
 
                         if let Err(e) = jobs::start_job(&pool_clone, job.job_id, &owner_clone).await
                         {
@@ -48,7 +54,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                 correlation_id: None,
                                 causation_id: None,
                                 expected_version: None,
-                                actor_id,
+                                actor_id: actor_id.to_owned(),
                             },
                         )
                         .await
@@ -72,7 +78,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                             correlation_id: None,
                                             causation_id: None,
                                             expected_version: None,
-                                            actor_id,
+                                            actor_id: actor_id.to_owned(),
                                         },
                                     )
                                     .await
@@ -104,7 +110,7 @@ pub async fn run_loop(pool: PgPool, owner: String, lease_secs: i32, batch: i64, 
                                         correlation_id: None,
                                         causation_id: None,
                                         expected_version: None,
-                                        actor_id,
+                                        actor_id: actor_id.to_owned(),
                                     },
                                 )
                                 .await

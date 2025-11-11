@@ -1,0 +1,170 @@
+@keyframes shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Near-invisible vertical scanline for advisory card */
+@keyframes scanline {
+  0% {
+    transform: translateY(-120%);
+  }
+  100% {
+    transform: translateY(120%);
+  }
+}
+
+@keyframes wiggle {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(0deg);
+  }
+  85% {
+    transform: rotate(7deg);
+  }
+  95% {
+    transform: rotate(-7deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes vanish-in-out {
+  0% {
+    background-position: -600%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.92;
+    background-position: 600%;
+  }
+}
+@keyframes vanish-in {
+  0% {
+    background-position: -600%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.92;
+    background-position: 0%;
+  }
+}
+@keyframes vanish-in-hold {
+  0% {
+    background-position: -600%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.92;
+    background-position: 50%;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    filter: url(#glow);
+    opacity: 0.45;
+  }
+  50% {
+    filter: url(#glow);
+    opacity: 1;
+  }
+}
+
+@keyframes dashingLines {
+  to {
+    stroke-dashoffset: -150;
+  }
+}
+.fade-in-hero {
+  opacity: 0;
+  animation: fadeIn 1s ease-in forwards;
+  animation-delay: 3.75s;
+}
+.fade-in-mesh {
+  opacity: 0;
+  animation: fadeIn 6s ease-in forwards;
+  animation-delay: 0.5s;
+}
+
+.illuminate-out-text {
+  font-family: var(--font-art);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  overflow: hidden;
+  opacity: 0;
+  background: linear-gradient(90deg, #000, var(--color-slate-400), #000);
+  background-repeat: no-repeat;
+  background-size: 80%;
+  animation: vanish-in-out 4.75s linear forwards;
+  animation-delay: var(--vanish-delay);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0);
+}
+.illuminate-out-hold {
+  font-family: var(--font-art);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  overflow: hidden;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    #000,
+    var(--color-slate-400),
+    var(--color-slate-400),
+    #000
+  );
+  background-repeat: no-repeat;
+  background-size: 150%;
+  animation: vanish-in-hold 3.75s linear forwards;
+  animation-delay: var(--vanish-delay);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0);
+}
+.transition-opacity-transform {
+  transition:
+    transform 200s,
+    opacity 5s;
+}
+/* Shiny text, usually used as loading indication */
+.text-shiny {
+  background: linear-gradient(90deg, #9aa0a6, #e5e7eb, #9aa0a6);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: shine var(--shine-speed, 5s) linear infinite;
+}
+.text-shiny.disabled {
+  animation: none;
+  background: none;
+  color: #a3a3a3;
+  -webkit-text-fill-color: currentColor;
+}
+/* Shiny text, usually used as loading indication */

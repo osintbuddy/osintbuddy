@@ -107,16 +107,13 @@ export default function OverlayMenus({
     [searchFilter, plugins]
   )
 
-  const onDragStart = useCallback(
-    (event: DragEvent, nodeType: string) => {
-      if (event?.dataTransfer) {
-        event.dataTransfer.setData('application/reactflow', nodeType)
-        event.dataTransfer.effectAllowed = 'move'
-      }
-      event.stopPropagation()
-    },
-    []
-  )
+  const onDragStart = useCallback((event: DragEvent, nodeType: string) => {
+    if (event?.dataTransfer) {
+      event.dataTransfer.setData('application/reactflow', nodeType)
+      event.dataTransfer.effectAllowed = 'move'
+    }
+    event.stopPropagation()
+  }, [])
 
   // entities panel
   const [isEntitiesDraggable, setIsEntitiesDraggable] = useState(false)
@@ -282,7 +279,7 @@ export default function OverlayMenus({
       if (itemsCache[entityId]) return
       try {
         setLoading(true)
-        const token = useAuthStore.getState().access_token as string
+        const token = useAuthStore.getState().accessToken as string
         const data = await entitiesApi.listAttachments(
           String(hid),
           entityId,
@@ -403,7 +400,7 @@ export default function OverlayMenus({
               onClick={() => window.location.reload()}
               className={`absolute top-0.5 right-1.5 rounded-sm px-2 py-0.5 pr-5 text-xs lowercase ${
                 readyState === ReadyState.OPEN
-                  ? 'bg-success-700/20 text-green-400/80'
+                  ? 'bg-lime-700/20 text-green-400/80'
                   : readyState === ReadyState.CONNECTING
                     ? 'animate-pulse bg-yellow-500/20 text-yellow-400/80'
                     : 'bg-danger-500/20 text-red-500/80'
@@ -717,7 +714,7 @@ export default function OverlayMenus({
                             `${BASE_URL}/entities/attachments/${a.attachment_id}`,
                             {
                               headers: {
-                                Authorization: `Bearer ${useAuthStore.getState().access_token}`,
+                                Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
                               },
                             }
                           )
@@ -748,7 +745,7 @@ export default function OverlayMenus({
                             {
                               method: 'DELETE',
                               headers: {
-                                Authorization: `Bearer ${useAuthStore.getState().access_token}`,
+                                Authorization: `Bearer ${useAuthStore.getState().accessToken}`,
                               },
                             }
                           )

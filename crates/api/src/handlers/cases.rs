@@ -1,15 +1,315 @@
-use crate::{middleware::auth::AuthMiddleware, schemas::Paginate};
-use actix_web::{
-    HttpResponse, Result, get,
-    web::{Data, Path},
+use crate::schemas::{Paginate, graphs::DbCase};
+use crate::{
+    middleware::auth::AuthMiddleware,
+    schemas::graphs::{
+        CreateGraph, DeleteGraph, FavoriteGraphRequest, Graph, GraphStats, ListGraphsResponse,
+        UpdateGraph,
+    },
 };
-use chrono::{DateTime, Utc};
+use actix_web::web::{Data, Path, Query};
+use actix_web::{HttpResponse, Result, delete, get, http::StatusCode, patch, post};
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
+use common::db;
+use common::errors::AppError;
 use common::utils::to_snake_case;
-use common::{db, errors::AppError};
+use log::error;
+use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use sqids::Sqids;
 use std::collections::{HashMap, HashSet};
+use std::string::String;
+
+#[post("/graphs")]
+async fn create_graph_handler(
+    body: CreateGraph,
+    pool: db::Database,
+    auth: AuthMiddleware,
+    sqids: Data<Sqids>,
+) -> Result<Graph, AppError> {
+    let body = body.into_inner().validate()?;
+    let graph = sqlx::query_as!(
+        DbCase,
+        "INSERT INTO cases (label,description,owner_id,org) VALUES ($1, $2, $3, $4) RETURNING *",
+        body.label.to_string(),
+        body.description.to_string(),
+        auth.user.id,
+        auth.user.owner
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error creating this graph.",
+        }
+    })?;
+
+    Ok(Graph {
+        id: sqids
+            .encode(&[graph.id as u64])
+            .expect("Error encoding sqids!"),
+        label: graph.label,
+        description: graph.description,
+        mtime: graph.mtime,
+        ctime: graph.ctime,
+    })
+}
+
+#[patch("/graphs")]
+async fn update_graph_handler(
+    body: UpdateGraph,
+    pool: db::Database,
+    auth: AuthMiddleware,
+    sqids: Data<Sqids>,
+) -> Result<Graph, AppError> {
+    // Decode sqid to i64
+    let graph_ids = sqids.decode(&body.id);
+    let decoded_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.id);
+        AppError {
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
+    sqlx::query_as!(
+        DbCase,
+        "UPDATE cases SET label = $1, description = $2 WHERE  id = $3 AND owner_id = $4 RETURNING *",
+        body.label.to_string(),
+        body.description.to_string(),
+        *decoded_id as i64,
+        auth.user.id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map(|g| Graph {
+        id: sqids
+            .encode(&[g.id as u64])
+            .expect("Error encoding sqids!"),
+        label: g.label,
+        description: g.description,
+        mtime: g.mtime,
+        ctime: g.ctime
+    })
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error updating this graph.",
+        }
+    })
+}
+
+#[delete("/graphs")]
+async fn delete_graph_handler(
+    body: DeleteGraph,
+    pool: db::Database,
+    auth: AuthMiddleware,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    // Decode sqid to i64
+    let graph_ids = sqids.decode(&body.id);
+    let decoded_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.id);
+        AppError {
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
+    sqlx::query("DELETE FROM graphs WHERE id = $1 AND owner_id = $2 RETURNING *")
+        .bind(*decoded_id as i64)
+        .bind(auth.user.id)
+        .execute(pool.as_ref())
+        .await
+        .map(|_| HttpResponse::build(StatusCode::OK).finish())
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "We ran into an error deleting this graph.",
+            }
+        })
+}
+
+#[get("/graphs")]
+async fn list_graph_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    page: Paginate,
+    sqids: Data<Sqids>,
+) -> Result<ListGraphsResponse, AppError> {
+    let graphs = sqlx::query_as!(
+        DbCase,
+        "SELECT * FROM cases WHERE owner_id = $1 OFFSET $2 LIMIT $3",
+        auth.user.id,
+        page.skip,
+        page.limit,
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error listing your graphs.",
+        }
+    })?;
+
+    let favorites = sqlx::query_scalar!(
+        "SELECT case_id FROM favorite_cases WHERE owner_id = $1",
+        auth.user.id
+    )
+    .fetch_all(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error listing your favorite graphs.",
+        }
+    })?;
+
+    // Convert graph IDs to sqids strings
+    let mut graphs_with_sqids: Vec<Graph> = Vec::new();
+    for graph in graphs {
+        let sqid = sqids.encode(&[graph.id as u64]).map_err(|err| {
+            error!("Error encoding sqid: {err}");
+            AppError {
+                message: "We ran into an error encoding graph ID.",
+            }
+        })?;
+        graphs_with_sqids.push(Graph {
+            id: sqid,
+            label: graph.label,
+            description: graph.description,
+            ctime: graph.ctime,
+            mtime: graph.mtime,
+        });
+    }
+
+    // Convert favorite IDs to sqids strings
+    let mut graph_favorites = Vec::new();
+    for favorite_id in favorites {
+        let sqid = sqids.encode(&[favorite_id as u64]).map_err(|err| {
+            error!("Error encoding favorite sqid: {err}");
+            AppError {
+                message: "We ran into an error encoding favorite ID.",
+            }
+        })?;
+        graph_favorites.push(sqid);
+    }
+
+    Ok(ListGraphsResponse {
+        graphs: graphs_with_sqids,
+        favorites: graph_favorites,
+    })
+}
+
+#[get("/graphs/{id}")]
+async fn get_case_handler(
+    pool: db::Database,
+    auth: AuthMiddleware,
+    graph_id: Path<String>,
+    sqids: Data<Sqids>,
+) -> Result<GraphStats, AppError> {
+    let sqids_id = sqids.decode(&graph_id);
+    let Some(decoded_id) = sqids_id.first() else {
+        return Err(AppError {
+            message: "Missing graph id",
+        });
+    };
+
+    let graph = sqlx::query_as!(
+        DbCase,
+        "SELECT * FROM cases WHERE id = $1 AND owner_id = $2",
+        *decoded_id as i64,
+        auth.user.id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error getting this graph.",
+        }
+    })?;
+
+    Ok(GraphStats {
+        graph: Graph {
+            id: graph_id.to_string(),
+            label: graph.label,
+            description: graph.description,
+            ctime: graph.ctime,
+            mtime: graph.mtime,
+        },
+        // TODO: implement projection for these basic case stats
+        vertices_count: 0,
+        edges_count: 0,
+        second_degrees: 0,
+    })
+}
+
+#[post("/graphs/favorite")]
+async fn favorite_graph_handler(
+    body: FavoriteGraphRequest,
+    pool: db::Database,
+    auth: AuthMiddleware,
+    sqids: Data<Sqids>,
+) -> Result<HttpResponse, AppError> {
+    // Decode sqid to i64
+    let graph_ids = sqids.decode(&body.graph_id);
+    let graph_id = graph_ids.first().ok_or_else(|| {
+        error!("Error decoding sqid: {}", body.graph_id);
+        AppError {
+            message: "Invalid graph ID.",
+        }
+    })? as &u64;
+
+    let graph = sqlx::query_as!(
+        DbCase,
+        "SELECT * FROM cases WHERE id = $1 AND owner_id = $2",
+        *graph_id as i64,
+        auth.user.id
+    )
+    .fetch_one(pool.as_ref())
+    .await
+    .map_err(|err| {
+        error!("{err}");
+        AppError {
+            message: "We ran into an error getting this graph.",
+        }
+    })?;
+
+    if body.is_favorite {
+        // Add to favorites
+        sqlx::query!(
+            "INSERT INTO favorite_cases (owner_id, case_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            auth.user.id,
+            *graph_id as i64
+        )
+        .execute(pool.as_ref())
+        .await
+        .map(|_| HttpResponse::Ok().json(graph))
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "We ran into an error favoriting this graph.",
+            }
+        })
+    } else {
+        // Remove from favorites
+        sqlx::query!(
+            "DELETE FROM favorite_cases WHERE owner_id = $1 AND case_id = $2",
+            auth.user.id,
+            *graph_id as i64
+        )
+        .execute(pool.as_ref())
+        .await
+        .map(|_| HttpResponse::Ok().json(graph))
+        .map_err(|err| {
+            error!("{err}");
+            AppError {
+                message: "We ran into an error unfavoriting this graph.",
+            }
+        })
+    }
+}
 
 #[derive(Debug, Serialize)]
 struct CaseActivityItem {
@@ -21,7 +321,7 @@ struct CaseActivityItem {
     valid_from: DateTime<Utc>,
     valid_to: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
-    actor_id: Option<i64>,
+    actor_id: String,
     actor_name: Option<String>,
 }
 
@@ -46,10 +346,11 @@ pub async fn list_case_activity_handler(
     let decoded_id = *decoded_id as i64;
 
     // Resolve and authorize graph UUID
-    let graph = sqlx::query!(
-        "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
+    let graph = sqlx::query_as!(
+        DbCase,
+        "SELECT * FROM cases WHERE id = $1 AND owner_id = $2",
         decoded_id,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -81,22 +382,27 @@ pub async fn list_case_activity_handler(
                e.valid_to,
                e.recorded_at,
                e.actor_id,
-               u.name as "actor_name?"
+               u.name as actor_name
           FROM events e
           JOIN s ON e.stream_id = s.stream_id
-          LEFT JOIN users u ON u.id = e.actor_id
+          LEFT JOIN "user" u ON u.id::uuid = e.actor_id
          ORDER BY e.seq DESC
          OFFSET $2
          LIMIT $3
         "#,
+        // notice the actor_id::uuid cast? yeah...
+        // TODO: Make a default system user named OSIB for system based events
         graph_uuid.to_string(),
         page.skip,
         page.limit,
     )
     .fetch_all(pool.as_ref())
     .await
-    .map_err(|_| AppError {
-        message: "We ran into an error listing case activity.",
+    .map_err(|err| {
+        error!("{}", err);
+        AppError {
+            message: "We ran into an error listing case activity.",
+        }
     })?;
 
     let events: Vec<CaseActivityItem> = rows
@@ -110,8 +416,8 @@ pub async fn list_case_activity_handler(
             valid_from: r.valid_from,
             valid_to: r.valid_to,
             recorded_at: r.recorded_at,
-            actor_id: Some(r.actor_id),
-            actor_name: r.actor_name,
+            actor_id: r.actor_id.into(),
+            actor_name: Some(r.actor_name),
         })
         .collect();
 
@@ -142,7 +448,7 @@ pub async fn get_case_stats_handler(
     let graph = sqlx::query!(
         "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
         decoded_id,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -202,11 +508,6 @@ pub async fn get_case_stats_handler(
     }))
 }
 
-// ---- Activity summary (heatmap) ----
-use actix_web::web::Query;
-use chrono::Duration as ChronoDuration;
-use serde::Deserialize;
-
 #[derive(Debug, Deserialize)]
 pub struct ActivitySummaryQuery {
     pub days: Option<i64>,
@@ -246,7 +547,7 @@ pub async fn get_case_activity_summary_handler(
     let graph = sqlx::query!(
         "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
         decoded_id,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await
@@ -387,7 +688,7 @@ pub async fn get_case_chord_handler(
     let graph = sqlx::query!(
         "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
         decoded_id,
-        auth.account_id
+        auth.user.id
     )
     .fetch_one(pool.as_ref())
     .await

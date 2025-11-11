@@ -156,7 +156,7 @@ export function EntitiesPanel({
   const [pluginEntities, setPluginEntities] = useState<any[]>([])
   const [loadingPlugins, setLoadingPlugins] = useState<boolean>(false)
   const [pluginsError, setPluginsError] = useState<string | null>(null)
-  const token = useAuthStore((s) => s.access_token) as string
+  const token = useAuthStore((s) => s.accessToken) as string
 
   useEffect(() => {
     if (

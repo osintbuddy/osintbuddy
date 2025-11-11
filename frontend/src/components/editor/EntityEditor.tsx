@@ -182,7 +182,7 @@ export default function EntityEditor({
                       class="flex items-center py-2"
                       title="Run transform"
                     >
-                      <Icon icon='terminal-2' className="h-6 mx-2 text-success-500" />
+                      <Icon icon='terminal-2' className="h-6 mx-2 text-lime-500" />
                       <span class="text-nowrap mr-4 ">{!entity?.label?.includes('Select entity') && (entity?.label ?? '')} Console</span>
                     </div>
                   </div>

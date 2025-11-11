@@ -43,6 +43,7 @@
     "@visx/scale": "^3.12.0",
     "@visx/shape": "^3.12.0",
     "@xyflow/react": "^12.6.0",
+    "casdoor-js-sdk": "^0.16.0",
     "dagre": "^0.8.5",
     "elkjs": "^0.10.0",
     "graphology": "^0.26.0",

@@ -12,9 +12,9 @@ interface CalloutProps {
 const styles = {
   info: {
     container:
-      'bg-radiance-50/5 border-radiance-900/10 !border-l-radiance-500/65  !border-l-amber-500',
-    title: '!text-radiance-400/80',
-    body: 'text-radiance-800 [--tw-prose-underline:theme(colors.radiance.400)] [--tw-prose-background:theme(colors.radiance.50)] prose-a:text-radiance-900 prose-code:text-radiance-900 dark:text-slate-300 dark:[--tw-prose-underline:theme(colors.primary.700)] dark:prose-code:text-slate-300',
+      'bg-blue-50/5 border-blue-900/10 !border-l-blue-500/65  !border-l-amber-500',
+    title: '!text-blue-400/80',
+    body: 'text-blue-800 [--tw-prose-underline:theme(colors.blue.400)] [--tw-prose-background:theme(colors.blue.50)] prose-a:text-blue-900 prose-code:text-blue-900 dark:text-slate-300 dark:[--tw-prose-underline:theme(colors.primary.700)] dark:prose-code:text-slate-300',
     icon: 'info-circle',
   },
   warning: {

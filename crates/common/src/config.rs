@@ -23,19 +23,20 @@ pub struct AppConfig {
     // uploads
     pub upload_max_inline_mb: Option<u64>,
 
-    // worker + firecracker tuning
-    pub worker_owner: Option<String>,
-    pub worker_lease_seconds: Option<i32>,
-    pub worker_batch: Option<i64>,
-    pub worker_tick_ms: Option<u64>,
-    pub firecracker_bin: Option<String>,
-    pub firecracker_vmroot: Option<String>,
+    pub casdoor_conf: String,
+
+    // worker
+    // todo: these should probably be different configs...
+    pub worker_tick_ms: u64,
+    pub worker_batch: i64,
+    pub worker_lease_seconds: i32,
 }
 
 pub static CFG: OnceCell<AppConfig> = OnceCell::const_new();
 
 pub async fn cfg() -> AppConfig {
     dotenvy::dotenv().ok();
+
     AppConfig::builder()
         .override_with(EnvSource::new().allow_secrets())
         .try_build()
@@ -55,12 +56,10 @@ pub async fn cfg() -> AppConfig {
                     "03d2394fc289b30660772ea8d444540ff64z066631063d823b41444e1bdef086",
                 ),
                 upload_max_inline_mb: Some(100),
-                worker_owner: None,
-                worker_lease_seconds: Some(300),
-                worker_batch: Some(8),
-                worker_tick_ms: Some(500),
-                firecracker_bin: Some(String::from("/usr/local/bin/firecracker")),
-                firecracker_vmroot: Some(String::from("/var/lib/osib/vms")),
+                casdoor_conf: String::from("auth.toml"),
+                worker_tick_ms: 500,
+                worker_batch: 8,
+                worker_lease_seconds: 300,
             };
             error!(
                 "No `.env` file found, using default configuration: {:?}\nError loading env: {}",

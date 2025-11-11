@@ -32,5 +32,21 @@ services:
       - MH_HOSTNAME=mailhog.local
       - MH_STORAGE=memory
 
+  casdoor:
+    image: casbin/casdoor:latest
+    restart: on-failure
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - 45910:45910
+      - 8000:8000
+    environment:
+      - GIN_MODE=release
+    volumes:
+      - ./.casdoor/conf:/conf
+      - ./.casdoor/casdoor.log:/var/log/casdoor/casdoor.log
+
 volumes:
   ob-db-data:

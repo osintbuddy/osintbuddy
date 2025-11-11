@@ -73,7 +73,7 @@ export default function Subpanel({
               <>
                 We ran into an error fetching your data. Please try refreshing
                 the page, if this error continues to occur please{' '}
-                <a href='#' class='text-info-300'>
+                <a href='#' class='text-primary-300'>
                   file an issue
                 </a>{' '}
                 on github

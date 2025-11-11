@@ -3,13 +3,6 @@ DROP TRIGGER IF EXISTS trg_jobs_new ON jobs;
 DROP FUNCTION IF EXISTS notify_jobs_new();
 
 -- Drop tables in reverse dependency order (children before parents)
-DROP TABLE IF EXISTS post_tags;
-DROP TABLE IF EXISTS post_edit_history;
-DROP TABLE IF EXISTS posts;
-DROP TABLE IF EXISTS tags;
-DROP TABLE IF EXISTS feeds;
-DROP TABLE IF EXISTS access_logs;
-DROP TABLE IF EXISTS resource_shares;
 DROP TABLE IF EXISTS favorite_entities;
 DROP TABLE IF EXISTS entities;
 DROP TABLE IF EXISTS favorite_cases;
@@ -31,10 +24,6 @@ DROP TABLE IF EXISTS jobs;
 
 -- Cases reference users and organizations
 DROP TABLE IF EXISTS cases;
-
--- Finally drop heavily referenced parents
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS organizations;
 
 -- Drop enum types created in up
 DROP TYPE IF EXISTS job_status;

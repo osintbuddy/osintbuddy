@@ -15,7 +15,7 @@ export function CopyText({ id, label, value }: CopyTextProps) {
         navigator.clipboard.writeText(value as string)
         toast.success(`Copied ${label} to clipboard!`)
       }}
-      className='text-info-300 flex max-w-xs items-center'
+      className='text-primary-300 flex max-w-xs items-center'
     >
       <Icon icon='paperclip' className='h-4 w-4' />
       <p

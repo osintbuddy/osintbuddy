@@ -1,6 +1,7 @@
-use crate::middleware::auth::decode_jwt;
-use actix_web::{HttpRequest, HttpResponse, Result, web};
+use actix_web::web::{Data, Path, Payload};
+use actix_web::{HttpRequest, HttpResponse, Result};
 use actix_ws::{Message, Session};
+use casdoor_rust_sdk::AuthService;
 use chrono::Utc;
 use common::db::Database;
 use common::errors::AppError;
@@ -16,9 +17,12 @@ use sqlx::PgPool;
 use std::collections::HashMap;
 use std::fmt;
 use std::process::Command;
+use std::str::FromStr;
 use tokio::process::Command as TokioCommand;
 use tokio::time::{Duration, sleep};
 use uuid::Uuid;
+
+use crate::middleware::auth::User;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Position {
@@ -132,7 +136,7 @@ pub async fn handle_create_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     // Event validation and error messages
     let Some(mut entity) = event.entity else {
@@ -199,7 +203,7 @@ pub async fn handle_create_entity(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id,
     };
 
     if let Err(e) = eventstore::append_event(pool, event).await {
@@ -249,7 +253,7 @@ pub async fn handle_create_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     // Normalize
     let Some(edge) = event.edge else {
@@ -299,7 +303,7 @@ pub async fn handle_create_edge(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id,
     };
 
     if let Err(e) = eventstore::append_event(pool, event).await {
@@ -324,7 +328,7 @@ pub async fn handle_delete_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     let Some(edge) = event.edge else {
         let message = json!({
@@ -348,7 +352,7 @@ pub async fn handle_delete_edge(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id,
     };
 
     if let Err(e) = eventstore::append_event(pool, ev).await {
@@ -376,7 +380,7 @@ pub async fn handle_update_edge(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     let Some(edge) = event.edge else {
         let message = json!({
@@ -402,7 +406,7 @@ pub async fn handle_update_edge(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id,
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append edge:update: {}", e);
@@ -421,7 +425,7 @@ pub async fn handle_update_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     let Some(mut entity) = event.entity else {
         return;
@@ -445,7 +449,7 @@ pub async fn handle_update_entity(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id,
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:update event: {}", e);
@@ -464,7 +468,7 @@ pub async fn handle_delete_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
     let Some(entity) = event.entity else {
         return;
@@ -492,7 +496,7 @@ pub async fn handle_delete_entity(
         correlation_id: Some(Uuid::new_v4()),
         causation_id: None,
         expected_version: None,
-        actor_id: Some(actor_id),
+        actor_id: actor_id,
     };
     if let Err(e) = eventstore::append_event(pool, ev).await {
         error!("Failed to append entity:delete: {}", e);
@@ -580,7 +584,8 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
                             map.entry("label".to_string()).or_insert(label_value);
                         }
                         _ => {
-                            obj.insert("data".to_string(), json!({ "label": label_value }));
+                            let data = json!({ "label": label_value });
+                            obj.insert("data".to_string(), data);
                         }
                     }
 
@@ -654,36 +659,40 @@ pub async fn handle_materialized_read(pool: &PgPool, graph_uuid: Uuid, session: 
 
 pub async fn graphing_websocket_handler(
     req: HttpRequest,
-    stream: web::Payload,
+    stream: Payload,
     pool: Database,
-    graph_id: web::Path<String>,
-    sqids: web::Data<Sqids>,
+    graph_id: Path<String>,
+    sqids: Data<Sqids>,
     app: crate::AppData,
+    // auth: AuthMiddleware,
 ) -> Result<HttpResponse, AppError> {
     let Ok((response, mut session, mut msg_stream)) = actix_ws::handle(&req, stream) else {
         return Err(AppError { message: "(1)" });
     };
+
+    let mut user: Option<User> = None;
     // We'll authenticate when we receive the first message
     let mut authenticated = false;
-    let mut total_events = 0;
-    let mut actor_id_num: Option<i64> = None;
+    let mut graph_uuid: Option<Uuid> = None;
+
+    async fn close_ws(mut session: Session) {
+        let _ = session.text(json!({"action": "deauth"}).to_string());
+        let _ = session
+            .close(Some(actix_ws::CloseCode::Policy.into()))
+            .await;
+    }
 
     // Extract and decode graph id from path parameters
     let graph_ids = sqids.decode(&graph_id);
     let decoded_id = match graph_ids.first() {
         Some(id) => id,
         None => {
-            let _ = session.text(json!({"action": "deauth"}).to_string());
-            let _ = session
-                .close(Some(actix_ws::CloseCode::Policy.into()))
-                .await;
             return Err(AppError { message: "()" });
         }
     };
+
     let decoded_id = *decoded_id as i64;
-    let deauth_msg = json!({"action": "deauth"});
-    actix_web::rt::spawn(async move {
-        let mut graph_uuid: Option<Uuid> = None;
+    let _ = actix_web::rt::spawn(async move {
         let Ok(blueprints) = get_entity_blueprints().await else {
             error!(
                 "Error getting blueprints for graph id `{decoded_id}`. Environment: {}",
@@ -695,130 +704,138 @@ pub async fn graphing_websocket_handler(
         while let Some(Ok(msg)) = msg_stream.next().await {
             match msg {
                 Message::Text(text) => {
-                    let Ok(event) = serde_json::from_str::<WebSocketMessage>(&text) else {
-                        let _ = session.text(deauth_msg.to_string());
-                        let _ = session
-                            .close(Some(actix_ws::CloseCode::Policy.into()))
-                            .await;
-                        break;
-                    };
-                    // if not previously authenticated and msg count not modulo 3
-                    // authenticate connection, after initial auth success get graph_uuid
-                    if total_events % 3 == 0 || !authenticated {
-                        if let Some(token) = &event.token {
-                            let Ok(claims) = decode_jwt(token, &app.cfg.jwt_secret) else {
-                                break;
-                            };
-                            let user_ids = sqids.decode(&claims.sub);
-                            let Some(decoded_user_id) = user_ids.first() else {
-                                // Invalid user ID in token
-                                let _ = session.text(deauth_msg.to_string());
-                                let _ = session
-                                    .close(Some(actix_ws::CloseCode::Policy.into()))
-                                    .await;
-                                break;
-                            };
-                            let user_id_i64 = *decoded_user_id as i64;
+                    let event = serde_json::from_str::<WebSocketMessage>(&text).unwrap();
+                    let graph_action = event.action.as_str();
+                    if !authenticated {
+                        let auth_service = AuthService::new(&app.casdoor_conf);
+                        if let Ok(casdoor_user) =
+                            auth_service.parse_jwt_token(event.token.clone().unwrap())
+                        {
+                            let auth_user = User::from(casdoor_user);
 
                             // Get the graph from database to validate access and get UUID
-                            let graph = sqlx::query!(
+                            let Ok(graph) = sqlx::query!(
                                 "SELECT uuid FROM cases WHERE id = $1 AND owner_id = $2",
                                 decoded_id as i64,
-                                user_id_i64
+                                auth_user.id
                             )
                             .fetch_one(pool.as_ref())
-                            .await;
-                            let Ok(graph) = graph else {
-                                // Graph not found
-                                let _ = session.text(json!({"action": "deauth"}).to_string());
-                                let _ = session
-                                    .close(Some(actix_ws::CloseCode::Policy.into()))
-                                    .await;
-                                break;
+                            .await
+                            .map_err(|err| {
+                                error!("error fetching ws graph: {}", err);
+                                AppError { message: "" }
+                            }) else {
+                                close_ws(session).await;
+                                return;
                             };
+
                             authenticated = true;
                             graph_uuid = graph.uuid;
-                            actor_id_num = Some(user_id_i64);
-                            let _ = session
-                                .text(
-                                    json!({
-                                        "action": "authenticated".to_string(),
-                                        "notification": {
-                                            "type": "success",
-                                            "autoClose": 4000,
-                                            "toastId": "graph",
-                                            "message": "Your graph has loaded!",
-                                        },
-                                        "plugins": get_available_plugins().await,
-                                        "blueprints": blueprints,
-                                    })
-                                    .to_string(),
-                                )
-                                .await;
-                        }
+                            user = Some(auth_user);
+
+                            let message = json!({
+                                "action": "authenticated".to_string(),
+                                "notification": {
+                                    "type": "success",
+                                    "autoClose": 4000,
+                                    "toastId": "graph",
+                                    "message": "Your graph has loaded!",
+                                },
+                                "plugins": get_available_plugins().await,
+                                "blueprints": blueprints,
+                            });
+                            let _ = session.text(message.to_string()).await;
+                        };
                     }
-
-                    let graph_action = event.action.as_str();
+                    if !authenticated {
+                        close_ws(session).await;
+                        return;
+                    }
                     let Some(graph_uuid) = graph_uuid else {
-                        let _ = session.text(deauth_msg.to_string());
-
-                        let _ = session
-                            .close(Some(actix_ws::CloseCode::Policy.into()))
-                            .await;
+                        close_ws(session).await;
                         return;
                     };
-                    let Some(actor_id) = actor_id_num else {
-                        let _ = session.text(deauth_msg.to_string());
-                        let _ = session
-                            .close(Some(actix_ws::CloseCode::Policy.into()))
-                            .await;
+                    let Some(user) = &user else {
+                        close_ws(session).await;
                         return;
                     };
-
                     // Handle graph events
                     match graph_action {
                         "update:edge" => {
-                            handle_update_edge(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_update_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "delete:edge" => {
-                            handle_delete_edge(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_delete_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "create:edge" => {
-                            handle_create_edge(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_create_edge(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "read:graph" => {
                             handle_materialized_read(&pool, graph_uuid, &mut session).await;
                         }
                         "create:entity" => {
-                            handle_create_entity(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_create_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "update:entity" => {
-                            handle_update_entity(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_update_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "delete:entity" => {
-                            handle_delete_entity(&pool, graph_uuid, event, &mut session, actor_id)
-                                .await;
+                            handle_delete_entity(
+                                &pool,
+                                graph_uuid,
+                                event,
+                                &mut session,
+                                user.id.into(),
+                            )
+                            .await;
                         }
                         "transform:entity" => {
-                            println!("HANDSLING 'transform:entity' CASE");
                             handle_transform_entity(
                                 &pool,
                                 graph_uuid,
                                 event,
                                 &mut session,
-                                actor_id,
+                                user.id.into(),
                             )
                             .await;
                         }
-
                         _ => {}
                     }
-                    total_events += 1;
                 }
                 Message::Close(reason) => {
                     info!("WebSocket closed : {:?}", reason);
@@ -828,7 +845,6 @@ pub async fn graphing_websocket_handler(
             }
         }
     });
-
     Ok(response)
 }
 
@@ -838,11 +854,9 @@ async fn handle_transform_entity(
     graph_uuid: Uuid,
     event: WebSocketMessage,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: Uuid,
 ) {
-    println!("handle_transform_entity()");
     let Some(entity) = event.entity else {
-        println!("let Some(entity)");
         let _ = session
             .text(
                 json!({
@@ -865,7 +879,6 @@ async fn handle_transform_entity(
         "entity": entity,
         "actor_id": actor_id,
     });
-    println!("enqueye job()");
 
     match jobs::enqueue_job(
         pool,
@@ -898,7 +911,7 @@ async fn handle_transform_entity(
                 job.job_id,
                 graph_uuid,
                 job.payload["entity"].clone(),
-                actor_id,
+                &actor_id,
             )
             .await;
         }
@@ -927,16 +940,12 @@ async fn stream_job_events(
     job_id: Uuid,
     graph_uuid: Uuid,
     source_entity: Value,
-    actor_id: i64,
+    actor_id: &Uuid,
 ) {
-    println!("stream_job_events()");
-
     // Ensure stream exists and get its id
     let Ok(stream) = eventstore::ensure_stream(pool, "job", &job_id.to_string()).await else {
-        println!("let Ok(stream) RETURNING>?!");
         return;
     };
-    println!("let Ok(stream)");
 
     let mut last_version: i32 = 0;
     let start = std::time::Instant::now();
@@ -944,10 +953,7 @@ async fn stream_job_events(
     let fallback_delay = std::time::Duration::from_secs(5);
     let mut fallback_attempted = false;
     loop {
-        println!("ensure_stream() loop");
         if start.elapsed() > timeout {
-            println!("ensure_stream() loop BREAK");
-
             break;
         }
         let rows = sqlx::query!(
@@ -963,14 +969,11 @@ async fn stream_job_events(
         )
         .fetch_all(pool)
         .await;
-        println!("{:?}", rows);
         let Ok(rows) = rows else {
-            println!("OK(rows)!");
             sleep(Duration::from_millis(250)).await;
             continue;
         };
         if rows.is_empty() {
-            println!("is empty!");
             if !fallback_attempted && start.elapsed() > fallback_delay {
                 fallback_attempted = true;
                 match jobs::get_job(pool, job_id).await {
@@ -1011,7 +1014,6 @@ async fn stream_job_events(
         }
         let mut done = false;
         for r in rows {
-            println!("ensure_stream() for r in rows");
             last_version = r.version;
             let payload = r.payload;
             let _ = session
@@ -1072,10 +1074,8 @@ async fn persist_transform_outputs(
     source_entity: &Value,
     outputs: &Value,
     session: &mut Session,
-    actor_id: i64,
+    actor_id: &Uuid,
 ) -> Result<(), sqlx::Error> {
-    println!("persist_transform_outputs()");
-
     // Extract source entity context
     let src_id = source_entity
         .get("id")
@@ -1087,10 +1087,8 @@ async fn persist_transform_outputs(
         .and_then(|v| v.as_str())
         .unwrap_or("transform");
     let Some(src_id) = src_id else {
-        println!("Some(src_id()");
         return Ok(());
     };
-    println!("persist_transform_outputs()");
 
     // Normalize outputs to an array of objects
     let items: Vec<Value> = match outputs {
@@ -1119,7 +1117,6 @@ async fn persist_transform_outputs(
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
-        println!("{}", label_s);
         // Build entity document
         let entity_id = Uuid::new_v4();
         // Arrange entities in rows of 4: increment X across, then Y down by 200.
@@ -1143,7 +1140,6 @@ async fn persist_transform_outputs(
             "label": label_s,
             "data": {}
         });
-        println!("entity-doc: {}", entity_doc);
 
         if let (Some(dst), Value::Object(src)) = (entity_doc.get_mut("data"), &item) {
             if let Some(dst_obj) = dst.as_object_mut() {
@@ -1164,9 +1160,8 @@ async fn persist_transform_outputs(
             correlation_id: Some(job_id),
             causation_id: None,
             expected_version: None,
-            actor_id: Some(actor_id),
+            actor_id: actor_id.to_owned(),
         };
-        println!("evs aooebd {:?}", ev_entity);
         let _ = eventstore::append_event(pool, ev_entity).await;
 
         // Append edge:create event from source -> new entity
@@ -1190,9 +1185,8 @@ async fn persist_transform_outputs(
             correlation_id: Some(job_id),
             causation_id: None,
             expected_version: None,
-            actor_id: Some(actor_id),
+            actor_id: actor_id.to_owned(),
         };
-        println!("edfge append {:?}", ev_edge);
         let _ = eventstore::append_event(pool, ev_edge).await;
 
         // Immediately inform UI about the new entity (ReactFlow node)
@@ -1250,7 +1244,6 @@ async fn persist_transform_outputs(
         "entities": ui_entities,
         "edges": ui_edges,
     });
-    println!("sending message: {}", message);
 
     let _ = session.text(message.to_string()).await;
     Ok(())
@@ -1340,9 +1333,8 @@ async fn append_job_event(
     pool: &PgPool,
     job_id: Uuid,
     payload: Value,
-    actor_id: Option<i64>,
+    actor_id: &Uuid,
 ) -> Result<(), InlineFallbackError> {
-    let actor_id = actor_id.unwrap_or(0);
     eventstore::append_event(
         pool,
         AppendEvent {
@@ -1355,7 +1347,7 @@ async fn append_job_event(
             correlation_id: None,
             causation_id: None,
             expected_version: None,
-            actor_id: Some(actor_id),
+            actor_id: actor_id.to_owned(),
         },
     )
     .await?;
@@ -1372,9 +1364,16 @@ async fn inline_job_fallback(
     let actor_id = Some(
         job_payload
             .get("actor_id")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(0),
-    );
+            .and_then(|v| {
+                Some(
+                    Uuid::from_str(v.as_str().expect("valid uuid as str"))
+                        .expect("invalid job actor_id!?"),
+                )
+            })
+            .unwrap_or(Uuid::new_v4()),
+        // todo ^
+    )
+    .unwrap_or(Uuid::new_v4());
 
     if !jobs::try_claim_job(pool, job_id, OWNER).await? {
         return Ok(false);
@@ -1389,7 +1388,7 @@ async fn inline_job_fallback(
             "type": "progress",
             "data": { "note": "inline fallback executing" }
         }),
-        actor_id,
+        &actor_id,
     )
     .await?;
 
@@ -1402,7 +1401,7 @@ async fn inline_job_fallback(
                     "type": "result",
                     "data": result
                 }),
-                actor_id,
+                &actor_id,
             )
             .await?;
             jobs::complete_job(pool, job_id, OWNER).await?;
@@ -1415,7 +1414,7 @@ async fn inline_job_fallback(
                     "type": "error",
                     "data": { "message": "inline fallback produced no data" }
                 }),
-                actor_id,
+                &actor_id,
             )
             .await?;
             jobs::fail_job(pool, job_id, OWNER, 10).await?;
@@ -1428,7 +1427,7 @@ async fn inline_job_fallback(
                     "type": "error",
                     "data": { "message": err.to_string() }
                 }),
-                actor_id,
+                &actor_id,
             )
             .await?;
             jobs::fail_job(pool, job_id, OWNER, 10).await?;

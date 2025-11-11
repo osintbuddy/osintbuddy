@@ -35,35 +35,8 @@ impl Responder for User {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TokenClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-    pub email: String,
-    pub name: String,
-    pub user_type: String,
-    pub org_id: i64,
-    pub org_subscription_level: String,
-    pub org_max_cases: i32,
-    pub org_max_entities: i32,
-    pub org_can_export: bool,
-    pub org_can_share: bool,
-    pub ctime: DateTime<Utc>,
-    pub mtime: DateTime<Utc>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RefreshClaims {
-    pub sub: String,
-    pub iat: usize,
-    pub exp: usize,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
-    pub access_token: String,
-    pub refresh_token: String,
-    pub token_type: String,
+    pub token: String,
 }
 pub type LogoutUser = Json<Token>;
 
@@ -87,6 +60,14 @@ pub struct RegisterUserSchema {
 }
 
 pub type RegisterUser = Json<RegisterUserSchema>;
+
+#[derive(Deserialize)]
+pub struct LoginCallbackSchema {
+    pub code: String,
+    pub state: String,
+}
+
+pub type LoginCallback = Json<LoginCallbackSchema>;
 
 impl RegisterUserSchema {
     pub fn validate(self) -> Result<RegisterUserSchema, AppError> {

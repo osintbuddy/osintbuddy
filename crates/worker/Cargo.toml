@@ -11,7 +11,6 @@ confik = { workspace = true }
 dotenvy = { workspace = true }
 env_logger = { workspace = true }
 futures-util = { workspace = true }
-jsonwebtoken = { workspace = true }
 log = { workspace = true }
 moka = { workspace = true }
 rand_core = { workspace = true }

@@ -125,7 +125,6 @@ export default function ContextMenu({
                           transform: transform.label,
                         },
                       }
-                      console.log('transform sending', selection, payload)
                       sendJsonMessage(payload)
                       toast.loading(
                         `Transforming ${transform.label.toLowerCase()}. Please wait...`,
