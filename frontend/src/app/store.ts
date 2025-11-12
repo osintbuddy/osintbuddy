@@ -762,8 +762,11 @@ interface PdfViewerTabsState {
 }
 
 export const usePdfViewerStore = create<PdfViewerTabsState>((set, get) => ({
+  // Whether PDFViewer is opened or not 
   open: false,
+  // List of opened PDF documents' ids
   tabs: [],
+  // Active PDF document ID
   active: undefined,
   openViewer: (attachmentId, filename) => {
     const tabs = get().tabs

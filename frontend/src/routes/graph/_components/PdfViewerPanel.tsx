@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks'
+import { Dispatch, StateUpdater, useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useAuthStore, usePdfViewerStore } from '@/app/store'
 import { BASE_URL } from '@/app/baseApi'
 import { Icon } from '@/components/icons'
@@ -7,7 +7,19 @@ import { useCapability } from '@embedpdf/core/react'
 import { EmbedPDF } from '@embedpdf/core/react'
 import { usePdfiumEngine } from '@embedpdf/engines/react'
 import {
+  AnnotationCapability,
+  AnnotationPluginPackage,
+  TrackedAnnotation,
+} from '@embedpdf/plugin-annotation'
+import {
+  AnnotationLayer,
+  useAnnotationCapability,
+} from '@embedpdf/plugin-annotation/react'
+import { HistoryPluginPackage } from '@embedpdf/plugin-history'
+import {
+    useViewportCapability,
   Viewport,
+  ViewportMetrics,
   ViewportPluginPackage,
 } from '@embedpdf/plugin-viewport/react'
 import {
@@ -64,6 +76,7 @@ import ShinyText from '@/components/ShinyText'
 import Tabs from './Tabs'
 import Button from '@/components/buttons'
 import { ThumbnailsPane, ThumbImg } from '@embedpdf/plugin-thumbnail/react'
+import { MenuWrapperProps } from '@embedpdf/utils/react'
 
 interface ThumbnailSidebarProps {
   showThumbnailBar: boolean
@@ -105,15 +118,288 @@ function ThumbnailSidebar({ showThumbnailBar }: ThumbnailSidebarProps) {
   )
 }
 
+interface AnnotationsSelectionMenuProps {
+  menuWrapperProps: MenuWrapperProps
+}
+
+function AnnotationsSelectionMenu({
+  menuWrapperProps,
+}: AnnotationsSelectionMenuProps) {
+  const { provides: annotationApi } = useAnnotationCapability();
+  const { provides: viewportApi } = useViewportCapability();
+
+  const menuContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const [pageHeight, setPageHeight] = useState<number | null>(null);
+
+  // Calculates the position of the selection menu relative to the annotation itself and the viewport size
+  const selectionMenuPosition = useMemo(
+    () => {
+      const annotationWidth: number = menuWrapperProps.style.width as number
+      const annotationLeft: number = menuWrapperProps.style.left as number
+      const annotationHeight: number = menuWrapperProps.style.height as number
+      const annotationTop: number = menuWrapperProps.style.top as number
+
+      if (!menuContainerRef.current || !pageHeight) 
+        return { x: annotationLeft, y: annotationTop }
+
+      const menuContainerHeight: number = menuContainerRef.current.clientHeight
+      const maxPixelOverflow = 5;
+      const realHeight = annotationHeight + annotationTop + menuContainerHeight - maxPixelOverflow;
+
+      let top;
+
+      if (pageHeight <= realHeight) {
+        top = realHeight - annotationHeight - menuContainerHeight * 2
+      }
+      else {
+        top = annotationHeight + annotationTop
+      }
+
+      const offsetToCenter = menuContainerRef.current.clientWidth / 2
+      const left = annotationLeft + (annotationWidth / 2) - offsetToCenter
+
+      return { x: left, y: top }
+    },
+    [menuWrapperProps, menuContainerRef, pageHeight]
+  )
+
+  const [selectionMenuPositionStyle, setSelectionMenuPositionStyle] = useState<{ transform: string }>({
+    transform: `translate(${selectionMenuPosition.x}px, ${selectionMenuPosition.y}px)`,
+  })
+
+  useEffect(() => {
+    if (!viewportApi) return
+
+    // Initial page height
+    setPageHeight(viewportApi?.getMetrics().clientHeight)
+
+    // Update page height on viewport resize
+    const unsubscribe = viewportApi?.onViewportResize((newSize: ViewportMetrics) => {
+      setPageHeight(newSize.clientHeight)
+    })
+
+    return () => unsubscribe()
+  }, [viewportApi])
+
+  useEffect(() => {
+    setSelectionMenuPositionStyle({
+      transform: `translate(${selectionMenuPosition.x}px, ${selectionMenuPosition.y}px)`,
+    })
+  }, [selectionMenuPosition])
+
+ 
+  const deleteSelectedAnnotation = () => {
+    const selection = annotationApi?.getSelectedAnnotation();
+    if (selection) {
+      annotationApi?.deleteAnnotation(selection.object.pageIndex, selection.object.id);
+    }
+  }
+
+  return (
+    <>
+      <div 
+        ref={menuContainerRef}
+        className='absolute left-0 top-0'
+        style={selectionMenuPositionStyle}
+      >
+        <div className='p-1 bg-mirage-950 rounded-lg'>
+          <Button.Icon
+            variant='annotationsSelectionMenuDanger'
+            title='Remove annotation'
+            onClick={deleteSelectedAnnotation}
+          >
+            <Icon icon='trash' className='h-5 w-5' />
+          </Button.Icon>
+        </div>
+      </div>
+    </>
+  )
+}
+
+interface PDFAnnotationsToolbarProps {
+  showAnnotationsToolbar: boolean
+  setShowAnnotationsToolbar: Dispatch<StateUpdater<boolean>>
+}
+
+function PDFAnnotationsToolbar({
+  showAnnotationsToolbar,
+  setShowAnnotationsToolbar,
+}: PDFAnnotationsToolbarProps) {
+  const { provides: annotationApi } = useAnnotationCapability()
+  const [activeToolId, setActiveToolId] = useState<string | null>(null)
+
+  // Keep track of the active tool id state
+  useEffect(() => {
+    if (!annotationApi) return
+    annotationApi?.onStateChange((state) => setActiveToolId(state.activeToolId))
+  }, [annotationApi])
+
+  // When we toggle annotations toolbar, unset the active tool 
+  useEffect(() => {
+    if (!annotationApi) return
+
+    setActiveToolId(null);
+    annotationApi?.setActiveTool(null);
+    annotationApi?.deselectAnnotation();
+  }, [showAnnotationsToolbar])
+
+  // Hide annotations toolbar when the component unmounts. Needed when user switches tabs
+  useEffect(() => {
+    return () => setShowAnnotationsToolbar(false)
+  }, [])
+
+  // Toggles active tool
+  const toggleActiveTool = useCallback(
+    (toolId: string) => {
+      if (!annotationApi) return
+
+      // If there's no active tool or the new tool id is different
+      if (!activeToolId || activeToolId !== toolId) {
+        annotationApi?.setActiveTool(toolId)
+      }
+      // Current tool id is the same as the new tool id
+      else {
+        annotationApi?.setActiveTool(null)
+      }
+    },
+    [activeToolId, annotationApi]
+  );
+
+  return (
+    <>
+      { showAnnotationsToolbar && (
+        <div className='absolute top-8.5 left-0 z-40 flex w-full justify-center text-slate-400'>
+          <section className='relative z-40 flex w-fit items-center justify-between bg-slate-950/99 py-0.5 transition-all duration-150 ease-out'>
+            <div className='flex items-center'>
+              <Button.Icon
+                variant={
+                  activeToolId === 'highlight'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Highlight text'
+                onClick={() => toggleActiveTool('highlight')}
+              >
+                <Icon icon='annotation-highlight' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'underline'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Underline text'
+                onClick={() => toggleActiveTool('underline')}
+              >
+                <Icon icon='annotation-underline' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'strikeout'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Strikethrough text'
+                onClick={() => toggleActiveTool('strikeout')}
+              >
+                <Icon icon='annotation-strikethrough' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'squiggly'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Squiggly text'
+                onClick={() => toggleActiveTool('squiggly')}
+              >
+                <Icon icon='annotation-squiggly' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'ink'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Freehand'
+                onClick={() => toggleActiveTool('ink')}
+              >
+                <Icon icon='annotation-freehand' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'circle'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Circle'
+                onClick={() => toggleActiveTool('circle')}
+              >
+                <Icon icon='annotation-circle' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'square'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Square'
+                onClick={() => toggleActiveTool('square')}
+              >
+                <Icon icon='annotation-square' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'line'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Line'
+                onClick={() => toggleActiveTool('line')}
+              >
+                <Icon icon='annotation-line' className={`h-5 w-5`} />
+              </Button.Icon>
+
+              <Button.Icon
+                variant={
+                  activeToolId === 'lineArrow'
+                    ? 'annotationsToolbarSelected'
+                    : 'annotationsToolbar'
+                }
+                title='Arrow'
+                onClick={() => toggleActiveTool('lineArrow')}
+              >
+                <Icon icon='annotation-arrow' className={`h-5 w-5`} />
+              </Button.Icon>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
+  )
+}
+
 interface PDFToolbarProps {
   showThumbnailBar: boolean
-  setShowThumbnailBar: (value: boolean) => void
+  setShowThumbnailBar: Dispatch<StateUpdater<boolean>>
+  showAnnotationsToolbar: boolean
+  setShowAnnotationsToolbar: Dispatch<StateUpdater<boolean>>
   activeFilename: string
 }
 
 function PDFToolbar({
   showThumbnailBar,
   setShowThumbnailBar,
+  showAnnotationsToolbar,
+  setShowAnnotationsToolbar,
   activeFilename,
 }: PDFToolbarProps) {
   const { provides: zoom, state: zoomState } = useZoom()
@@ -140,13 +426,11 @@ function PDFToolbar({
       setHasSelection(!!sel)
     })
   }, [selection])
-  console.log('wtf', capture, isCaptureActive)
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   // Download images on capture
   useEffect(() => {
-    console.log('useEffect', capture)
     if (!capture) return
 
     const unsubscribe = capture.onCaptureArea((result: CaptureAreaEvent) => {
@@ -173,7 +457,10 @@ function PDFToolbar({
     <>
       <div className='absolute top-0 left-0 z-40 flex w-full items-center text-slate-400'>
         <button
-          onClick={() => setShowToolbar(!showToolbar)}
+          onClick={() => {
+            setShowToolbar(!showToolbar)
+            setShowAnnotationsToolbar(false); // Hide annotations toolbar on toggle
+          }}
           class='bg-mirage-950 hover:text-slate-350 active:text-slate-350 hover:*:animate-wiggle group absolute top-0 right-0 z-50 ml-auto rounded-sm p-1 text-slate-400'
           aria-pressed={showToolbar}
         >
@@ -314,11 +601,21 @@ function PDFToolbar({
           <div className='mr-10 flex items-center'>
             <Button.Icon
               variant='toolbar'
+              title='Open annotations toolbar'
+              onClick={() => setShowAnnotationsToolbar(state => !state)}
+            >
+              <Icon
+                icon='pencil-minus'
+                className={`h-5 w-5 ${showAnnotationsToolbar ? 'text-primary-300' : ''}`}
+              />
+            </Button.Icon>
+            <Button.Icon
+              variant='toolbar'
               title='Redact selected text'
               onClick={() => redact?.toggleRedactSelection()}
             >
               <Icon
-                icon='pencil-minus'
+                icon='redact-selection'
                 className={`h-5 w-5 ${redactState.activeType === 'redactSelection' && redactState.isRedacting && 'text-primary-300'}`}
               />
             </Button.Icon>
@@ -372,6 +669,7 @@ export const PDFViewer = ({
   const pdfStore = usePdfViewerStore()
   const { engine, isLoading } = usePdfiumEngine()
   const [showThumbnailBar, setShowThumbnailBar] = useState(false)
+  const [showAnnotationsToolbar, setShowAnnotationsToolbar] = useState(false);
 
   const plugins = useMemo(
     () => [
@@ -415,14 +713,18 @@ export const PDFViewer = ({
         imageType: 'image/png',
         withAnnotations: true,
       }),
+      createPluginRegistration(HistoryPluginPackage),
+      createPluginRegistration(AnnotationPluginPackage),
     ],
     [blobUrl]
   )
 
   const loaderCap = useCapability<LoaderPlugin>('loader')
   const scrollCap = useCapability<ScrollPlugin>('scroll')
+  
 
   // Load/reload document ONLY when the blob changes, avoids unwanted reloads on graph interactions
+  // Loader capability is never ready. Known bug: https://github.com/embedpdf/embed-pdf-viewer/issues/229
   useEffect(() => {
     if (!blobUrl) return
     if (!loaderCap.provides) return
@@ -454,7 +756,7 @@ export const PDFViewer = ({
     const unsub = loaderCap.provides.onDocumentLoaded.subscribe((doc) => {
       const n = doc?.pageCount ?? 0
       if (n > 0 && pdfStore.active) {
-        onNumPages?.(n)
+        onNumPages?.(n) // Sets number of pages for the active pdf document
         pdfStore.setNumPages(pdfStore.active, n)
         if (scrollCap.provides && page) {
           scrollCap.provides.scrollToPage({
@@ -481,6 +783,7 @@ export const PDFViewer = ({
   // Include pdf.active so switching tabs re-applies the saved position
   useEffect(() => {
     if (!scrollCap.provides || !page) return
+
     scrollCap.provides.scrollToPage({
       pageNumber: page,
       behavior: 'auto',
@@ -494,6 +797,7 @@ export const PDFViewer = ({
   // Include pdf.active so listener captures the right tab state
   useEffect(() => {
     if (!scrollCap.provides || !page) return
+
     const unsub = scrollCap.provides.onLayoutReady.subscribe(() => {
       scrollCap.provides.scrollToPage({
         pageNumber: page,
@@ -502,17 +806,20 @@ export const PDFViewer = ({
         pageCoordinates: coords,
       })
     })
+
     return () => unsub()
   }, [scrollCap.provides, page, coords?.x, coords?.y, pdfStore.active])
 
   // TODO: Fix me. Reflect page + per-page coordinates back to store when user scrolls
   useEffect(() => {
     if (!scrollCap.provides || !pdfStore.active) return
+
     const unsubChange = scrollCap.provides.onPageChange.subscribe(
       ({ pageNumber }) => {
         if (pdfStore.active) pdfStore.setPage(pdfStore.active, pageNumber)
       }
     )
+
     const unsubScroll = scrollCap.provides.onScroll.subscribe((metrics) => {
       const current = metrics.currentPage
       const pm = metrics.pageVisibilityMetrics.find(
@@ -524,6 +831,7 @@ export const PDFViewer = ({
         y: pm.original.pageY,
       })
     })
+
     return () => {
       unsubChange()
       unsubScroll()
@@ -547,9 +855,16 @@ export const PDFViewer = ({
         <EmbedPDF engine={engine} plugins={plugins}>
           <PDFToolbar
             activeFilename={activeFilename}
+            showAnnotationsToolbar={showAnnotationsToolbar}
+            setShowAnnotationsToolbar={setShowAnnotationsToolbar}
             showThumbnailBar={showThumbnailBar}
             setShowThumbnailBar={setShowThumbnailBar}
           />
+          <PDFAnnotationsToolbar
+            showAnnotationsToolbar={showAnnotationsToolbar}
+            setShowAnnotationsToolbar={setShowAnnotationsToolbar}
+          />
+
           <GlobalPointerProvider>
             <Viewport
               className={`absolute top-0 bg-transparent ${showThumbnailBar && 'left-10'}`}
@@ -569,18 +884,30 @@ export const PDFViewer = ({
                     rotation={rotation}
                     scale={scale}
                   >
-                    <div style={{ width, height }}>
-                      <RenderLayer pageIndex={pageIndex} scale={0.5} />
-                      <TilingLayer pageIndex={pageIndex} scale={scale} />
-                      <SelectionLayer pageIndex={pageIndex} scale={scale} />
-                      <RedactionLayer
-                        pageIndex={pageIndex}
-                        scale={scale}
-                        rotation={rotation}
-                      />
-                      <MarqueeZoom pageIndex={pageIndex} scale={scale} />
-                      <MarqueeCapture pageIndex={pageIndex} scale={scale} />
-                    </div>
+                    <RenderLayer pageIndex={pageIndex} scale={0.5} />
+                    <TilingLayer pageIndex={pageIndex} scale={scale} />
+                    <SelectionLayer pageIndex={pageIndex} scale={scale} />
+                    <AnnotationLayer
+                      pageIndex={pageIndex}
+                      pageWidth={width}
+                      pageHeight={height}
+                      rotation={rotation}
+                      scale={scale}
+                      selectionMenu={({ selected, menuWrapperProps }) => (
+                          <>
+                            { selected ? (
+                              <AnnotationsSelectionMenu menuWrapperProps={menuWrapperProps} />
+                            ): null}
+                          </>
+                      )}
+                    />
+                    <RedactionLayer
+                      pageIndex={pageIndex}
+                      scale={scale}
+                      rotation={rotation}
+                    />
+                    <MarqueeZoom pageIndex={pageIndex} scale={scale} />
+                    <MarqueeCapture pageIndex={pageIndex} scale={scale} />
                   </PagePointerProvider>
                 )}
               />
@@ -607,9 +934,10 @@ export default function PdfViewerPanel({
 
   useEffect(() => {
     let revoke: string | null = null
+
     const load = async () => {
       if (!pdf.open || !pdf.active) return
-      setBlobUrl(null)
+
       try {
         const resp = await fetch(
           `${BASE_URL}/entities/attachments/${pdf.active}`,
@@ -626,7 +954,9 @@ export default function PdfViewerPanel({
         console.error(err)
       }
     }
+
     load()
+
     return () => {
       if (revoke) URL.revokeObjectURL(revoke)
     }
@@ -636,6 +966,7 @@ export default function PdfViewerPanel({
 
   const onTabChange = (tabId: string) => pdf.setActive(tabId)
   const onTabClose = (tabId: string) => pdf.closeTab(tabId)
+
   if (!pdf.open) return null
 
   return (
@@ -662,12 +993,6 @@ export default function PdfViewerPanel({
                 <Icon icon='lock' className='h-5 w-5 text-inherit' />
               )}
             </button>
-            {/* {pdf.active && activePdf?.numPages && (
-              <div className='text-[11px] text-slate-400'>
-                Page <span class='text-slate-300'>{activePdf?.page}</span> of{' '}
-                {activePdf?.numPages}
-              </div>
-            )} */}
             <button
               onClick={() => pdf.closeViewer()}
               className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'

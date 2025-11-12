@@ -7,7 +7,12 @@ export interface ButtonProps
   variant: ButtonStyle
 }
 
-export type ButtonIconStyle = 'toolbar'
+export type ButtonIconStyle = 
+  'toolbar' |
+  'annotationsToolbar' |
+  'annotationsToolbarSelected' |
+  'annotationsSelectionMenuDanger'
+
 export interface IconButtonProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ComponentChildren
@@ -17,6 +22,12 @@ export interface IconButtonProps
 const icon = {
   toolbar:
     'bg-mirage-950 hover:border-primary-350 hover:text-slate-350 border-slate-900 hover:bg-slate-900 focus:bg-slate-900/60',
+  annotationsToolbar:
+    'bg-mirage-950 hover:border-primary-350 border-slate-900 hover:bg-slate-900 focus:bg-slate-900/60',
+  annotationsToolbarSelected:
+    'bg-primary-300 border-primary-350',
+  annotationsSelectionMenuDanger:
+    'text-white hover:cursor-pointer hover:text-red-600 border-none',
 }
 
 export function Icon(props: IconButtonProps): JSX.Element {
