@@ -379,6 +379,10 @@ input[type='number'] {
   --xy-background-color-props: #0d101a91;
 }
 
+/* annotation-highlight svg's highlight preview color */
+.rect-highlight {
+  fill: orangered;
+}
 
 .react-flow__edge .react-flow__edge-path {
   stroke: #373c83 !important;
