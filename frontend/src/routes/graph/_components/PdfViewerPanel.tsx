@@ -119,12 +119,10 @@ function ThumbnailSidebar({ showThumbnailBar }: ThumbnailSidebarProps) {
 }
 
 interface AnnotationsSelectionMenuProps {
-  selected: TrackedAnnotation
   menuWrapperProps: MenuWrapperProps
 }
 
 function AnnotationsSelectionMenu({
-  selected,
   menuWrapperProps,
 }: AnnotationsSelectionMenuProps) {
   const { provides: annotationApi } = useAnnotationCapability();
@@ -134,6 +132,7 @@ function AnnotationsSelectionMenu({
 
   const [pageHeight, setPageHeight] = useState<number | null>(null);
 
+  // Calculates the position of the selection menu relative to the annotation itself and the viewport size
   const selectionMenuPosition = useMemo(
     () => {
       const annotationWidth: number = menuWrapperProps.style.width as number
@@ -147,10 +146,6 @@ function AnnotationsSelectionMenu({
       const menuContainerHeight: number = menuContainerRef.current.clientHeight
       const maxPixelOverflow = 5;
       const realHeight = annotationHeight + annotationTop + menuContainerHeight - maxPixelOverflow;
-
-      console.log(menuContainerHeight)
-      console.log("Real height: " + realHeight)
-      console.log("Page height: " + pageHeight)
 
       let top;
 
@@ -188,7 +183,6 @@ function AnnotationsSelectionMenu({
   }, [viewportApi])
 
   useEffect(() => {
-    console.log(selectionMenuPosition)
     setSelectionMenuPositionStyle({
       transform: `translate(${selectionMenuPosition.x}px, ${selectionMenuPosition.y}px)`,
     })
@@ -899,13 +893,10 @@ export const PDFViewer = ({
                       pageHeight={height}
                       rotation={rotation}
                       scale={scale}
-                      selectionMenu={({ annotation, selected, menuWrapperProps }) => (
+                      selectionMenu={({ selected, menuWrapperProps }) => (
                           <>
                             { selected ? (
-                              <AnnotationsSelectionMenu 
-                                menuWrapperProps={menuWrapperProps}
-                                selected={annotation}
-                              />
+                              <AnnotationsSelectionMenu menuWrapperProps={menuWrapperProps} />
                             ): null}
                           </>
                       )}
@@ -943,13 +934,11 @@ export default function PdfViewerPanel({
 
   useEffect(() => {
     let revoke: string | null = null
+
     const load = async () => {
       if (!pdf.open || !pdf.active) return
-      // setBlobUrl(null)
+
       try {
-        console.log(
-          'Attachment link: ' + `${BASE_URL}/entities/attachments/${pdf.active}`
-        )
         const resp = await fetch(
           `${BASE_URL}/entities/attachments/${pdf.active}`,
           {
@@ -965,7 +954,9 @@ export default function PdfViewerPanel({
         console.error(err)
       }
     }
+
     load()
+
     return () => {
       if (revoke) URL.revokeObjectURL(revoke)
     }
@@ -975,6 +966,7 @@ export default function PdfViewerPanel({
 
   const onTabChange = (tabId: string) => pdf.setActive(tabId)
   const onTabClose = (tabId: string) => pdf.closeTab(tabId)
+
   if (!pdf.open) return null
 
   return (
@@ -1001,12 +993,6 @@ export default function PdfViewerPanel({
                 <Icon icon='lock' className='h-5 w-5 text-inherit' />
               )}
             </button>
-            {/* {pdf.active && activePdf?.numPages && (
-              <div className='text-[11px] text-slate-400'>
-                Page <span class='text-slate-300'>{activePdf?.page}</span> of{' '}
-                {activePdf?.numPages}
-              </div>
-            )} */}
             <button
               onClick={() => pdf.closeViewer()}
               className='hover:text-alert-700 font-display t whitespace-nowrap text-slate-800'
