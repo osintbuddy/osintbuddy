@@ -1,4 +1,3 @@
-[![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
@@ -70,11 +69,9 @@ All submissions must conform with our [developer policies](./DEVELOPER_POLICIES.
 - Clearly disclose network calls and data collection.
 - For OSINTBuddy plugin issues, use: https://github.com/osintbuddy/osintbuddy/issues
 
-[contributors-shield]: https://img.shields.io/github/contributors/jerlendds/osintbuddy.svg?style=for-the-badge
-[contributors-url]: https://github.com/jerlendds/osintbuddy/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/jerlendds/osintbuddy.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/osintbuddy/osintbuddy.svg?style=for-the-badge
 [forks-url]: https://github.com/jerlendds/osintbuddy/network/members
 [stars-shield]: https://img.shields.io/github/stars/jerlendds/osintbuddy.svg?style=for-the-badge
 [stars-url]: https://github.com/jerlendds/osintbuddy/stargazers
-[issues-shield]: https://img.shields.io/github/issues/jerlendds/osintbuddy.svg?style=for-the-badge
-[issues-url]: https://github.com/jerlendds/osintbuddy/issues
+[issues-shield]: https://img.shields.io/github/issues/osintbuddy/osintbuddy.svg?style=for-the-badge
+[issues-url]: https://github.com/osintbuddy/osintbuddy/issues
