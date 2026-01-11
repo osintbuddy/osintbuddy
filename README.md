@@ -21,6 +21,17 @@
 This repository hosts public OSINTBuddy releases plus the community plugin and theme registries.
 It does not contain the OSINTBuddy application source code.
 
+## Community
+
+OSINTBuddy is currently developed by an individual aiming to grow into a small focused team.  
+There is no open contribution process as of now however you may contribute plugins to this repo or in time, themes too.
+
+- **Website**: https://osintbuddy.com
+- **Email**: jerlendds@osintbuddy.com
+- **Discord**: [Join our community](https://discord.gg/b8vW4J4skv) for discussions and support.
+- **PyPi**: [Install the package](https://pypi.org/project/osintbuddy/) to get started.
+- **Public plugin registry**: _You are here._
+
 ## Submissions
 
 1. Fork this repo and open a PR.
@@ -43,6 +54,7 @@ Optional fields:
 - `tags`
 - `min_app_version`
 - `homepage`
+<!--
 
 ### Community Themes format
 
@@ -58,7 +70,7 @@ Optional fields:
 
 - `version`
 - `tags`
-- `publish`: boolean for themes compatible with OSINTBuddy Publish (if/when supported)
+- `publish`: boolean for themes compatible with OSINTBuddy Publish (if/when supported) -->
 
 ## Policies
 

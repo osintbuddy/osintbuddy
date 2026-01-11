@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "osintbuddy-entities",
+    "name": "OSINTBuddy Entities",
+    "author": "OSINTBuddy",
+    "description": "Official default entity definitions for OSINTBuddy.",
+    "repo": "https://github.com/osintbuddy/plugins"
+  }
+]
