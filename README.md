@@ -8,7 +8,7 @@
 
 <p>
   <a href="https://github.com/osintbuddy/osintbuddy">
-    <img src="./frontend/src/assets/images/watermark.svg" height="130px" alt="Logo">
+    <img src="./watermark.svg" height="130px" alt="Logo">
   </a>
 
 > *I have no data yet. It is a capital mistake to theorize before one has data. Insensibly
