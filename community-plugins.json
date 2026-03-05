@@ -1,9 +1,16 @@
 [
   {
-    "id": "osintbuddy-entities",
-    "name": "OSINTBuddy Entities",
+    "id": 1,
+    "name": "The Official OSIB Entities",
     "author": "OSINTBuddy",
-    "description": "Official default entity definitions for OSINTBuddy.",
-    "repo": "https://github.com/osintbuddy/plugins"
+    "description": "The official default entity and transform definitions for the OSINTBuddy app.",
+    "repo": "osintbuddy/plugins"
+  },
+  {
+    "id": 2,
+    "name": "Google CSEs Pack",
+    "author": "jerlendds",
+    "description": "A set of OSIB plugins for pulling data from Google CSEs (Custom Programmable Search Engines).",
+    "repo": "jerlendds/google-cses"
   }
 ]
