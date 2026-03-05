@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "The Official OSIB Entities",
-    "author": "OSINTBuddy",
+    "author": "OSIB Team",
     "description": "The official default entity and transform definitions for the OSINTBuddy app.",
     "repo": "osintbuddy/plugins"
   },
